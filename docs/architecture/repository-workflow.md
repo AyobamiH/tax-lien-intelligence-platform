@@ -24,10 +24,18 @@ Every pull request must pass the `quality-gates` GitHub Actions job. The job run
 
 ## Branch Protection
 
-`main` is protected to require pull requests and passing status checks before
-merge. Force pushes and branch deletion must remain disabled. This follows the
-GitHub protected branch model where important branches can require reviews and
-status checks before merge.
+Required target state:
+
+- `main` requires pull requests before merge
+- `main` requires the `quality-gates` status check before merge
+- force pushes are disabled
+- branch deletion is disabled
+
+Current state: GitHub rejected branch protection for the private personal
+repository because the account/repository plan does not currently allow protected
+branches on private repositories. Do not begin Phase 2 authentication work until
+this is resolved by moving the repository to an eligible organization/plan or
+enabling GitHub Pro/Team/Enterprise.
 
 ## Development Discipline
 

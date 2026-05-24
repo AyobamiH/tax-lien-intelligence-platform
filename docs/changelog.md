@@ -4,6 +4,8 @@
 
 - Added CI quality gate workflow and repository workflow documentation.
 - Tagged the verified Phase 1 baseline as `v0.1-phase1-baseline`.
+- Documented branch protection as blocked until the private repository is on an
+  eligible GitHub plan or organization.
 - Created Phase 1 monorepo baseline.
 - Added Express API with `/healthz`.
 - Added React/Vite/Tailwind frontend shell.
