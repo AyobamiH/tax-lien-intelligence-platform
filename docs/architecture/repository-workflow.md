@@ -2,9 +2,18 @@
 
 ## Repository
 
-The production repository is private:
+The primary production repository is private:
+
+`https://github.com/OneClickPostFactory/tax-lien-intelligence-platform`
+
+The personal repository is a backup mirror only:
 
 `https://github.com/AyobamiH/tax-lien-intelligence-platform`
+
+Local remotes must be configured as:
+
+- `oneclick`: primary startup repository
+- `origin`: personal backup mirror
 
 The default branch is `main`.
 
@@ -31,11 +40,38 @@ Required target state:
 - force pushes are disabled
 - branch deletion is disabled
 
-Current state: GitHub rejected branch protection for the private personal
-repository because the account/repository plan does not currently allow protected
-branches on private repositories. Do not begin Phase 2 authentication work until
-this is resolved by moving the repository to an eligible organization/plan or
-enabling GitHub Pro/Team/Enterprise.
+Current state: GitHub protected branches are not available for this repository.
+The team enforces soft protection manually.
+
+## Soft Protection
+
+Until GitHub branch protection is available:
+
+- never commit directly to `main`
+- develop on `feature/*` branches
+- push feature branches to `oneclick`
+- validate the `quality-gates` CI job before merge
+- review diffs manually before merge
+- optionally mirror `main` to `origin` after primary validation
+
+The CI workflow intentionally fails direct non-merge pushes to `main` with:
+
+`Direct pushes to main are not allowed`
+
+## Local Pre-Push Hook
+
+The repository tracks `.githooks/pre-push`. Configure it locally with:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook runs:
+
+- `npm install`
+- `npm run typecheck`
+- `npm run test`
+- `npm run build`
 
 ## Development Discipline
 

@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+set -eu
+
+echo "[pre-push] Installing dependencies"
+npm install
+
+echo "[pre-push] Running TypeScript checks"
+npm run typecheck
+
+echo "[pre-push] Running tests"
+npm run test
+
+echo "[pre-push] Running build"
+npm run build
+
+echo "[pre-push] Quality gates passed"
