@@ -1,0 +1,229 @@
+# Backend Direction KB
+
+## What This File Governs
+
+This file governs backend direction: API responsibilities, service boundaries,
+validation philosophy, error philosophy, and implementation order.
+
+It does not define exact endpoint schemas. Endpoint schemas belong in `docs/api`
+and shared DTO types.
+
+## Current Backend Reality
+
+Current implementation:
+
+- Express app factory;
+- Helmet middleware;
+- CORS middleware;
+- JSON body limit of `1mb`;
+- `GET /healthz`;
+- structured 404;
+- startup connects to MongoDB;
+- env parsing with `zod`;
+- no auth routes;
+- no protected routes;
+- no user model;
+- no parcel/lien models;
+- no upload endpoint.
+
+## Intended Backend Role
+
+The backend should become the trusted boundary for:
+
+- authentication;
+- tenant identity;
+- dataset ingestion;
+- validation;
+- normalized storage;
+- scoring orchestration;
+- watchlist persistence;
+- future portfolio records;
+- audit events;
+- security enforcement.
+
+The backend must not rely on frontend behavior for authorization.
+
+## Auth Direction
+
+Phase 2 should introduce:
+
+- user model;
+- registration endpoint;
+- login endpoint;
+- password hashing;
+- JWT issuance;
+- JWT verification middleware;
+- `GET /auth/me`;
+- protected-route tests;
+- duplicate email handling;
+- invalid/malformed payload handling;
+- expired/invalid token handling.
+
+Security requirement:
+
+- server derives the authenticated user from the verified token;
+- client-supplied `userId` is never trusted.
+
+## Dataset Direction
+
+Dataset ingestion should come after auth. A dataset should belong to exactly one
+user and should capture upload metadata and validation outcome.
+
+Future backend responsibilities:
+
+- validate file presence;
+- validate file type/size;
+- parse CSV safely;
+- reject empty or malformed CSVs;
+- record validation errors;
+- avoid partial unsafe persistence;
+- associate every stored row with `userId`.
+
+## Scoring Direction
+
+The backend should call the pure scoring package rather than embedding scoring
+logic directly in route handlers.
+
+The scoring package should remain deterministic and independently testable.
+The API should persist or return score outputs with reasoning and flags.
+
+## Watchlist Direction
+
+Watchlist endpoints should:
+
+- require auth;
+- verify ownership of the parcel/score being watched;
+- prevent cross-user references;
+- support add/remove/list;
+- preserve user decision context.
+
+## Future Portfolio Direction
+
+Portfolio features should wait until watchlist and decision workflows exist.
+Portfolio records should be tenant-owned and should not imply financial
+performance guarantees.
+
+## Service Boundaries
+
+Preferred backend boundaries:
+
+- route layer handles HTTP shape;
+- validation layer parses input;
+- service layer handles business logic;
+- model/data layer handles persistence;
+- scoring package handles pure underwriting calculations;
+- shared types define API contracts where appropriate.
+
+Avoid large route handlers that combine validation, persistence, scoring, and
+authorization in one place.
+
+## Validation Philosophy
+
+Validate every external input:
+
+- request bodies;
+- route params;
+- query params;
+- auth headers;
+- CSV file fields;
+- numeric ranges;
+- enum values;
+- object IDs.
+
+Use schema validation where possible. `zod` is already present and should be
+used consistently.
+
+## Error Philosophy
+
+Errors should be structured and safe:
+
+```json
+{
+  "error": {
+    "code": "example_error_code",
+    "message": "Human-readable safe message."
+  }
+}
+```
+
+Do not expose:
+
+- stack traces;
+- raw database errors;
+- secrets;
+- file contents;
+- another tenant's identifiers.
+
+## Jobs And Workers Direction
+
+No jobs/workers exist today.
+
+Future automation may need background processing for large files, enrichment, or
+alerts. That should wait until core ingestion and scoring are stable.
+
+When introduced, background work must include:
+
+- tenant ownership;
+- idempotency;
+- failure state;
+- observability;
+- rate/size limits;
+- safe retry behavior.
+
+## Implementation Order
+
+Backend implementation order should stay disciplined:
+
+1. auth and user model;
+2. tenant-scoped data models;
+3. CSV upload and validation;
+4. scoring package implementation;
+5. scored parcel APIs;
+6. watchlist APIs;
+7. later portfolio and automation.
+
+Do not introduce automation before the manual workflow is correct.
+
+## What Not To Overbuild Too Early
+
+Avoid:
+
+- generic job systems before uploads exist;
+- complex roles before single-user tenancy is secure;
+- admin APIs before audit/security controls;
+- AI workflows before deterministic scoring;
+- portfolio performance tracking before watchlist decisions.
+
+## Security Expectations
+
+Every backend feature must include:
+
+- auth decision;
+- validation schema;
+- ownership check if user-owned;
+- tests for invalid input;
+- tests for unauthorized access;
+- docs;
+- safe error behavior.
+
+## Drift Risks
+
+Backend drift risks:
+
+- route handlers growing without service boundaries;
+- client-supplied `userId`;
+- unvalidated CSV ingestion;
+- scoring logic duplicated outside the scoring package;
+- inconsistent error shapes;
+- permissive CORS into production;
+- hidden assumptions that are not tested.
+
+## Update Rules
+
+Update this file when:
+
+- backend architecture changes;
+- new endpoint groups are added;
+- service boundaries change;
+- auth or tenant enforcement changes;
+- jobs/workers become real.

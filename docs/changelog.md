@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-05-25
+
+- Accepted `feature/repository-discipline-and-auth-foundation` into local
+  `main` by fast-forward.
+- Added a full repo-grounded KB pack under `docs/kb/`.
+- Added `docs/kb/security-hardening-kb.md` to make security posture, trust
+  boundaries, tenant isolation, and future hardening requirements first-class
+  architecture knowledge.
+- Added `docs/README.md` as a top-level documentation index.
+
 ## 2026-05-24
 
 - Added local pre-push quality gate hook.

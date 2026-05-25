@@ -1,0 +1,240 @@
+# Master Product KB
+
+## What This File Governs
+
+This file governs product identity and direction for the Tax Lien Intelligence
+Platform. It explains what the SaaS is trying to become, what it is not, and how
+future features should be judged against the product purpose.
+
+It does not govern exact API schemas, implementation details, or UI component
+choices. Those belong in the repo, API docs, frontend direction KB, backend
+direction KB, and shared contract KB.
+
+## Current Product Identity
+
+The Tax Lien Intelligence Platform is intended to be a multi-tenant SaaS that
+turns county parcel and tax lien datasets into structured investment decisions.
+
+The product is not yet fully implemented. The current repo is a Phase 1
+foundation. The product identity is visible through the README, package
+description, architecture docs, and frontend shell copy.
+
+Current evidence:
+
+- the README describes a production-grade multi-tenant SaaS for county parcel and
+  tax lien data;
+- the root package describes scoring tax lien and parcel datasets;
+- the frontend shell says the goal is to turn county parcel data into structured
+  investment decisions;
+- architecture docs say every future user-owned document must include `userId`.
+
+## What This SaaS Is
+
+This is a decision-support platform for tax lien and parcel opportunity review.
+The system should help users move from raw county data to a more disciplined
+shortlist of opportunities.
+
+The intended product loop is:
+
+1. a user signs in;
+2. the user uploads a county parcel or lien dataset;
+3. the system parses and validates the dataset;
+4. parcels or liens are stored under that user's tenant boundary;
+5. the scoring engine evaluates opportunity quality and risk;
+6. the user reviews scored rows with explanations and warnings;
+7. the user adds promising items to a watchlist;
+8. the user tracks decisions over time.
+
+This loop is future direction. In the current repo, only the foundation exists.
+
+## What This SaaS Is Not
+
+This product is not:
+
+- a guaranteed investment return engine;
+- a legal, tax, or financial advice system;
+- a foreclosure automation product;
+- a scraper-first automation platform;
+- an AI-first product;
+- a single-user desktop script;
+- a generic spreadsheet viewer;
+- a county data marketplace;
+- a replacement for due diligence.
+
+Future copy and UI must avoid implying that the software can guarantee profit,
+eliminate diligence, or make investment decisions on behalf of the user.
+
+## Category And Positioning
+
+Category direction:
+
+- tax lien intelligence;
+- parcel dataset analysis;
+- underwriting support;
+- investment decision workflow;
+- multi-tenant SaaS for operators.
+
+Positioning direction:
+
+The platform should feel like an operator-grade underwriting workspace. It should
+help users inspect noisy public data, understand risk, and prioritize the liens
+or parcels worth deeper review.
+
+It should not feel like a speculative trading game, a flashy AI toy, or a
+marketing site pretending to be a product.
+
+## Target Users
+
+Likely target users:
+
+- tax lien investors;
+- small real-estate investment operators;
+- analysts reviewing county parcel data;
+- teams managing lien opportunity pipelines;
+- individual investors who need structure and discipline.
+
+This is inferred from product docs and repo naming. No implemented persona system
+or onboarding flow exists yet.
+
+## Value Proposition
+
+The intended value proposition is:
+
+- reduce manual spreadsheet chaos;
+- identify safer, higher-quality opportunities faster;
+- explain why an opportunity scores well or poorly;
+- separate investable-looking records from risky or incomplete records;
+- preserve user decisions in a repeatable workflow.
+
+The value is decision quality, not just speed.
+
+## Core User Loop
+
+Future core loop:
+
+1. Upload dataset.
+2. Validate and normalize rows.
+3. Store tenant-owned parcel/lien records.
+4. Score each opportunity.
+5. Show score, risk, liquidity, redemption likelihood, flags, and reasoning.
+6. Let the user filter, inspect, and shortlist.
+7. Persist watchlist and decisions.
+8. Let the user return later and continue from saved state.
+
+Current implementation:
+
+- no upload endpoint;
+- no parcel/lien schema;
+- no scoring implementation;
+- no watchlist;
+- no persisted decision workflow.
+
+## Trust Philosophy
+
+This product must earn trust by showing its work.
+
+Tax lien investing involves downside risk. The platform should make risk visible
+instead of hiding it behind a single score. Every score should eventually include
+reasoning and warnings that a user can inspect.
+
+Trust requires:
+
+- clear data provenance;
+- transparent scoring factors;
+- warnings for missing or low-confidence data;
+- strong tenant isolation;
+- plain explanations;
+- no fake precision;
+- no unsupported claims.
+
+## Why Explainability Matters
+
+Explainability is central because users are making investment decisions. A score
+without reasoning can encourage blind trust.
+
+The eventual scoring system should explain:
+
+- why value coverage is strong or weak;
+- why a property type helps or hurts the score;
+- whether access/usability creates hard risk;
+- how missing data reduces confidence;
+- why redemption likelihood is estimated high or low;
+- why liquidity may be strong or weak.
+
+Current implementation truth: the scoring package is a placeholder and does not
+yet produce scores, flags, or reasoning.
+
+## Why This Is A Decision-Support System
+
+The product should help users make better decisions. It should not make final
+investment decisions for them.
+
+The system can rank, flag, explain, and organize. It should not imply that a
+parcel is safe to bid without independent due diligence.
+
+Decision-support wording is safer and more accurate than autonomous-investment
+wording.
+
+## Product Principles
+
+- Current truth over aspirational claims.
+- Tenant isolation before user-owned workflows.
+- Manual-first before automation.
+- Explainability before ranking polish.
+- Data validation before scoring.
+- Security and trust boundaries before public growth.
+- Small complete phases over large partial systems.
+- Tests and docs with every feature.
+
+## Non-Goals
+
+Near-term non-goals:
+
+- AI recommendations;
+- automatic bidding;
+- foreclosure workflow;
+- county API marketplace;
+- portfolio analytics before watchlist exists;
+- broad automation before ingestion and scoring are reliable;
+- multi-role enterprise admin before single-tenant user workflows are secure.
+
+## Long-Term Direction
+
+Long-term direction may include:
+
+- richer scoring models;
+- historical redemption data;
+- external data enrichment;
+- geographic demand signals;
+- watchlist monitoring;
+- portfolio tracking;
+- alerting;
+- automation for recurring county files;
+- team workflows;
+- audit trails.
+
+These are future directions. They should be introduced only after auth,
+multi-tenancy, ingestion, scoring, and watchlist foundations are real.
+
+## Drift Risks
+
+The biggest product drift risks are:
+
+- describing future workflows as current capability;
+- overbuilding automation before core data quality exists;
+- building UI pages that are not backed by APIs;
+- treating scoring as a simple formula instead of explainable underwriting;
+- weakening tenant isolation to move faster;
+- using investment hype language instead of decision-support language.
+
+## Update Rules
+
+Update this file when:
+
+- product scope changes;
+- a phase graduates from future direction to implemented capability;
+- product positioning changes;
+- new non-goals are decided;
+- trust or explainability principles change.
+
+When updating, keep current implementation and future direction clearly separated.
