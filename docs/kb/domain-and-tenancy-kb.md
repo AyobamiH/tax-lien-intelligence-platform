@@ -5,8 +5,9 @@
 This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
-It does not define every database schema. User, dataset, scored-record, and
-watchlist item schemas now exist; standalone parcel and portfolio schemas do not.
+It does not define every database schema. User, dataset, scored-record,
+watchlist item, and portfolio item schemas now exist; a standalone parcel schema
+does not.
 When schemas are added, this file must be updated to reflect actual fields and
 ownership rules.
 
@@ -18,11 +19,12 @@ Current implementation:
 - dataset model exists for authenticated manual CSV uploads;
 - scored-record model exists for first-pass scoring outputs;
 - watchlist item model exists for user-owned scored-record shortlists;
+- portfolio item model exists for user-owned tracked decisions/status;
 - frontend review surface exposes user-owned datasets and scored records through
   authenticated API calls;
 - frontend watchlist surface exposes user-owned shortlisted scored records;
+- frontend portfolio surface exposes user-owned tracked records and status;
 - no parcel model;
-- no portfolio model.
 
 Current documentation direction:
 
@@ -75,10 +77,13 @@ context to support comparison without exposing another tenant's data.
 
 ### Portfolio
 
-Portfolio direction means tracking chosen opportunities and investment decisions
-over time. It is future direction after core upload/scoring/watchlist workflows.
+Portfolio means tracking chosen opportunities and investment decisions over
+time without pretending to be accounting, brokerage, or auction software.
 
-Current status: not implemented.
+Current status: implemented as a tenant-owned portfolio item model and
+add/list/detail/status/delete API. Portfolio items can be created from an owned
+scored record or an owned watchlist item. They preserve score context, flags,
+reasoning, and a simple status history timestamp.
 
 ## Multi-Tenant Rule
 
@@ -142,9 +147,9 @@ Future code must:
 The tenancy boundary is one of the most important security boundaries in the
 product. Phase 2 establishes authenticated user identity. Phase 3 uses that
 identity for tenant-owned dataset records. Phase 4 uses it for scored records.
-Phase 6 uses it for watchlist items. Future standalone parcel and portfolio
-models must build on the same ownership pattern rather than inventing a parallel
-boundary.
+Phase 6 uses it for watchlist items. Phase 7 uses it for portfolio items. Future
+standalone parcel models must build on the same ownership pattern rather than
+inventing a parallel boundary.
 
 Recommended pattern:
 
@@ -178,6 +183,8 @@ Domain and tenancy drift risks:
 - adding scoring outputs without dataset/source row linkage;
 - storing watchlist items without verifying ownership of the underlying scored
   record;
+- storing portfolio items without verifying ownership of the underlying scored
+  record or watchlist item;
 - creating admin-like endpoints before user boundaries exist.
 
 ## Update Rules
@@ -188,4 +195,4 @@ Update this file when:
 - ownership rules change;
 - cross-user isolation tests are added;
 - domain concepts are renamed;
-- portfolio or automation records become real.
+- automation records become real.

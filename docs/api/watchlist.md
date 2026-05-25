@@ -105,5 +105,7 @@ Possible watchlist errors:
 
 ## Current Limitation
 
-The watchlist is intentionally a shortlist foundation. It does not yet include
-notes, tags, portfolio status, team collaboration, alerts, or auction execution.
+The watchlist is intentionally a shortlist foundation. Phase 7 adds separate
+portfolio/status tracking for items promoted from scored results or the
+watchlist. The watchlist itself does not include notes, tags, team
+collaboration, alerts, auction execution, or accounting-style tracking.

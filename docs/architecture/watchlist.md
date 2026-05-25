@@ -24,11 +24,12 @@ Not implemented:
 
 - notes;
 - tags;
-- decision statuses;
-- portfolio tracking;
 - alerts;
 - collaboration;
 - auction execution workflows.
+
+Phase 7 implements portfolio/status tracking as a separate layer. The watchlist
+remains the shortlist comparison layer.
 
 ## Data Model
 
@@ -67,6 +68,7 @@ The frontend integrates watchlist state into the Phase 5 review surface:
 - scored rows show whether they are already kept;
 - selected score details can be kept or removed;
 - the watchlist page renders a dense comparison table;
+- watchlist rows can be promoted to portfolio tracking;
 - selected watchlist detail displays reasoning and flags.
 
 The UI does not treat hidden buttons or local state as authorization. Backend
@@ -97,7 +99,8 @@ investment interest. Security expectations:
 
 Do not:
 
-- turn watchlist into portfolio tracking without a new phase;
+- merge watchlist and portfolio responsibilities back into one generic saved
+  item surface;
 - accept client-submitted score snapshots;
 - add notes/statuses without validation and tenancy tests;
 - expose `userId` in browser responses;
@@ -108,6 +111,6 @@ Do not:
 Update this document when:
 
 - watchlist fields change;
-- notes, tags, statuses, or portfolio handoff become real;
+- notes, tags, or deeper portfolio handoff behavior become real;
 - scoring/watchlist refresh behavior changes;
 - watchlist endpoints or response contracts change.

@@ -36,6 +36,15 @@ Current shared types in `packages/types`:
 - `AddWatchlistItemResponse`;
 - `WatchlistListResponse`;
 - `DeleteWatchlistItemResponse`.
+- `PortfolioStatus`;
+- `AddPortfolioItemRequest`;
+- `UpdatePortfolioItemRequest`;
+- `PortfolioItemResponse`;
+- `AddPortfolioItemResponse`;
+- `PortfolioListResponse`;
+- `PortfolioDetailResponse`;
+- `UpdatePortfolioItemResponse`;
+- `DeletePortfolioItemResponse`.
 
 Current scoring package:
 
@@ -77,7 +86,6 @@ Likely future DTO families:
 
 - auth request types if the frontend begins importing them;
 - parcel row;
-- portfolio item;
 - API error codes.
 
 Avoid adding types too early when the domain is still being discovered. Add them
@@ -204,6 +212,35 @@ before creating a watchlist item. The frontend must not submit score values or
 
 Future watchlist contracts may add notes, tags, or decision status, but only
 with validation, API docs, and tenancy tests.
+
+## Portfolio Object Contract
+
+Current portfolio contracts include:
+
+- portfolio item id;
+- source dataset id;
+- source scored record id;
+- optional source watchlist item id;
+- status;
+- status update timestamp;
+- source row number;
+- normalized field snapshot;
+- score summary;
+- flags;
+- reasoning;
+- scored timestamp;
+- tracked timestamp;
+- created/updated timestamps.
+
+Portfolio creation accepts exactly one owned `scoredRecordId` or one owned
+`watchlistItemId`. The backend verifies ownership and creates the score snapshot.
+The frontend must not submit score values or `userId`.
+
+Current status values are `tracked`, `reviewing`, `ready`, `acquired`, `closed`,
+and `discarded`.
+
+Future portfolio contracts may add notes, tags, alerts, or richer decision
+history, but only with validation, API docs, and tenancy tests.
 
 ## Compatibility And Versioning Guidance
 

@@ -24,10 +24,14 @@ It shows:
 - watchlist keep/remove actions for scored records;
 - dedicated watchlist comparison route using `#/watchlist`;
 - watchlist detail surface with flags and reasoning;
+- portfolio track/untrack actions for scored records;
+- watchlist-to-portfolio promotion actions;
+- dedicated portfolio route using `#/portfolio`;
+- portfolio status tracking surface with flags and reasoning;
 - loading, empty, and error states.
 
-This is the first real user-facing review workflow. It is not yet a full upload,
-portfolio, or automation workspace.
+This is the first real user-facing review and decision-tracking workflow. It is
+not yet a full browser upload or automation workspace.
 
 ## Current API Surface
 
@@ -45,6 +49,11 @@ The current API surface is minimal:
 - `POST /watchlist`
 - `GET /watchlist`
 - `DELETE /watchlist/:watchlistItemId`
+- `POST /portfolio`
+- `GET /portfolio`
+- `GET /portfolio/:portfolioItemId`
+- `PATCH /portfolio/:portfolioItemId`
+- `DELETE /portfolio/:portfolioItemId`
 - structured JSON 404 for unknown routes
 
 Documented in:
@@ -54,6 +63,7 @@ Documented in:
 - `docs/api/datasets.md`
 - `docs/api/scoring.md`
 - `docs/api/watchlist.md`
+- `docs/api/portfolio.md`
 
 There is no standalone parcel API yet.
 
@@ -72,11 +82,11 @@ Real workflows now present:
 - record-level flags and reasoning review.
 - add/remove watchlist actions;
 - watchlist shortlist comparison.
+- portfolio tracking and status updates.
 
 Real workflows not present:
 
 - browser-based dataset upload;
-- portfolio tracking;
 - settings.
 
 ## Current Visual Signals
@@ -97,23 +107,22 @@ The current frontend cannot:
 
 - upload datasets through the browser;
 - upload files;
-- track portfolio decisions;
 - run automation.
 
 The current API cannot:
 
 - provide a standalone parcel/lien row API;
 - persist user-owned parcel records outside scored-record outputs;
-- manage portfolio records.
+- manage alerts, collaboration, or auction execution.
 
 ## Where The Current Surface Could Mislead Contributors
 
-The review and watchlist surfaces could make future contributors think upload
-and portfolio workflows also exist. They do not.
+The review, watchlist, and portfolio surfaces could make future contributors
+think upload and automation workflows also exist. They do not.
 
 The presence of browser auth and score review could make contributors think the
-whole V1 app is implemented. It is not: browser upload, portfolio, and
-automation are still future work.
+whole V1 app is implemented. It is not: browser upload and automation are still
+future work.
 
 The presence of a dataset model could make contributors think full parcel
 ingestion exists. It does not.
@@ -126,10 +135,11 @@ and tenant-owned dataset/score queries. Risk increases further when the repo
 adds:
 
 - frontend upload workflows;
-- portfolio records.
+- alert or automation workflows.
 
 The watchlist is now user-owned decision data and has its own backend ownership
-checks. Future changes must preserve that boundary.
+checks. Portfolio tracking is also user-owned decision data and has backend
+ownership checks. Future changes must preserve both boundaries.
 
 Future current-surface updates must record both visible functionality and trust
 boundaries.

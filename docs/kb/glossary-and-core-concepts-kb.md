@@ -10,9 +10,9 @@ and implementation discussions consistent.
 A multi-tenant SaaS intended to turn tax lien and parcel datasets into structured
 investment decision support.
 
-Current status: auth, dataset upload, first-pass scoring, and browser score
-review are implemented. Browser upload, watchlists, portfolio, and automation
-remain future work.
+Current status: auth, dataset upload, first-pass scoring, browser score review,
+watchlists, and portfolio/status tracking are implemented. Browser upload and
+automation remain future work.
 
 ## Multi-Tenant SaaS
 
@@ -52,12 +52,13 @@ coverage, unknown property type, or no road access.
 ## Watchlist
 
 A user-owned shortlist of parcels or liens selected for further review.
-Not implemented yet.
+Implemented as tenant-owned watchlist items that reference scored records.
 
 ## Portfolio
 
-Future record of investment decisions or held opportunities over time.
-Not implemented yet.
+A user-owned record of actively tracked decisions or position candidates over
+time. Implemented as tenant-owned portfolio items with a small status model and
+score/reasoning snapshot.
 
 ## Ingestion
 

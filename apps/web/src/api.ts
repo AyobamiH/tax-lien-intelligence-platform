@@ -8,6 +8,12 @@ import type {
   DatasetScoreRunResponse,
   DatasetScoresResponse,
   DeleteWatchlistItemResponse,
+  AddPortfolioItemResponse,
+  DeletePortfolioItemResponse,
+  PortfolioDetailResponse,
+  PortfolioListResponse,
+  PortfolioStatus,
+  UpdatePortfolioItemResponse,
   WatchlistListResponse,
 } from "@tax-lien/types";
 
@@ -96,8 +102,50 @@ export async function removeWatchlistItem(token: string, watchlistItemId: string
   });
 }
 
+export async function listPortfolio(token: string): Promise<PortfolioListResponse> {
+  return requestJson<PortfolioListResponse>("/portfolio", {
+    token,
+  });
+}
+
+export async function getPortfolioItem(token: string, portfolioItemId: string): Promise<PortfolioDetailResponse> {
+  return requestJson<PortfolioDetailResponse>(`/portfolio/${encodeURIComponent(portfolioItemId)}`, {
+    token,
+  });
+}
+
+export async function addPortfolioItem(
+  token: string,
+  input: { scoredRecordId?: string; watchlistItemId?: string; status?: PortfolioStatus },
+): Promise<AddPortfolioItemResponse> {
+  return requestJson<AddPortfolioItemResponse>("/portfolio", {
+    method: "POST",
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updatePortfolioItemStatus(
+  token: string,
+  portfolioItemId: string,
+  status: PortfolioStatus,
+): Promise<UpdatePortfolioItemResponse> {
+  return requestJson<UpdatePortfolioItemResponse>(`/portfolio/${encodeURIComponent(portfolioItemId)}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function removePortfolioItem(token: string, portfolioItemId: string): Promise<DeletePortfolioItemResponse> {
+  return requestJson<DeletePortfolioItemResponse>(`/portfolio/${encodeURIComponent(portfolioItemId)}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
 interface JsonRequestOptions {
-  method?: "GET" | "POST" | "DELETE";
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
   token?: string;
   body?: string;
 }

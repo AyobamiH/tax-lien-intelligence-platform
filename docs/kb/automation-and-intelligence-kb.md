@@ -17,12 +17,13 @@ Current implementation:
 - first-pass deterministic scoring engine exists;
 - frontend review of scored records exists;
 - watchlist shortlisting exists;
+- portfolio/status tracking exists;
 - no alerts;
-- no portfolio monitoring.
+- no portfolio automation or monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
-scoring foundation, manual review surface, and watchlist shortlist. Automation
-is still intentionally absent.
+scoring foundation, manual review surface, watchlist shortlist, and portfolio
+status tracking. Automation is still intentionally absent.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -154,10 +155,10 @@ Now:
 - first-pass scoring;
 - frontend scored-results review;
 - watchlist shortlisting.
+- portfolio/status tracking.
 
 Later:
 
-- portfolio;
 - scheduled ingestion;
 - enrichment;
 - alerts;

@@ -39,6 +39,11 @@ Current implementation:
 - authenticated watchlist add/list/remove routes;
 - watchlist ownership enforcement against scored records;
 - duplicate-safe watchlist adds;
+- portfolio item model;
+- authenticated portfolio add/list/detail/status/delete routes;
+- portfolio ownership enforcement against scored records and watchlist items;
+- duplicate-safe portfolio adds;
+- simple portfolio status model;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
@@ -55,7 +60,7 @@ The backend should become the trusted boundary for:
 - normalized storage;
 - scoring orchestration;
 - watchlist persistence;
-- future portfolio records;
+- portfolio tracking persistence;
 - audit events;
 - security enforcement.
 
@@ -147,13 +152,34 @@ Watchlist endpoints:
 
 Current limitation:
 
-- no notes, tags, decision status, portfolio handoff, alerts, or collaboration.
+- no notes, tags, alerts, collaboration, or auction execution.
 
-## Future Portfolio Direction
+## Portfolio Implementation
 
-Portfolio features should wait until watchlist and decision workflows exist.
-Portfolio records should be tenant-owned and should not imply financial
-performance guarantees.
+The portfolio foundation now exists. Portfolio items belong to one user and
+reference either an owned scored record or an owned watchlist item.
+
+Current portfolio API:
+
+- `POST /portfolio`;
+- `GET /portfolio`;
+- `GET /portfolio/:portfolioItemId`;
+- `PATCH /portfolio/:portfolioItemId`;
+- `DELETE /portfolio/:portfolioItemId`.
+
+Portfolio endpoints:
+
+- require auth;
+- verify ownership of the scored record or watchlist item being tracked;
+- prevent cross-user references;
+- support add/list/detail/status/delete;
+- preserve score context, flags, reasoning, and a status timestamp;
+- do not imply financial performance guarantees.
+
+Current limitation:
+
+- no notes, tags, alerts, collaboration, auction execution, accounting, or
+  realized-return tracking.
 
 ## Service Boundaries
 
@@ -232,7 +258,8 @@ Backend implementation order should stay disciplined:
 4. scoring package implementation and score APIs: implemented in Phase 4;
 5. frontend scored-results table: implemented in Phase 5;
 6. watchlist APIs and review surface: implemented in Phase 6;
-7. later portfolio and automation.
+7. portfolio APIs and status surface: implemented in Phase 7;
+8. later automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -244,7 +271,7 @@ Avoid:
 - complex roles before single-user tenancy is secure;
 - admin APIs before audit/security controls;
 - AI workflows before deterministic scoring;
-- portfolio performance tracking before watchlist decisions.
+- portfolio performance tracking before basic portfolio status tracking.
 
 ## Security Expectations
 

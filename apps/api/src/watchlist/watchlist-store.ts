@@ -36,6 +36,7 @@ export interface CreateWatchlistItemResult {
 export interface WatchlistStore {
   createItem(input: CreateWatchlistItemInput): Promise<CreateWatchlistItemResult>;
   listItemsForUser(userId: string): Promise<StoredWatchlistItem[]>;
+  findItemByIdForUser(watchlistItemId: string, userId: string): Promise<StoredWatchlistItem | null>;
   deleteItemForUser(watchlistItemId: string, userId: string): Promise<boolean>;
 }
 
@@ -83,6 +84,11 @@ export class MongoWatchlistStore implements WatchlistStore {
       .sort({ "score.investmentScore": -1, "score.riskScore": 1, addedAt: -1 })
       .exec();
     return documents.map(mapWatchlistItem);
+  }
+
+  public async findItemByIdForUser(watchlistItemId: string, userId: string): Promise<StoredWatchlistItem | null> {
+    const document = await WatchlistItemModel.findOne({ _id: watchlistItemId, userId }).exec();
+    return document ? mapWatchlistItem(document) : null;
   }
 
   public async deleteItemForUser(watchlistItemId: string, userId: string): Promise<boolean> {

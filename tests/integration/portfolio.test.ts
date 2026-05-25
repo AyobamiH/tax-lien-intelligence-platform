@@ -10,6 +10,13 @@ import type {
   DatasetStore,
   StoredDataset,
 } from "../../apps/api/src/datasets/dataset-store.js";
+import { PortfolioService } from "../../apps/api/src/portfolio/portfolio-service.js";
+import type {
+  CreatePortfolioItemInput,
+  CreatePortfolioItemResult,
+  PortfolioStore,
+  StoredPortfolioItem,
+} from "../../apps/api/src/portfolio/portfolio-store.js";
 import type {
   CreateScoredRecordInput,
   ScoredRecordStore,
@@ -23,8 +30,9 @@ import type {
   StoredWatchlistItem,
   WatchlistStore,
 } from "../../apps/api/src/watchlist/watchlist-store.js";
+import type { PortfolioStatus } from "@tax-lien/types";
 
-const testJwtSecret = "test-watchlist-secret-that-is-long-enough-for-jwt";
+const testJwtSecret = "test-portfolio-secret-that-is-long-enough-for-jwt";
 
 class InMemoryUserStore implements UserStore {
   private readonly usersById = new Map<string, StoredUser>();
@@ -185,15 +193,7 @@ class InMemoryWatchlistStore implements WatchlistStore {
   }
 
   public async listItemsForUser(userId: string): Promise<StoredWatchlistItem[]> {
-    return [...this.itemsById.values()]
-      .filter((item) => item.userId === userId)
-      .sort((left, right) => {
-        if (right.score.investmentScore !== left.score.investmentScore) {
-          return right.score.investmentScore - left.score.investmentScore;
-        }
-
-        return left.score.riskScore - right.score.riskScore;
-      });
+    return [...this.itemsById.values()].filter((item) => item.userId === userId);
   }
 
   public async findItemByIdForUser(watchlistItemId: string, userId: string): Promise<StoredWatchlistItem | null> {
@@ -215,11 +215,96 @@ class InMemoryWatchlistStore implements WatchlistStore {
   }
 }
 
+class InMemoryPortfolioStore implements PortfolioStore {
+  private readonly itemsById = new Map<string, StoredPortfolioItem>();
+
+  public async createItem(input: CreatePortfolioItemInput): Promise<CreatePortfolioItemResult> {
+    const existing = [...this.itemsById.values()].find(
+      (item) => item.userId === input.userId && item.scoredRecordId === input.scoredRecordId,
+    );
+
+    if (existing) {
+      return {
+        item: existing,
+        alreadyExists: true,
+      };
+    }
+
+    const now = new Date();
+    const item: StoredPortfolioItem = {
+      id: new mongoose.Types.ObjectId().toString(),
+      userId: input.userId,
+      datasetId: input.datasetId,
+      scoredRecordId: input.scoredRecordId,
+      ...(input.sourceWatchlistItemId ? { sourceWatchlistItemId: input.sourceWatchlistItemId } : {}),
+      status: input.status,
+      statusUpdatedAt: input.statusUpdatedAt,
+      sourceRowNumber: input.sourceRowNumber,
+      normalizedFields: input.normalizedFields,
+      score: input.score,
+      scoredAt: input.scoredAt,
+      trackedAt: input.trackedAt,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    this.itemsById.set(item.id, item);
+    return {
+      item,
+      alreadyExists: false,
+    };
+  }
+
+  public async listItemsForUser(userId: string): Promise<StoredPortfolioItem[]> {
+    return [...this.itemsById.values()].filter((item) => item.userId === userId);
+  }
+
+  public async findItemByIdForUser(portfolioItemId: string, userId: string): Promise<StoredPortfolioItem | null> {
+    const item = this.itemsById.get(portfolioItemId);
+    if (!item || item.userId !== userId) {
+      return null;
+    }
+
+    return item;
+  }
+
+  public async updateStatusForUser(
+    portfolioItemId: string,
+    userId: string,
+    status: PortfolioStatus,
+    statusUpdatedAt: Date,
+  ): Promise<StoredPortfolioItem | null> {
+    const item = await this.findItemByIdForUser(portfolioItemId, userId);
+    if (!item) {
+      return null;
+    }
+
+    const updatedItem: StoredPortfolioItem = {
+      ...item,
+      status,
+      statusUpdatedAt,
+      updatedAt: statusUpdatedAt,
+    };
+    this.itemsById.set(portfolioItemId, updatedItem);
+    return updatedItem;
+  }
+
+  public async deleteItemForUser(portfolioItemId: string, userId: string): Promise<boolean> {
+    const item = this.itemsById.get(portfolioItemId);
+    if (!item || item.userId !== userId) {
+      return false;
+    }
+
+    return this.itemsById.delete(portfolioItemId);
+  }
+}
+
 function createTestContext(): { app: ReturnType<typeof createApp> } {
   const userStore = new InMemoryUserStore();
   const datasetStore = new InMemoryDatasetStore();
   const scoredRecordStore = new InMemoryScoredRecordStore();
   const watchlistStore = new InMemoryWatchlistStore();
+  const portfolioStore = new InMemoryPortfolioStore();
   const authService = new AuthService(userStore, {
     jwtSecret: testJwtSecret,
     jwtExpiresIn: "1h",
@@ -228,9 +313,10 @@ function createTestContext(): { app: ReturnType<typeof createApp> } {
   const datasetService = new DatasetService(datasetStore);
   const scoringService = new ScoringService(datasetStore, scoredRecordStore);
   const watchlistService = new WatchlistService(watchlistStore, scoredRecordStore);
+  const portfolioService = new PortfolioService(portfolioStore, scoredRecordStore, watchlistStore);
 
   return {
-    app: createApp({ authService, datasetService, scoringService, watchlistService }),
+    app: createApp({ authService, datasetService, scoringService, watchlistService, portfolioService }),
   };
 }
 
@@ -266,16 +352,27 @@ async function createScoredRecord(app: ReturnType<typeof createApp>, token: stri
   return scoreResponse.body.scores[0].id as string;
 }
 
-describe("watchlist API", () => {
-  it("adds a scored record to the authenticated user's watchlist", async () => {
+async function addWatchlistItem(app: ReturnType<typeof createApp>, token: string, scoredRecordId: string): Promise<string> {
+  const response = await request(app)
+    .post("/watchlist")
+    .set("Authorization", `Bearer ${token}`)
+    .send({ scoredRecordId })
+    .expect(201);
+
+  return response.body.item.id as string;
+}
+
+describe("portfolio API", () => {
+  it("adds a watchlist item to portfolio tracking", async () => {
     const { app } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const scoredRecordId = await createScoredRecord(app, owner.token);
+    const watchlistItemId = await addWatchlistItem(app, owner.token, scoredRecordId);
 
     const response = await request(app)
-      .post("/watchlist")
+      .post("/portfolio")
       .set("Authorization", `Bearer ${owner.token}`)
-      .send({ scoredRecordId })
+      .send({ watchlistItemId, status: "reviewing" })
       .expect(201);
 
     expect(response.body).toMatchObject({
@@ -283,7 +380,9 @@ describe("watchlist API", () => {
       item: {
         id: expect.any(String),
         scoredRecordId,
-        datasetId: expect.any(String),
+        sourceWatchlistItemId: watchlistItemId,
+        status: "reviewing",
+        statusUpdatedAt: expect.any(String),
         investmentScore: expect.any(Number),
         flags: expect.any(Array),
         reasoning: expect.any(Array),
@@ -292,112 +391,189 @@ describe("watchlist API", () => {
     expect(JSON.stringify(response.body)).not.toContain(owner.userId);
   });
 
-  it("handles duplicate adds idempotently without cluttering the watchlist", async () => {
+  it("adds a scored record directly and handles duplicates idempotently", async () => {
     const { app } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const scoredRecordId = await createScoredRecord(app, owner.token);
 
-    await request(app).post("/watchlist").set("Authorization", `Bearer ${owner.token}`).send({ scoredRecordId }).expect(201);
-    const duplicate = await request(app)
-      .post("/watchlist")
+    await request(app)
+      .post("/portfolio")
       .set("Authorization", `Bearer ${owner.token}`)
       .send({ scoredRecordId })
+      .expect(201);
+    const duplicate = await request(app)
+      .post("/portfolio")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ scoredRecordId, status: "ready" })
       .expect(200);
-    const list = await request(app).get("/watchlist").set("Authorization", `Bearer ${owner.token}`).expect(200);
+    const list = await request(app).get("/portfolio").set("Authorization", `Bearer ${owner.token}`).expect(200);
 
     expect(duplicate.body.alreadyExists).toBe(true);
+    expect(duplicate.body.item.status).toBe("tracked");
     expect(list.body.items).toHaveLength(1);
   });
 
-  it("lists only the current user's watchlist items", async () => {
+  it("lists and returns portfolio detail only for the current user", async () => {
     const { app } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const other = await registerUser(app, "other@example.com");
     const ownerScoreId = await createScoredRecord(app, owner.token);
     const otherScoreId = await createScoredRecord(app, other.token);
 
-    await request(app)
-      .post("/watchlist")
+    const addResponse = await request(app)
+      .post("/portfolio")
       .set("Authorization", `Bearer ${owner.token}`)
       .send({ scoredRecordId: ownerScoreId })
       .expect(201);
     await request(app)
-      .post("/watchlist")
+      .post("/portfolio")
       .set("Authorization", `Bearer ${other.token}`)
       .send({ scoredRecordId: otherScoreId })
       .expect(201);
 
-    const response = await request(app).get("/watchlist").set("Authorization", `Bearer ${owner.token}`).expect(200);
+    const listResponse = await request(app).get("/portfolio").set("Authorization", `Bearer ${owner.token}`).expect(200);
+    const detailResponse = await request(app)
+      .get(`/portfolio/${addResponse.body.item.id as string}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
 
-    expect(response.body.items).toHaveLength(1);
-    expect(response.body.items[0].scoredRecordId).toBe(ownerScoreId);
+    expect(listResponse.body.items).toHaveLength(1);
+    expect(listResponse.body.items[0].scoredRecordId).toBe(ownerScoreId);
+    expect(detailResponse.body.item.scoredRecordId).toBe(ownerScoreId);
   });
 
-  it("removes a watchlist item for the owner", async () => {
+  it("updates portfolio status for the owner", async () => {
     const { app } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const scoredRecordId = await createScoredRecord(app, owner.token);
     const addResponse = await request(app)
-      .post("/watchlist")
+      .post("/portfolio")
       .set("Authorization", `Bearer ${owner.token}`)
       .send({ scoredRecordId })
       .expect(201);
 
-    const watchlistItemId = addResponse.body.item.id as string;
-    await request(app).delete(`/watchlist/${watchlistItemId}`).set("Authorization", `Bearer ${owner.token}`).expect(200);
+    const response = await request(app)
+      .patch(`/portfolio/${addResponse.body.item.id as string}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ status: "ready" })
+      .expect(200);
 
-    const list = await request(app).get("/watchlist").set("Authorization", `Bearer ${owner.token}`).expect(200);
+    expect(response.body.item.status).toBe("ready");
+    expect(response.body.item.statusUpdatedAt).toEqual(expect.any(String));
+  });
+
+  it("removes a portfolio item for the owner", async () => {
+    const { app } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const scoredRecordId = await createScoredRecord(app, owner.token);
+    const addResponse = await request(app)
+      .post("/portfolio")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ scoredRecordId })
+      .expect(201);
+
+    await request(app)
+      .delete(`/portfolio/${addResponse.body.item.id as string}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+    const list = await request(app).get("/portfolio").set("Authorization", `Bearer ${owner.token}`).expect(200);
+
     expect(list.body.items).toHaveLength(0);
   });
 
-  it("rejects unauthenticated watchlist access", async () => {
+  it("rejects unauthenticated portfolio access", async () => {
     const { app } = createTestContext();
 
-    await request(app).get("/watchlist").expect(401);
-    await request(app).post("/watchlist").send({ scoredRecordId: new mongoose.Types.ObjectId().toString() }).expect(401);
-    await request(app).delete(`/watchlist/${new mongoose.Types.ObjectId().toString()}`).expect(401);
+    await request(app).get("/portfolio").expect(401);
+    await request(app).post("/portfolio").send({ scoredRecordId: new mongoose.Types.ObjectId().toString() }).expect(401);
+    await request(app).get(`/portfolio/${new mongoose.Types.ObjectId().toString()}`).expect(401);
+    await request(app).patch(`/portfolio/${new mongoose.Types.ObjectId().toString()}`).send({ status: "ready" }).expect(401);
+    await request(app).delete(`/portfolio/${new mongoose.Types.ObjectId().toString()}`).expect(401);
   });
 
-  it("rejects cross-user add and delete attempts", async () => {
+  it("rejects cross-user portfolio access and source references", async () => {
     const { app } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const other = await registerUser(app, "other@example.com");
     const ownerScoreId = await createScoredRecord(app, owner.token);
+    const ownerWatchlistItemId = await addWatchlistItem(app, owner.token, ownerScoreId);
     const addResponse = await request(app)
-      .post("/watchlist")
+      .post("/portfolio")
       .set("Authorization", `Bearer ${owner.token}`)
-      .send({ scoredRecordId: ownerScoreId })
+      .send({ watchlistItemId: ownerWatchlistItemId })
       .expect(201);
 
-    const crossAdd = await request(app)
-      .post("/watchlist")
+    const crossAddScore = await request(app)
+      .post("/portfolio")
       .set("Authorization", `Bearer ${other.token}`)
       .send({ scoredRecordId: ownerScoreId })
       .expect(404);
+    const crossAddWatchlist = await request(app)
+      .post("/portfolio")
+      .set("Authorization", `Bearer ${other.token}`)
+      .send({ watchlistItemId: ownerWatchlistItemId })
+      .expect(404);
+    const crossRead = await request(app)
+      .get(`/portfolio/${addResponse.body.item.id as string}`)
+      .set("Authorization", `Bearer ${other.token}`)
+      .expect(404);
+    const crossUpdate = await request(app)
+      .patch(`/portfolio/${addResponse.body.item.id as string}`)
+      .set("Authorization", `Bearer ${other.token}`)
+      .send({ status: "closed" })
+      .expect(404);
     const crossDelete = await request(app)
-      .delete(`/watchlist/${addResponse.body.item.id as string}`)
+      .delete(`/portfolio/${addResponse.body.item.id as string}`)
       .set("Authorization", `Bearer ${other.token}`)
       .expect(404);
 
-    expect(crossAdd.body.error.code).toBe("watchlist_scored_record_not_found");
-    expect(crossDelete.body.error.code).toBe("watchlist_item_not_found");
+    expect(crossAddScore.body.error.code).toBe("portfolio_scored_record_not_found");
+    expect(crossAddWatchlist.body.error.code).toBe("portfolio_watchlist_item_not_found");
+    expect(crossRead.body.error.code).toBe("portfolio_item_not_found");
+    expect(crossUpdate.body.error.code).toBe("portfolio_item_not_found");
+    expect(crossDelete.body.error.code).toBe("portfolio_item_not_found");
   });
 
-  it("rejects invalid ids safely", async () => {
+  it("rejects invalid ids, invalid statuses, and stale source references safely", async () => {
     const { app } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
+    const missingId = new mongoose.Types.ObjectId().toString();
 
-    const addResponse = await request(app)
-      .post("/watchlist")
+    const invalidScoredId = await request(app)
+      .post("/portfolio")
       .set("Authorization", `Bearer ${owner.token}`)
       .send({ scoredRecordId: "not-a-valid-id" })
       .expect(400);
-    const deleteResponse = await request(app)
-      .delete("/watchlist/not-a-valid-id")
+    const invalidWatchlistId = await request(app)
+      .post("/portfolio")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ watchlistItemId: "not-a-valid-id" })
+      .expect(400);
+    const invalidSource = await request(app)
+      .post("/portfolio")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ scoredRecordId: missingId, watchlistItemId: missingId })
+      .expect(400);
+    const staleSource = await request(app)
+      .post("/portfolio")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ scoredRecordId: missingId })
+      .expect(404);
+    const invalidStatus = await request(app)
+      .patch(`/portfolio/${missingId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ status: "auction-wizard" })
+      .expect(400);
+    const invalidItemId = await request(app)
+      .delete("/portfolio/not-a-valid-id")
       .set("Authorization", `Bearer ${owner.token}`)
       .expect(400);
 
-    expect(addResponse.body.error.code).toBe("watchlist_invalid_scored_record_id");
-    expect(deleteResponse.body.error.code).toBe("watchlist_invalid_item_id");
+    expect(invalidScoredId.body.error.code).toBe("portfolio_invalid_scored_record_id");
+    expect(invalidWatchlistId.body.error.code).toBe("portfolio_invalid_watchlist_item_id");
+    expect(invalidSource.body.error.code).toBe("portfolio_invalid_source");
+    expect(staleSource.body.error.code).toBe("portfolio_scored_record_not_found");
+    expect(invalidStatus.body.error.code).toBe("validation_failed");
+    expect(invalidItemId.body.error.code).toBe("portfolio_invalid_item_id");
   });
 });

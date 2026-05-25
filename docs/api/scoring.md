@@ -94,6 +94,7 @@ the uploaded dataset, such as parcel id, lien amount, estimated or assessed
 value, property type, and any simple usability signals present in the CSV.
 
 Phase 5 adds a frontend review surface that calls these routes directly for the
-signed-in user. Phase 6 adds watchlist actions on top of scored records. Future
-phases may add stronger county adapters, enrichment, deduplication, geographic
-data, historical redemption signals, and portfolio workflows.
+signed-in user. Phase 6 adds watchlist actions on top of scored records. Phase 7
+adds portfolio/status tracking for scored records or promoted watchlist items.
+Future phases may add stronger county adapters, enrichment, deduplication,
+geographic data, and historical redemption signals.

@@ -26,7 +26,6 @@ Implemented:
 Not implemented:
 
 - final institutional-grade underwriting;
-- portfolio;
 - external enrichment;
 - ML or AI scoring;
 - county-specific adapters.

@@ -229,11 +229,38 @@ Phase 6 should not include:
 - automated bidding;
 - AI.
 
+## Phase 7: Portfolio And Status Tracking
+
+Current status: implemented as the first post-shortlist operating layer.
+
+Phase 7 includes:
+
+- tenant-owned portfolio item model;
+- authenticated add/list/detail/status/delete endpoints;
+- ownership checks for referenced scored records and watchlist items;
+- duplicate-safe portfolio adds;
+- simple status model;
+- frontend track/untrack actions from scored records;
+- watchlist-to-portfolio promotion;
+- dedicated portfolio status surface;
+- portfolio detail with flags and reasoning;
+- tests for cross-user access attempts and invalid references;
+- docs.
+
+Phase 7 should not include:
+
+- automation;
+- alerts;
+- collaboration/team workflows;
+- live auction execution;
+- ML/AI;
+- external data sync;
+- accounting or complex analytics.
+
 ## Later Phases
 
 Later phases may include:
 
-- portfolio records;
 - notes and decision history;
 - richer filtering;
 - import templates;
@@ -287,6 +314,7 @@ Before heavy automation:
 - CSV ingestion must be reliable;
 - scoring must be explainable;
 - watchlist decisions must exist;
+- portfolio/status tracking must exist;
 - job ownership and logging patterns must be designed;
 - rate limits and failure handling must exist.
 
@@ -297,7 +325,7 @@ Roadmap drift risks:
 - implementing Phase 4 before Phase 2/3;
 - building UI ahead of API truth;
 - adding automation before data quality;
-- mixing future portfolio direction into V1;
+- mixing future automation direction into V1;
 - forgetting security tests in each phase.
 
 ## Update Rules

@@ -8,8 +8,11 @@ import { apiConfig } from "./config/env.js";
 import type { DatasetService } from "./datasets/dataset-service.js";
 import { createDatasetService } from "./datasets/factory.js";
 import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
+import { createPortfolioService } from "./portfolio/factory.js";
+import type { PortfolioService } from "./portfolio/portfolio-service.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createDatasetRouter } from "./routes/datasets.js";
+import { createPortfolioRouter } from "./routes/portfolio.js";
 import { createScoringRouter } from "./routes/scoring.js";
 import { createWatchlistRouter } from "./routes/watchlist.js";
 import { createScoringService } from "./scoring/factory.js";
@@ -22,6 +25,7 @@ export interface AppDependencies {
   datasetService?: DatasetService;
   scoringService?: ScoringService;
   watchlistService?: WatchlistService;
+  portfolioService?: PortfolioService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -30,6 +34,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const datasetService = dependencies.datasetService ?? createDatasetService();
   const scoringService = dependencies.scoringService ?? createScoringService();
   const watchlistService = dependencies.watchlistService ?? createWatchlistService();
+  const portfolioService = dependencies.portfolioService ?? createPortfolioService();
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -50,6 +55,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/datasets", createDatasetRouter(authService, datasetService));
   app.use("/datasets", createScoringRouter(authService, scoringService));
   app.use("/watchlist", createWatchlistRouter(authService, watchlistService));
+  app.use("/portfolio", createPortfolioRouter(authService, portfolioService));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

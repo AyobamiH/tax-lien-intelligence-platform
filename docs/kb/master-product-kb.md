@@ -17,9 +17,10 @@ turns county parcel and tax lien datasets into structured investment decisions.
 
 The product is not yet fully implemented. The current repo now includes the
 baseline, auth foundation, dataset upload foundation, first-pass scoring
-foundation, frontend scored-results review surface, and watchlist decision
-workflow. The product identity is visible through the README, package
-description, architecture docs, and frontend review/watchlist surfaces.
+foundation, frontend scored-results review surface, watchlist decision workflow,
+and portfolio/status tracking foundation. The product identity is visible
+through the README, package description, architecture docs, and frontend
+review/watchlist/portfolio surfaces.
 
 Current evidence:
 
@@ -29,6 +30,8 @@ Current evidence:
 - the frontend review surface lets signed-in users inspect scored records,
   flags, and reasoning;
 - the watchlist surface lets signed-in users keep and compare scored records;
+- the portfolio surface lets signed-in users track active decisions with
+  simple status;
 - architecture docs say every future user-owned document must include `userId`.
 
 ## What This SaaS Is
@@ -49,9 +52,9 @@ The intended product loop is:
 8. the user tracks decisions over time.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
-row storage, first-pass score APIs, browser score review, and watchlist
-shortlisting exist. Browser CSV upload, portfolio, and richer automation remain
-future direction.
+row storage, first-pass score APIs, browser score review, watchlist
+shortlisting, and portfolio/status tracking exist. Browser CSV upload and richer
+automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -135,8 +138,9 @@ Current implementation:
 - first-pass explainable scoring exists through API routes;
 - frontend review of scored results exists;
 - watchlist shortlisting exists;
+- portfolio/status tracking exists;
 - no standalone parcel/lien schema;
-- no portfolio or final investment decision workflow.
+- no final investment decision, auction, or accounting workflow.
 
 ## Trust Philosophy
 
@@ -204,7 +208,7 @@ Near-term non-goals:
 - automatic bidding;
 - foreclosure workflow;
 - county API marketplace;
-- portfolio analytics before watchlist exists;
+- portfolio analytics before basic portfolio status tracking earns them;
 - broad automation before ingestion and scoring are reliable;
 - multi-role enterprise admin before single-tenant user workflows are secure.
 
@@ -224,7 +228,7 @@ Long-term direction may include:
 - audit trails.
 
 These are future directions. They should be introduced only after auth,
-multi-tenancy, ingestion, scoring, and watchlist foundations are real.
+multi-tenancy, ingestion, scoring, watchlist, and portfolio foundations are real.
 
 ## Drift Risks
 

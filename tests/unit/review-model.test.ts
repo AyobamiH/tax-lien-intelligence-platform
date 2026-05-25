@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { ScoredRecordResponse, WatchlistItemResponse } from "@tax-lien/types";
+import type { PortfolioItemResponse, ScoredRecordResponse, WatchlistItemResponse } from "@tax-lien/types";
 import {
+  buildPortfolioByScoreId,
+  buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
   filterScoresForReview,
   flagPreview,
@@ -8,8 +10,12 @@ import {
   formatPercent,
   formatRatio,
   primaryRecordLabel,
+  portfolioStatusClassName,
+  portfolioStatusLabel,
+  portfolioStatusOptions,
   reasoningPreview,
   scoreBand,
+  sortPortfolioItemsForReview,
   sortScoresForReview,
   sortWatchlistItemsForReview,
   summarizeScores,
@@ -65,6 +71,37 @@ function watchlistItem(overrides: Partial<WatchlistItemResponse>): WatchlistItem
     reasoning: ["Strong value coverage."],
     scoredAt: "2026-05-25T00:00:00.000Z",
     addedAt: "2026-05-25T00:00:00.000Z",
+    createdAt: "2026-05-25T00:00:00.000Z",
+    updatedAt: "2026-05-25T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function portfolioItem(overrides: Partial<PortfolioItemResponse>): PortfolioItemResponse {
+  return {
+    id: "portfolio-1",
+    datasetId: "dataset-1",
+    scoredRecordId: "score-1",
+    status: "tracked",
+    statusUpdatedAt: "2026-05-25T00:00:00.000Z",
+    sourceRowNumber: 2,
+    normalizedFields: {
+      parcelId: "A-100",
+      lienAmount: 1000,
+      estimatedValue: 12000,
+      propertyType: "Single-family residential",
+      propertyTypeCategory: "residential",
+    },
+    investmentScore: 80,
+    riskScore: 20,
+    liquidityScore: 75,
+    redemptionProbability: 0.82,
+    confidenceScore: 90,
+    valueCoverageRatio: 12,
+    flags: [],
+    reasoning: ["Strong value coverage."],
+    scoredAt: "2026-05-25T00:00:00.000Z",
+    trackedAt: "2026-05-25T00:00:00.000Z",
     createdAt: "2026-05-25T00:00:00.000Z",
     updatedAt: "2026-05-25T00:00:00.000Z",
     ...overrides,
@@ -179,5 +216,44 @@ describe("review model helpers", () => {
 
     expect(sorted.map((item) => item.id)).toEqual(["lower-risk", "newer-tie", "older-tie"]);
     expect(byScoreId.get("score-newer")?.id).toBe("newer-tie");
+  });
+
+  it("builds portfolio state, labels statuses, and sorts tracked records for operations", () => {
+    const tracked = portfolioItem({
+      id: "tracked",
+      scoredRecordId: "score-tracked",
+      sourceWatchlistItemId: "watch-tracked",
+      status: "tracked",
+      investmentScore: 92,
+      riskScore: 5,
+    });
+    const ready = portfolioItem({
+      id: "ready",
+      scoredRecordId: "score-ready",
+      sourceWatchlistItemId: "watch-ready",
+      status: "ready",
+      investmentScore: 70,
+      riskScore: 20,
+    });
+    const reviewing = portfolioItem({
+      id: "reviewing",
+      scoredRecordId: "score-reviewing",
+      status: "reviewing",
+      investmentScore: 85,
+      riskScore: 12,
+      trackedAt: "2026-05-25T02:00:00.000Z",
+    });
+
+    const sorted = sortPortfolioItemsForReview([ready, reviewing, tracked]);
+    const byScoreId = buildPortfolioByScoreId(sorted);
+    const byWatchlistId = buildPortfolioByWatchlistId(sorted);
+
+    expect(portfolioStatusOptions).toEqual(["tracked", "reviewing", "ready", "acquired", "closed", "discarded"]);
+    expect(sorted.map((item) => item.id)).toEqual(["tracked", "reviewing", "ready"]);
+    expect(byScoreId.get("score-ready")?.id).toBe("ready");
+    expect(byWatchlistId.get("watch-tracked")?.id).toBe("tracked");
+    expect(byWatchlistId.has("watch-reviewing")).toBe(false);
+    expect(portfolioStatusLabel("ready")).toBe("Ready");
+    expect(portfolioStatusClassName("discarded")).toContain("red");
   });
 });

@@ -18,7 +18,7 @@ Security is first-class in this SaaS because the product will handle:
 - scored opportunities;
 - watchlists;
 - decision history;
-- future portfolio records.
+- portfolio records.
 
 Tax lien data may originate from public county sources, but a user's cleaned,
 scored, filtered, and watchlisted data is private business context. Multi-tenant
@@ -63,6 +63,11 @@ Current repo protections:
 - watchlist ownership enforcement against scored records;
 - duplicate-safe watchlist adds;
 - cross-user watchlist rejection tests;
+- tenant-owned portfolio item persistence;
+- authenticated portfolio add/list/detail/status/delete routes;
+- portfolio ownership enforcement against scored records and watchlist items;
+- duplicate-safe portfolio adds;
+- cross-user portfolio rejection tests;
 - frontend auth errors clear the browser review session;
 - conservative scoring behavior for missing or weak data;
 - root quality gates for typecheck, test, and build;
@@ -76,7 +81,7 @@ Not yet implemented:
 
 - tenant-owned parcel models;
 - authorization checks for future resource types;
-- cross-user isolation tests for future parcel/portfolio resources;
+- cross-user isolation tests for future parcel resources;
 - rate limiting;
 - standalone normalized parcel/lien upload validation;
 - audit logging;
@@ -93,7 +98,6 @@ Deferred because the corresponding systems do not exist yet:
 - job security;
 - admin security;
 - richer scoring audit trail;
-- portfolio data protections;
 - automation monitoring.
 
 ### Where The Baseline Is Acceptable
@@ -348,7 +352,7 @@ Must be scoped by `userId`:
 - parcels;
 - scores;
 - watchlist items;
-- future portfolio records;
+- portfolio records;
 - upload logs;
 - automation jobs;
 - user decisions.
@@ -375,6 +379,7 @@ Tests must include:
 - user A cannot read user B records;
 - user A cannot update user B records;
 - user A cannot watchlist user B parcel;
+- user A cannot track or update user B portfolio records;
 - user A cannot infer user B records through counts or errors.
 
 ## 6. Future-Sensitive Systems
@@ -408,6 +413,11 @@ validation and cross-user tests before release.
 
 Portfolio records may be more sensitive than raw parcel data because they reveal
 investment intent and decisions.
+
+Portfolio records now verify ownership of the referenced scored record or
+watchlist item before tracking. Portfolio reads, status updates, and deletes are
+scoped to the authenticated user. Future portfolio expansion such as notes,
+alerts, or collaboration must add validation and cross-user tests before release.
 
 ### Automation Jobs
 

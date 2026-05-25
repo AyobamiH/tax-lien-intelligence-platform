@@ -150,3 +150,60 @@ export interface DeleteWatchlistItemResponse {
   deleted: true;
   id: string;
 }
+
+export type PortfolioStatus = "tracked" | "reviewing" | "ready" | "acquired" | "closed" | "discarded";
+
+export interface AddPortfolioItemRequest {
+  scoredRecordId?: string;
+  watchlistItemId?: string;
+  status?: PortfolioStatus;
+}
+
+export interface UpdatePortfolioItemRequest {
+  status: PortfolioStatus;
+}
+
+export interface PortfolioItemResponse {
+  id: string;
+  datasetId: string;
+  scoredRecordId: string;
+  sourceWatchlistItemId?: string;
+  status: PortfolioStatus;
+  statusUpdatedAt: string;
+  sourceRowNumber: number;
+  normalizedFields: NormalizedScoredRecordFields;
+  investmentScore: number;
+  riskScore: number;
+  liquidityScore: number;
+  redemptionProbability: number;
+  confidenceScore: number;
+  valueCoverageRatio?: number;
+  flags: string[];
+  reasoning: string[];
+  scoredAt: string;
+  trackedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AddPortfolioItemResponse {
+  item: PortfolioItemResponse;
+  alreadyExists: boolean;
+}
+
+export interface PortfolioListResponse {
+  items: PortfolioItemResponse[];
+}
+
+export interface PortfolioDetailResponse {
+  item: PortfolioItemResponse;
+}
+
+export interface UpdatePortfolioItemResponse {
+  item: PortfolioItemResponse;
+}
+
+export interface DeletePortfolioItemResponse {
+  deleted: true;
+  id: string;
+}

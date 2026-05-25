@@ -4,7 +4,8 @@
 
 Phase 5 introduces the first real in-app review surface for scored datasets.
 Phase 6 extends that surface with watchlist actions and a dedicated shortlist
-comparison page.
+comparison page. Phase 7 adds a portfolio/status tracking surface for records
+promoted from scoring review or the watchlist.
 The frontend is no longer only a shell: it now authenticates against the API,
 lists the signed-in user's datasets, opens a dataset, triggers scoring, and
 renders scored records with flags and reasoning.
@@ -20,13 +21,15 @@ Implemented:
 - record detail surface with flags and reasoning;
 - watchlist keep/remove actions on scored records;
 - dedicated watchlist route and comparison surface;
+- portfolio track/untrack actions on scored records;
+- watchlist-to-portfolio promotion action;
+- dedicated portfolio route and status tracking surface;
 - loading, empty, and error states;
 - reusable review model helpers and unit tests.
 
 Not implemented:
 
 - browser CSV upload;
-- portfolio;
 - automation;
 - ML/AI features;
 - final design polish or advanced filtering.
@@ -40,10 +43,11 @@ Implemented hash routes:
 - `#/datasets`
 - `#/datasets/:datasetId`
 - `#/watchlist`
+- `#/portfolio`
 
 This avoids adding a router before the app needs nested navigation. If future
-phases add upload, portfolio, and settings pages, a router can be introduced
-with tests and docs.
+phases add upload and settings pages, a router can be introduced with tests and
+docs.
 
 ## API Boundary
 
@@ -58,7 +62,12 @@ The frontend calls only the existing authenticated API routes:
 - `GET /datasets/:datasetId/scores`;
 - `POST /watchlist`;
 - `GET /watchlist`;
-- `DELETE /watchlist/:watchlistItemId`.
+- `DELETE /watchlist/:watchlistItemId`;
+- `POST /portfolio`;
+- `GET /portfolio`;
+- `GET /portfolio/:portfolioItemId`;
+- `PATCH /portfolio/:portfolioItemId`;
+- `DELETE /portfolio/:portfolioItemId`.
 
 The frontend does not accept or send trusted score values. Scores remain
 server-derived.
@@ -92,8 +101,26 @@ The watchlist surface is comparison-oriented rather than decorative. It shows:
 - remove action;
 - detail panel with full reasoning and flags.
 
-It is a shortlist foundation. It is not portfolio tracking, notes, tags, alerts,
-or auction execution.
+It is a shortlist foundation. Portfolio/status tracking is now a separate Phase
+7 surface. The watchlist itself is not notes, tags, alerts, auction execution,
+or accounting.
+
+## Portfolio Surface
+
+The portfolio surface is operational rather than decorative. It shows:
+
+- tracked record label;
+- source dataset reference;
+- whether the item came from the watchlist or score review;
+- portfolio status;
+- investment, risk, confidence, liquidity, and coverage values;
+- compact flags;
+- status update and remove actions;
+- detail panel with full reasoning, flags, tracked timestamp, and status update
+  timestamp.
+
+It is a decision/status foundation. It is not P&L tracking, accounting, live
+auction execution, alerts, or collaboration.
 
 ## Security Notes
 
@@ -106,6 +133,7 @@ Authorization remains server-side:
 - the frontend never sends `userId`;
 - dataset and score access still depends on API ownership checks;
 - watchlist actions still depend on backend ownership checks;
+- portfolio actions still depend on backend ownership checks;
 - auth failures clear the browser session;
 - user-owned data is not mocked into the UI.
 
@@ -120,7 +148,7 @@ Known future hardening:
 Do not:
 
 - add UI-only score fields not returned by the scoring API;
-- imply portfolio decisions exist;
+- imply accounting, realized returns, or auction execution exist;
 - treat client-side filters as an authorization boundary;
 - add mock records that look like real user data;
 - duplicate scoring logic in the browser.

@@ -2,6 +2,13 @@
 
 ## 2026-05-25
 
+- Implemented Phase 7 portfolio tracking with tenant-owned portfolio items,
+  authenticated add/list/detail/status/delete endpoints, promotion from scored
+  records or watchlist items, cross-user portfolio protections, frontend track
+  actions, a dedicated portfolio status surface, and portfolio tests.
+- Added portfolio API and architecture documentation and updated the KB pack to
+  mark portfolio/status tracking as current product surface while keeping
+  automation, alerts, collaboration, auction execution, and ML as future work.
 - Implemented Phase 6 watchlist workflow with tenant-owned watchlist items,
   authenticated add/list/remove endpoints, duplicate-safe adds, cross-user
   watchlist protections, frontend keep/remove actions from scored results, a

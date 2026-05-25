@@ -1,6 +1,21 @@
-import type { NormalizedScoredRecordFields, ScoredRecordResponse, WatchlistItemResponse } from "@tax-lien/types";
+import type {
+  NormalizedScoredRecordFields,
+  PortfolioItemResponse,
+  PortfolioStatus,
+  ScoredRecordResponse,
+  WatchlistItemResponse,
+} from "@tax-lien/types";
 
 export type ScoreFilter = "all" | "flagged" | "strong" | "weak";
+
+export const portfolioStatusOptions: PortfolioStatus[] = [
+  "tracked",
+  "reviewing",
+  "ready",
+  "acquired",
+  "closed",
+  "discarded",
+];
 
 export interface ScoreStats {
   count: number;
@@ -54,6 +69,37 @@ export function sortWatchlistItemsForReview(items: WatchlistItemResponse[]): Wat
 
 export function buildWatchlistByScoreId(items: WatchlistItemResponse[]): Map<string, WatchlistItemResponse> {
   return new Map(items.map((item) => [item.scoredRecordId, item]));
+}
+
+export function sortPortfolioItemsForReview(items: PortfolioItemResponse[]): PortfolioItemResponse[] {
+  return [...items].sort((left, right) => {
+    const statusDelta = portfolioStatusOptions.indexOf(left.status) - portfolioStatusOptions.indexOf(right.status);
+    if (statusDelta !== 0) {
+      return statusDelta;
+    }
+
+    if (right.investmentScore !== left.investmentScore) {
+      return right.investmentScore - left.investmentScore;
+    }
+
+    if (left.riskScore !== right.riskScore) {
+      return left.riskScore - right.riskScore;
+    }
+
+    return new Date(right.trackedAt).getTime() - new Date(left.trackedAt).getTime();
+  });
+}
+
+export function buildPortfolioByScoreId(items: PortfolioItemResponse[]): Map<string, PortfolioItemResponse> {
+  return new Map(items.map((item) => [item.scoredRecordId, item]));
+}
+
+export function buildPortfolioByWatchlistId(items: PortfolioItemResponse[]): Map<string, PortfolioItemResponse> {
+  return new Map(
+    items
+      .filter((item): item is PortfolioItemResponse & { sourceWatchlistItemId: string } => Boolean(item.sourceWatchlistItemId))
+      .map((item) => [item.sourceWatchlistItemId, item]),
+  );
 }
 
 export function filterScoresForReview(
@@ -128,6 +174,40 @@ export function scoreBand(score: number): ScoreBand {
     label: "Weak",
     className: "border-red-200 bg-red-50 text-red-800",
   };
+}
+
+export function portfolioStatusLabel(status: PortfolioStatus): string {
+  switch (status) {
+    case "tracked":
+      return "Tracked";
+    case "reviewing":
+      return "Reviewing";
+    case "ready":
+      return "Ready";
+    case "acquired":
+      return "Acquired";
+    case "closed":
+      return "Closed";
+    case "discarded":
+      return "Discarded";
+  }
+}
+
+export function portfolioStatusClassName(status: PortfolioStatus): string {
+  switch (status) {
+    case "ready":
+      return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    case "acquired":
+      return "border-pine bg-pine text-white";
+    case "closed":
+      return "border-slate-300 bg-slate-100 text-slate-700";
+    case "discarded":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "reviewing":
+      return "border-amber-200 bg-amber-50 text-amber-800";
+    case "tracked":
+      return "border-line bg-field text-ink";
+  }
 }
 
 export function formatPercent(value: number): string {

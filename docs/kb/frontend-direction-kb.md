@@ -25,9 +25,12 @@ Current implementation:
 - watchlist keep/remove actions;
 - dedicated watchlist comparison page;
 - watchlist detail surface for flags and reasoning;
+- portfolio track/untrack actions;
+- watchlist-to-portfolio promotion actions;
+- dedicated portfolio status tracking page;
+- portfolio detail surface for flags, reasoning, and status;
 - loading, empty, and error states;
-- no browser upload flow yet;
-- no portfolio UI.
+- no browser upload flow yet.
 
 ## Intended Frontend Role
 
@@ -55,8 +58,9 @@ Current and future page direction:
 - implemented: record detail reasoning surface;
 - implemented: watchlist comparison surface;
 - implemented: watchlist detail reasoning surface;
+- implemented: portfolio status tracking surface;
+- implemented: portfolio detail reasoning/status surface;
 - future: browser dataset upload page;
-- future: portfolio page;
 - future: account/settings page.
 
 ## Page Responsibilities
@@ -93,8 +97,21 @@ Future watchlist expansion:
 
 - notes;
 - tags;
-- decision status;
-- portfolio handoff.
+
+Implemented portfolio:
+
+- show actively tracked scored records;
+- preserve why a record mattered originally;
+- display and update simple status;
+- support removal from active tracking.
+
+Future portfolio expansion:
+
+- notes;
+- tags;
+- alerts;
+- decision history beyond status timestamps;
+- accounting or realized-return fields only after a separate domain phase.
 
 ## Design Tone
 
@@ -161,7 +178,7 @@ repo truth:
 
 - do not invent pages that do not have implementation priority;
 - do not add mock data as if it were real;
-- do not imply browser upload or portfolio workflows exist before
+- do not imply browser upload, alerting, or automation workflows exist before
   they are wired to backend contracts;
 - do not bypass shared API contracts;
 - do not change product positioning away from decision support.
@@ -185,9 +202,9 @@ Future frontend work must:
 
 Do not build:
 
-- portfolio UI before the watchlist workflow is stable;
 - automation dashboards before upload, scoring review, and watchlist workflows
   exist;
+- finance dashboards before the basic portfolio workflow earns them;
 - admin consoles before user auth and tenancy are hardened;
 - advanced filters before baseline table workflows exist;
 - AI interfaces before deterministic scoring is credible.

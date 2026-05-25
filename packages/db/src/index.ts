@@ -16,6 +16,12 @@ export {
   type DatasetValidationSummaryRecord,
 } from "./models/dataset.js";
 export {
+  PortfolioItemModel,
+  type PortfolioItemDocument,
+  type PortfolioItemRecord,
+  type PortfolioStatusRecord,
+} from "./models/portfolio-item.js";
+export {
   ScoredRecordModel,
   type NormalizedScoredRecordFieldsRecord,
   type PropertyTypeCategoryRecord,
