@@ -20,8 +20,9 @@ by `userId`.
 
 ## Dataset
 
-A user-uploaded county parcel or tax lien file and its associated metadata.
-Not implemented yet.
+A user-uploaded county parcel or tax lien CSV file and its associated metadata.
+Implemented as a tenant-owned dataset record with validation summary; normalized
+parcel/lien rows are not implemented yet.
 
 ## Parcel
 

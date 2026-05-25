@@ -20,6 +20,9 @@ Implemented API surfaces:
 - `POST /auth/register`
 - `POST /auth/login`
 - `GET /auth/me`
+- `POST /datasets`
+- `GET /datasets`
+- `GET /datasets/:datasetId`
 
 ## Local Development
 

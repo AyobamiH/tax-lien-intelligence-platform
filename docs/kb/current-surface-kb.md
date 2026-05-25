@@ -32,14 +32,18 @@ The current API surface is minimal:
 - `POST /auth/register`
 - `POST /auth/login`
 - `GET /auth/me`
+- `POST /datasets`
+- `GET /datasets`
+- `GET /datasets/:datasetId`
 - structured JSON 404 for unknown routes
 
 Documented in:
 
 - `docs/api/health.md`
 - `docs/api/auth.md`
+- `docs/api/datasets.md`
 
-There are no upload, dataset, parcel, scoring, or watchlist endpoints yet.
+There are no parcel, scoring, or watchlist endpoints yet.
 
 ## Shell Versus Real Workflows
 
@@ -54,7 +58,7 @@ Real workflows not present:
 
 - browser-based account registration;
 - browser-based login;
-- dataset upload;
+- browser-based dataset upload;
 - data table;
 - score review;
 - filtering;
@@ -80,6 +84,7 @@ The current frontend cannot:
 
 - call real product APIs beyond future configuration expectations;
 - authenticate users;
+- upload datasets through the browser;
 - display user data;
 - upload files;
 - show persisted records;
@@ -88,8 +93,7 @@ The current frontend cannot:
 
 The current API cannot:
 
-- accept uploads;
-- parse CSV;
+- normalize parcel/lien rows;
 - persist user-owned parcel records;
 - score parcels;
 - return scored lists;
@@ -100,24 +104,23 @@ The current API cannot:
 The frontend cards could make future contributors think upload, scoring, and
 watchlist workflows already exist. They do not.
 
-The presence of auth dependencies could make contributors think authentication
-exists. It does not.
+The presence of API auth could make contributors think browser auth screens
+exist. They do not.
 
 The presence of a scoring package could make contributors think scoring exists.
 It does not.
 
-The presence of Mongo connection helpers could make contributors think data
-models exist. They do not.
+The presence of a dataset model could make contributors think full parcel
+ingestion exists. It does not.
 
 ## Security Implications
 
-The current browser surface is low-risk because it has no user-owned workflows
-yet. The API now has auth, so security risk shifts toward protecting the token
-boundary and using it correctly for future resources. Risk increases sharply when
-the repo adds:
+The current browser surface is low-risk because it still has no user-owned
+browser workflows. The API now has auth and dataset upload, so security risk
+shifts toward protecting the token boundary, upload boundary, and tenant-owned
+dataset queries. Risk increases further when the repo adds:
 
-- file uploads;
-- tenant-owned data;
+- normalized parcel/lien storage;
 - scoring explanations;
 - watchlists;
 - portfolio records.

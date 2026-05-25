@@ -67,6 +67,12 @@ Implemented today:
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
 - global API error handling;
+- authenticated dataset endpoints at `POST /datasets`, `GET /datasets`, and
+  `GET /datasets/:datasetId`;
+- tenant-owned dataset model in `packages/db`;
+- manual CSV upload handling;
+- safe CSV parsing and validation summary;
+- dataset ownership tests;
 - structured JSON 404 for unknown API routes;
 - environment parsing with `zod`;
 - Mongo connection helper using Mongoose;
@@ -85,18 +91,18 @@ Placeholders today:
 - `packages/scoring` only exports a version constant.
 - `scripts/ingestion` has only a README.
 - frontend cards for upload, scoring, and watchlist are not wired workflows.
-- CSV dependencies exist, but ingestion does not.
+- Dataset upload stores metadata and validation summary, not normalized rows.
 - The frontend has no login/register UI yet even though API auth exists.
+- The frontend has no dataset upload UI yet even though dataset APIs exist.
+- Full parcel/lien normalization does not exist yet.
 
 ## Current Limitations
 
 Not implemented:
 
 - frontend auth screens;
-- tenant-owned parcel/dataset/watchlist models;
+- tenant-owned parcel/watchlist models;
 - parcel/lien schemas;
-- CSV upload;
-- CSV validation;
 - scoring engine;
 - scored parcel API;
 - watchlist;
@@ -143,11 +149,13 @@ Current tests cover:
 - malformed JSON;
 - missing/malformed/invalid/expired tokens;
 - protected `/auth/me`.
+- dataset upload success and failure cases;
+- dataset list/detail ownership boundaries;
+- cross-user dataset detail rejection.
 
 Tests do not yet cover:
 
-- cross-user resource isolation beyond the auth identity boundary;
-- uploads;
+- cross-user resource isolation for future parcel/watchlist records;
 - scoring;
 - watchlists;
 - security boundaries.
@@ -156,12 +164,11 @@ Tests do not yet cover:
 
 Do not assume:
 
-- datasets can be uploaded;
 - parcels are stored;
 - scoring exists;
 - watchlists exist;
-- user-owned parcel/dataset/watchlist data exists;
-- cross-user domain-resource isolation exists beyond auth identity tests;
+- user-owned parcel/watchlist data exists;
+- full ingestion exists beyond dataset metadata and validation summary;
 - portfolio tracking exists;
 - frontend shell cards are real workflows.
 
@@ -177,10 +184,13 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - password hashing is implemented.
 - JWT auth is implemented.
 - auth middleware establishes the user identity boundary.
-- tenant-owned domain models are not yet implemented.
+- tenant-owned dataset records are implemented.
+- CSV upload limits and validation are implemented.
+- tenant-owned parcel/watchlist models are not yet implemented.
 
-Security cannot be considered complete until tenant-scoped data models, resource
-authorization, upload controls, rate limits, and cross-user resource tests exist.
+Security cannot be considered complete until normalized tenant-scoped parcel and
+watchlist data models, broader resource authorization, rate limits, and
+additional cross-user resource tests exist.
 
 ## Drift Risks
 

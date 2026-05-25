@@ -92,30 +92,31 @@ Security focus:
 
 ## Phase 3: CSV Upload And Dataset Storage
 
-Current status: next major product phase.
+Current status: implemented as dataset foundation.
 
-Phase 3 should include:
+Phase 3 includes:
 
 - authenticated CSV upload endpoint;
 - file size/type limits;
 - CSV parsing;
-- required field validation;
+- header/shape validation;
 - malformed row handling;
 - empty CSV handling;
-- duplicate parcel handling;
 - dataset model;
 - no full parcel/lien model yet unless the dataset foundation requires it;
 - tenant-scoped persistence;
 - upload API docs;
 - ingestion edge-case tests.
 
-Phase 3 should not include:
+Phase 3 does not include:
 
 - advanced scoring;
 - portfolio;
 - automation;
 - county-specific import wizard sprawl.
 - full parcel/lien normalization beyond what the dataset foundation needs.
+- duplicate parcel handling beyond future-direction docs, because parcel
+  identity is not modeled yet.
 
 Security focus:
 
@@ -124,6 +125,20 @@ Security focus:
 - tenant ownership;
 - safe error messages;
 - no raw file leakage in logs.
+
+## Phase 3B: Parcel/Lien Normalization
+
+Current status: future direction.
+
+Phase 3B should include:
+
+- normalized parcel/lien row model;
+- required domain field validation;
+- duplicate parcel handling;
+- row-level validation errors;
+- tenant-scoped row queries.
+
+This should come before scoring.
 
 ## Phase 4: Scoring Engine
 
@@ -211,8 +226,8 @@ Dependency order matters:
 
 1. repo baseline;
 2. auth;
-3. tenant-owned models;
-4. ingestion;
+3. tenant-owned dataset model and upload;
+4. parcel/lien normalization;
 5. scoring;
 6. review table;
 7. watchlist;

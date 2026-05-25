@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler, RequestHandler } from "express";
+import multer from "multer";
 import { ZodError } from "zod";
 import type { ApiErrorResponse } from "@tax-lien/types";
 import { apiConfig } from "../config/env.js";
@@ -47,6 +48,19 @@ export const errorHandler: ErrorRequestHandler = (error, _request, response, _ne
       error: {
         code: "invalid_json",
         message: "Request body must be valid JSON.",
+      },
+    } satisfies ApiErrorResponse);
+    return;
+  }
+
+  if (error instanceof multer.MulterError) {
+    response.status(error.code === "LIMIT_FILE_SIZE" ? 413 : 400).json({
+      error: {
+        code: error.code === "LIMIT_FILE_SIZE" ? "dataset_upload_too_large" : "dataset_upload_failed",
+        message:
+          error.code === "LIMIT_FILE_SIZE"
+            ? "Uploaded CSV exceeds the 1 MiB limit."
+            : "Uploaded CSV could not be accepted.",
       },
     } satisfies ApiErrorResponse);
     return;

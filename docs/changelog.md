@@ -2,6 +2,13 @@
 
 ## 2026-05-25
 
+- Implemented Phase 3 dataset foundation with authenticated CSV upload,
+  tenant-owned dataset records, safe CSV parsing, dataset list/detail endpoints,
+  and dataset ownership tests.
+- Added `multer` as the minimal multipart upload middleware for manual CSV
+  uploads.
+- Added dataset API and architecture documentation and updated KB files to mark
+  dataset foundation as current implementation truth.
 - Aligned repository workflow policy with the current direct-to-`main` operating
   model after local quality gates and pre-push checks pass.
 - Removed the CI step that intentionally failed direct pushes to `main` while

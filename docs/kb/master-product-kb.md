@@ -123,7 +123,8 @@ Future core loop:
 
 Current implementation:
 
-- no upload endpoint;
+- dataset upload endpoint exists for authenticated manual CSV metadata and
+  validation;
 - no parcel/lien schema;
 - no scoring implementation;
 - no watchlist;

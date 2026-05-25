@@ -33,4 +33,4 @@ The API uses:
 - CORS configured for browser clients
 - strict environment validation
 
-Authentication starts in Phase 2.
+Authentication starts in Phase 2 and is now implemented after this baseline.

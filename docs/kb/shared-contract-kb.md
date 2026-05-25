@@ -20,6 +20,12 @@ Current shared types in `packages/types`:
 - `AuthSuccessResponse`;
 - `AuthMeResponse`;
 - `AuthenticatedPrincipal`.
+- `DatasetStatus`;
+- `DatasetSourceType`;
+- `DatasetValidationSummary`;
+- `DatasetResponse`;
+- `DatasetListResponse`;
+- `DatasetDetailResponse`.
 
 Current scoring package:
 
@@ -59,8 +65,6 @@ Future shared DTOs should be introduced when they cross package/app boundaries.
 Likely DTO families:
 
 - auth request types if the frontend begins importing them;
-- dataset upload response;
-- dataset summary;
 - parcel row;
 - score output;
 - watchlist item;
@@ -106,16 +110,21 @@ messages.
 
 ## Dataset Object Direction
 
-Future dataset contracts should include:
+Current dataset contracts include:
 
 - dataset id;
-- upload filename if safe;
+- original filename;
+- source type;
+- optional source label;
+- status;
 - row count;
-- validation status;
-- created timestamp;
-- owner implied by auth, not client-set.
+- column count;
+- headers;
+- validation summary;
+- upload and created/updated timestamps.
 
-Do not let frontend contracts accept `userId` for creating datasets.
+Owner is implied by auth, not client-set. Do not let frontend contracts accept
+`userId` for creating datasets.
 
 ## Parcel Object Direction
 

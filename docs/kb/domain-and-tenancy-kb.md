@@ -5,16 +5,16 @@
 This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
-It does not define exact database schemas yet because those are not implemented.
-When schemas are added, this file must be updated to reflect actual fields and
-ownership rules.
+It does not define every database schema. Dataset and user schemas now exist;
+parcel, score, watchlist, and portfolio schemas do not. When schemas are added,
+this file must be updated to reflect actual fields and ownership rules.
 
 ## Current Domain Reality
 
 Current implementation:
 
 - user model exists for authentication;
-- no dataset model;
+- dataset model exists for authenticated manual CSV uploads;
 - no parcel model;
 - no score model;
 - no watchlist model;
@@ -25,17 +25,19 @@ Current documentation direction:
 - every future user-facing document must include `userId`;
 - every query must enforce user ownership;
 - authentication exists and provides the user identity boundary;
-- CSV ingestion starts after auth and tenant ownership exist.
+- dataset upload now uses auth and tenant ownership;
+- full parcel/lien ingestion starts after the dataset foundation.
 
 ## Core Domain Concepts
 
 ### Dataset
 
-A dataset is a user-uploaded county parcel or tax lien file. In future phases it
-should represent a bounded upload event with metadata, validation status, row
-counts, and ownership.
+A dataset is a user-uploaded county parcel or tax lien CSV file. Current dataset
+records store metadata, ownership, status, row/column counts, headers, and a
+validation summary.
 
-Current status: not implemented.
+Current status: implemented as a manual CSV dataset foundation. Raw normalized
+parcel/lien rows are not stored yet.
 
 ### Parcel
 
@@ -103,6 +105,7 @@ scored, filtered, and watchlisted view is private tenant data.
 Tenant isolation protects:
 
 - uploaded files;
+- dataset metadata;
 - normalized records;
 - scores;
 - reasoning;
@@ -125,9 +128,10 @@ Future code must:
 ## Security Boundary
 
 The tenancy boundary is one of the most important security boundaries in the
-product. Phase 2 establishes authenticated user identity. Future dataset, parcel,
-score, watchlist, and portfolio models must build on that identity rather than
-inventing a parallel ownership pattern.
+product. Phase 2 establishes authenticated user identity. Phase 3 uses that
+identity for tenant-owned dataset records. Future parcel, score, watchlist, and
+portfolio models must build on the same ownership pattern rather than inventing
+a parallel boundary.
 
 Recommended pattern:
 

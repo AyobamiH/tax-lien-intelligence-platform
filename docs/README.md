@@ -19,12 +19,14 @@ before writing specs, prompts, or implementation plans.
 
 - [Phase 1 Architecture Baseline](architecture/phase-1-baseline.md)
 - [Authentication Architecture](architecture/auth.md)
+- [Dataset Foundation Architecture](architecture/datasets.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
 ## API
 
 - [Health API](api/health.md)
 - [Auth API](api/auth.md)
+- [Dataset API](api/datasets.md)
 
 ## Decisions
 

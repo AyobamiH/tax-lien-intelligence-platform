@@ -48,6 +48,11 @@ Current repo protections:
 - auth middleware for protected routes;
 - safe auth responses that do not return password hashes;
 - tests for common auth failure modes;
+- tenant-owned dataset records;
+- authenticated dataset upload/list/detail routes;
+- 1 MiB CSV upload limit;
+- CSV parser row, column, and record-size guardrails;
+- cross-user dataset detail rejection tests;
 - root quality gates for typecheck, test, and build;
 - CI quality-gates workflow;
 - local pre-push hook;
@@ -57,14 +62,11 @@ Current repo protections:
 
 Not yet implemented:
 
-- tenant-owned models;
-- authorization checks;
-- cross-user isolation tests;
+- tenant-owned parcel/watchlist models;
+- authorization checks for future resource types;
+- cross-user isolation tests for future parcel/watchlist resources;
 - rate limiting;
-- upload security;
-- file type/size validation;
-- CSV validation;
-- global error handler beyond 404 behavior;
+- normalized parcel/lien upload validation;
 - audit logging;
 - production CORS restrictions;
 - secret rotation guidance.
@@ -203,8 +205,8 @@ Errors must:
 - avoid raw database errors;
 - avoid leaking another tenant's data.
 
-Current structured 404 is a good start, but global error handling is not yet
-implemented.
+Global error handling is implemented for API errors, validation failures,
+malformed JSON, upload middleware failures, and unexpected server errors.
 
 ### Logging
 
@@ -249,27 +251,29 @@ Future:
 Current:
 
 - JSON body limit is `1mb`.
+- CSV uploads are limited to 1 MiB.
+- CSV parsing has row, column, and record-size limits.
 
-Future upload endpoints need:
+Future row/file persistence needs:
 
-- file size limits;
-- file type checks;
-- row count limits if needed;
 - memory-safe parsing;
 - clear rejection errors.
 
 ### File Upload Security
 
-CSV upload must handle:
+Current dataset upload handles:
 
 - empty CSV;
 - malformed rows;
-- missing required fields;
-- extreme values;
+- safe failure without partial unsafe writes.
+
+Future parcel/lien normalization must handle:
+
+- missing required domain fields;
+- extreme numeric values;
 - duplicate parcels;
 - unexpected columns;
-- dangerous formula-like cell values if exported later;
-- safe failure without partial unsafe writes.
+- dangerous formula-like cell values if exported later.
 
 ### Dependency Hygiene
 
@@ -362,8 +366,10 @@ Tests must include:
 
 ### Dataset Uploads
 
-Uploads are high-risk because they accept external input. They need validation,
-limits, safe parsing, and careful error handling.
+Uploads are high-risk because they accept external input. Phase 3 now has size
+limits, safe parsing, ownership, and error handling for manual CSV dataset
+metadata. Future row normalization and raw file persistence, if added, need
+additional controls.
 
 ### Scoring Explanations
 

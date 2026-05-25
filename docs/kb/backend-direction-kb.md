@@ -25,11 +25,14 @@ Current implementation:
 - JWT issuance and verification;
 - auth middleware;
 - global API error handling;
+- dataset model;
+- authenticated dataset upload/list/detail routes;
+- CSV upload handling;
+- CSV validation and dataset ownership enforcement;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
-- no parcel/lien models;
-- no upload endpoint.
+- no parcel/lien models.
 
 ## Intended Backend Role
 
@@ -72,20 +75,27 @@ Security requirement:
 Future auth hardening may add password reset, email verification, refresh-token
 rotation, or MFA, but those are not current scope.
 
-## Dataset Direction
+## Dataset Implementation
 
-Dataset ingestion should come after auth. A dataset should belong to exactly one
-user and should capture upload metadata and validation outcome.
+The dataset foundation now exists. A dataset belongs to exactly one user and
+captures upload metadata and validation outcome.
 
-Future backend responsibilities:
+Current backend responsibilities:
 
 - validate file presence;
 - validate file type/size;
 - parse CSV safely;
 - reject empty or malformed CSVs;
-- record validation errors;
-- avoid partial unsafe persistence;
-- associate every stored row with `userId`.
+- record validation summaries;
+- avoid persistence on unsafe parse failures;
+- associate every stored dataset with `userId`.
+
+Future backend responsibilities:
+
+- normalize parcel/lien rows;
+- validate required domain fields;
+- handle duplicate parcel identities;
+- persist row-level records safely.
 
 ## Scoring Direction
 
@@ -183,8 +193,8 @@ When introduced, background work must include:
 Backend implementation order should stay disciplined:
 
 1. auth and user model: implemented in Phase 2;
-2. tenant-scoped data models;
-3. CSV upload and validation;
+2. tenant-scoped dataset model and CSV upload: implemented in Phase 3;
+3. parcel/lien normalization;
 4. scoring package implementation;
 5. scored parcel APIs;
 6. watchlist APIs;
@@ -220,7 +230,7 @@ Backend drift risks:
 
 - route handlers growing without service boundaries;
 - client-supplied `userId`;
-- unvalidated CSV ingestion;
+- unvalidated parcel/lien row ingestion;
 - scoring logic duplicated outside the scoring package;
 - inconsistent error shapes;
 - permissive CORS into production;

@@ -38,3 +38,37 @@ export interface AuthenticatedPrincipal {
   userId: string;
   email: string;
 }
+
+export type DatasetStatus = "validated";
+export type DatasetSourceType = "manual_csv";
+
+export interface DatasetValidationSummary {
+  totalRows: number;
+  validRows: number;
+  invalidRows: number;
+  warnings: string[];
+  errors: string[];
+}
+
+export interface DatasetResponse {
+  id: string;
+  originalFilename: string;
+  sourceType: DatasetSourceType;
+  sourceLabel?: string;
+  status: DatasetStatus;
+  rowCount: number;
+  columnCount: number;
+  headers: string[];
+  validationSummary: DatasetValidationSummary;
+  uploadedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DatasetListResponse {
+  datasets: DatasetResponse[];
+}
+
+export interface DatasetDetailResponse {
+  dataset: DatasetResponse;
+}

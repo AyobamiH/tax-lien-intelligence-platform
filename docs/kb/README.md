@@ -59,12 +59,14 @@ records the current implementation state:
 - Phase 1 monorepo baseline exists.
 - API health endpoint exists.
 - Auth API exists.
+- Dataset API exists.
 - frontend shell exists.
 - Mongo connection package exists.
 - user model exists.
+- dataset model exists.
 - shared types exist.
 - scoring package is currently a placeholder.
-- ingestion, parcel models, scoring workflows, and watchlists are not
+- full parcel models, scoring workflows, watchlists, and automation are not
   implemented yet.
 
 Do not use the legacy personal mirror as product truth. The primary startup
@@ -79,10 +81,11 @@ investment decision records, authentication, and tenant-owned data.
 
 The current repo has baseline controls such as strict TypeScript, environment
 validation, Helmet, a JSON body limit, ignored local env files, quality gates,
-password hashing, JWT auth, auth middleware, and safe auth error handling. It
-does not yet have tenant-scoped parcel/dataset/watchlist models, rate limiting,
-upload validation, or cross-user resource isolation tests because those
-user-owned resource workflows do not exist yet.
+password hashing, JWT auth, auth middleware, safe auth error handling,
+tenant-owned dataset records, upload size limits, and CSV validation. It does not
+yet have normalized parcel/watchlist models, rate limiting, scoring, automation,
+or full cross-user tests for future resource types because those workflows do not
+exist yet.
 
 ## How Future Contributors Should Update The KB
 
