@@ -201,14 +201,26 @@ Phase 5 does not include:
 
 ## Phase 6: Watchlist System
 
+Current status: implemented as the first decision workflow.
+
 Phase 6 should include:
 
 - add/remove watchlist endpoints;
-- ownership checks for referenced parcels;
+- ownership checks for referenced scored records;
 - watchlist UI;
 - persistence across reloads;
 - tests for cross-user access attempts;
 - docs.
+
+Implemented Phase 6 includes:
+
+- tenant-owned watchlist item model;
+- authenticated add/list/remove API routes;
+- duplicate-safe add behavior;
+- cross-user add/delete/list tests;
+- frontend keep/remove actions from scored records;
+- dedicated watchlist comparison page;
+- watchlist detail with flags and reasoning.
 
 Phase 6 should not include:
 

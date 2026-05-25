@@ -11,13 +11,17 @@ import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createDatasetRouter } from "./routes/datasets.js";
 import { createScoringRouter } from "./routes/scoring.js";
+import { createWatchlistRouter } from "./routes/watchlist.js";
 import { createScoringService } from "./scoring/factory.js";
 import type { ScoringService } from "./scoring/scoring-service.js";
+import { createWatchlistService } from "./watchlist/factory.js";
+import type { WatchlistService } from "./watchlist/watchlist-service.js";
 
 export interface AppDependencies {
   authService?: AuthService;
   datasetService?: DatasetService;
   scoringService?: ScoringService;
+  watchlistService?: WatchlistService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -25,6 +29,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const authService = dependencies.authService ?? createAuthService();
   const datasetService = dependencies.datasetService ?? createDatasetService();
   const scoringService = dependencies.scoringService ?? createScoringService();
+  const watchlistService = dependencies.watchlistService ?? createWatchlistService();
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -44,6 +49,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/auth", createAuthRouter(authService));
   app.use("/datasets", createDatasetRouter(authService, datasetService));
   app.use("/datasets", createScoringRouter(authService, scoringService));
+  app.use("/watchlist", createWatchlistRouter(authService, watchlistService));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

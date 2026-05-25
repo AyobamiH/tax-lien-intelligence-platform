@@ -2,6 +2,13 @@
 
 ## 2026-05-25
 
+- Implemented Phase 6 watchlist workflow with tenant-owned watchlist items,
+  authenticated add/list/remove endpoints, duplicate-safe adds, cross-user
+  watchlist protections, frontend keep/remove actions from scored results, a
+  dedicated watchlist comparison surface, and watchlist tests.
+- Added watchlist API and architecture documentation and updated the KB pack to
+  mark watchlist as current product surface while keeping portfolio, automation,
+  alerts, collaboration, and ML as future work.
 - Implemented Phase 5 frontend scored-results review surface with browser
   login/register, authenticated dataset list/detail views, score triggering,
   a dense scored-record table, row detail reasoning, flags, loading/empty/error

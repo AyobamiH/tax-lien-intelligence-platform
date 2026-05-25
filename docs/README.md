@@ -22,6 +22,7 @@ before writing specs, prompts, or implementation plans.
 - [Dataset Foundation Architecture](architecture/datasets.md)
 - [Scoring Foundation Architecture](architecture/scoring.md)
 - [Frontend Review Surface Architecture](architecture/frontend-review.md)
+- [Watchlist Workflow Architecture](architecture/watchlist.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
 ## API
@@ -30,6 +31,7 @@ before writing specs, prompts, or implementation plans.
 - [Auth API](api/auth.md)
 - [Dataset API](api/datasets.md)
 - [Scoring API](api/scoring.md)
+- [Watchlist API](api/watchlist.md)
 
 ## Decisions
 

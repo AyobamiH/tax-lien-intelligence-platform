@@ -17,9 +17,9 @@ turns county parcel and tax lien datasets into structured investment decisions.
 
 The product is not yet fully implemented. The current repo now includes the
 baseline, auth foundation, dataset upload foundation, first-pass scoring
-foundation, and frontend scored-results review surface. The product identity is
-visible through the README, package description, architecture docs, and frontend
-review surface.
+foundation, frontend scored-results review surface, and watchlist decision
+workflow. The product identity is visible through the README, package
+description, architecture docs, and frontend review/watchlist surfaces.
 
 Current evidence:
 
@@ -28,6 +28,7 @@ Current evidence:
 - the root package describes scoring tax lien and parcel datasets;
 - the frontend review surface lets signed-in users inspect scored records,
   flags, and reasoning;
+- the watchlist surface lets signed-in users keep and compare scored records;
 - architecture docs say every future user-owned document must include `userId`.
 
 ## What This SaaS Is
@@ -48,8 +49,9 @@ The intended product loop is:
 8. the user tracks decisions over time.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
-row storage, first-pass score APIs, and browser score review exist. Browser CSV
-upload, watchlist, portfolio, and richer automation remain future direction.
+row storage, first-pass score APIs, browser score review, and watchlist
+shortlisting exist. Browser CSV upload, portfolio, and richer automation remain
+future direction.
 
 ## What This SaaS Is Not
 
@@ -132,9 +134,9 @@ Current implementation:
 - internal source rows are stored for scoring;
 - first-pass explainable scoring exists through API routes;
 - frontend review of scored results exists;
+- watchlist shortlisting exists;
 - no standalone parcel/lien schema;
-- no watchlist;
-- no persisted decision workflow.
+- no portfolio or final investment decision workflow.
 
 ## Trust Philosophy
 

@@ -123,6 +123,14 @@ class InMemoryScoredRecordStore implements ScoredRecordStore {
     );
   }
 
+  public async findScoreByIdForUser(scoredRecordId: string, userId: string): Promise<StoredScoredRecord | null> {
+    return (
+      [...this.recordsByKey.values()]
+        .flat()
+        .find((record) => record.id === scoredRecordId && record.userId === userId) ?? null
+    );
+  }
+
   private key(userId: string, datasetId: string): string {
     return `${userId}:${datasetId}`;
   }

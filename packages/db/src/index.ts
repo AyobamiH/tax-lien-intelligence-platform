@@ -24,3 +24,8 @@ export {
   type ScoredRecordScoreRecord,
 } from "./models/scored-record.js";
 export { UserModel, type UserDocument, type UserRecord } from "./models/user.js";
+export {
+  WatchlistItemModel,
+  type WatchlistItemDocument,
+  type WatchlistItemRecord,
+} from "./models/watchlist-item.js";

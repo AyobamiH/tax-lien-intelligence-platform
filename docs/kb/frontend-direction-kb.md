@@ -22,9 +22,12 @@ Current implementation:
 - API integration for dataset list/detail, scoring runs, and scored records;
 - scored-results table;
 - record detail surface for flags and reasoning;
+- watchlist keep/remove actions;
+- dedicated watchlist comparison page;
+- watchlist detail surface for flags and reasoning;
 - loading, empty, and error states;
 - no browser upload flow yet;
-- no watchlist UI.
+- no portfolio UI.
 
 ## Intended Frontend Role
 
@@ -50,8 +53,9 @@ Current and future page direction:
 - implemented: dataset detail review route;
 - implemented: scored records table;
 - implemented: record detail reasoning surface;
+- implemented: watchlist comparison surface;
+- implemented: watchlist detail reasoning surface;
 - future: browser dataset upload page;
-- future: watchlist page;
 - future: portfolio page;
 - future: account/settings page.
 
@@ -79,11 +83,18 @@ Implemented scored table:
 - make risk visible;
 - allow drill-down into reasoning.
 
-Future watchlist:
+Implemented watchlist:
 
 - show user-selected opportunities;
 - preserve why the user shortlisted the item;
-- support review, notes, and decision status later.
+- support dense comparison and remove actions.
+
+Future watchlist expansion:
+
+- notes;
+- tags;
+- decision status;
+- portfolio handoff.
 
 ## Design Tone
 
@@ -150,7 +161,7 @@ repo truth:
 
 - do not invent pages that do not have implementation priority;
 - do not add mock data as if it were real;
-- do not imply browser upload, watchlist, or portfolio workflows exist before
+- do not imply browser upload or portfolio workflows exist before
   they are wired to backend contracts;
 - do not bypass shared API contracts;
 - do not change product positioning away from decision support.
@@ -174,7 +185,7 @@ Future frontend work must:
 
 Do not build:
 
-- portfolio UI before watchlists exist;
+- portfolio UI before the watchlist workflow is stable;
 - automation dashboards before upload, scoring review, and watchlist workflows
   exist;
 - admin consoles before user auth and tenancy are hardened;

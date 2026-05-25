@@ -2,10 +2,13 @@ import type {
   ApiErrorResponse,
   AuthMeResponse,
   AuthSuccessResponse,
+  AddWatchlistItemResponse,
   DatasetDetailResponse,
   DatasetListResponse,
   DatasetScoreRunResponse,
   DatasetScoresResponse,
+  DeleteWatchlistItemResponse,
+  WatchlistListResponse,
 } from "@tax-lien/types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
@@ -72,8 +75,29 @@ export async function scoreDataset(token: string, datasetId: string): Promise<Da
   });
 }
 
+export async function listWatchlist(token: string): Promise<WatchlistListResponse> {
+  return requestJson<WatchlistListResponse>("/watchlist", {
+    token,
+  });
+}
+
+export async function addWatchlistItem(token: string, scoredRecordId: string): Promise<AddWatchlistItemResponse> {
+  return requestJson<AddWatchlistItemResponse>("/watchlist", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ scoredRecordId }),
+  });
+}
+
+export async function removeWatchlistItem(token: string, watchlistItemId: string): Promise<DeleteWatchlistItemResponse> {
+  return requestJson<DeleteWatchlistItemResponse>(`/watchlist/${encodeURIComponent(watchlistItemId)}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
 interface JsonRequestOptions {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "DELETE";
   token?: string;
   body?: string;
 }

@@ -5,8 +5,8 @@
 This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
-It does not define every database schema. User, dataset, and scored-record
-schemas now exist; standalone parcel, watchlist, and portfolio schemas do not.
+It does not define every database schema. User, dataset, scored-record, and
+watchlist item schemas now exist; standalone parcel and portfolio schemas do not.
 When schemas are added, this file must be updated to reflect actual fields and
 ownership rules.
 
@@ -17,10 +17,11 @@ Current implementation:
 - user model exists for authentication;
 - dataset model exists for authenticated manual CSV uploads;
 - scored-record model exists for first-pass scoring outputs;
+- watchlist item model exists for user-owned scored-record shortlists;
 - frontend review surface exposes user-owned datasets and scored records through
   authenticated API calls;
+- frontend watchlist surface exposes user-owned shortlisted scored records;
 - no parcel model;
-- no watchlist model;
 - no portfolio model.
 
 Current documentation direction:
@@ -67,7 +68,10 @@ the browser for the signed-in user. It is not final institutional underwriting.
 A watchlist is a user-owned shortlist of opportunities selected for further
 review.
 
-Current status: not implemented.
+Current status: implemented as a tenant-owned watchlist item model and
+add/list/remove API. It references scored records owned by the authenticated
+user and stores enough score summary, flags, reasoning, and normalized field
+context to support comparison without exposing another tenant's data.
 
 ### Portfolio
 
@@ -138,8 +142,9 @@ Future code must:
 The tenancy boundary is one of the most important security boundaries in the
 product. Phase 2 establishes authenticated user identity. Phase 3 uses that
 identity for tenant-owned dataset records. Phase 4 uses it for scored records.
-Future standalone parcel, watchlist, and portfolio models must build on the same
-ownership pattern rather than inventing a parallel boundary.
+Phase 6 uses it for watchlist items. Future standalone parcel and portfolio
+models must build on the same ownership pattern rather than inventing a parallel
+boundary.
 
 Recommended pattern:
 
@@ -171,7 +176,8 @@ Domain and tenancy drift risks:
 - accepting `userId` from request bodies;
 - writing frontend filters that imply security;
 - adding scoring outputs without dataset/source row linkage;
-- storing watchlist items without verifying ownership of the underlying parcel;
+- storing watchlist items without verifying ownership of the underlying scored
+  record;
 - creating admin-like endpoints before user boundaries exist.
 
 ## Update Rules

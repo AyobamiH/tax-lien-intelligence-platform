@@ -112,3 +112,41 @@ export interface DatasetScoresResponse {
   datasetId: string;
   scores: ScoredRecordResponse[];
 }
+
+export interface AddWatchlistItemRequest {
+  scoredRecordId: string;
+}
+
+export interface WatchlistItemResponse {
+  id: string;
+  datasetId: string;
+  scoredRecordId: string;
+  sourceRowNumber: number;
+  normalizedFields: NormalizedScoredRecordFields;
+  investmentScore: number;
+  riskScore: number;
+  liquidityScore: number;
+  redemptionProbability: number;
+  confidenceScore: number;
+  valueCoverageRatio?: number;
+  flags: string[];
+  reasoning: string[];
+  scoredAt: string;
+  addedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AddWatchlistItemResponse {
+  item: WatchlistItemResponse;
+  alreadyExists: boolean;
+}
+
+export interface WatchlistListResponse {
+  items: WatchlistItemResponse[];
+}
+
+export interface DeleteWatchlistItemResponse {
+  deleted: true;
+  id: string;
+}

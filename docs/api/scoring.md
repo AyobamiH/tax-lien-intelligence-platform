@@ -18,9 +18,10 @@ authenticated user.
 
 Runs first-pass scoring for a user-owned dataset.
 
-The current scoring run is synchronous and deterministic. It replaces existing
-scores for the same dataset with a fresh score set derived from the dataset's
-stored source rows.
+The current scoring run is synchronous and deterministic. It refreshes existing
+scores for the same dataset from stored source rows while preserving scored
+record identifiers for the same source row where possible, so watchlist
+references can remain stable across rescoring.
 
 ### Response `200`
 
@@ -93,6 +94,6 @@ the uploaded dataset, such as parcel id, lien amount, estimated or assessed
 value, property type, and any simple usability signals present in the CSV.
 
 Phase 5 adds a frontend review surface that calls these routes directly for the
-signed-in user. Future phases may add stronger county adapters, enrichment,
-deduplication, geographic data, historical redemption signals, watchlists, and
-portfolio workflows.
+signed-in user. Phase 6 adds watchlist actions on top of scored records. Future
+phases may add stronger county adapters, enrichment, deduplication, geographic
+data, historical redemption signals, and portfolio workflows.

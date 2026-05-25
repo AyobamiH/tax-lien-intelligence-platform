@@ -18,13 +18,14 @@ Implemented:
 - authenticated `GET /datasets/:datasetId/scores`;
 - tenant ownership checks for scoring and retrieval;
 - frontend scored-results review surface;
+- score identifiers preserved across rescoring of the same source row where
+  possible so watchlist references remain stable;
 - unit tests for scoring rules;
 - integration tests for scoring API ownership and weak-data behavior.
 
 Not implemented:
 
 - final institutional-grade underwriting;
-- watchlist;
 - portfolio;
 - external enrichment;
 - ML or AI scoring;
@@ -126,8 +127,10 @@ server-derived documents with:
 - `scoredAt`;
 - timestamps.
 
-Scores are replaced for a dataset when a new scoring run occurs. This is simple
-and deterministic for the foundation phase.
+Scores are refreshed for a dataset when a new scoring run occurs. Existing
+scored-record identifiers are preserved for the same `userId`, `datasetId`, and
+source row number where possible, because Phase 6 watchlist items reference
+scored records. Rows no longer present in the scoring run are removed.
 
 ## Security Notes
 

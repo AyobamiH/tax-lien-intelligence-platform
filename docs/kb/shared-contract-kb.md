@@ -31,6 +31,11 @@ Current shared types in `packages/types`:
 - `ScoredRecordResponse`;
 - `DatasetScoreRunResponse`;
 - `DatasetScoresResponse`.
+- `AddWatchlistItemRequest`;
+- `WatchlistItemResponse`;
+- `AddWatchlistItemResponse`;
+- `WatchlistListResponse`;
+- `DeleteWatchlistItemResponse`.
 
 Current scoring package:
 
@@ -68,12 +73,11 @@ This structured error shape should become the default API pattern.
 
 Future shared DTOs should be introduced when they cross package/app boundaries.
 
-Likely DTO families:
+Likely future DTO families:
 
 - auth request types if the frontend begins importing them;
 - parcel row;
-- score output;
-- watchlist item;
+- portfolio item;
 - API error codes.
 
 Avoid adding types too early when the domain is still being discovered. Add them
@@ -178,18 +182,28 @@ does not define a separate browser-only score contract.
 
 The contract represents first-pass explainable scoring, not final underwriting.
 
-## Watchlist Object Direction
+## Watchlist Object Contract
 
-Future watchlist contracts should include:
+Current watchlist contracts include:
 
 - watchlist item id;
-- parcel id;
-- score snapshot or score reference;
-- user decision status if implemented;
-- notes if implemented;
+- source dataset id;
+- source scored record id;
+- source row number;
+- normalized field snapshot;
+- score summary;
+- flags;
+- reasoning;
+- scored timestamp;
+- added timestamp;
 - created/updated timestamps.
 
-The backend must verify the watched parcel belongs to the authenticated user.
+The backend verifies the watched scored record belongs to the authenticated user
+before creating a watchlist item. The frontend must not submit score values or
+`userId`.
+
+Future watchlist contracts may add notes, tags, or decision status, but only
+with validation, API docs, and tenancy tests.
 
 ## Compatibility And Versioning Guidance
 

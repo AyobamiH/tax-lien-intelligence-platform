@@ -1,4 +1,4 @@
-import type { ScoredRecordResponse } from "@tax-lien/types";
+import type { NormalizedScoredRecordFields, ScoredRecordResponse, WatchlistItemResponse } from "@tax-lien/types";
 
 export type ScoreFilter = "all" | "flagged" | "strong" | "weak";
 
@@ -14,6 +14,16 @@ export interface ScoreBand {
   className: string;
 }
 
+export interface ReviewRecordLike {
+  sourceRowNumber: number;
+  normalizedFields: NormalizedScoredRecordFields;
+  investmentScore: number;
+  riskScore: number;
+  confidenceScore: number;
+  flags: string[];
+  reasoning: string[];
+}
+
 export function sortScoresForReview(scores: ScoredRecordResponse[]): ScoredRecordResponse[] {
   return [...scores].sort((left, right) => {
     if (right.investmentScore !== left.investmentScore) {
@@ -26,6 +36,24 @@ export function sortScoresForReview(scores: ScoredRecordResponse[]): ScoredRecor
 
     return left.sourceRowNumber - right.sourceRowNumber;
   });
+}
+
+export function sortWatchlistItemsForReview(items: WatchlistItemResponse[]): WatchlistItemResponse[] {
+  return [...items].sort((left, right) => {
+    if (right.investmentScore !== left.investmentScore) {
+      return right.investmentScore - left.investmentScore;
+    }
+
+    if (left.riskScore !== right.riskScore) {
+      return left.riskScore - right.riskScore;
+    }
+
+    return new Date(right.addedAt).getTime() - new Date(left.addedAt).getTime();
+  });
+}
+
+export function buildWatchlistByScoreId(items: WatchlistItemResponse[]): Map<string, WatchlistItemResponse> {
+  return new Map(items.map((item) => [item.scoredRecordId, item]));
 }
 
 export function filterScoresForReview(
@@ -126,21 +154,21 @@ export function formatRatio(value: number | undefined): string {
   return `${Number(value.toFixed(2))}x`;
 }
 
-export function primaryRecordLabel(score: ScoredRecordResponse): string {
-  return score.normalizedFields.parcelId ?? `Row ${score.sourceRowNumber}`;
+export function primaryRecordLabel(record: ReviewRecordLike): string {
+  return record.normalizedFields.parcelId ?? `Row ${record.sourceRowNumber}`;
 }
 
-export function reasoningPreview(score: ScoredRecordResponse): string {
-  return score.reasoning[0] ?? "No reasoning returned.";
+export function reasoningPreview(record: ReviewRecordLike): string {
+  return record.reasoning[0] ?? "No reasoning returned.";
 }
 
-export function flagPreview(score: ScoredRecordResponse, limit = 2): string {
-  if (score.flags.length === 0) {
+export function flagPreview(record: ReviewRecordLike, limit = 2): string {
+  if (record.flags.length === 0) {
     return "No flags";
   }
 
-  const visibleFlags = score.flags.slice(0, limit).join(", ");
-  const remainingCount = score.flags.length - limit;
+  const visibleFlags = record.flags.slice(0, limit).join(", ");
+  const remainingCount = record.flags.length - limit;
 
   return remainingCount > 0 ? `${visibleFlags} +${remainingCount}` : visibleFlags;
 }

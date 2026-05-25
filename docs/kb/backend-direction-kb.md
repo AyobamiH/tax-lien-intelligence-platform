@@ -35,6 +35,10 @@ Current implementation:
 - authenticated score run and score retrieval routes;
 - scoring ownership enforcement;
 - frontend score review surface consumes the scoring API;
+- watchlist item model;
+- authenticated watchlist add/list/remove routes;
+- watchlist ownership enforcement against scored records;
+- duplicate-safe watchlist adds;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
@@ -122,15 +126,28 @@ Current limitation:
 - normalization maps common headers only;
 - no external enrichment or final underwriting model exists yet.
 
-## Watchlist Direction
+## Watchlist Implementation
 
-Watchlist endpoints should:
+The watchlist foundation now exists. Watchlist items belong to one user and
+reference scored records that have already passed dataset ownership checks.
+
+Current watchlist API:
+
+- `POST /watchlist`;
+- `GET /watchlist`;
+- `DELETE /watchlist/:watchlistItemId`.
+
+Watchlist endpoints:
 
 - require auth;
-- verify ownership of the parcel/score being watched;
+- verify ownership of the scored record being watched;
 - prevent cross-user references;
 - support add/remove/list;
 - preserve user decision context.
+
+Current limitation:
+
+- no notes, tags, decision status, portfolio handoff, alerts, or collaboration.
 
 ## Future Portfolio Direction
 
@@ -214,7 +231,7 @@ Backend implementation order should stay disciplined:
 3. parcel/lien normalization;
 4. scoring package implementation and score APIs: implemented in Phase 4;
 5. frontend scored-results table: implemented in Phase 5;
-6. watchlist APIs;
+6. watchlist APIs and review surface: implemented in Phase 6;
 7. later portfolio and automation.
 
 Do not introduce automation before the manual workflow is correct.

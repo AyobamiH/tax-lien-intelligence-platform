@@ -3,6 +3,8 @@
 ## Scope
 
 Phase 5 introduces the first real in-app review surface for scored datasets.
+Phase 6 extends that surface with watchlist actions and a dedicated shortlist
+comparison page.
 The frontend is no longer only a shell: it now authenticates against the API,
 lists the signed-in user's datasets, opens a dataset, triggers scoring, and
 renders scored records with flags and reasoning.
@@ -16,13 +18,14 @@ Implemented:
 - scoring action for a selected dataset;
 - scored results table;
 - record detail surface with flags and reasoning;
+- watchlist keep/remove actions on scored records;
+- dedicated watchlist route and comparison surface;
 - loading, empty, and error states;
 - reusable review model helpers and unit tests.
 
 Not implemented:
 
 - browser CSV upload;
-- watchlist;
 - portfolio;
 - automation;
 - ML/AI features;
@@ -36,9 +39,10 @@ Implemented hash routes:
 
 - `#/datasets`
 - `#/datasets/:datasetId`
+- `#/watchlist`
 
 This avoids adding a router before the app needs nested navigation. If future
-phases add upload, watchlist, and portfolio pages, a router can be introduced
+phases add upload, portfolio, and settings pages, a router can be introduced
 with tests and docs.
 
 ## API Boundary
@@ -51,7 +55,10 @@ The frontend calls only the existing authenticated API routes:
 - `GET /datasets`;
 - `GET /datasets/:datasetId`;
 - `POST /datasets/:datasetId/score`;
-- `GET /datasets/:datasetId/scores`.
+- `GET /datasets/:datasetId/scores`;
+- `POST /watchlist`;
+- `GET /watchlist`;
+- `DELETE /watchlist/:watchlistItemId`.
 
 The frontend does not accept or send trusted score values. Scores remain
 server-derived.
@@ -74,6 +81,20 @@ dashboard presentation. It shows:
 The detail surface shows the full flag and reasoning arrays for the selected
 record.
 
+## Watchlist Surface
+
+The watchlist surface is comparison-oriented rather than decorative. It shows:
+
+- kept record label;
+- dataset reference;
+- investment, risk, confidence, liquidity, redemption, and coverage values;
+- compact flags;
+- remove action;
+- detail panel with full reasoning and flags.
+
+It is a shortlist foundation. It is not portfolio tracking, notes, tags, alerts,
+or auction execution.
+
 ## Security Notes
 
 The frontend stores the current JWT in `sessionStorage` so a page reload keeps
@@ -84,6 +105,7 @@ Authorization remains server-side:
 
 - the frontend never sends `userId`;
 - dataset and score access still depends on API ownership checks;
+- watchlist actions still depend on backend ownership checks;
 - auth failures clear the browser session;
 - user-owned data is not mocked into the UI.
 
@@ -98,7 +120,7 @@ Known future hardening:
 Do not:
 
 - add UI-only score fields not returned by the scoring API;
-- imply watchlists or portfolio decisions exist;
+- imply portfolio decisions exist;
 - treat client-side filters as an authorization boundary;
 - add mock records that look like real user data;
 - duplicate scoring logic in the browser.

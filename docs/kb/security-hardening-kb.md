@@ -58,6 +58,11 @@ Current repo protections:
 - scoring ownership enforcement;
 - cross-user scoring rejection tests;
 - frontend review surface for signed-in users;
+- tenant-owned watchlist item persistence;
+- authenticated watchlist add/list/remove routes;
+- watchlist ownership enforcement against scored records;
+- duplicate-safe watchlist adds;
+- cross-user watchlist rejection tests;
 - frontend auth errors clear the browser review session;
 - conservative scoring behavior for missing or weak data;
 - root quality gates for typecheck, test, and build;
@@ -69,9 +74,9 @@ Current repo protections:
 
 Not yet implemented:
 
-- tenant-owned parcel/watchlist models;
+- tenant-owned parcel models;
 - authorization checks for future resource types;
-- cross-user isolation tests for future parcel/watchlist resources;
+- cross-user isolation tests for future parcel/portfolio resources;
 - rate limiting;
 - standalone normalized parcel/lien upload validation;
 - audit logging;
@@ -392,7 +397,12 @@ display another tenant's data through cache/state reuse.
 
 ### Watchlists
 
-Watchlists must verify ownership of referenced parcels.
+Watchlists now verify ownership of referenced scored records before a user can
+keep them. Watchlist responses expose score summaries, flags, and reasoning for
+the signed-in user only.
+
+Future watchlist expansion such as notes, tags, or decision statuses must add
+validation and cross-user tests before release.
 
 ### Portfolio Records
 

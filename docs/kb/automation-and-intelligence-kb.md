@@ -16,12 +16,13 @@ Current implementation:
 - no ingestion pipeline;
 - first-pass deterministic scoring engine exists;
 - frontend review of scored records exists;
+- watchlist shortlisting exists;
 - no alerts;
 - no portfolio monitoring.
 
-The current repo establishes the monorepo, auth, dataset foundation, and
-first-pass scoring foundation plus a manual review surface. Automation is still
-intentionally absent.
+The current repo establishes the monorepo, auth, dataset foundation, first-pass
+scoring foundation, manual review surface, and watchlist shortlist. Automation
+is still intentionally absent.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -64,7 +65,8 @@ Manual-first sequence:
 5. scoring;
 6. table review;
 7. watchlist;
-8. then automation.
+8. portfolio;
+9. then automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -150,11 +152,12 @@ Now:
 - auth;
 - manual upload;
 - first-pass scoring;
-- frontend scored-results review.
+- frontend scored-results review;
+- watchlist shortlisting.
 
 Later:
 
-- watchlist;
+- portfolio;
 - scheduled ingestion;
 - enrichment;
 - alerts;

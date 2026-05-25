@@ -62,13 +62,15 @@ records the current implementation state:
 - Dataset API exists.
 - Scoring API exists.
 - frontend scored-results review surface exists.
+- watchlist API and review surface exist.
 - Mongo connection package exists.
 - user model exists.
 - dataset model exists.
 - scored-record model exists.
+- watchlist item model exists.
 - shared types exist.
 - scoring package is a real first-pass deterministic engine.
-- full parcel models, browser upload, watchlists, and automation are not
+- full parcel models, browser upload, portfolio, and automation are not
   implemented yet.
 
 Do not use the legacy personal mirror as product truth. The primary startup
@@ -85,9 +87,10 @@ The current repo has baseline controls such as strict TypeScript, environment
 validation, Helmet, a JSON body limit, ignored local env files, quality gates,
 password hashing, JWT auth, auth middleware, safe auth error handling,
 tenant-owned dataset records, upload size limits, CSV validation, and
-authenticated score review. It does not yet have standalone parcel/watchlist
-models, rate limiting, automation, or full cross-user tests for future resource
-types because those workflows do not exist yet.
+authenticated score review. It now also has tenant-owned watchlist items and
+cross-user watchlist tests. It does not yet have standalone parcel models, rate
+limiting, automation, portfolio records, or full cross-user tests for future
+resource types because those workflows do not exist yet.
 
 ## How Future Contributors Should Update The KB
 

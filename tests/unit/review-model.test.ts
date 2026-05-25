@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { ScoredRecordResponse } from "@tax-lien/types";
+import type { ScoredRecordResponse, WatchlistItemResponse } from "@tax-lien/types";
 import {
+  buildWatchlistByScoreId,
   filterScoresForReview,
   flagPreview,
   formatMoney,
@@ -10,6 +11,7 @@ import {
   reasoningPreview,
   scoreBand,
   sortScoresForReview,
+  sortWatchlistItemsForReview,
   summarizeScores,
 } from "../../apps/web/src/review-model.js";
 
@@ -34,6 +36,35 @@ function scoredRecord(overrides: Partial<ScoredRecordResponse>): ScoredRecordRes
     flags: [],
     reasoning: ["Strong value coverage."],
     scoredAt: "2026-05-25T00:00:00.000Z",
+    createdAt: "2026-05-25T00:00:00.000Z",
+    updatedAt: "2026-05-25T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function watchlistItem(overrides: Partial<WatchlistItemResponse>): WatchlistItemResponse {
+  return {
+    id: "watch-1",
+    datasetId: "dataset-1",
+    scoredRecordId: "score-1",
+    sourceRowNumber: 2,
+    normalizedFields: {
+      parcelId: "A-100",
+      lienAmount: 1000,
+      estimatedValue: 12000,
+      propertyType: "Single-family residential",
+      propertyTypeCategory: "residential",
+    },
+    investmentScore: 80,
+    riskScore: 20,
+    liquidityScore: 75,
+    redemptionProbability: 0.82,
+    confidenceScore: 90,
+    valueCoverageRatio: 12,
+    flags: [],
+    reasoning: ["Strong value coverage."],
+    scoredAt: "2026-05-25T00:00:00.000Z",
+    addedAt: "2026-05-25T00:00:00.000Z",
     createdAt: "2026-05-25T00:00:00.000Z",
     updatedAt: "2026-05-25T00:00:00.000Z",
     ...overrides,
@@ -119,5 +150,34 @@ describe("review model helpers", () => {
     expect(scoreBand(75).label).toBe("Strong");
     expect(scoreBand(50).label).toBe("Review");
     expect(scoreBand(20).label).toBe("Weak");
+  });
+
+  it("builds watchlist state and sorts kept records for comparison", () => {
+    const newerTie = watchlistItem({
+      id: "newer-tie",
+      scoredRecordId: "score-newer",
+      investmentScore: 82,
+      riskScore: 20,
+      addedAt: "2026-05-25T03:00:00.000Z",
+    });
+    const olderTie = watchlistItem({
+      id: "older-tie",
+      scoredRecordId: "score-older",
+      investmentScore: 82,
+      riskScore: 20,
+      addedAt: "2026-05-25T01:00:00.000Z",
+    });
+    const lowerRisk = watchlistItem({
+      id: "lower-risk",
+      scoredRecordId: "score-lower-risk",
+      investmentScore: 82,
+      riskScore: 10,
+    });
+
+    const sorted = sortWatchlistItemsForReview([olderTie, newerTie, lowerRisk]);
+    const byScoreId = buildWatchlistByScoreId(sorted);
+
+    expect(sorted.map((item) => item.id)).toEqual(["lower-risk", "newer-tie", "older-tie"]);
+    expect(byScoreId.get("score-newer")?.id).toBe("newer-tie");
   });
 });

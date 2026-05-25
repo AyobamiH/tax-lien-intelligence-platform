@@ -84,6 +84,14 @@ Implemented today:
 - authenticated dataset list/detail review UI;
 - frontend score triggering;
 - scored-results table with flags and reasoning detail;
+- tenant-owned watchlist item model in `packages/db`;
+- authenticated watchlist endpoints at `POST /watchlist`, `GET /watchlist`,
+  and `DELETE /watchlist/:watchlistItemId`;
+- duplicate-safe watchlist adds;
+- watchlist ownership tests;
+- frontend keep/remove actions from scored results;
+- dedicated watchlist comparison page;
+- watchlist detail surface with flags and reasoning;
 - structured JSON 404 for unknown API routes;
 - environment parsing with `zod`;
 - Mongo connection helper using Mongoose;
@@ -108,9 +116,8 @@ Placeholders today:
 
 Not implemented:
 
-- tenant-owned parcel/watchlist models;
+- tenant-owned parcel model;
 - frontend dataset upload screen;
-- watchlist;
 - portfolio tracking;
 - browser upload workflow;
 - production deployment config.
@@ -161,12 +168,14 @@ Current tests cover:
 - scoring API ownership boundaries;
 - conservative scoring for partial records.
 - frontend review sorting, filtering, formatting, flags, and reasoning helpers.
+- watchlist add/list/remove behavior;
+- duplicate watchlist handling;
+- cross-user watchlist add/delete rejection.
 
 Tests do not yet cover:
 
-- cross-user resource isolation for future parcel/watchlist records;
+- cross-user resource isolation for future parcel/portfolio records;
 - final underwriting model;
-- watchlists;
 - security boundaries.
 
 ## What Must Not Be Assumed Yet
@@ -174,8 +183,8 @@ Tests do not yet cover:
 Do not assume:
 
 - parcels are stored;
-- watchlists exist;
-- user-owned parcel/watchlist data exists;
+- portfolio records exist;
+- user-owned parcel/portfolio data exists;
 - full ingestion exists beyond dataset metadata, source rows, and first-pass
   scoring;
 - portfolio tracking exists;
@@ -195,11 +204,12 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - auth middleware establishes the user identity boundary.
 - tenant-owned dataset records are implemented.
 - CSV upload limits and validation are implemented.
-- tenant-owned parcel/watchlist models are not yet implemented.
+- tenant-owned scored-record and watchlist item records are implemented.
+- tenant-owned parcel and portfolio records are not yet implemented.
 
-Security cannot be considered complete until the frontend user workflows,
-watchlist data model, broader resource authorization, rate limits, and
-additional cross-user resource tests for later resource types exist.
+Security cannot be considered complete until browser upload, portfolio resource
+authorization, rate limits, and additional cross-user resource tests for later
+resource types exist.
 
 ## Drift Risks
 
