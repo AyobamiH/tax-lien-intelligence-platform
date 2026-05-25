@@ -16,6 +16,7 @@ Implemented:
 - row normalization from common CSV column names;
 - authenticated `POST /datasets/:datasetId/score`;
 - authenticated `GET /datasets/:datasetId/scores`;
+- internal `dataset_scoring` job record created for score runs;
 - tenant ownership checks for scoring and retrieval;
 - frontend scored-results review surface;
 - score identifiers preserved across rescoring of the same source row where
@@ -147,7 +148,8 @@ The API:
 Remaining hardening:
 
 - rate limits for repeated scoring;
-- async job model if scoring becomes expensive;
+- moving the current in-process scoring job to a worker if scoring becomes
+  expensive;
 - audit trail for scoring runs;
 - stronger row-level validation once county adapters exist.
 

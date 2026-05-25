@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type {
   AuthUserResponse,
   DatasetResponse,
+  InternalJobResponse,
   PortfolioItemResponse,
   PortfolioStatus,
   ScoredRecordResponse,
@@ -64,6 +65,7 @@ interface DatasetDetailState {
   dataset: DatasetResponse | null;
   scores: ScoredRecordResponse[];
   selectedScoreId: string | null;
+  lastScoringJob: InternalJobResponse | null;
   isLoading: boolean;
   isScoring: boolean;
   error: string | null;
@@ -766,6 +768,7 @@ function DatasetDetailPage({
     dataset: null,
     scores: [],
     selectedScoreId: null,
+    lastScoringJob: null,
     isLoading: true,
     isScoring: false,
     error: null,
@@ -778,6 +781,7 @@ function DatasetDetailPage({
       dataset: null,
       scores: [],
       selectedScoreId: null,
+      lastScoringJob: null,
       isLoading: true,
       isScoring: false,
       error: null,
@@ -789,6 +793,7 @@ function DatasetDetailPage({
           dataset: datasetResult.dataset,
           scores: scoresResult.scores,
           selectedScoreId: scoresResult.scores[0]?.id ?? null,
+          lastScoringJob: null,
           isLoading: false,
           isScoring: false,
           error: null,
@@ -823,6 +828,7 @@ function DatasetDetailPage({
         ...current,
         scores: result.scores,
         selectedScoreId: result.scores[0]?.id ?? null,
+        lastScoringJob: result.job,
         isScoring: false,
       }));
     } catch (error: unknown) {
@@ -868,6 +874,12 @@ function DatasetDetailPage({
         ) : null}
         {portfolioError ? (
           <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{portfolioError}</div>
+        ) : null}
+        {state.lastScoringJob ? (
+          <div className="mt-4 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+            Scoring job {shortId(state.lastScoringJob.id)} {state.lastScoringJob.status};{" "}
+            {state.lastScoringJob.summary?.scoredRecordCount ?? state.scores.length} records are ready for review.
+          </div>
         ) : null}
         <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
           <Metric label="Rows" value={String(state.dataset.rowCount)} />

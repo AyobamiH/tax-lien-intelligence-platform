@@ -102,8 +102,42 @@ export interface ScoredRecordResponse {
   updatedAt: string;
 }
 
+export type InternalJobStatus = "queued" | "running" | "completed" | "failed";
+export type InternalJobType = "dataset_scoring";
+export type InternalJobTargetType = "dataset";
+
+export interface InternalJobSummary {
+  scoredRecordCount?: number;
+}
+
+export interface InternalJobError {
+  code: string;
+  message: string;
+}
+
+export interface InternalJobResponse {
+  id: string;
+  type: InternalJobType;
+  targetEntityType: InternalJobTargetType;
+  targetEntityId: string;
+  status: InternalJobStatus;
+  summary?: InternalJobSummary;
+  error?: InternalJobError;
+  queuedAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  failedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface JobDetailResponse {
+  job: InternalJobResponse;
+}
+
 export interface DatasetScoreRunResponse {
   datasetId: string;
+  job: InternalJobResponse;
   scoredRecordCount: number;
   scores: ScoredRecordResponse[];
 }

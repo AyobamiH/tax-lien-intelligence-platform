@@ -19,6 +19,7 @@ It shows:
 - authenticated dataset list;
 - dataset detail route using `#/datasets/:datasetId`;
 - scoring action for a selected dataset;
+- scoring success message with internal job id/status;
 - scored-results table;
 - row-level detail surface with flags and reasoning;
 - watchlist keep/remove actions for scored records;
@@ -46,6 +47,7 @@ The current API surface is minimal:
 - `GET /datasets/:datasetId`
 - `POST /datasets/:datasetId/score`
 - `GET /datasets/:datasetId/scores`
+- `GET /jobs/:jobId`
 - `POST /watchlist`
 - `GET /watchlist`
 - `DELETE /watchlist/:watchlistItemId`
@@ -78,6 +80,7 @@ Real workflows now present:
 - browser-based login;
 - dataset list/detail review for authenticated users;
 - score triggering for a selected dataset;
+- visible scoring job completion state after a scoring run;
 - scored-record table;
 - record-level flags and reasoning review.
 - add/remove watchlist actions;
@@ -139,7 +142,8 @@ adds:
 
 The watchlist is now user-owned decision data and has its own backend ownership
 checks. Portfolio tracking is also user-owned decision data and has backend
-ownership checks. Future changes must preserve both boundaries.
+ownership checks. Internal jobs are user-owned operational metadata and have
+backend ownership checks. Future changes must preserve these boundaries.
 
 Future current-surface updates must record both visible functionality and trust
 boundaries.

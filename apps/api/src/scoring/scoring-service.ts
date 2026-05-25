@@ -1,28 +1,68 @@
 import mongoose from "mongoose";
 import { scoreLienCandidate } from "@tax-lien/scoring";
 import type { DatasetScoreRunResponse, DatasetScoresResponse, ScoredRecordResponse } from "@tax-lien/types";
-import type { DatasetStore } from "../datasets/dataset-store.js";
+import type { DatasetStore, StoredDatasetSourceRow } from "../datasets/dataset-store.js";
 import { ApiError } from "../errors/api-error.js";
+import type { InternalJobService } from "../jobs/internal-job-service.js";
 import { normalizeDatasetRow } from "./normalization.js";
 import type { CreateScoredRecordInput, ScoredRecordStore, StoredScoredRecord } from "./scored-record-store.js";
 
 export class ScoringService {
   private readonly datasetStore: DatasetStore;
   private readonly scoredRecordStore: ScoredRecordStore;
+  private readonly internalJobService: InternalJobService;
 
-  public constructor(datasetStore: DatasetStore, scoredRecordStore: ScoredRecordStore) {
+  public constructor(
+    datasetStore: DatasetStore,
+    scoredRecordStore: ScoredRecordStore,
+    internalJobService: InternalJobService,
+  ) {
     this.datasetStore = datasetStore;
     this.scoredRecordStore = scoredRecordStore;
+    this.internalJobService = internalJobService;
   }
 
   public async scoreDataset(datasetId: string, userId: string): Promise<DatasetScoreRunResponse> {
     const dataset = await this.getDatasetForScoring(datasetId, userId);
-    if (dataset.sourceRows.length === 0) {
+
+    const execution = await this.internalJobService.execute({
+      userId,
+      type: "dataset_scoring",
+      targetEntityType: "dataset",
+      targetEntityId: dataset.id,
+      run: () => this.executeDatasetScoring(dataset.id, userId, dataset.sourceRows),
+      summarize: (result) => ({
+        scoredRecordCount: result.scoredRecordCount,
+      }),
+    });
+
+    return {
+      ...execution.result,
+      job: execution.job,
+    };
+  }
+
+  public async listScores(datasetId: string, userId: string): Promise<DatasetScoresResponse> {
+    const dataset = await this.getDatasetForScoring(datasetId, userId);
+    const scores = await this.scoredRecordStore.listScoresForDataset(userId, dataset.id);
+
+    return {
+      datasetId: dataset.id,
+      scores: scores.map(toScoredRecordResponse),
+    };
+  }
+
+  private async executeDatasetScoring(
+    datasetId: string,
+    userId: string,
+    sourceRows: StoredDatasetSourceRow[],
+  ): Promise<Omit<DatasetScoreRunResponse, "job">> {
+    if (sourceRows.length === 0) {
       throw new ApiError(400, "score_no_source_rows", "Dataset does not contain scoreable source rows.");
     }
 
     const scoredAt = new Date();
-    const records: CreateScoredRecordInput[] = dataset.sourceRows.map((sourceRow) => {
+    const records: CreateScoredRecordInput[] = sourceRows.map((sourceRow) => {
       const normalized = normalizeDatasetRow(sourceRow);
       const score = scoreLienCandidate(normalized.scoreableRecord);
       const flags = [...new Set([...score.flags, ...normalized.warnings])];
@@ -35,7 +75,7 @@ export class ScoringService {
 
       return {
         userId,
-        datasetId: dataset.id,
+        datasetId,
         sourceRowNumber: normalized.sourceRowNumber,
         normalizedFields: normalized.normalizedFields,
         score: {
@@ -47,22 +87,12 @@ export class ScoringService {
       };
     });
 
-    const storedRecords = await this.scoredRecordStore.replaceScoresForDataset(userId, dataset.id, records);
+    const storedRecords = await this.scoredRecordStore.replaceScoresForDataset(userId, datasetId, records);
 
     return {
-      datasetId: dataset.id,
+      datasetId,
       scoredRecordCount: storedRecords.length,
       scores: storedRecords.map(toScoredRecordResponse),
-    };
-  }
-
-  public async listScores(datasetId: string, userId: string): Promise<DatasetScoresResponse> {
-    const dataset = await this.getDatasetForScoring(datasetId, userId);
-    const scores = await this.scoredRecordStore.listScoresForDataset(userId, dataset.id);
-
-    return {
-      datasetId: dataset.id,
-      scores: scores.map(toScoredRecordResponse),
     };
   }
 

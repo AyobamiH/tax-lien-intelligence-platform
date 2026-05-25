@@ -16,18 +16,35 @@ authenticated user.
 
 ## `POST /datasets/:datasetId/score`
 
-Runs first-pass scoring for a user-owned dataset.
+Runs first-pass scoring for a user-owned dataset through the internal job
+execution layer.
 
-The current scoring run is synchronous and deterministic. It refreshes existing
-scores for the same dataset from stored source rows while preserving scored
-record identifiers for the same source row where possible, so watchlist
-references can remain stable across rescoring.
+The current scoring run still completes synchronously for a clean review UX, but
+it now creates a persisted `dataset_scoring` job and records lifecycle status.
+It refreshes existing scores for the same dataset from stored source rows while
+preserving scored record identifiers for the same source row where possible, so
+watchlist and portfolio references can remain stable across rescoring.
 
 ### Response `200`
 
 ```json
 {
   "datasetId": "dataset-id",
+  "job": {
+    "id": "job-id",
+    "type": "dataset_scoring",
+    "targetEntityType": "dataset",
+    "targetEntityId": "dataset-id",
+    "status": "completed",
+    "summary": {
+      "scoredRecordCount": 2
+    },
+    "queuedAt": "2026-05-25T00:00:00.000Z",
+    "startedAt": "2026-05-25T00:00:00.000Z",
+    "completedAt": "2026-05-25T00:00:00.000Z",
+    "createdAt": "2026-05-25T00:00:00.000Z",
+    "updatedAt": "2026-05-25T00:00:00.000Z"
+  },
   "scoredRecordCount": 2,
   "scores": [
     {
@@ -86,6 +103,10 @@ Possible scoring errors:
 - `dataset_not_found`
 - `score_no_source_rows`
 
+If scoring fails after the dataset ownership check, the internal job is marked
+`failed` with safe error metadata before the API returns the safe error
+response.
+
 ## Current Limitation
 
 Phase 4 scoring is a first-pass, rule-based foundation. It is not a final
@@ -96,5 +117,6 @@ value, property type, and any simple usability signals present in the CSV.
 Phase 5 adds a frontend review surface that calls these routes directly for the
 signed-in user. Phase 6 adds watchlist actions on top of scored records. Phase 7
 adds portfolio/status tracking for scored records or promoted watchlist items.
-Future phases may add stronger county adapters, enrichment, deduplication,
-geographic data, and historical redemption signals.
+Phase 8 adds internal job plumbing around scoring. Future phases may add
+stronger county adapters, enrichment, deduplication, geographic data, historical
+redemption signals, and external automation.

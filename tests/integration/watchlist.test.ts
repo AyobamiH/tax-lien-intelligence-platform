@@ -10,6 +10,7 @@ import type {
   DatasetStore,
   StoredDataset,
 } from "../../apps/api/src/datasets/dataset-store.js";
+import { InternalJobService } from "../../apps/api/src/jobs/internal-job-service.js";
 import type {
   CreateScoredRecordInput,
   ScoredRecordStore,
@@ -23,6 +24,7 @@ import type {
   StoredWatchlistItem,
   WatchlistStore,
 } from "../../apps/api/src/watchlist/watchlist-store.js";
+import { InMemoryInternalJobStore } from "../support/in-memory-internal-job-store.js";
 
 const testJwtSecret = "test-watchlist-secret-that-is-long-enough-for-jwt";
 
@@ -220,17 +222,19 @@ function createTestContext(): { app: ReturnType<typeof createApp> } {
   const datasetStore = new InMemoryDatasetStore();
   const scoredRecordStore = new InMemoryScoredRecordStore();
   const watchlistStore = new InMemoryWatchlistStore();
+  const internalJobStore = new InMemoryInternalJobStore();
   const authService = new AuthService(userStore, {
     jwtSecret: testJwtSecret,
     jwtExpiresIn: "1h",
     passwordSaltRounds: 4,
   });
   const datasetService = new DatasetService(datasetStore);
-  const scoringService = new ScoringService(datasetStore, scoredRecordStore);
+  const internalJobService = new InternalJobService(internalJobStore);
+  const scoringService = new ScoringService(datasetStore, scoredRecordStore, internalJobService);
   const watchlistService = new WatchlistService(watchlistStore, scoredRecordStore);
 
   return {
-    app: createApp({ authService, datasetService, scoringService, watchlistService }),
+    app: createApp({ authService, datasetService, internalJobService, scoringService, watchlistService }),
   };
 }
 

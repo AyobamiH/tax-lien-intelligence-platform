@@ -10,6 +10,7 @@ import type {
   DeleteWatchlistItemResponse,
   AddPortfolioItemResponse,
   DeletePortfolioItemResponse,
+  JobDetailResponse,
   PortfolioDetailResponse,
   PortfolioListResponse,
   PortfolioStatus,
@@ -77,6 +78,12 @@ export async function listDatasetScores(token: string, datasetId: string): Promi
 export async function scoreDataset(token: string, datasetId: string): Promise<DatasetScoreRunResponse> {
   return requestJson<DatasetScoreRunResponse>(`/datasets/${encodeURIComponent(datasetId)}/score`, {
     method: "POST",
+    token,
+  });
+}
+
+export async function getJob(token: string, jobId: string): Promise<JobDetailResponse> {
+  return requestJson<JobDetailResponse>(`/jobs/${encodeURIComponent(jobId)}`, {
     token,
   });
 }

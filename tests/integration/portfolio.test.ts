@@ -10,6 +10,7 @@ import type {
   DatasetStore,
   StoredDataset,
 } from "../../apps/api/src/datasets/dataset-store.js";
+import { InternalJobService } from "../../apps/api/src/jobs/internal-job-service.js";
 import { PortfolioService } from "../../apps/api/src/portfolio/portfolio-service.js";
 import type {
   CreatePortfolioItemInput,
@@ -31,6 +32,7 @@ import type {
   WatchlistStore,
 } from "../../apps/api/src/watchlist/watchlist-store.js";
 import type { PortfolioStatus } from "@tax-lien/types";
+import { InMemoryInternalJobStore } from "../support/in-memory-internal-job-store.js";
 
 const testJwtSecret = "test-portfolio-secret-that-is-long-enough-for-jwt";
 
@@ -305,18 +307,20 @@ function createTestContext(): { app: ReturnType<typeof createApp> } {
   const scoredRecordStore = new InMemoryScoredRecordStore();
   const watchlistStore = new InMemoryWatchlistStore();
   const portfolioStore = new InMemoryPortfolioStore();
+  const internalJobStore = new InMemoryInternalJobStore();
   const authService = new AuthService(userStore, {
     jwtSecret: testJwtSecret,
     jwtExpiresIn: "1h",
     passwordSaltRounds: 4,
   });
   const datasetService = new DatasetService(datasetStore);
-  const scoringService = new ScoringService(datasetStore, scoredRecordStore);
+  const internalJobService = new InternalJobService(internalJobStore);
+  const scoringService = new ScoringService(datasetStore, scoredRecordStore, internalJobService);
   const watchlistService = new WatchlistService(watchlistStore, scoredRecordStore);
   const portfolioService = new PortfolioService(portfolioStore, scoredRecordStore, watchlistStore);
 
   return {
-    app: createApp({ authService, datasetService, scoringService, watchlistService, portfolioService }),
+    app: createApp({ authService, datasetService, internalJobService, scoringService, watchlistService, portfolioService }),
   };
 }
 

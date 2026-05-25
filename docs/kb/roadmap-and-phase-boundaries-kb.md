@@ -257,6 +257,35 @@ Phase 7 should not include:
 - external data sync;
 - accounting or complex analytics.
 
+## Phase 8: Automation-Ready Internal Job Plumbing
+
+Current status: implemented as internal execution plumbing, not full
+automation.
+
+Phase 8 includes:
+
+- tenant-owned internal job model;
+- job status lifecycle: `queued`, `running`, `completed`, `failed`;
+- internal job store and service;
+- safe job summaries and error metadata;
+- authenticated job detail route;
+- dataset scoring routed through a `dataset_scoring` job;
+- frontend scoring job visibility after a scoring run;
+- lifecycle, failure, and cross-user job tests;
+- docs.
+
+Phase 8 should not include:
+
+- external schedulers;
+- cron automation;
+- background worker deployment;
+- third-party queue infrastructure;
+- email/SMS alerts;
+- enrichment integrations;
+- ML/AI;
+- collaboration;
+- live auction execution.
+
 ## Later Phases
 
 Later phases may include:
@@ -284,7 +313,8 @@ Dependency order matters:
 5. frontend review table;
 6. watchlist;
 7. portfolio;
-8. automation.
+8. internal job plumbing;
+9. automation.
 
 Do not invert this order without an explicit architecture decision.
 
@@ -315,6 +345,7 @@ Before heavy automation:
 - scoring must be explainable;
 - watchlist decisions must exist;
 - portfolio/status tracking must exist;
+- internal job boundaries must exist;
 - job ownership and logging patterns must be designed;
 - rate limits and failure handling must exist.
 

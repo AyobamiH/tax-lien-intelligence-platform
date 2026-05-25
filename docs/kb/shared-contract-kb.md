@@ -29,6 +29,13 @@ Current shared types in `packages/types`:
 - `PropertyTypeCategory`;
 - `NormalizedScoredRecordFields`;
 - `ScoredRecordResponse`;
+- `InternalJobStatus`;
+- `InternalJobType`;
+- `InternalJobTargetType`;
+- `InternalJobSummary`;
+- `InternalJobError`;
+- `InternalJobResponse`;
+- `JobDetailResponse`;
 - `DatasetScoreRunResponse`;
 - `DatasetScoresResponse`.
 - `AddWatchlistItemRequest`;
@@ -185,10 +192,38 @@ Current score routes return `ScoredRecordResponse` objects through:
 - `DatasetScoreRunResponse`;
 - `DatasetScoresResponse`.
 
+`DatasetScoreRunResponse` also includes an `InternalJobResponse` because scoring
+now runs through the internal job lifecycle.
+
 The Phase 5 frontend review surface imports these shared response types and
 does not define a separate browser-only score contract.
 
 The contract represents first-pass explainable scoring, not final underwriting.
+
+## Internal Job Contract
+
+Current job contracts include:
+
+- job id;
+- type;
+- target entity type;
+- target entity id;
+- status;
+- optional safe summary;
+- optional safe error;
+- queued/started/completed/failed timestamps;
+- created/updated timestamps.
+
+Current job type:
+
+- `dataset_scoring`.
+
+Current target entity type:
+
+- `dataset`.
+
+Jobs are user-owned operational metadata. The frontend must not submit `userId`
+or raw job payloads, and job responses must not expose raw internals.
 
 ## Watchlist Object Contract
 

@@ -11,9 +11,11 @@ automation should support the core SaaS rather than become a separate product.
 Current implementation:
 
 - no automation;
-- no background jobs;
+- no external background workers;
 - no AI;
 - no ingestion pipeline;
+- internal job plumbing exists;
+- dataset scoring runs through an in-process `dataset_scoring` job;
 - first-pass deterministic scoring engine exists;
 - frontend review of scored records exists;
 - watchlist shortlisting exists;
@@ -22,8 +24,9 @@ Current implementation:
 - no portfolio automation or monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
-scoring foundation, manual review surface, watchlist shortlist, and portfolio
-status tracking. Automation is still intentionally absent.
+scoring foundation, manual review surface, watchlist shortlist, portfolio
+status tracking, and automation-ready internal job records. Automation is still
+intentionally absent.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -67,7 +70,8 @@ Manual-first sequence:
 6. table review;
 7. watchlist;
 8. portfolio;
-9. then automation.
+9. internal job plumbing;
+10. then automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -156,6 +160,7 @@ Now:
 - frontend scored-results review;
 - watchlist shortlisting.
 - portfolio/status tracking.
+- internal job plumbing for scoring.
 
 Later:
 
@@ -164,6 +169,9 @@ Later:
 - alerts;
 - portfolio automation;
 - AI or ML assistance.
+
+Internal jobs are not automation by themselves. They are the execution boundary
+that later automation can use safely.
 
 ## Security Expectations
 
@@ -194,6 +202,7 @@ Automation drift risks:
 Update this file when:
 
 - background jobs are introduced;
+- job types are added;
 - ingestion automation is added;
 - scoring changes substantially;
 - enrichment is added;

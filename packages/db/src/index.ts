@@ -16,6 +16,16 @@ export {
   type DatasetValidationSummaryRecord,
 } from "./models/dataset.js";
 export {
+  InternalJobModel,
+  type InternalJobDocument,
+  type InternalJobErrorRecord,
+  type InternalJobRecord,
+  type InternalJobStatusRecord,
+  type InternalJobSummaryRecord,
+  type InternalJobTargetTypeRecord,
+  type InternalJobTypeRecord,
+} from "./models/internal-job.js";
+export {
   PortfolioItemModel,
   type PortfolioItemDocument,
   type PortfolioItemRecord,

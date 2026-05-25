@@ -29,6 +29,7 @@ Current implementation:
 - watchlist-to-portfolio promotion actions;
 - dedicated portfolio status tracking page;
 - portfolio detail surface for flags, reasoning, and status;
+- scoring job completion visibility after a score run;
 - loading, empty, and error states;
 - no browser upload flow yet.
 
@@ -60,6 +61,7 @@ Current and future page direction:
 - implemented: watchlist detail reasoning surface;
 - implemented: portfolio status tracking surface;
 - implemented: portfolio detail reasoning/status surface;
+- implemented: scoring job completion message;
 - future: browser dataset upload page;
 - future: account/settings page.
 
@@ -142,6 +144,7 @@ Trust is created through:
 - clear source labels;
 - visible validation status;
 - transparent scoring factors;
+- visible execution status for score runs;
 - consistent error states;
 - no hidden magic;
 - no claims that the system has not earned.

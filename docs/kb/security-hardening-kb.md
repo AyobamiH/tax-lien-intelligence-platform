@@ -68,6 +68,11 @@ Current repo protections:
 - portfolio ownership enforcement against scored records and watchlist items;
 - duplicate-safe portfolio adds;
 - cross-user portfolio rejection tests;
+- tenant-owned internal job persistence;
+- authenticated job detail route;
+- job ownership enforcement;
+- safe job summary and error metadata;
+- cross-user job rejection tests;
 - frontend auth errors clear the browser review session;
 - conservative scoring behavior for missing or weak data;
 - root quality gates for typecheck, test, and build;
@@ -87,6 +92,7 @@ Not yet implemented:
 - audit logging;
 - production CORS restrictions;
 - final browser session architecture beyond the current session-scoped JWT;
+- external worker authorization model;
 - secret rotation guidance.
 
 ### Intentionally Deferred
@@ -96,6 +102,7 @@ Deferred because the corresponding systems do not exist yet:
 - upload malware/content controls;
 - per-user rate limits;
 - job security;
+- external job execution hardening;
 - admin security;
 - richer scoring audit trail;
 - automation monitoring.
@@ -353,6 +360,7 @@ Must be scoped by `userId`:
 - scores;
 - watchlist items;
 - portfolio records;
+- internal jobs;
 - upload logs;
 - automation jobs;
 - user decisions.
@@ -380,6 +388,7 @@ Tests must include:
 - user A cannot update user B records;
 - user A cannot watchlist user B parcel;
 - user A cannot track or update user B portfolio records;
+- user A cannot read user B job records;
 - user A cannot infer user B records through counts or errors.
 
 ## 6. Future-Sensitive Systems
@@ -421,8 +430,9 @@ alerts, or collaboration must add validation and cross-user tests before release
 
 ### Automation Jobs
 
-Future jobs must include tenant ownership, idempotency, rate limits, and safe
-logs.
+Internal jobs now include tenant ownership, lifecycle status, and safe
+summary/error metadata for dataset scoring. Future external jobs must add
+idempotency, rate limits, worker authorization, and safe logs.
 
 ### Alerts And Notifications
 

@@ -8,13 +8,14 @@ into structured investment decisions.
 This repository contains the baseline monorepo plus the Phase 2 authentication
 foundation, Phase 3 dataset foundation, and Phase 4 first-pass scoring
 foundation, Phase 5 scored-results review surface, Phase 6 watchlist workflow,
-and Phase 7 portfolio/status tracking:
+Phase 7 portfolio/status tracking, and Phase 8 automation-ready internal job
+plumbing:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind review workspace
-- `apps/api`: Express, TypeScript, auth, dataset, scoring, watchlist, and
-  portfolio APIs
+- `apps/api`: Express, TypeScript, auth, dataset, scoring, internal jobs,
+  watchlist, and portfolio APIs
 - `packages/db`: MongoDB connection plus user, dataset, scored-record,
-  watchlist, and portfolio models
+  internal-job, watchlist, and portfolio models
 - `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
@@ -29,6 +30,7 @@ Implemented API surfaces:
 - `GET /datasets/:datasetId`
 - `POST /datasets/:datasetId/score`
 - `GET /datasets/:datasetId/scores`
+- `GET /jobs/:jobId`
 - `POST /watchlist`
 - `GET /watchlist`
 - `DELETE /watchlist/:watchlistItemId`

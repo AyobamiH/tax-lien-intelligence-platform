@@ -6,8 +6,8 @@ This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
 It does not define every database schema. User, dataset, scored-record,
-watchlist item, and portfolio item schemas now exist; a standalone parcel schema
-does not.
+internal job, watchlist item, and portfolio item schemas now exist; a standalone
+parcel schema does not.
 When schemas are added, this file must be updated to reflect actual fields and
 ownership rules.
 
@@ -18,6 +18,7 @@ Current implementation:
 - user model exists for authentication;
 - dataset model exists for authenticated manual CSV uploads;
 - scored-record model exists for first-pass scoring outputs;
+- internal job model exists for user-owned execution metadata;
 - watchlist item model exists for user-owned scored-record shortlists;
 - portfolio item model exists for user-owned tracked decisions/status;
 - frontend review surface exposes user-owned datasets and scored records through
@@ -106,6 +107,7 @@ User-owned data includes or will include:
 - score outputs;
 - watchlist entries;
 - portfolio records;
+- internal job records;
 - decision notes;
 - upload errors;
 - audit events;

@@ -17,6 +17,7 @@ Implemented:
 - authenticated dataset list view;
 - hash-based dataset detail route;
 - scoring action for a selected dataset;
+- scoring job completion message after a score run;
 - scored results table;
 - record detail surface with flags and reasoning;
 - watchlist keep/remove actions on scored records;
@@ -60,6 +61,7 @@ The frontend calls only the existing authenticated API routes:
 - `GET /datasets/:datasetId`;
 - `POST /datasets/:datasetId/score`;
 - `GET /datasets/:datasetId/scores`;
+- `GET /jobs/:jobId`;
 - `POST /watchlist`;
 - `GET /watchlist`;
 - `DELETE /watchlist/:watchlistItemId`;
@@ -70,7 +72,8 @@ The frontend calls only the existing authenticated API routes:
 - `DELETE /portfolio/:portfolioItemId`.
 
 The frontend does not accept or send trusted score values. Scores remain
-server-derived.
+server-derived. Scoring now returns internal job metadata; the frontend displays
+only the safe job id/status summary.
 
 ## Review Table
 

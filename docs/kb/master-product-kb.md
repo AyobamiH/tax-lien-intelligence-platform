@@ -18,9 +18,10 @@ turns county parcel and tax lien datasets into structured investment decisions.
 The product is not yet fully implemented. The current repo now includes the
 baseline, auth foundation, dataset upload foundation, first-pass scoring
 foundation, frontend scored-results review surface, watchlist decision workflow,
-and portfolio/status tracking foundation. The product identity is visible
-through the README, package description, architecture docs, and frontend
-review/watchlist/portfolio surfaces.
+portfolio/status tracking foundation, and automation-ready internal job
+plumbing. The product identity is visible through the README, package
+description, architecture docs, and frontend review/watchlist/portfolio
+surfaces.
 
 Current evidence:
 
@@ -32,6 +33,8 @@ Current evidence:
 - the watchlist surface lets signed-in users keep and compare scored records;
 - the portfolio surface lets signed-in users track active decisions with
   simple status;
+- internal job records make scoring execution explicit without adding external
+  automation;
 - architecture docs say every future user-owned document must include `userId`.
 
 ## What This SaaS Is
@@ -53,8 +56,8 @@ The intended product loop is:
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
-shortlisting, and portfolio/status tracking exist. Browser CSV upload and richer
-automation remain future direction.
+shortlisting, portfolio/status tracking, and internal job plumbing exist.
+Browser CSV upload and richer automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -139,6 +142,7 @@ Current implementation:
 - frontend review of scored results exists;
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
+- scoring execution is recorded through internal jobs;
 - no standalone parcel/lien schema;
 - no final investment decision, auction, or accounting workflow.
 
@@ -210,6 +214,7 @@ Near-term non-goals:
 - county API marketplace;
 - portfolio analytics before basic portfolio status tracking earns them;
 - broad automation before ingestion and scoring are reliable;
+- external automation before internal job boundaries are safe;
 - multi-role enterprise admin before single-tenant user workflows are secure.
 
 ## Long-Term Direction

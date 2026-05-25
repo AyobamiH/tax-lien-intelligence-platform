@@ -31,8 +31,11 @@ Current implementation:
 - CSV validation and dataset ownership enforcement;
 - internal dataset source rows for scoring;
 - scored-record model;
+- internal job model;
 - deterministic scoring package integration;
 - authenticated score run and score retrieval routes;
+- score runs routed through internal job execution;
+- authenticated job detail route;
 - scoring ownership enforcement;
 - frontend score review surface consumes the scoring API;
 - watchlist item model;
@@ -59,6 +62,7 @@ The backend should become the trusted boundary for:
 - validation;
 - normalized storage;
 - scoring orchestration;
+- internal job orchestration;
 - watchlist persistence;
 - portfolio tracking persistence;
 - audit events;
@@ -118,12 +122,16 @@ The backend now calls the pure scoring package rather than embedding scoring
 logic directly in route handlers.
 
 The scoring package is deterministic and independently tested. The API persists
-score outputs with reasoning and flags in tenant-owned scored records.
+score outputs with reasoning and flags in tenant-owned scored records. Scoring
+runs now execute through a persisted internal `dataset_scoring` job.
 
 Current scoring API:
 
 - `POST /datasets/:datasetId/score`;
 - `GET /datasets/:datasetId/scores`.
+
+The scoring trigger remains synchronous for the current UX, but returns job
+metadata and records lifecycle state.
 
 Current limitation:
 
@@ -234,10 +242,21 @@ Do not expose:
 
 ## Jobs And Workers Direction
 
-No jobs/workers exist today.
+Internal job plumbing exists today. It is not external automation.
+
+Current job implementation:
+
+- tenant-owned internal job model;
+- `dataset_scoring` job type;
+- `dataset` target entity type;
+- queued/running/completed/failed lifecycle;
+- authenticated `GET /jobs/:jobId`;
+- in-process execution for dataset scoring;
+- safe summary and error metadata.
 
 Future automation may need background processing for large files, enrichment, or
-alerts. That should wait until core ingestion and scoring are stable.
+alerts. That should build on the job model rather than hiding work inside route
+handlers.
 
 When introduced, background work must include:
 
@@ -259,7 +278,8 @@ Backend implementation order should stay disciplined:
 5. frontend scored-results table: implemented in Phase 5;
 6. watchlist APIs and review surface: implemented in Phase 6;
 7. portfolio APIs and status surface: implemented in Phase 7;
-8. later automation.
+8. automation-ready internal job plumbing: implemented in Phase 8;
+9. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -267,7 +287,7 @@ Do not introduce automation before the manual workflow is correct.
 
 Avoid:
 
-- generic job systems before uploads exist;
+- generic distributed job systems before in-process job boundaries need them;
 - complex roles before single-user tenancy is secure;
 - admin APIs before audit/security controls;
 - AI workflows before deterministic scoring;
@@ -305,4 +325,4 @@ Update this file when:
 - new endpoint groups are added;
 - service boundaries change;
 - auth or tenant enforcement changes;
-- jobs/workers become real.
+- job types or worker execution change.

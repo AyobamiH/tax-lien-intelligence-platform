@@ -75,10 +75,15 @@ Implemented today:
 - dataset ownership tests;
 - internal dataset source row persistence for scoring;
 - scored-record model in `packages/db`;
+- tenant-owned internal job model in `packages/db`;
 - pure explainable scoring engine in `packages/scoring`;
 - dataset row normalization for common parcel/lien CSV headers;
 - authenticated scoring endpoints at `POST /datasets/:datasetId/score` and
   `GET /datasets/:datasetId/scores`;
+- dataset scoring routed through a persisted `dataset_scoring` job;
+- authenticated job detail endpoint at `GET /jobs/:jobId`;
+- queued/running/completed/failed job lifecycle;
+- safe job summaries and error metadata;
 - scored-record ownership tests;
 - frontend login/register review surface;
 - authenticated dataset list/detail review UI;
@@ -103,6 +108,7 @@ Implemented today:
 - watchlist-to-portfolio promotion actions;
 - dedicated portfolio status tracking page;
 - portfolio detail surface with flags, reasoning, and status controls;
+- frontend score-run success message with completed job id/status;
 - structured JSON 404 for unknown API routes;
 - environment parsing with `zod`;
 - Mongo connection helper using Mongoose;
@@ -176,6 +182,8 @@ Current tests cover:
 - cross-user dataset detail rejection.
 - scoring package behavior;
 - scoring API ownership boundaries;
+- internal job lifecycle success/failure behavior;
+- cross-user job detail rejection;
 - conservative scoring for partial records.
 - frontend review sorting, filtering, formatting, flags, and reasoning helpers.
 - watchlist add/list/remove behavior;
@@ -214,13 +222,15 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - JWT auth is implemented.
 - auth middleware establishes the user identity boundary.
 - tenant-owned dataset records are implemented.
+- tenant-owned internal job records are implemented for scoring.
 - CSV upload limits and validation are implemented.
 - tenant-owned scored-record and watchlist item records are implemented.
 - tenant-owned portfolio item records are implemented.
 - tenant-owned parcel records are not yet implemented.
 
 Security cannot be considered complete until browser upload, rate limits, and
-additional cross-user resource tests for later resource types exist.
+additional cross-user resource tests for later resource types exist. The current
+job layer is in-process plumbing, not hardened external automation.
 
 ## Drift Risks
 
@@ -234,6 +244,7 @@ Repo drift risks:
 - letting placeholders harden into architecture accidentally.
 - duplicating scoring logic outside `packages/scoring`;
 - describing first-pass scoring as final underwriting.
+- describing job plumbing as full automation.
 
 ## Update Rules
 

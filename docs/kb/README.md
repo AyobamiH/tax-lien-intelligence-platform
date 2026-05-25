@@ -61,6 +61,7 @@ records the current implementation state:
 - Auth API exists.
 - Dataset API exists.
 - Scoring API exists.
+- Internal job API exists.
 - frontend scored-results review surface exists.
 - watchlist API and review surface exist.
 - portfolio API and status tracking surface exist.
@@ -68,6 +69,7 @@ records the current implementation state:
 - user model exists.
 - dataset model exists.
 - scored-record model exists.
+- internal job model exists.
 - watchlist item model exists.
 - portfolio item model exists.
 - shared types exist.
@@ -90,9 +92,10 @@ password hashing, JWT auth, auth middleware, safe auth error handling,
 tenant-owned dataset records, upload size limits, CSV validation, and
 authenticated score review. It now also has tenant-owned watchlist items and
 cross-user watchlist tests. It now also has tenant-owned portfolio items and
-cross-user portfolio tests. It does not yet have standalone parcel models, rate
-limiting, automation, or full cross-user tests for future resource types because
-those workflows do not exist yet.
+cross-user portfolio tests. It now has tenant-owned internal job records for
+scoring and cross-user job tests. It does not yet have standalone parcel models,
+rate limiting, external automation, or full cross-user tests for future resource
+types because those workflows do not exist yet.
 
 ## How Future Contributors Should Update The KB
 

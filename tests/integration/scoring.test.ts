@@ -10,12 +10,14 @@ import type {
   DatasetStore,
   StoredDataset,
 } from "../../apps/api/src/datasets/dataset-store.js";
+import { InternalJobService } from "../../apps/api/src/jobs/internal-job-service.js";
 import { ScoringService } from "../../apps/api/src/scoring/scoring-service.js";
 import type {
   CreateScoredRecordInput,
   ScoredRecordStore,
   StoredScoredRecord,
 } from "../../apps/api/src/scoring/scored-record-store.js";
+import { InMemoryInternalJobStore } from "../support/in-memory-internal-job-store.js";
 
 const testJwtSecret = "test-scoring-secret-that-is-long-enough-for-jwt";
 
@@ -140,22 +142,26 @@ function createTestContext(): {
   app: ReturnType<typeof createApp>;
   datasetStore: InMemoryDatasetStore;
   scoredRecordStore: InMemoryScoredRecordStore;
+  internalJobStore: InMemoryInternalJobStore;
 } {
   const userStore = new InMemoryUserStore();
   const datasetStore = new InMemoryDatasetStore();
   const scoredRecordStore = new InMemoryScoredRecordStore();
+  const internalJobStore = new InMemoryInternalJobStore();
   const authService = new AuthService(userStore, {
     jwtSecret: testJwtSecret,
     jwtExpiresIn: "1h",
     passwordSaltRounds: 4,
   });
   const datasetService = new DatasetService(datasetStore);
-  const scoringService = new ScoringService(datasetStore, scoredRecordStore);
+  const internalJobService = new InternalJobService(internalJobStore);
+  const scoringService = new ScoringService(datasetStore, scoredRecordStore, internalJobService);
 
   return {
-    app: createApp({ authService, datasetService, scoringService }),
+    app: createApp({ authService, datasetService, internalJobService, scoringService }),
     datasetStore,
     scoredRecordStore,
+    internalJobStore,
   };
 }
 
@@ -198,6 +204,16 @@ describe("dataset scoring API", () => {
 
     expect(response.body).toMatchObject({
       datasetId,
+      job: {
+        id: expect.any(String),
+        type: "dataset_scoring",
+        targetEntityType: "dataset",
+        targetEntityId: datasetId,
+        status: "completed",
+        summary: {
+          scoredRecordCount: 2,
+        },
+      },
       scoredRecordCount: 2,
       scores: expect.any(Array),
     });
@@ -214,6 +230,19 @@ describe("dataset scoring API", () => {
       reasoning: expect.any(Array),
     });
     expect(response.body.scores[0].reasoning.length).toBeGreaterThan(0);
+
+    const jobResponse = await request(app)
+      .get(`/jobs/${response.body.job.id as string}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(jobResponse.body.job).toMatchObject({
+      id: response.body.job.id,
+      status: "completed",
+      summary: {
+        scoredRecordCount: 2,
+      },
+    });
   });
 
   it("retrieves scored results for the dataset owner", async () => {
@@ -279,6 +308,28 @@ describe("dataset scoring API", () => {
     expect(readResponse.body.error.code).toBe("dataset_not_found");
   });
 
+  it("blocks cross-user job detail access", async () => {
+    const { app } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const other = await registerUser(app, "other@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value\nA-100,1000,12000\n",
+    );
+
+    const scoreResponse = await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+    const crossJob = await request(app)
+      .get(`/jobs/${scoreResponse.body.job.id as string}`)
+      .set("Authorization", `Bearer ${other.token}`)
+      .expect(404);
+
+    expect(crossJob.body.error.code).toBe("job_not_found");
+  });
+
   it("handles malformed or partial records conservatively", async () => {
     const { app } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
@@ -309,8 +360,8 @@ describe("dataset scoring API", () => {
     expect(response.body.error.code).toBe("dataset_invalid_id");
   });
 
-  it("fails safely when a stored dataset has no scoreable source rows", async () => {
-    const { app, datasetStore } = createTestContext();
+  it("fails safely and records a failed job when a stored dataset has no scoreable source rows", async () => {
+    const { app, datasetStore, internalJobStore } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const dataset = await datasetStore.createDataset({
       userId: owner.userId,
@@ -337,5 +388,15 @@ describe("dataset scoring API", () => {
       .expect(400);
 
     expect(response.body.error.code).toBe("score_no_source_rows");
+    expect(internalJobStore.listJobsForUser(owner.userId)).toHaveLength(1);
+    expect(internalJobStore.listJobsForUser(owner.userId)[0]).toMatchObject({
+      type: "dataset_scoring",
+      targetEntityId: dataset.id,
+      status: "failed",
+      error: {
+        code: "score_no_source_rows",
+        message: "Dataset does not contain scoreable source rows.",
+      },
+    });
   });
 });

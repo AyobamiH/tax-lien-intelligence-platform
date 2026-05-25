@@ -2,6 +2,13 @@
 
 ## 2026-05-25
 
+- Implemented Phase 8 automation-ready job plumbing with a tenant-owned
+  internal job model, queued/running/completed/failed lifecycle, job service,
+  authenticated job detail route, dataset scoring job execution, safe job
+  summaries/errors, frontend scoring job visibility, and job lifecycle tests.
+- Added internal job API and architecture documentation and updated the KB pack
+  to mark automation-ready plumbing as current while keeping external
+  automation, schedulers, alerts, ML/AI, and auction execution as future work.
 - Implemented Phase 7 portfolio tracking with tenant-owned portfolio items,
   authenticated add/list/detail/status/delete endpoints, promotion from scored
   records or watchlist items, cross-user portfolio protections, frontend track
