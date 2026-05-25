@@ -16,6 +16,10 @@ Current shared types in `packages/types`:
 - `HealthResponse`;
 - `ApiErrorResponse`;
 - `TenantId`.
+- `AuthUserResponse`;
+- `AuthSuccessResponse`;
+- `AuthMeResponse`;
+- `AuthenticatedPrincipal`.
 
 Current scoring package:
 
@@ -54,8 +58,7 @@ Future shared DTOs should be introduced when they cross package/app boundaries.
 
 Likely DTO families:
 
-- auth request/response;
-- current user response;
+- auth request types if the frontend begins importing them;
 - dataset upload response;
 - dataset summary;
 - parcel row;
@@ -68,12 +71,17 @@ as feature contracts become real.
 
 ## Auth Payload Expectations
 
-Future auth contracts should include:
+Current auth response contracts include:
+
+- safe user response;
+- auth success response;
+- current user response;
+- authenticated principal.
+
+Future auth request contracts may include:
 
 - register request;
 - login request;
-- auth success response;
-- safe user response;
 - auth error responses.
 
 Do not expose:

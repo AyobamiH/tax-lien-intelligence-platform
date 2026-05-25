@@ -2,10 +2,19 @@ import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
 import type { HealthResponse } from "@tax-lien/types";
+import type { AuthService } from "./auth/auth-service.js";
+import { createAuthService } from "./auth/factory.js";
 import { apiConfig } from "./config/env.js";
+import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
+import { createAuthRouter } from "./routes/auth.js";
 
-export function createApp(): Express {
+export interface AppDependencies {
+  authService?: AuthService;
+}
+
+export function createApp(dependencies: AppDependencies = {}): Express {
   const app = express();
+  const authService = dependencies.authService ?? createAuthService();
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -22,14 +31,10 @@ export function createApp(): Express {
     response.status(200).json(payload);
   });
 
-  app.use((_request, response) => {
-    response.status(404).json({
-      error: {
-        code: "route_not_found",
-        message: "The requested API route does not exist.",
-      },
-    });
-  });
+  app.use("/auth", createAuthRouter(authService));
+
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   return app;
 }

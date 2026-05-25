@@ -3,15 +3,23 @@
 Production-grade multi-tenant SaaS for turning county parcel and tax lien data
 into structured investment decisions.
 
-## Phase 1
+## Current State
 
-This repository currently contains the baseline monorepo:
+This repository contains the baseline monorepo plus the Phase 2 authentication
+foundation:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind
-- `apps/api`: Express, TypeScript
-- `packages/db`: MongoDB connection
+- `apps/api`: Express, TypeScript, auth API
+- `packages/db`: MongoDB connection and user model
 - `packages/scoring`: future pure scoring engine
 - `packages/types`: shared API types
+
+Implemented API surfaces:
+
+- `GET /healthz`
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me`
 
 ## Local Development
 

@@ -2,6 +2,15 @@
 
 ## 2026-05-25
 
+- Implemented Phase 2 authentication foundation with user model, registration,
+  login, JWT issuance, auth middleware, protected `/auth/me`, request
+  validation, and global API error handling.
+- Added auth integration tests for successful flows, duplicate emails, invalid
+  credentials, invalid payloads, malformed JSON, missing tokens, malformed auth
+  headers, invalid tokens, and expired tokens.
+- Added auth API and architecture documentation.
+- Updated the KB pack to mark auth as current implementation truth while keeping
+  ingestion, scoring, watchlists, portfolio, and automation as future direction.
 - Accepted `feature/repository-discipline-and-auth-foundation` into local
   `main` by fast-forward.
 - Added a full repo-grounded KB pack under `docs/kb/`.

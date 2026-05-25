@@ -58,12 +58,14 @@ records the current implementation state:
 
 - Phase 1 monorepo baseline exists.
 - API health endpoint exists.
+- Auth API exists.
 - frontend shell exists.
 - Mongo connection package exists.
+- user model exists.
 - shared types exist.
 - scoring package is currently a placeholder.
-- authentication, ingestion, parcel models, scoring workflows, and watchlists
-  are not implemented yet.
+- ingestion, parcel models, scoring workflows, and watchlists are not
+  implemented yet.
 
 Do not use the legacy personal mirror as product truth. The primary startup
 remote is `oneclick`.
@@ -76,9 +78,11 @@ product architecture because this SaaS will handle user-uploaded datasets,
 investment decision records, authentication, and tenant-owned data.
 
 The current repo has baseline controls such as strict TypeScript, environment
-validation, Helmet, a JSON body limit, ignored local env files, and quality
-gates. It does not yet have authentication, tenant-scoped models, authorization,
-rate limiting, upload validation, or cross-user isolation tests.
+validation, Helmet, a JSON body limit, ignored local env files, quality gates,
+password hashing, JWT auth, auth middleware, and safe auth error handling. It
+does not yet have tenant-scoped parcel/dataset/watchlist models, rate limiting,
+upload validation, or cross-user resource isolation tests because those
+user-owned resource workflows do not exist yet.
 
 ## How Future Contributors Should Update The KB
 

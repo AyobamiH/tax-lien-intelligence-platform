@@ -18,11 +18,13 @@ before writing specs, prompts, or implementation plans.
 ## Architecture
 
 - [Phase 1 Architecture Baseline](architecture/phase-1-baseline.md)
+- [Authentication Architecture](architecture/auth.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
 ## API
 
 - [Health API](api/health.md)
+- [Auth API](api/auth.md)
 
 ## Decisions
 

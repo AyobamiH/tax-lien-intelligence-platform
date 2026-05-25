@@ -9,10 +9,16 @@ const envSchema = z.object({
   API_PORT: z.coerce.number().int().positive().default(4000),
   MONGODB_URI: z.string().min(1).default("mongodb://localhost:27017/tax_lien_platform"),
   MONGODB_DB_NAME: z.string().min(1).default("tax_lien_platform"),
-  JWT_SECRET: z.string().min(32).default("development-only-change-before-production"),
+  JWT_SECRET: z.string().min(32).optional(),
 });
 
+const developmentJwtSecret = "development-only-change-before-production";
+
 const parsedEnv = envSchema.parse(process.env);
+
+if (parsedEnv.NODE_ENV === "production" && !parsedEnv.JWT_SECRET) {
+  throw new Error("JWT_SECRET is required in production.");
+}
 
 export interface ApiConfig {
   nodeEnv: RuntimeEnvironment;
@@ -20,6 +26,7 @@ export interface ApiConfig {
   mongoUri: string;
   mongoDbName: string;
   jwtSecret: string;
+  jwtExpiresIn: "1h";
 }
 
 export const apiConfig: ApiConfig = {
@@ -27,5 +34,6 @@ export const apiConfig: ApiConfig = {
   port: parsedEnv.API_PORT,
   mongoUri: parsedEnv.MONGODB_URI,
   mongoDbName: parsedEnv.MONGODB_DB_NAME,
-  jwtSecret: parsedEnv.JWT_SECRET,
+  jwtSecret: parsedEnv.JWT_SECRET ?? developmentJwtSecret,
+  jwtExpiresIn: "1h",
 };

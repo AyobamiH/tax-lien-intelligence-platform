@@ -13,7 +13,7 @@ ownership rules.
 
 Current implementation:
 
-- no user model;
+- user model exists for authentication;
 - no dataset model;
 - no parcel model;
 - no score model;
@@ -24,7 +24,7 @@ Current documentation direction:
 
 - every future user-facing document must include `userId`;
 - every query must enforce user ownership;
-- authentication starts in Phase 2;
+- authentication exists and provides the user identity boundary;
 - CSV ingestion starts after auth and tenant ownership exist.
 
 ## Core Domain Concepts
@@ -125,11 +125,13 @@ Future code must:
 ## Security Boundary
 
 The tenancy boundary is one of the most important security boundaries in the
-product. It must be designed before datasets and scoring are added.
+product. Phase 2 establishes authenticated user identity. Future dataset, parcel,
+score, watchlist, and portfolio models must build on that identity rather than
+inventing a parallel ownership pattern.
 
 Recommended pattern:
 
-- authenticate first;
+- use the existing auth middleware;
 - create data models with required `userId`;
 - centralize ownership checks;
 - add integration tests for cross-user isolation;

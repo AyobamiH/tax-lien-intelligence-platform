@@ -29,13 +29,17 @@ These cards are direction signals, not working workflows.
 The current API surface is minimal:
 
 - `GET /healthz`
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me`
 - structured JSON 404 for unknown routes
 
 Documented in:
 
 - `docs/api/health.md`
+- `docs/api/auth.md`
 
-There are no auth, upload, dataset, parcel, scoring, or watchlist endpoints yet.
+There are no upload, dataset, parcel, scoring, or watchlist endpoints yet.
 
 ## Shell Versus Real Workflows
 
@@ -48,8 +52,8 @@ Current shell:
 
 Real workflows not present:
 
-- account registration;
-- login;
+- browser-based account registration;
+- browser-based login;
 - dataset upload;
 - data table;
 - score review;
@@ -84,8 +88,6 @@ The current frontend cannot:
 
 The current API cannot:
 
-- authenticate;
-- authorize;
 - accept uploads;
 - parse CSV;
 - persist user-owned parcel records;
@@ -109,10 +111,11 @@ models exist. They do not.
 
 ## Security Implications
 
-The current surface is low-risk because it has no user-owned workflows yet.
-Security risk increases sharply when the repo adds:
+The current browser surface is low-risk because it has no user-owned workflows
+yet. The API now has auth, so security risk shifts toward protecting the token
+boundary and using it correctly for future resources. Risk increases sharply when
+the repo adds:
 
-- auth;
 - file uploads;
 - tenant-owned data;
 - scoring explanations;

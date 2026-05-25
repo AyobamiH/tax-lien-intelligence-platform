@@ -37,10 +37,17 @@ Current repo protections:
 - environment parsing with `zod`;
 - `.env` and `.env.*` ignored except `.env.example`;
 - `JWT_SECRET` modeled in configuration;
+- production startup fails when `JWT_SECRET` is missing;
 - Helmet middleware enabled in the API;
 - JSON request body limit set to `1mb`;
 - CORS middleware configured;
 - structured JSON 404 responses;
+- global API error handling;
+- password hashing for registration;
+- JWT issuance and verification;
+- auth middleware for protected routes;
+- safe auth responses that do not return password hashes;
+- tests for common auth failure modes;
 - root quality gates for typecheck, test, and build;
 - CI quality-gates workflow;
 - local pre-push hook on the accepted workflow branch.
@@ -49,12 +56,6 @@ Current repo protections:
 
 Not yet implemented:
 
-- registration/login;
-- password hashing usage;
-- JWT issuance;
-- JWT verification middleware;
-- protected routes;
-- user model;
 - tenant-owned models;
 - authorization checks;
 - cross-user isolation tests;
@@ -110,15 +111,21 @@ The product should follow these principles:
 
 ### Auth And Identity
 
-Required next:
+Current:
 
 - register endpoint;
 - login endpoint;
 - user model;
-- duplicate email handling;
 - protected route middleware;
 - `GET /auth/me`;
+- duplicate email handling;
 - invalid and expired token tests.
+
+Required later:
+
+- password reset if product needs it;
+- email verification if required for public launch;
+- account/profile management when scoped.
 
 ### Password Handling
 
@@ -129,7 +136,7 @@ Passwords must:
 - never be returned in API responses;
 - never be stored in plaintext.
 
-`bcryptjs` exists as a dependency, but password handling is not implemented yet.
+Password hashing is implemented with `bcryptjs`.
 
 ### JWT And Session Handling
 
@@ -143,7 +150,7 @@ JWT handling must:
 - avoid trusting client-supplied `userId`.
 
 The current development default for `JWT_SECRET` must not be treated as
-production-safe.
+production-safe. Production startup now requires an explicit `JWT_SECRET`.
 
 ### Secret Management
 
@@ -173,7 +180,9 @@ Future hardening:
 
 ### Request Validation
 
-Every endpoint must validate:
+Current auth endpoints validate request payloads with `zod`.
+
+Every future endpoint must validate:
 
 - body;
 - params;

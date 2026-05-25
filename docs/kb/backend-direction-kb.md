@@ -17,12 +17,17 @@ Current implementation:
 - CORS middleware;
 - JSON body limit of `1mb`;
 - `GET /healthz`;
+- user model;
+- `POST /auth/register`;
+- `POST /auth/login`;
+- `GET /auth/me`;
+- password hashing;
+- JWT issuance and verification;
+- auth middleware;
+- global API error handling;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
-- no auth routes;
-- no protected routes;
-- no user model;
 - no parcel/lien models;
 - no upload endpoint.
 
@@ -43,9 +48,9 @@ The backend should become the trusted boundary for:
 
 The backend must not rely on frontend behavior for authorization.
 
-## Auth Direction
+## Auth Implementation
 
-Phase 2 should introduce:
+Phase 2 introduced:
 
 - user model;
 - registration endpoint;
@@ -63,6 +68,9 @@ Security requirement:
 
 - server derives the authenticated user from the verified token;
 - client-supplied `userId` is never trusted.
+
+Future auth hardening may add password reset, email verification, refresh-token
+rotation, or MFA, but those are not current scope.
 
 ## Dataset Direction
 
@@ -174,7 +182,7 @@ When introduced, background work must include:
 
 Backend implementation order should stay disciplined:
 
-1. auth and user model;
+1. auth and user model: implemented in Phase 2;
 2. tenant-scoped data models;
 3. CSV upload and validation;
 4. scoring package implementation;

@@ -17,3 +17,24 @@ export interface ApiErrorResponse {
 }
 
 export type TenantId = string;
+
+export interface AuthUserResponse {
+  id: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuthSuccessResponse {
+  token: string;
+  user: AuthUserResponse;
+}
+
+export interface AuthMeResponse {
+  user: AuthUserResponse;
+}
+
+export interface AuthenticatedPrincipal {
+  userId: string;
+  email: string;
+}

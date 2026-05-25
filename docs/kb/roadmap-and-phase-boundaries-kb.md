@@ -38,7 +38,9 @@ Phase 1 does not include:
 
 ## Phase 2: Authentication And Tenancy Foundation
 
-Phase 2 should include:
+Current status: implemented.
+
+Phase 2 includes:
 
 - user model;
 - register endpoint;
@@ -52,6 +54,8 @@ Phase 2 should include:
 - expired JWT tests;
 - duplicate registration handling;
 - multi-tenant ownership pattern.
+- global API error handling.
+- auth API and architecture docs.
 
 Phase 2 should not include:
 
@@ -72,6 +76,8 @@ Security focus:
 - malformed input handling.
 
 ## Phase 3: CSV Upload And Dataset Storage
+
+Current status: next major product phase.
 
 Phase 3 should include:
 

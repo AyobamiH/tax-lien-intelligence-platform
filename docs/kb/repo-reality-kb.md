@@ -60,6 +60,13 @@ Implemented today:
 - root `typecheck`, `test`, and `build` scripts;
 - Express app creation;
 - API health endpoint at `GET /healthz`;
+- auth endpoints at `POST /auth/register`, `POST /auth/login`, and
+  `GET /auth/me`;
+- user model in `packages/db`;
+- password hashing;
+- JWT issuance and verification;
+- auth middleware that attaches authenticated identity to the request;
+- global API error handling;
 - structured JSON 404 for unknown API routes;
 - environment parsing with `zod`;
 - Mongo connection helper using Mongoose;
@@ -78,17 +85,15 @@ Placeholders today:
 - `packages/scoring` only exports a version constant.
 - `scripts/ingestion` has only a README.
 - frontend cards for upload, scoring, and watchlist are not wired workflows.
-- `JWT_SECRET` is modeled in config, but JWT auth is not implemented.
-- dependencies for auth and CSV work exist, but the corresponding systems do not.
+- CSV dependencies exist, but ingestion does not.
+- The frontend has no login/register UI yet even though API auth exists.
 
 ## Current Limitations
 
 Not implemented:
 
-- user authentication;
-- user model;
-- JWT middleware;
-- tenant-owned data models;
+- frontend auth screens;
+- tenant-owned parcel/dataset/watchlist models;
 - parcel/lien schemas;
 - CSV upload;
 - CSV validation;
@@ -131,11 +136,17 @@ Current tests cover:
 - API health response;
 - structured API 404;
 - Mongo package disconnected state before startup.
+- auth registration;
+- duplicate email rejection;
+- login;
+- invalid credentials;
+- malformed JSON;
+- missing/malformed/invalid/expired tokens;
+- protected `/auth/me`.
 
 Tests do not yet cover:
 
-- auth;
-- tenant isolation;
+- cross-user resource isolation beyond the auth identity boundary;
 - uploads;
 - scoring;
 - watchlists;
@@ -145,13 +156,12 @@ Tests do not yet cover:
 
 Do not assume:
 
-- auth exists;
-- users can register or log in;
 - datasets can be uploaded;
 - parcels are stored;
 - scoring exists;
 - watchlists exist;
-- user-owned data is enforced in code;
+- user-owned parcel/dataset/watchlist data exists;
+- cross-user domain-resource isolation exists beyond auth identity tests;
 - portfolio tracking exists;
 - frontend shell cards are real workflows.
 
@@ -164,10 +174,13 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - env parsing exists.
 - `.env` is ignored.
 - strict TypeScript is enabled.
-- auth and tenancy enforcement are not yet implemented.
+- password hashing is implemented.
+- JWT auth is implemented.
+- auth middleware establishes the user identity boundary.
+- tenant-owned domain models are not yet implemented.
 
-Security cannot be considered complete until auth, authorization, tenant-scoped
-data models, validation, upload controls, and cross-user tests exist.
+Security cannot be considered complete until tenant-scoped data models, resource
+authorization, upload controls, rate limits, and cross-user resource tests exist.
 
 ## Drift Risks
 
