@@ -15,11 +15,13 @@ Current implementation:
 - no AI;
 - no ingestion pipeline;
 - first-pass deterministic scoring engine exists;
+- frontend review of scored records exists;
 - no alerts;
 - no portfolio monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, and
-first-pass scoring foundation. Automation is still intentionally absent.
+first-pass scoring foundation plus a manual review surface. Automation is still
+intentionally absent.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -147,11 +149,11 @@ Now:
 - repo foundation;
 - auth;
 - manual upload;
-- first-pass scoring.
+- first-pass scoring;
+- frontend scored-results review.
 
 Later:
 
-- frontend review table;
 - watchlist;
 - scheduled ingestion;
 - enrichment;

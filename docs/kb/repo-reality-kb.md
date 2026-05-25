@@ -80,13 +80,18 @@ Implemented today:
 - authenticated scoring endpoints at `POST /datasets/:datasetId/score` and
   `GET /datasets/:datasetId/scores`;
 - scored-record ownership tests;
+- frontend login/register review surface;
+- authenticated dataset list/detail review UI;
+- frontend score triggering;
+- scored-results table with flags and reasoning detail;
 - structured JSON 404 for unknown API routes;
 - environment parsing with `zod`;
 - Mongo connection helper using Mongoose;
-- frontend shell screen;
+- frontend review workspace;
 - Tailwind setup;
 - shared health/error/runtime types;
 - local MongoDB docker-compose;
+- frontend review-model unit tests;
 - Vitest unit/integration tests;
 - GitHub Actions `quality-gates`;
 - local `.githooks/pre-push` quality hook.
@@ -96,23 +101,18 @@ Implemented today:
 Placeholders today:
 
 - `scripts/ingestion` has only a README.
-- frontend cards for upload, scoring, and watchlist are not wired workflows.
-- The frontend has no login/register UI yet even though API auth exists.
 - The frontend has no dataset upload UI yet even though dataset APIs exist.
-- The frontend has no scoring UI yet even though scoring APIs exist.
 - Full county-specific parcel/lien normalization does not exist yet.
 
 ## Current Limitations
 
 Not implemented:
 
-- frontend auth screens;
 - tenant-owned parcel/watchlist models;
 - frontend dataset upload screen;
-- frontend scored parcel table;
 - watchlist;
 - portfolio tracking;
-- protected frontend routes;
+- browser upload workflow;
 - production deployment config.
 
 ## Workflow Discipline
@@ -160,6 +160,7 @@ Current tests cover:
 - scoring package behavior;
 - scoring API ownership boundaries;
 - conservative scoring for partial records.
+- frontend review sorting, filtering, formatting, flags, and reasoning helpers.
 
 Tests do not yet cover:
 
@@ -173,13 +174,12 @@ Tests do not yet cover:
 Do not assume:
 
 - parcels are stored;
-- frontend scoring workflow exists;
 - watchlists exist;
 - user-owned parcel/watchlist data exists;
 - full ingestion exists beyond dataset metadata, source rows, and first-pass
   scoring;
 - portfolio tracking exists;
-- frontend shell cards are real workflows.
+- browser upload exists.
 
 ## Security Notes
 

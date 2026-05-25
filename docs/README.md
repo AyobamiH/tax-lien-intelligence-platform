@@ -21,6 +21,7 @@ before writing specs, prompts, or implementation plans.
 - [Authentication Architecture](architecture/auth.md)
 - [Dataset Foundation Architecture](architecture/datasets.md)
 - [Scoring Foundation Architecture](architecture/scoring.md)
+- [Frontend Review Surface Architecture](architecture/frontend-review.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
 ## API

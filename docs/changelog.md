@@ -2,6 +2,13 @@
 
 ## 2026-05-25
 
+- Implemented Phase 5 frontend scored-results review surface with browser
+  login/register, authenticated dataset list/detail views, score triggering,
+  a dense scored-record table, row detail reasoning, flags, loading/empty/error
+  states, and review-model unit tests.
+- Added frontend review surface architecture documentation and updated the KB
+  pack to mark score review as current visible product surface while keeping
+  watchlists, portfolio, automation, and ML as future work.
 - Implemented Phase 4 scoring foundation with a real pure scoring package,
   dataset row normalization, scored-record persistence, authenticated scoring
   routes, explainable score outputs, risk flags, confidence scoring, and

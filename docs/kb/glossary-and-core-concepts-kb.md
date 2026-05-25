@@ -10,9 +10,9 @@ and implementation discussions consistent.
 A multi-tenant SaaS intended to turn tax lien and parcel datasets into structured
 investment decision support.
 
-Current status: auth, dataset upload, and first-pass scoring foundations are
-implemented. Browser workflows, watchlists, portfolio, and automation remain
-future work.
+Current status: auth, dataset upload, first-pass scoring, and browser score
+review are implemented. Browser upload, watchlists, portfolio, and automation
+remain future work.
 
 ## Multi-Tenant SaaS
 
@@ -84,8 +84,9 @@ mirror is not product truth.
 ## Current Surface
 
 What users can actually see or call today. Current callable API surface includes
-health, auth, dataset, and scoring endpoints. The browser surface remains a
-frontend shell.
+health, auth, dataset, and scoring endpoints. The browser surface includes
+login/register, dataset list/detail review, scoring trigger, scored table, and
+record reasoning detail.
 
 ## Placeholder
 

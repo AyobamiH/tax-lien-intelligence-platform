@@ -10,19 +10,21 @@ and shared contract KBs for those.
 
 ## Current User-Visible Web Surface
 
-The current web surface is a single React shell rendered by `apps/web/src/main.tsx`.
+The current web surface is a React review workspace rendered by
+`apps/web/src/App.tsx`.
 
 It shows:
 
-- product label: Tax Lien Intelligence Platform;
-- headline about turning county parcel data into structured investment decisions;
-- copy explaining Phase 1 baseline;
-- three non-functional cards:
-  - Upload datasets;
-  - Score liens;
-  - Build a watchlist.
+- browser login/register controls backed by the auth API;
+- authenticated dataset list;
+- dataset detail route using `#/datasets/:datasetId`;
+- scoring action for a selected dataset;
+- scored-results table;
+- row-level detail surface with flags and reasoning;
+- loading, empty, and error states.
 
-These cards are direction signals, not working workflows.
+This is the first real user-facing review workflow. It is not yet a full upload,
+watchlist, portfolio, or automation workspace.
 
 ## Current API Surface
 
@@ -48,23 +50,23 @@ Documented in:
 
 There are no watchlist endpoints yet. There is no standalone parcel API yet.
 
-## Shell Versus Real Workflows
+## Review Surface Versus Remaining Shell Areas
 
-Current shell:
+The current browser surface has moved past a pure shell for scoring review.
+It still keeps the surrounding product deliberately narrow.
 
-- communicates product direction;
-- proves React/Vite/Tailwind setup;
-- proves build integration;
-- provides early visual tone.
-
-Real workflows not present:
+Real workflows now present:
 
 - browser-based account registration;
 - browser-based login;
+- dataset list/detail review for authenticated users;
+- score triggering for a selected dataset;
+- scored-record table;
+- record-level flags and reasoning review.
+
+Real workflows not present:
+
 - browser-based dataset upload;
-- data table;
-- score review;
-- filtering;
 - watchlist;
 - portfolio tracking;
 - settings.
@@ -85,44 +87,38 @@ The visual system is early. It should not be treated as a complete design system
 
 The current frontend cannot:
 
-- call real product APIs beyond future configuration expectations;
-- authenticate users;
 - upload datasets through the browser;
-- display user data;
 - upload files;
-- show persisted records;
-- show scoring explanations in the browser;
-- manage watchlists.
+- manage watchlists;
+- track portfolio decisions;
+- run automation.
 
 The current API cannot:
 
 - provide a standalone parcel/lien row API;
-- persist user-owned parcel records;
-- manage frontend-visible score review state;
+- persist user-owned parcel records outside scored-record outputs;
 - manage watchlists.
 
 ## Where The Current Surface Could Mislead Contributors
 
-The frontend cards could make future contributors think upload, scoring, and
-watchlist workflows already exist. They do not.
+The review surface could make future contributors think upload and watchlist
+workflows also exist. They do not.
 
-The presence of API auth could make contributors think browser auth screens
-exist. They do not.
-
-The presence of scoring endpoints could make contributors think the browser has
-a scoring workflow. It does not yet.
+The presence of browser auth and score review could make contributors think the
+whole V1 app is implemented. It is not: upload, watchlist, portfolio, and
+automation are still future work.
 
 The presence of a dataset model could make contributors think full parcel
 ingestion exists. It does not.
 
 ## Security Implications
 
-The current browser surface is low-risk because it still has no user-owned
-browser workflows. The API now has auth and dataset upload, so security risk
-shifts toward protecting the token boundary, upload boundary, and tenant-owned
-dataset queries. Risk increases further when the repo adds:
+The current browser surface now handles authenticated user-owned review data.
+Security risk shifts toward protecting the token boundary, API authorization,
+and tenant-owned dataset/score queries. Risk increases further when the repo
+adds:
 
-- frontend score review workflows;
+- frontend upload workflows;
 - watchlists;
 - portfolio records.
 

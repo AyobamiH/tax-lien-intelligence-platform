@@ -22,7 +22,7 @@ Not implemented:
 
 - full parcel/lien normalization;
 - scoring inside the upload handler;
-- frontend scoring UI;
+- browser dataset upload UI;
 - watchlists;
 - portfolio;
 - county adapters;

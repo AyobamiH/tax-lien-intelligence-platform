@@ -155,6 +155,6 @@ Auth errors use the Auth API error contract.
 ## Current Limitation
 
 Dataset responses still expose only metadata and validation summaries. Phase 4
-adds internal source row persistence for scoring, but there is not yet a
-frontend dataset upload table, watchlist, portfolio workflow, or county-specific
-normalization adapter.
+adds internal source row persistence for scoring, and Phase 5 adds a frontend
+dataset review surface backed by this API. There is not yet a browser CSV upload
+screen, watchlist, portfolio workflow, or county-specific normalization adapter.

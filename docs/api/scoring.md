@@ -92,5 +92,7 @@ institutional underwriting model. It uses only fields that can be mapped from
 the uploaded dataset, such as parcel id, lien amount, estimated or assessed
 value, property type, and any simple usability signals present in the CSV.
 
-Future phases may add stronger county adapters, enrichment, deduplication,
-geographic data, historical redemption signals, and frontend review workflows.
+Phase 5 adds a frontend review surface that calls these routes directly for the
+signed-in user. Future phases may add stronger county adapters, enrichment,
+deduplication, geographic data, historical redemption signals, watchlists, and
+portfolio workflows.

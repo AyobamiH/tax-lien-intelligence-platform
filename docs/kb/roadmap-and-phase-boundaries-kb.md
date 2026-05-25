@@ -178,12 +178,13 @@ Security/trust focus:
 Current limitation:
 
 - the scoring model is rule-based and conservative, not final underwriting;
-- no frontend scoring table exists yet;
 - no external enrichment or county-specific adapter exists yet.
 
-## Phase 5: Scored Results Frontend Table
+## Phase 5: Scored Results Frontend Review Surface
 
-Phase 5 should include:
+Current status: implemented as the first browser review workflow.
+
+Phase 5 includes:
 
 - frontend scored parcel table backed by the Phase 4 scoring API;
 - loading/empty/error states;
@@ -191,8 +192,9 @@ Phase 5 should include:
 - filters and sorting only where needed;
 - API and frontend tests.
 
-Phase 5 should not include:
+Phase 5 does not include:
 
+- browser CSV upload unless a separate upload phase is explicitly planned;
 - complex portfolio workflows;
 - automation dashboards;
 - admin tooling.
@@ -240,7 +242,7 @@ Dependency order matters:
 2. auth;
 3. tenant-owned dataset model and upload;
 4. first-pass scoring foundation;
-5. frontend review table and richer normalization;
+5. frontend review table;
 6. watchlist;
 7. portfolio;
 8. automation.

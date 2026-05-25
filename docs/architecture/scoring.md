@@ -17,13 +17,13 @@ Implemented:
 - authenticated `POST /datasets/:datasetId/score`;
 - authenticated `GET /datasets/:datasetId/scores`;
 - tenant ownership checks for scoring and retrieval;
+- frontend scored-results review surface;
 - unit tests for scoring rules;
 - integration tests for scoring API ownership and weak-data behavior.
 
 Not implemented:
 
 - final institutional-grade underwriting;
-- frontend score table;
 - watchlist;
 - portfolio;
 - external enrichment;

@@ -34,6 +34,7 @@ Current implementation:
 - deterministic scoring package integration;
 - authenticated score run and score retrieval routes;
 - scoring ownership enforcement;
+- frontend score review surface consumes the scoring API;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
@@ -119,7 +120,6 @@ Current limitation:
 
 - scoring is first-pass and conservative;
 - normalization maps common headers only;
-- no frontend score review table exists yet;
 - no external enrichment or final underwriting model exists yet.
 
 ## Watchlist Direction
@@ -213,7 +213,7 @@ Backend implementation order should stay disciplined:
 2. tenant-scoped dataset model and CSV upload: implemented in Phase 3;
 3. parcel/lien normalization;
 4. scoring package implementation and score APIs: implemented in Phase 4;
-5. frontend scored-results table;
+5. frontend scored-results table: implemented in Phase 5;
 6. watchlist APIs;
 7. later portfolio and automation.
 

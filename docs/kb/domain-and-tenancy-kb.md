@@ -17,6 +17,8 @@ Current implementation:
 - user model exists for authentication;
 - dataset model exists for authenticated manual CSV uploads;
 - scored-record model exists for first-pass scoring outputs;
+- frontend review surface exposes user-owned datasets and scored records through
+  authenticated API calls;
 - no parcel model;
 - no watchlist model;
 - no portfolio model.
@@ -57,7 +59,8 @@ include numeric values and explanations, not just a single opaque number.
 
 Current status: implemented as a first-pass, rule-based scored-record model and
 scoring package. It includes investment, risk, liquidity, redemption,
-confidence, flags, and reasoning. It is not final institutional underwriting.
+confidence, flags, and reasoning. Phase 5 now makes those results visible in
+the browser for the signed-in user. It is not final institutional underwriting.
 
 ### Watchlist
 

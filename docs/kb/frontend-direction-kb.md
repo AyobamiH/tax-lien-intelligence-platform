@@ -5,8 +5,8 @@
 This file governs frontend direction: the intended role of the web app, future
 page responsibilities, design tone, and UI drift risks.
 
-It does not claim those pages exist today. The current frontend is a single
-Phase 1 shell.
+It distinguishes current implemented frontend surface from future page
+direction.
 
 ## Current Frontend Reality
 
@@ -16,12 +16,14 @@ Current implementation:
 - Vite;
 - TypeScript;
 - Tailwind;
-- one shell screen in `apps/web/src/main.tsx`;
-- no router;
-- no API integration;
-- no auth views;
-- no upload flow;
-- no table;
+- authenticated review workspace in `apps/web/src/App.tsx`;
+- browser login/register backed by the auth API;
+- hash-based dataset review routes;
+- API integration for dataset list/detail, scoring runs, and scored records;
+- scored-results table;
+- record detail surface for flags and reasoning;
+- loading, empty, and error states;
+- no browser upload flow yet;
 - no watchlist UI.
 
 ## Intended Frontend Role
@@ -41,20 +43,17 @@ Its job is to:
 
 ## Future Page Inventory
 
-Future page direction:
+Current and future page direction:
 
-- marketing/home page;
-- register/login pages;
-- authenticated dashboard;
-- dataset upload page;
-- dataset detail page;
-- scored parcels table;
-- parcel detail drawer/page;
-- watchlist page;
-- future portfolio page;
-- account/settings page.
-
-These pages are future direction. They are not implemented today.
+- implemented: login/register surface;
+- implemented: dataset list/review surface;
+- implemented: dataset detail review route;
+- implemented: scored records table;
+- implemented: record detail reasoning surface;
+- future: browser dataset upload page;
+- future: watchlist page;
+- future: portfolio page;
+- future: account/settings page.
 
 ## Page Responsibilities
 
@@ -73,10 +72,10 @@ Future upload page:
 - prevent upload confusion;
 - never claim data was scored before backend confirms it.
 
-Future scored table:
+Implemented scored table:
 
 - show parcel identity, lien amount, estimated value, scores, flags, and status;
-- support filtering and sorting;
+- support basic filtering and deterministic sorting;
 - make risk visible;
 - allow drill-down into reasoning.
 
@@ -151,8 +150,8 @@ repo truth:
 
 - do not invent pages that do not have implementation priority;
 - do not add mock data as if it were real;
-- do not imply browser scoring workflows exist before the frontend is wired to
-  the backend scoring API;
+- do not imply browser upload, watchlist, or portfolio workflows exist before
+  they are wired to backend contracts;
 - do not bypass shared API contracts;
 - do not change product positioning away from decision support.
 

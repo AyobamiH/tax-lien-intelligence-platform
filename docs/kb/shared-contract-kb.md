@@ -173,6 +173,9 @@ Current score routes return `ScoredRecordResponse` objects through:
 - `DatasetScoreRunResponse`;
 - `DatasetScoresResponse`.
 
+The Phase 5 frontend review surface imports these shared response types and
+does not define a separate browser-only score contract.
+
 The contract represents first-pass explainable scoring, not final underwriting.
 
 ## Watchlist Object Direction

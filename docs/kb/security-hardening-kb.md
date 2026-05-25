@@ -57,6 +57,8 @@ Current repo protections:
 - authenticated scoring run and score retrieval routes;
 - scoring ownership enforcement;
 - cross-user scoring rejection tests;
+- frontend review surface for signed-in users;
+- frontend auth errors clear the browser review session;
 - conservative scoring behavior for missing or weak data;
 - root quality gates for typecheck, test, and build;
 - CI quality-gates workflow;
@@ -74,6 +76,7 @@ Not yet implemented:
 - standalone normalized parcel/lien upload validation;
 - audit logging;
 - production CORS restrictions;
+- final browser session architecture beyond the current session-scoped JWT;
 - secret rotation guidance.
 
 ### Intentionally Deferred
@@ -99,7 +102,7 @@ The baseline is acceptable for Phase 1 because it establishes:
 - tests and CI.
 
 It is not sufficient for a public authenticated SaaS until rate limiting,
-production CORS decisions, frontend auth/data workflows, and later resource
+production CORS decisions, browser upload/session hardening, and later resource
 authorization boundaries are completed.
 
 ## 3. Security Principles
@@ -382,6 +385,10 @@ additional controls.
 
 Explanations should be useful without exposing internal secrets or another
 tenant's data.
+
+The current frontend displays server-derived flags and reasoning for the
+signed-in user's scored records. It must not add client-derived score claims or
+display another tenant's data through cache/state reuse.
 
 ### Watchlists
 
