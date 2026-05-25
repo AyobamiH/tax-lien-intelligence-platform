@@ -8,6 +8,21 @@ true before heavier product layers are added.
 
 It does not replace issue planning or implementation specs.
 
+## Delivery Workflow Boundary
+
+The current delivery workflow is direct-to-`main` after local verification. A
+phase should not be pushed until:
+
+- `git diff --check` passes;
+- `npm install` completes;
+- `npm run typecheck` passes;
+- `npm run test` passes;
+- `npm run build` passes;
+- the pre-push hook passes.
+
+Pull requests may still be useful for visibility, but they are not the current
+phase gate.
+
 ## Phase 1: Monorepo Baseline
 
 Current status: complete.
@@ -89,7 +104,7 @@ Phase 3 should include:
 - empty CSV handling;
 - duplicate parcel handling;
 - dataset model;
-- parcel/lien model;
+- no full parcel/lien model yet unless the dataset foundation requires it;
 - tenant-scoped persistence;
 - upload API docs;
 - ingestion edge-case tests.
@@ -100,6 +115,7 @@ Phase 3 should not include:
 - portfolio;
 - automation;
 - county-specific import wizard sprawl.
+- full parcel/lien normalization beyond what the dataset foundation needs.
 
 Security focus:
 

@@ -129,3 +129,6 @@ For future Codex sessions:
   in scope now.
 - If the repo and KB disagree, inspect the repo and update the KB as part of the
   same feature.
+- For this repo, direct pushes to `oneclick/main` are allowed after local gates
+  and the pre-push hook pass. PRs are optional visibility tools, not the current
+  gate.

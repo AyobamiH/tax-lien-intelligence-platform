@@ -24,39 +24,48 @@ authentication and tenant-owned data models are introduced.
 
 ## Required Quality Gates
 
-Every pull request must pass the `quality-gates` GitHub Actions job. The job runs:
+Every completed change must pass local quality gates before it is pushed to
+`main`. The GitHub Actions `quality-gates` job also runs after pushes to `main`
+and on pull requests for visibility.
+
+The required gate runs:
 
 - `npm ci`
 - `npm run typecheck`
 - `npm run test`
 - `npm run build`
 
-## Branch Protection
+Local pre-push runs `npm install` instead of `npm ci` so it can keep the local
+workspace usable while still enforcing the same typecheck, test, and build
+expectations.
 
-Required target state:
+## Main Branch Policy
 
-- `main` requires pull requests before merge
-- `main` requires the `quality-gates` status check before merge
-- force pushes are disabled
-- branch deletion is disabled
+The current operating model is direct-to-`main` after local verification:
 
-Current state: GitHub protected branches are not available for this repository.
-The team enforces soft protection manually.
+- complete the work locally;
+- run `git diff --check`;
+- run `npm install`;
+- run `npm run typecheck`;
+- run `npm run test`;
+- run `npm run build`;
+- let the pre-push hook run;
+- push directly to `oneclick/main`.
+
+Pull requests may still be opened for visibility or review, but they are not the
+gating mechanism for the current workflow.
 
 ## Soft Protection
 
-Until GitHub branch protection is available:
+Soft protection is now local-first:
 
-- never commit directly to `main`
-- develop on `feature/*` branches
-- push feature branches to `oneclick`
-- validate the `quality-gates` CI job before merge
-- review diffs manually before merge
-- optionally mirror `main` to `origin` after primary validation
+- keep commits focused;
+- review diffs before committing;
+- do not push if any local quality gate fails;
+- do not use the legacy mirror as product truth;
+- optionally mirror `main` to `origin` only after the startup repo is updated.
 
-The CI workflow intentionally fails direct non-merge pushes to `main` with:
-
-`Direct pushes to main are not allowed`
+The CI workflow no longer fails direct pushes to `main`; it verifies them.
 
 ## Local Pre-Push Hook
 
@@ -75,5 +84,5 @@ The hook runs:
 
 ## Development Discipline
 
-Feature work should be done on short-lived branches. Each stable feature must
-include implementation, tests, documentation, a clean commit, and a passing CI run.
+Each stable feature must include implementation, tests, documentation, a clean
+commit, local passing gates, and a successful push to the startup remote.

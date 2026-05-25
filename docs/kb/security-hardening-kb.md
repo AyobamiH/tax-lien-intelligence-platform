@@ -50,7 +50,8 @@ Current repo protections:
 - tests for common auth failure modes;
 - root quality gates for typecheck, test, and build;
 - CI quality-gates workflow;
-- local pre-push hook on the accepted workflow branch.
+- local pre-push hook;
+- direct-to-main workflow that requires local gates before push.
 
 ### Current Missing Protections
 
@@ -315,6 +316,7 @@ Current:
 
 - CI runs install, typecheck, test, build.
 - local pre-push hook runs install, typecheck, test, build.
+- direct pushes to `main` are accepted only after local gates pass.
 
 Future security-sensitive changes should add targeted tests, not rely only on
 build success.

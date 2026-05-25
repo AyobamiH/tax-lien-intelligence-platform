@@ -2,6 +2,10 @@
 
 ## 2026-05-25
 
+- Aligned repository workflow policy with the current direct-to-`main` operating
+  model after local quality gates and pre-push checks pass.
+- Removed the CI step that intentionally failed direct pushes to `main` while
+  keeping CI quality gates intact.
 - Implemented Phase 2 authentication foundation with user model, registration,
   login, JWT issuance, auth middleware, protected `/auth/me`, request
   validation, and global API error handling.

@@ -16,15 +16,6 @@ jobs:
     name: quality-gates
     runs-on: ubuntu-latest
     steps:
-      - name: Block direct pushes to main
-        if: >
-          github.event_name == 'push' &&
-          github.ref == 'refs/heads/main' &&
-          !startsWith(github.event.head_commit.message, 'Merge pull request')
-        run: |
-          echo "::error::Direct pushes to main are not allowed"
-          exit 1
-
       - name: Checkout
         uses: actions/checkout@v4
 

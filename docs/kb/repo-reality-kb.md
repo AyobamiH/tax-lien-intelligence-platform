@@ -109,14 +109,14 @@ Not implemented:
 Current discipline:
 
 - production work should target the startup remote `oneclick`;
-- feature work should happen on `feature/*` branches;
-- direct non-merge pushes to `main` are blocked by CI soft protection;
-- every PR should pass `quality-gates`;
+- direct pushes to `main` are allowed after local quality gates pass;
+- pull requests may be used for visibility, but are not the current gate;
+- GitHub Actions verifies pushes to `main` with `quality-gates`;
 - local contributors should configure `git config core.hooksPath .githooks`;
 - the pre-push hook runs install, typecheck, test, and build.
 
-This is soft protection, not GitHub protected-branch enforcement. The workflow
-still depends on human discipline.
+This is local-first soft protection, not GitHub protected-branch enforcement. The
+workflow depends on contributors not pushing when local checks fail.
 
 ## CI And Testing Truth
 
