@@ -26,11 +26,17 @@ Current shared types in `packages/types`:
 - `DatasetResponse`;
 - `DatasetListResponse`;
 - `DatasetDetailResponse`.
+- `PropertyTypeCategory`;
+- `NormalizedScoredRecordFields`;
+- `ScoredRecordResponse`;
+- `DatasetScoreRunResponse`;
+- `DatasetScoresResponse`.
 
 Current scoring package:
 
-- no score contract yet;
-- only `SCORING_PACKAGE_VERSION`.
+- pure scoreable record and result contracts;
+- modular scoring function exports;
+- `SCORING_PACKAGE_VERSION`.
 
 ## Current Response Shape
 
@@ -128,7 +134,7 @@ Owner is implied by auth, not client-set. Do not let frontend contracts accept
 
 ## Parcel Object Direction
 
-Future parcel contracts should include:
+Future standalone parcel contracts should include:
 
 - parcel id;
 - source dataset id;
@@ -143,20 +149,31 @@ Future parcel contracts should include:
 The exact schema should be decided during implementation and documented in API
 docs.
 
-## Score Object Direction
+## Score Object Contract
 
-Future score contracts should include:
+Current score contracts include:
 
 - `investmentScore`;
 - `riskScore`;
 - `liquidityScore`;
 - `redemptionProbability`;
+- `confidenceScore`;
+- optional `valueCoverageRatio`;
 - `flags`;
 - `reasoning`;
-- confidence or missing-data warnings if implemented.
+- normalized source fields;
+- source row number;
+- timestamps.
 
 Scores should be server-derived. The client should not submit trusted score
 values.
+
+Current score routes return `ScoredRecordResponse` objects through:
+
+- `DatasetScoreRunResponse`;
+- `DatasetScoresResponse`.
+
+The contract represents first-pass explainable scoring, not final underwriting.
 
 ## Watchlist Object Direction
 

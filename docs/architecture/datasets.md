@@ -15,13 +15,14 @@ Implemented:
 - CSV upload handling with `multer`;
 - safe CSV parsing and validation;
 - dataset validation summary;
+- internal source row persistence for later scoring;
 - dataset integration tests for ownership and upload failures.
 
 Not implemented:
 
 - full parcel/lien normalization;
-- raw row persistence;
-- scoring;
+- scoring inside the upload handler;
+- frontend scoring UI;
 - watchlists;
 - portfolio;
 - county adapters;
@@ -41,6 +42,7 @@ Stored concepts:
 - `rowCount`;
 - `columnCount`;
 - `headers`;
+- internal sanitized `sourceRows`;
 - `validationSummary`;
 - `uploadedAt`;
 - timestamps.
@@ -50,7 +52,7 @@ Current status value:
 - `validated`
 
 The status is intentionally small. Future processing states should be added only
-when the product has normalized rows or background work.
+when the product has background work or a richer ingestion lifecycle.
 
 ## Ownership Boundary
 
@@ -85,8 +87,9 @@ content before creating a dataset record.
 
 ## CSV Parsing Boundary
 
-The parser currently validates file shape and summary information. It does not
-normalize parcel/lien fields yet.
+The parser validates file shape and summary information. It also stores
+sanitized source row field maps internally for scoring. Public dataset responses
+do not expose those rows.
 
 Validation summary includes:
 
@@ -115,19 +118,23 @@ Reason:
 Phase 3 improves security posture by introducing the first real tenant-owned
 resource and testing ownership boundaries.
 
+Phase 4 uses the internal source rows for scoring while keeping dataset metadata
+responses compact and safe.
+
 Remaining hardening:
 
 - rate limiting;
 - raw file persistence strategy if needed later;
-- normalized row validation;
+- richer normalized row validation;
 - duplicate parcel handling after parcel identity exists;
 - audit logging;
 - antivirus/malware scanning if larger or persisted files are introduced.
 
 ## Drift Risks
 
-Do not treat Phase 3 as full ingestion. It only stores dataset metadata and
-validation summary.
+Do not treat Phase 3 as full ingestion. It stores dataset metadata, validation
+summary, and internal source rows. County-specific normalization remains a
+future layer.
 
 Do not add scoring into upload handlers.
 

@@ -53,6 +53,11 @@ Current repo protections:
 - 1 MiB CSV upload limit;
 - CSV parser row, column, and record-size guardrails;
 - cross-user dataset detail rejection tests;
+- tenant-owned scored-record persistence;
+- authenticated scoring run and score retrieval routes;
+- scoring ownership enforcement;
+- cross-user scoring rejection tests;
+- conservative scoring behavior for missing or weak data;
 - root quality gates for typecheck, test, and build;
 - CI quality-gates workflow;
 - local pre-push hook;
@@ -66,7 +71,7 @@ Not yet implemented:
 - authorization checks for future resource types;
 - cross-user isolation tests for future parcel/watchlist resources;
 - rate limiting;
-- normalized parcel/lien upload validation;
+- standalone normalized parcel/lien upload validation;
 - audit logging;
 - production CORS restrictions;
 - secret rotation guidance.
@@ -79,7 +84,7 @@ Deferred because the corresponding systems do not exist yet:
 - per-user rate limits;
 - job security;
 - admin security;
-- scoring audit trail;
+- richer scoring audit trail;
 - portfolio data protections;
 - automation monitoring.
 
@@ -93,7 +98,9 @@ The baseline is acceptable for Phase 1 because it establishes:
 - configuration validation;
 - tests and CI.
 
-It is not sufficient for a public authenticated SaaS.
+It is not sufficient for a public authenticated SaaS until rate limiting,
+production CORS decisions, frontend auth/data workflows, and later resource
+authorization boundaries are completed.
 
 ## 3. Security Principles
 

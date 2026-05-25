@@ -29,6 +29,7 @@ export class DatasetService {
       rowCount: parsedCsv.rowCount,
       columnCount: parsedCsv.columnCount,
       headers: parsedCsv.headers,
+      sourceRows: parsedCsv.sourceRows,
       validationSummary: {
         totalRows: parsedCsv.totalRows,
         validRows: parsedCsv.validRows,

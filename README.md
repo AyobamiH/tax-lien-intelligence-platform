@@ -6,12 +6,13 @@ into structured investment decisions.
 ## Current State
 
 This repository contains the baseline monorepo plus the Phase 2 authentication
+foundation, Phase 3 dataset foundation, and Phase 4 first-pass scoring
 foundation:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind
-- `apps/api`: Express, TypeScript, auth API
-- `packages/db`: MongoDB connection and user model
-- `packages/scoring`: future pure scoring engine
+- `apps/api`: Express, TypeScript, auth, dataset, and scoring APIs
+- `packages/db`: MongoDB connection plus user, dataset, and scored-record models
+- `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
 Implemented API surfaces:
@@ -23,6 +24,8 @@ Implemented API surfaces:
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
+- `POST /datasets/:datasetId/score`
+- `GET /datasets/:datasetId/scores`
 
 ## Local Development
 

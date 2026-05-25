@@ -2,6 +2,14 @@
 
 ## 2026-05-25
 
+- Implemented Phase 4 scoring foundation with a real pure scoring package,
+  dataset row normalization, scored-record persistence, authenticated scoring
+  routes, explainable score outputs, risk flags, confidence scoring, and
+  tenant-scoped scoring tests.
+- Added scoring API and architecture documentation and updated the KB pack to
+  mark first-pass explainable scoring as current implementation truth while
+  keeping frontend scoring UI, watchlists, portfolio, automation, and final
+  underwriting as future direction.
 - Implemented Phase 3 dataset foundation with authenticated CSV upload,
   tenant-owned dataset records, safe CSV parsing, dataset list/detail endpoints,
   and dataset ownership tests.

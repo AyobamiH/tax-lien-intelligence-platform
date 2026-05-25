@@ -10,16 +10,21 @@ import { createDatasetService } from "./datasets/factory.js";
 import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createDatasetRouter } from "./routes/datasets.js";
+import { createScoringRouter } from "./routes/scoring.js";
+import { createScoringService } from "./scoring/factory.js";
+import type { ScoringService } from "./scoring/scoring-service.js";
 
 export interface AppDependencies {
   authService?: AuthService;
   datasetService?: DatasetService;
+  scoringService?: ScoringService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
   const app = express();
   const authService = dependencies.authService ?? createAuthService();
   const datasetService = dependencies.datasetService ?? createDatasetService();
+  const scoringService = dependencies.scoringService ?? createScoringService();
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -38,6 +43,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
 
   app.use("/auth", createAuthRouter(authService));
   app.use("/datasets", createDatasetRouter(authService, datasetService));
+  app.use("/datasets", createScoringRouter(authService, scoringService));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

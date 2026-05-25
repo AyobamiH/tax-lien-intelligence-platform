@@ -29,10 +29,15 @@ Current implementation:
 - authenticated dataset upload/list/detail routes;
 - CSV upload handling;
 - CSV validation and dataset ownership enforcement;
+- internal dataset source rows for scoring;
+- scored-record model;
+- deterministic scoring package integration;
+- authenticated score run and score retrieval routes;
+- scoring ownership enforcement;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
-- no parcel/lien models.
+- no standalone parcel/lien models.
 
 ## Intended Backend Role
 
@@ -97,13 +102,25 @@ Future backend responsibilities:
 - handle duplicate parcel identities;
 - persist row-level records safely.
 
-## Scoring Direction
+## Scoring Implementation
 
-The backend should call the pure scoring package rather than embedding scoring
+The backend now calls the pure scoring package rather than embedding scoring
 logic directly in route handlers.
 
-The scoring package should remain deterministic and independently testable.
-The API should persist or return score outputs with reasoning and flags.
+The scoring package is deterministic and independently tested. The API persists
+score outputs with reasoning and flags in tenant-owned scored records.
+
+Current scoring API:
+
+- `POST /datasets/:datasetId/score`;
+- `GET /datasets/:datasetId/scores`.
+
+Current limitation:
+
+- scoring is first-pass and conservative;
+- normalization maps common headers only;
+- no frontend score review table exists yet;
+- no external enrichment or final underwriting model exists yet.
 
 ## Watchlist Direction
 
@@ -195,8 +212,8 @@ Backend implementation order should stay disciplined:
 1. auth and user model: implemented in Phase 2;
 2. tenant-scoped dataset model and CSV upload: implemented in Phase 3;
 3. parcel/lien normalization;
-4. scoring package implementation;
-5. scored parcel APIs;
+4. scoring package implementation and score APIs: implemented in Phase 4;
+5. frontend scored-results table;
 6. watchlist APIs;
 7. later portfolio and automation.
 

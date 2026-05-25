@@ -12,10 +12,16 @@ export interface StoredDataset {
   rowCount: number;
   columnCount: number;
   headers: string[];
+  sourceRows: StoredDatasetSourceRow[];
   validationSummary: DatasetValidationSummary;
   uploadedAt: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface StoredDatasetSourceRow {
+  rowNumber: number;
+  fields: Record<string, string>;
 }
 
 export interface CreateDatasetInput {
@@ -27,6 +33,7 @@ export interface CreateDatasetInput {
   rowCount: number;
   columnCount: number;
   headers: string[];
+  sourceRows: StoredDatasetSourceRow[];
   validationSummary: DatasetValidationSummary;
   uploadedAt: Date;
 }
@@ -47,6 +54,10 @@ function mapDataset(document: DatasetDocument): StoredDataset {
     rowCount: document.rowCount,
     columnCount: document.columnCount,
     headers: document.headers,
+    sourceRows: document.sourceRows.map((sourceRow) => ({
+      rowNumber: sourceRow.rowNumber,
+      fields: normalizeStoredFields(sourceRow.fields),
+    })),
     validationSummary: {
       totalRows: document.validationSummary.totalRows,
       validRows: document.validationSummary.validRows,
@@ -90,4 +101,12 @@ export class MongoDatasetStore implements DatasetStore {
     const document = await DatasetModel.findOne({ _id: datasetId, userId }).exec();
     return document ? mapDataset(document) : null;
   }
+}
+
+function normalizeStoredFields(fields: Record<string, string> | Map<string, string>): Record<string, string> {
+  if (fields instanceof Map) {
+    return Object.fromEntries(fields.entries());
+  }
+
+  return fields;
 }

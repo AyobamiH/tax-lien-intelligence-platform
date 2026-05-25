@@ -72,3 +72,43 @@ export interface DatasetListResponse {
 export interface DatasetDetailResponse {
   dataset: DatasetResponse;
 }
+
+export type PropertyTypeCategory = "residential" | "multifamily" | "commercial" | "land" | "unknown";
+
+export interface NormalizedScoredRecordFields {
+  parcelId?: string;
+  lienAmount?: number;
+  estimatedValue?: number;
+  propertyType?: string;
+  propertyTypeCategory: PropertyTypeCategory;
+  address?: string;
+}
+
+export interface ScoredRecordResponse {
+  id: string;
+  datasetId: string;
+  sourceRowNumber: number;
+  normalizedFields: NormalizedScoredRecordFields;
+  investmentScore: number;
+  riskScore: number;
+  liquidityScore: number;
+  redemptionProbability: number;
+  confidenceScore: number;
+  valueCoverageRatio?: number;
+  flags: string[];
+  reasoning: string[];
+  scoredAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DatasetScoreRunResponse {
+  datasetId: string;
+  scoredRecordCount: number;
+  scores: ScoredRecordResponse[];
+}
+
+export interface DatasetScoresResponse {
+  datasetId: string;
+  scores: ScoredRecordResponse[];
+}

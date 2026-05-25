@@ -15,7 +15,8 @@ direction KB, and shared contract KB.
 The Tax Lien Intelligence Platform is intended to be a multi-tenant SaaS that
 turns county parcel and tax lien datasets into structured investment decisions.
 
-The product is not yet fully implemented. The current repo is a Phase 1
+The product is not yet fully implemented. The current repo now includes the
+baseline, auth foundation, dataset upload foundation, and first-pass scoring
 foundation. The product identity is visible through the README, package
 description, architecture docs, and frontend shell copy.
 
@@ -45,7 +46,9 @@ The intended product loop is:
 7. the user adds promising items to a watchlist;
 8. the user tracks decisions over time.
 
-This loop is future direction. In the current repo, only the foundation exists.
+This loop is partially implemented. Auth, dataset upload APIs, internal source
+row storage, and first-pass score APIs exist. The browser workflow, watchlist,
+portfolio, and richer automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -125,8 +128,9 @@ Current implementation:
 
 - dataset upload endpoint exists for authenticated manual CSV metadata and
   validation;
-- no parcel/lien schema;
-- no scoring implementation;
+- internal source rows are stored for scoring;
+- first-pass explainable scoring exists through API routes;
+- no standalone parcel/lien schema;
 - no watchlist;
 - no persisted decision workflow.
 
@@ -162,8 +166,9 @@ The eventual scoring system should explain:
 - why redemption likelihood is estimated high or low;
 - why liquidity may be strong or weak.
 
-Current implementation truth: the scoring package is a placeholder and does not
-yet produce scores, flags, or reasoning.
+Current implementation truth: the scoring package now produces first-pass,
+rule-based scores, flags, and reasoning. It is intentionally conservative and
+not a final institutional underwriting model.
 
 ## Why This Is A Decision-Support System
 

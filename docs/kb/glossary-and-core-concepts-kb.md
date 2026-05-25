@@ -10,7 +10,9 @@ and implementation discussions consistent.
 A multi-tenant SaaS intended to turn tax lien and parcel datasets into structured
 investment decision support.
 
-Current status: Phase 1 foundation only.
+Current status: auth, dataset upload, and first-pass scoring foundations are
+implemented. Browser workflows, watchlists, portfolio, and automation remain
+future work.
 
 ## Multi-Tenant SaaS
 
@@ -22,7 +24,8 @@ by `userId`.
 
 A user-uploaded county parcel or tax lien CSV file and its associated metadata.
 Implemented as a tenant-owned dataset record with validation summary; normalized
-parcel/lien rows are not implemented yet.
+source rows are stored internally for scoring, but public dataset responses do
+not expose raw row content.
 
 ## Parcel
 
@@ -32,14 +35,14 @@ Not implemented yet.
 
 ## Score
 
-A system-generated underwriting output for a parcel or lien. Future scores should
-include multiple dimensions and not just one number.
-Not implemented yet.
+A system-generated underwriting output for a parcel or lien. Current scores are
+first-pass, rule-based outputs with investment, risk, liquidity, redemption,
+confidence, flags, and reasoning. They are not final underwriting.
 
 ## Reasoning
 
 Human-readable explanation for why a score exists. Reasoning is required for
-trustworthy decision support once scoring exists.
+trustworthy decision support and is included in current scored-record responses.
 
 ## Risk Flag
 
@@ -69,7 +72,8 @@ or derived heuristics.
 ## Scoring Package
 
 The `packages/scoring` workspace package. Current implementation is a
-placeholder. Future implementation should contain pure underwriting logic.
+pure, deterministic first-pass scoring engine. It should remain independent of
+Express, MongoDB, and frontend presentation code.
 
 ## Source Of Truth
 
@@ -79,8 +83,9 @@ mirror is not product truth.
 
 ## Current Surface
 
-What users can actually see or call today. Current surface is a frontend shell
-and health API only.
+What users can actually see or call today. Current callable API surface includes
+health, auth, dataset, and scoring endpoints. The browser surface remains a
+frontend shell.
 
 ## Placeholder
 

@@ -11,6 +11,11 @@ export interface DatasetValidationSummaryRecord {
   errorMessages: string[];
 }
 
+export interface DatasetSourceRowRecord {
+  rowNumber: number;
+  fields: Record<string, string>;
+}
+
 export interface DatasetRecord {
   userId: string;
   originalFilename: string;
@@ -20,6 +25,7 @@ export interface DatasetRecord {
   rowCount: number;
   columnCount: number;
   headers: string[];
+  sourceRows: DatasetSourceRowRecord[];
   validationSummary: DatasetValidationSummaryRecord;
   uploadedAt: Date;
   createdAt: Date;
@@ -35,6 +41,22 @@ const datasetValidationSummarySchema = new Schema<DatasetValidationSummaryRecord
     invalidRows: { type: Number, required: true, min: 0 },
     warnings: { type: [String], required: true, default: [] },
     errorMessages: { type: [String], required: true, default: [] },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
+const datasetSourceRowSchema = new Schema<DatasetSourceRowRecord>(
+  {
+    rowNumber: { type: Number, required: true, min: 1 },
+    fields: {
+      type: Map,
+      of: String,
+      required: true,
+      default: {},
+    },
   },
   {
     _id: false,
@@ -83,6 +105,11 @@ const datasetSchema = new Schema<DatasetRecord>(
     },
     headers: {
       type: [String],
+      required: true,
+      default: [],
+    },
+    sourceRows: {
+      type: [datasetSourceRowSchema],
       required: true,
       default: [],
     },

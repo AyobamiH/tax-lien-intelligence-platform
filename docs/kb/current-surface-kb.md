@@ -35,6 +35,8 @@ The current API surface is minimal:
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
+- `POST /datasets/:datasetId/score`
+- `GET /datasets/:datasetId/scores`
 - structured JSON 404 for unknown routes
 
 Documented in:
@@ -42,8 +44,9 @@ Documented in:
 - `docs/api/health.md`
 - `docs/api/auth.md`
 - `docs/api/datasets.md`
+- `docs/api/scoring.md`
 
-There are no parcel, scoring, or watchlist endpoints yet.
+There are no watchlist endpoints yet. There is no standalone parcel API yet.
 
 ## Shell Versus Real Workflows
 
@@ -88,15 +91,14 @@ The current frontend cannot:
 - display user data;
 - upload files;
 - show persisted records;
-- show scoring explanations;
+- show scoring explanations in the browser;
 - manage watchlists.
 
 The current API cannot:
 
-- normalize parcel/lien rows;
+- provide a standalone parcel/lien row API;
 - persist user-owned parcel records;
-- score parcels;
-- return scored lists;
+- manage frontend-visible score review state;
 - manage watchlists.
 
 ## Where The Current Surface Could Mislead Contributors
@@ -107,8 +109,8 @@ watchlist workflows already exist. They do not.
 The presence of API auth could make contributors think browser auth screens
 exist. They do not.
 
-The presence of a scoring package could make contributors think scoring exists.
-It does not.
+The presence of scoring endpoints could make contributors think the browser has
+a scoring workflow. It does not yet.
 
 The presence of a dataset model could make contributors think full parcel
 ingestion exists. It does not.
@@ -120,8 +122,7 @@ browser workflows. The API now has auth and dataset upload, so security risk
 shifts toward protecting the token boundary, upload boundary, and tenant-owned
 dataset queries. Risk increases further when the repo adds:
 
-- normalized parcel/lien storage;
-- scoring explanations;
+- frontend score review workflows;
 - watchlists;
 - portfolio records.
 

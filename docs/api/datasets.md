@@ -12,8 +12,9 @@ authenticated and tenant-scoped.
 - Uploads are parsed from memory with controlled row, column, and record-size
   limits.
 - Malformed or empty CSVs are rejected safely.
-- Stored dataset records contain metadata and validation summary, not raw CSV row
-  content.
+- Public dataset responses contain metadata and validation summary only. The
+  server stores sanitized source rows internally so scoring can derive records
+  without exposing raw row content in dataset metadata responses.
 
 ## `POST /datasets`
 
@@ -153,5 +154,7 @@ Auth errors use the Auth API error contract.
 
 ## Current Limitation
 
-Phase 3 stores dataset metadata and validation summaries. It does not yet store
-normalized parcel/lien rows, compute scores, or create watchlist entries.
+Dataset responses still expose only metadata and validation summaries. Phase 4
+adds internal source row persistence for scoring, but there is not yet a
+frontend dataset upload table, watchlist, portfolio workflow, or county-specific
+normalization adapter.

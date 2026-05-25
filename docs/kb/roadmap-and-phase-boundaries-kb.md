@@ -128,7 +128,8 @@ Security focus:
 
 ## Phase 3B: Parcel/Lien Normalization
 
-Current status: future direction.
+Current status: partially represented by the Phase 4 scoring normalization layer.
+There is no standalone parcel/lien model yet.
 
 Phase 3B should include:
 
@@ -138,9 +139,13 @@ Phase 3B should include:
 - row-level validation errors;
 - tenant-scoped row queries.
 
-This should come before scoring.
+The first scoring foundation now includes lightweight row normalization for
+common uploaded fields. A richer parcel/lien normalization phase is still needed
+before county-specific ingestion becomes a product promise.
 
 ## Phase 4: Scoring Engine
+
+Current status: implemented as a first-pass explainable scoring foundation.
 
 Phase 4 should include:
 
@@ -149,6 +154,8 @@ Phase 4 should include:
 - score outputs;
 - risk flags;
 - reasoning;
+- tenant-scoped scored-record persistence;
+- authenticated score run and score retrieval endpoints;
 - tests for high-quality, low-quality, landlocked, missing-data, and extreme
   ratio cases;
 - docs explaining scoring behavior.
@@ -165,15 +172,20 @@ Security/trust focus:
 - explainability;
 - no fake precision;
 - clear missing-data warnings;
-- deterministic logic.
+- deterministic logic;
+- tenant ownership before scoring or returning scores.
 
-## Phase 5: Scored Parcel API And Frontend Table
+Current limitation:
+
+- the scoring model is rule-based and conservative, not final underwriting;
+- no frontend scoring table exists yet;
+- no external enrichment or county-specific adapter exists yet.
+
+## Phase 5: Scored Results Frontend Table
 
 Phase 5 should include:
 
-- authenticated scored parcel list endpoint;
-- tenant-scoped query;
-- frontend table;
+- frontend scored parcel table backed by the Phase 4 scoring API;
 - loading/empty/error states;
 - score and reasoning display;
 - filters and sorting only where needed;
@@ -227,12 +239,11 @@ Dependency order matters:
 1. repo baseline;
 2. auth;
 3. tenant-owned dataset model and upload;
-4. parcel/lien normalization;
-5. scoring;
-6. review table;
-7. watchlist;
-8. portfolio;
-9. automation.
+4. first-pass scoring foundation;
+5. frontend review table and richer normalization;
+6. watchlist;
+7. portfolio;
+8. automation.
 
 Do not invert this order without an explicit architecture decision.
 

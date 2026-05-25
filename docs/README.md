@@ -20,6 +20,7 @@ before writing specs, prompts, or implementation plans.
 - [Phase 1 Architecture Baseline](architecture/phase-1-baseline.md)
 - [Authentication Architecture](architecture/auth.md)
 - [Dataset Foundation Architecture](architecture/datasets.md)
+- [Scoring Foundation Architecture](architecture/scoring.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
 ## API
@@ -27,6 +28,7 @@ before writing specs, prompts, or implementation plans.
 - [Health API](api/health.md)
 - [Auth API](api/auth.md)
 - [Dataset API](api/datasets.md)
+- [Scoring API](api/scoring.md)
 
 ## Decisions
 

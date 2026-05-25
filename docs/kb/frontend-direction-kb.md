@@ -151,7 +151,8 @@ repo truth:
 
 - do not invent pages that do not have implementation priority;
 - do not add mock data as if it were real;
-- do not imply scoring exists before the backend scoring package exists;
+- do not imply browser scoring workflows exist before the frontend is wired to
+  the backend scoring API;
 - do not bypass shared API contracts;
 - do not change product positioning away from decision support.
 
@@ -175,7 +176,8 @@ Future frontend work must:
 Do not build:
 
 - portfolio UI before watchlists exist;
-- automation dashboards before ingestion/scoring exists;
+- automation dashboards before upload, scoring review, and watchlist workflows
+  exist;
 - admin consoles before user auth and tenancy are hardened;
 - advanced filters before baseline table workflows exist;
 - AI interfaces before deterministic scoring is credible.

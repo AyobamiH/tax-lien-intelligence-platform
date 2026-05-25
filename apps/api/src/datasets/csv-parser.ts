@@ -20,10 +20,16 @@ export interface CsvParseResult {
   rowCount: number;
   columnCount: number;
   headers: string[];
+  sourceRows: CsvSourceRow[];
   totalRows: number;
   validRows: number;
   invalidRows: number;
   warnings: string[];
+}
+
+export interface CsvSourceRow {
+  rowNumber: number;
+  fields: Record<string, string>;
 }
 
 export interface CsvUploadFile {
@@ -70,6 +76,7 @@ export function parseCsvUpload(file: CsvUploadFile): CsvParseResult {
     rowCount: dataRows.length,
     columnCount: headers.length,
     headers,
+    sourceRows: buildSourceRows(headers, dataRows),
     totalRows: dataRows.length,
     validRows,
     invalidRows,
@@ -134,4 +141,24 @@ function validateHeaders(headers: string[]): void {
   if (uniqueHeaders.size !== headers.length) {
     throw new ApiError(400, "dataset_duplicate_headers", "Uploaded CSV contains duplicate column headers.");
   }
+}
+
+function buildSourceRows(headers: string[], dataRows: string[][]): CsvSourceRow[] {
+  return dataRows.flatMap((row, index) => {
+    if (row.every((value) => !value.trim())) {
+      return [];
+    }
+
+    const fields = headers.reduce<Record<string, string>>((accumulator, header, headerIndex) => {
+      accumulator[header] = row[headerIndex]?.trim() ?? "";
+      return accumulator;
+    }, {});
+
+    return [
+      {
+        rowNumber: index + 2,
+        fields,
+      },
+    ];
+  });
 }

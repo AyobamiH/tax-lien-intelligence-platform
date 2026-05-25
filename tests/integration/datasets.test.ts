@@ -58,6 +58,7 @@ class InMemoryDatasetStore implements DatasetStore {
       rowCount: input.rowCount,
       columnCount: input.columnCount,
       headers: input.headers,
+      sourceRows: input.sourceRows,
       validationSummary: input.validationSummary,
       uploadedAt: input.uploadedAt,
       createdAt: now,

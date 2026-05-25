@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tax-lien/db": "0.1.0",
+    "@tax-lien/scoring": "0.1.0",
     "@tax-lien/types": "0.1.0"
   }
 }

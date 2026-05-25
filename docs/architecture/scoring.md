@@ -1,0 +1,161 @@
+# Scoring Foundation Architecture
+
+## Scope
+
+Phase 4 introduces the first real scoring layer. It converts stored dataset
+source rows into server-derived scored records with normalized fields, scores,
+flags, reasoning, and data-confidence signals.
+
+Implemented:
+
+- pure scoring package in `packages/scoring`;
+- modular scoring functions for value coverage, property type, access,
+  liquidity, redemption probability, and final score composition;
+- internal dataset source row persistence for uploaded CSV rows;
+- scored record Mongo model;
+- row normalization from common CSV column names;
+- authenticated `POST /datasets/:datasetId/score`;
+- authenticated `GET /datasets/:datasetId/scores`;
+- tenant ownership checks for scoring and retrieval;
+- unit tests for scoring rules;
+- integration tests for scoring API ownership and weak-data behavior.
+
+Not implemented:
+
+- final institutional-grade underwriting;
+- frontend score table;
+- watchlist;
+- portfolio;
+- external enrichment;
+- ML or AI scoring;
+- county-specific adapters.
+
+## Data Flow
+
+1. The user uploads a CSV through the Phase 3 dataset endpoint.
+2. The parser validates the CSV and stores sanitized source rows internally on
+   the dataset record.
+3. The public dataset response still returns only metadata and validation
+   summary.
+4. The scoring route verifies the dataset belongs to the authenticated user.
+5. Each stored source row is normalized into scoreable fields.
+6. The pure scoring package produces a deterministic score result.
+7. The API persists scored records with `userId`, `datasetId`, normalized fields,
+   flags, reasoning, and timestamps.
+
+## Scoring Package Boundary
+
+`packages/scoring` owns pure underwriting-style calculations. It does not know
+about Express, MongoDB, authentication, or HTTP responses.
+
+Current exported functions include:
+
+- `calculateValueCoverage`;
+- `assessPropertyType`;
+- `evaluateAccess`;
+- `computeLocationScore`;
+- `estimateRedemptionProbability`;
+- `computeLiquidity`;
+- `scoreLienCandidate`.
+
+This keeps scoring independently testable and prevents route handlers from
+becoming the source of scoring truth.
+
+## First-Pass Factors
+
+The current scoring model uses only fields that may be present in uploaded data:
+
+- parcel identifier presence;
+- positive lien amount;
+- positive estimated, assessed, or market value;
+- value coverage ratio;
+- property type category;
+- simple access, buildability, and utility signals if present;
+- missing-data confidence.
+
+It produces:
+
+- `investmentScore` from 0 to 100;
+- `riskScore` from 0 to 100;
+- `liquidityScore` from 0 to 100;
+- `redemptionProbability` from 0 to 1;
+- `confidenceScore` from 0 to 100;
+- optional `valueCoverageRatio`;
+- flags;
+- reasoning.
+
+## Conservative Scoring Rules
+
+The model is intentionally conservative when data is weak.
+
+Examples:
+
+- missing lien amount or property value lowers confidence and score;
+- unknown property type caps the investment score;
+- value coverage below 1 caps investment score and adds `DO NOT BID`;
+- no road access caps investment score near zero;
+- vacant land is heavily penalized unless future enrichment proves quality.
+
+This is not fake precision. Missing data is a product signal, not something the
+scoring engine should hide.
+
+## Normalization Boundary
+
+Normalization maps common CSV headers into scoreable fields. It supports common
+variants such as:
+
+- `parcel_id`, `parcel id`, `apn`;
+- `lien_amount`, `amount due`, `minimum bid`;
+- `estimated_value`, `market value`, `assessed value`;
+- `property_type`, `land use`, `class`;
+- simple usability columns such as `road access`, `buildable`, and `utilities`.
+
+Headers are not trusted as perfect county schemas. Unmapped fields produce
+warnings and conservative scoring behavior.
+
+## Persistence Boundary
+
+Datasets remain the upload/source container. Scored records are separate
+server-derived documents with:
+
+- `userId`;
+- `datasetId`;
+- source row number;
+- normalized fields;
+- scoring output;
+- `scoredAt`;
+- timestamps.
+
+Scores are replaced for a dataset when a new scoring run occurs. This is simple
+and deterministic for the foundation phase.
+
+## Security Notes
+
+Scoring is tenant-owned user-data processing.
+
+The API:
+
+- requires auth;
+- derives `userId` from the token;
+- verifies dataset ownership before scoring;
+- scopes score reads by `userId` and `datasetId`;
+- does not accept client-submitted scores;
+- does not return raw CSV rows in dataset metadata responses.
+
+Remaining hardening:
+
+- rate limits for repeated scoring;
+- async job model if scoring becomes expensive;
+- audit trail for scoring runs;
+- stronger row-level validation once county adapters exist.
+
+## Drift Risks
+
+Do not treat Phase 4 as final underwriting.
+
+Do not duplicate scoring logic outside `packages/scoring`.
+
+Do not add frontend score displays that invent fields not returned by the API.
+
+Do not add automation, AI, or enrichment before the deterministic scoring
+foundation and review workflow are stable.

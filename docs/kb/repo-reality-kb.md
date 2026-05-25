@@ -45,7 +45,7 @@ The repo is an npm workspace monorepo:
 - `apps/api`: Express, TypeScript.
 - `packages/db`: MongoDB connection package.
 - `packages/types`: shared types.
-- `packages/scoring`: future pure scoring engine package.
+- `packages/scoring`: pure scoring engine package.
 - `docs`: architecture, API, decisions, changelog, and this KB.
 - `tests`: root-level unit and integration tests.
 - `infra/docker`: local MongoDB compose file.
@@ -73,6 +73,13 @@ Implemented today:
 - manual CSV upload handling;
 - safe CSV parsing and validation summary;
 - dataset ownership tests;
+- internal dataset source row persistence for scoring;
+- scored-record model in `packages/db`;
+- pure explainable scoring engine in `packages/scoring`;
+- dataset row normalization for common parcel/lien CSV headers;
+- authenticated scoring endpoints at `POST /datasets/:datasetId/score` and
+  `GET /datasets/:datasetId/scores`;
+- scored-record ownership tests;
 - structured JSON 404 for unknown API routes;
 - environment parsing with `zod`;
 - Mongo connection helper using Mongoose;
@@ -88,13 +95,12 @@ Implemented today:
 
 Placeholders today:
 
-- `packages/scoring` only exports a version constant.
 - `scripts/ingestion` has only a README.
 - frontend cards for upload, scoring, and watchlist are not wired workflows.
-- Dataset upload stores metadata and validation summary, not normalized rows.
 - The frontend has no login/register UI yet even though API auth exists.
 - The frontend has no dataset upload UI yet even though dataset APIs exist.
-- Full parcel/lien normalization does not exist yet.
+- The frontend has no scoring UI yet even though scoring APIs exist.
+- Full county-specific parcel/lien normalization does not exist yet.
 
 ## Current Limitations
 
@@ -102,9 +108,8 @@ Not implemented:
 
 - frontend auth screens;
 - tenant-owned parcel/watchlist models;
-- parcel/lien schemas;
-- scoring engine;
-- scored parcel API;
+- frontend dataset upload screen;
+- frontend scored parcel table;
 - watchlist;
 - portfolio tracking;
 - protected frontend routes;
@@ -152,11 +157,14 @@ Current tests cover:
 - dataset upload success and failure cases;
 - dataset list/detail ownership boundaries;
 - cross-user dataset detail rejection.
+- scoring package behavior;
+- scoring API ownership boundaries;
+- conservative scoring for partial records.
 
 Tests do not yet cover:
 
 - cross-user resource isolation for future parcel/watchlist records;
-- scoring;
+- final underwriting model;
 - watchlists;
 - security boundaries.
 
@@ -165,10 +173,11 @@ Tests do not yet cover:
 Do not assume:
 
 - parcels are stored;
-- scoring exists;
+- frontend scoring workflow exists;
 - watchlists exist;
 - user-owned parcel/watchlist data exists;
-- full ingestion exists beyond dataset metadata and validation summary;
+- full ingestion exists beyond dataset metadata, source rows, and first-pass
+  scoring;
 - portfolio tracking exists;
 - frontend shell cards are real workflows.
 
@@ -188,9 +197,9 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - CSV upload limits and validation are implemented.
 - tenant-owned parcel/watchlist models are not yet implemented.
 
-Security cannot be considered complete until normalized tenant-scoped parcel and
-watchlist data models, broader resource authorization, rate limits, and
-additional cross-user resource tests exist.
+Security cannot be considered complete until the frontend user workflows,
+watchlist data model, broader resource authorization, rate limits, and
+additional cross-user resource tests for later resource types exist.
 
 ## Drift Risks
 
@@ -202,6 +211,8 @@ Repo drift risks:
 - adding backend routes without shared contracts;
 - adding frontend pages without real API support;
 - letting placeholders harden into architecture accidentally.
+- duplicating scoring logic outside `packages/scoring`;
+- describing first-pass scoring as final underwriting.
 
 ## Update Rules
 
