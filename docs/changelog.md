@@ -2,6 +2,13 @@
 
 ## 2026-05-25
 
+- Implemented Phase 9 alerts and monitoring foundation with tenant-owned alert
+  records, authenticated alert list/read/read-all endpoints, scoring job
+  completion/failure alert creation, a frontend alerts surface with unread
+  state, and alert ownership tests.
+- Added alerts API and architecture documentation and updated the KB pack to
+  mark in-app alerts as current while keeping email/SMS delivery, realtime
+  websockets, external schedulers, background workers, and ML/AI as future work.
 - Implemented Phase 8 automation-ready job plumbing with a tenant-owned
   internal job model, queued/running/completed/failed lifecycle, job service,
   authenticated job detail route, dataset scoring job execution, safe job

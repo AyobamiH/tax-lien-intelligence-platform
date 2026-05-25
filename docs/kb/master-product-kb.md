@@ -18,10 +18,10 @@ turns county parcel and tax lien datasets into structured investment decisions.
 The product is not yet fully implemented. The current repo now includes the
 baseline, auth foundation, dataset upload foundation, first-pass scoring
 foundation, frontend scored-results review surface, watchlist decision workflow,
-portfolio/status tracking foundation, and automation-ready internal job
-plumbing. The product identity is visible through the README, package
-description, architecture docs, and frontend review/watchlist/portfolio
-surfaces.
+portfolio/status tracking foundation, automation-ready internal job plumbing,
+and in-app alerts/monitoring foundation. The product identity is visible through
+the README, package description, architecture docs, and frontend
+review/watchlist/portfolio surfaces.
 
 Current evidence:
 
@@ -34,6 +34,8 @@ Current evidence:
 - the portfolio surface lets signed-in users track active decisions with
   simple status;
 - internal job records make scoring execution explicit without adding external
+  automation;
+- in-app alerts make scoring job outcomes visible without adding delivery
   automation;
 - architecture docs say every future user-owned document must include `userId`.
 
@@ -52,12 +54,14 @@ The intended product loop is:
 5. the scoring engine evaluates opportunity quality and risk;
 6. the user reviews scored rows with explanations and warnings;
 7. the user adds promising items to a watchlist;
-8. the user tracks decisions over time.
+8. the user tracks decisions over time;
+9. the user sees important scoring outcomes in an in-app alert surface.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
-shortlisting, portfolio/status tracking, and internal job plumbing exist.
-Browser CSV upload and richer automation remain future direction.
+shortlisting, portfolio/status tracking, internal job plumbing, and in-app
+alerts exist. Browser CSV upload, external alert delivery, and richer automation
+remain future direction.
 
 ## What This SaaS Is Not
 
@@ -143,6 +147,7 @@ Current implementation:
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
 - scoring execution is recorded through internal jobs;
+- scoring job outcomes create in-app alerts;
 - no standalone parcel/lien schema;
 - no final investment decision, auction, or accounting workflow.
 
@@ -226,8 +231,8 @@ Long-term direction may include:
 - external data enrichment;
 - geographic demand signals;
 - watchlist monitoring;
-- portfolio tracking;
-- alerting;
+- portfolio analytics;
+- external alert delivery;
 - automation for recurring county files;
 - team workflows;
 - audit trails.

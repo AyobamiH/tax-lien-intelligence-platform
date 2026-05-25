@@ -7,6 +7,16 @@ export {
 } from "./mongo.js";
 
 export {
+  AlertModel,
+  type AlertDocument,
+  type AlertMetadataRecord,
+  type AlertRecord,
+  type AlertRelatedEntityTypeRecord,
+  type AlertSeverityRecord,
+  type AlertStatusRecord,
+  type AlertTypeRecord,
+} from "./models/alert.js";
+export {
   DatasetModel,
   type DatasetDocument,
   type DatasetRecord,

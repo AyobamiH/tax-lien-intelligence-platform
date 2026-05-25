@@ -7,6 +7,7 @@ background-worker infrastructure yet.
 Current job usage:
 
 - dataset scoring creates and executes a `dataset_scoring` job in-process.
+- completed or failed scoring jobs now create safe in-app alerts.
 
 Automation itself is not implemented. Jobs are the foundation future automation
 will plug into.
@@ -103,6 +104,7 @@ fail, such as `score_no_source_rows`.
 
 ## Current Limitation
 
-There is no external queue, cron scheduler, worker fleet, retry policy, alerting,
-or automation trigger yet. The job record is persisted and lifecycle-aware, but
-the first job-backed action still executes inside the request lifecycle.
+There is no external queue, cron scheduler, worker fleet, retry policy, alert
+delivery channel, or automation trigger yet. The job record is persisted and
+lifecycle-aware, but the first job-backed action still executes inside the
+request lifecycle.

@@ -286,6 +286,36 @@ Phase 8 should not include:
 - collaboration;
 - live auction execution.
 
+## Phase 9: Alerts And Monitoring Foundation
+
+Current status: implemented as in-app visibility, not delivery automation.
+
+Phase 9 includes:
+
+- tenant-owned alert model;
+- alert status lifecycle: `unread` and `read`;
+- alert service and store;
+- authenticated alert retrieval;
+- authenticated alert read/read-all actions;
+- safe alert creation from dataset scoring job completion/failure;
+- frontend alerts route;
+- unread alert count and read actions;
+- alert ownership tests;
+- docs.
+
+Phase 9 does not include:
+
+- email delivery;
+- SMS delivery;
+- realtime websockets;
+- external schedulers;
+- background workers;
+- alert rules engine;
+- admin observability dashboard;
+- ML/AI;
+- collaboration;
+- live auction execution.
+
 ## Later Phases
 
 Later phases may include:
@@ -294,7 +324,7 @@ Later phases may include:
 - richer filtering;
 - import templates;
 - enrichment;
-- alerting;
+- external alert delivery;
 - scheduled ingestion;
 - team workflows;
 - audit logs.
@@ -314,7 +344,8 @@ Dependency order matters:
 6. watchlist;
 7. portfolio;
 8. internal job plumbing;
-9. automation.
+9. alerts and monitoring foundation;
+10. automation.
 
 Do not invert this order without an explicit architecture decision.
 
@@ -346,6 +377,7 @@ Before heavy automation:
 - watchlist decisions must exist;
 - portfolio/status tracking must exist;
 - internal job boundaries must exist;
+- in-app visibility for important job outcomes must exist;
 - job ownership and logging patterns must be designed;
 - rate limits and failure handling must exist.
 

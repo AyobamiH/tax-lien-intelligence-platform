@@ -25,6 +25,7 @@ before writing specs, prompts, or implementation plans.
 - [Watchlist Workflow Architecture](architecture/watchlist.md)
 - [Portfolio Tracking Architecture](architecture/portfolio.md)
 - [Internal Job Architecture](architecture/internal-jobs.md)
+- [Alerts And Monitoring Architecture](architecture/alerts.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
 ## API
@@ -34,6 +35,7 @@ before writing specs, prompts, or implementation plans.
 - [Dataset API](api/datasets.md)
 - [Scoring API](api/scoring.md)
 - [Internal Jobs API](api/jobs.md)
+- [Alerts API](api/alerts.md)
 - [Watchlist API](api/watchlist.md)
 - [Portfolio API](api/portfolio.md)
 

@@ -117,6 +117,7 @@ value, property type, and any simple usability signals present in the CSV.
 Phase 5 adds a frontend review surface that calls these routes directly for the
 signed-in user. Phase 6 adds watchlist actions on top of scored records. Phase 7
 adds portfolio/status tracking for scored records or promoted watchlist items.
-Phase 8 adds internal job plumbing around scoring. Future phases may add
+Phase 8 adds internal job plumbing around scoring. Phase 9 adds in-app alerts
+for scoring job completion/failure outcomes. Future phases may add
 stronger county adapters, enrichment, deduplication, geographic data, historical
-redemption signals, and external automation.
+redemption signals, external alert delivery, and external automation.

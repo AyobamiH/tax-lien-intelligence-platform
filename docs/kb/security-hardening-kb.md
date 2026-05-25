@@ -73,6 +73,11 @@ Current repo protections:
 - job ownership enforcement;
 - safe job summary and error metadata;
 - cross-user job rejection tests;
+- tenant-owned alert records;
+- authenticated alert list/read/read-all routes;
+- alert ownership enforcement;
+- safe alert metadata;
+- cross-user alert acknowledgement tests;
 - frontend auth errors clear the browser review session;
 - conservative scoring behavior for missing or weak data;
 - root quality gates for typecheck, test, and build;
@@ -93,6 +98,7 @@ Not yet implemented:
 - production CORS restrictions;
 - final browser session architecture beyond the current session-scoped JWT;
 - external worker authorization model;
+- external alert delivery security;
 - secret rotation guidance.
 
 ### Intentionally Deferred
@@ -101,10 +107,11 @@ Deferred because the corresponding systems do not exist yet:
 
 - upload malware/content controls;
 - per-user rate limits;
-- job security;
+- external worker/job security;
 - external job execution hardening;
 - admin security;
 - richer scoring audit trail;
+- external alert delivery;
 - automation monitoring.
 
 ### Where The Baseline Is Acceptable
@@ -361,6 +368,7 @@ Must be scoped by `userId`:
 - watchlist items;
 - portfolio records;
 - internal jobs;
+- alerts;
 - upload logs;
 - automation jobs;
 - user decisions.
@@ -373,7 +381,7 @@ Must never cross tenant boundaries:
 - reasoning;
 - watchlists;
 - decision notes;
-- future alerts.
+- in-app alerts.
 
 Future queries must:
 
@@ -389,6 +397,7 @@ Tests must include:
 - user A cannot watchlist user B parcel;
 - user A cannot track or update user B portfolio records;
 - user A cannot read user B job records;
+- user A cannot read or acknowledge user B alert records;
 - user A cannot infer user B records through counts or errors.
 
 ## 6. Future-Sensitive Systems
@@ -436,8 +445,13 @@ idempotency, rate limits, worker authorization, and safe logs.
 
 ### Alerts And Notifications
 
-Alerts must not reveal tenant data through email previews, logs, or incorrect
-recipient routing.
+Current alerts are in-app records only. They are tenant-owned, authenticated,
+and limited to safe scoring job summaries.
+
+Alerts must not reveal tenant data through raw metadata, email previews, logs,
+or incorrect recipient routing. Future delivery channels require recipient
+validation, template review, provider secret handling, and opt-out/settings
+controls before launch.
 
 ### Admin/Internal Tooling
 
@@ -485,7 +499,8 @@ Security drift risks:
 - keeping permissive CORS into production;
 - logging uploaded data or tokens;
 - allowing frontend-only access control;
-- adding automation before job security exists;
+- adding external automation before external job security exists;
+- turning alerts into raw diagnostic payloads;
 - treating public source data as non-sensitive after user enrichment;
 - skipping cross-user tests.
 

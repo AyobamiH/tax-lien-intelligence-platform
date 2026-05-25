@@ -29,6 +29,8 @@ It shows:
 - watchlist-to-portfolio promotion actions;
 - dedicated portfolio route using `#/portfolio`;
 - portfolio status tracking surface with flags and reasoning;
+- dedicated alerts route using `#/alerts`;
+- unread alert count and alert read/read-all actions;
 - loading, empty, and error states.
 
 This is the first real user-facing review and decision-tracking workflow. It is
@@ -48,6 +50,9 @@ The current API surface is minimal:
 - `POST /datasets/:datasetId/score`
 - `GET /datasets/:datasetId/scores`
 - `GET /jobs/:jobId`
+- `GET /alerts`
+- `PATCH /alerts/:alertId/read`
+- `PATCH /alerts/read-all`
 - `POST /watchlist`
 - `GET /watchlist`
 - `DELETE /watchlist/:watchlistItemId`
@@ -64,6 +69,8 @@ Documented in:
 - `docs/api/auth.md`
 - `docs/api/datasets.md`
 - `docs/api/scoring.md`
+- `docs/api/jobs.md`
+- `docs/api/alerts.md`
 - `docs/api/watchlist.md`
 - `docs/api/portfolio.md`
 
@@ -86,11 +93,14 @@ Real workflows now present:
 - add/remove watchlist actions;
 - watchlist shortlist comparison.
 - portfolio tracking and status updates.
+- in-app alert review for scoring completions and failures.
 
 Real workflows not present:
 
 - browser-based dataset upload;
-- settings.
+- settings;
+- email/SMS alert delivery;
+- realtime alerts.
 
 ## Current Visual Signals
 
@@ -116,7 +126,8 @@ The current API cannot:
 
 - provide a standalone parcel/lien row API;
 - persist user-owned parcel records outside scored-record outputs;
-- manage alerts, collaboration, or auction execution.
+- deliver alerts outside the app;
+- manage collaboration or auction execution.
 
 ## Where The Current Surface Could Mislead Contributors
 
@@ -145,8 +156,9 @@ checks. Portfolio tracking is also user-owned decision data and has backend
 ownership checks. Internal jobs are user-owned operational metadata and have
 backend ownership checks. Future changes must preserve these boundaries.
 
-Future current-surface updates must record both visible functionality and trust
-boundaries.
+Alerts are now user-owned monitoring records. They expose safe summaries only and
+must not become raw logs or stack-trace displays. Future current-surface updates
+must record both visible functionality and trust boundaries.
 
 ## Update Rules
 

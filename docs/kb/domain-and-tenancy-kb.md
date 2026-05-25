@@ -6,8 +6,8 @@ This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
 It does not define every database schema. User, dataset, scored-record,
-internal job, watchlist item, and portfolio item schemas now exist; a standalone
-parcel schema does not.
+internal job, alert, watchlist item, and portfolio item schemas now exist; a
+standalone parcel schema does not.
 When schemas are added, this file must be updated to reflect actual fields and
 ownership rules.
 
@@ -19,12 +19,14 @@ Current implementation:
 - dataset model exists for authenticated manual CSV uploads;
 - scored-record model exists for first-pass scoring outputs;
 - internal job model exists for user-owned execution metadata;
+- alert model exists for user-owned workflow monitoring events;
 - watchlist item model exists for user-owned scored-record shortlists;
 - portfolio item model exists for user-owned tracked decisions/status;
 - frontend review surface exposes user-owned datasets and scored records through
   authenticated API calls;
 - frontend watchlist surface exposes user-owned shortlisted scored records;
 - frontend portfolio surface exposes user-owned tracked records and status;
+- frontend alerts surface exposes user-owned scoring job outcome alerts;
 - no parcel model;
 
 Current documentation direction:
@@ -86,6 +88,16 @@ add/list/detail/status/delete API. Portfolio items can be created from an owned
 scored record or an owned watchlist item. They preserve score context, flags,
 reasoning, and a simple status history timestamp.
 
+### Alert
+
+An alert is a user-owned monitoring record that tells the user an important
+workflow event happened or needs attention.
+
+Current status: implemented for in-app scoring job completion and failure
+events. Alerts include safe messages, severity, read/unread state, related
+dataset/job metadata, and timestamps. They do not deliver email/SMS and must not
+store raw job payloads, stack traces, or uploaded source rows.
+
 ## Multi-Tenant Rule
 
 Every future user-owned data model must include:
@@ -108,6 +120,7 @@ User-owned data includes or will include:
 - watchlist entries;
 - portfolio records;
 - internal job records;
+- alerts;
 - decision notes;
 - upload errors;
 - audit events;
@@ -130,6 +143,7 @@ Tenant isolation protects:
 - reasoning;
 - watchlists;
 - decisions;
+- in-app alerts;
 - future automation outputs.
 
 ## Isolation Requirements
@@ -149,9 +163,10 @@ Future code must:
 The tenancy boundary is one of the most important security boundaries in the
 product. Phase 2 establishes authenticated user identity. Phase 3 uses that
 identity for tenant-owned dataset records. Phase 4 uses it for scored records.
-Phase 6 uses it for watchlist items. Phase 7 uses it for portfolio items. Future
-standalone parcel models must build on the same ownership pattern rather than
-inventing a parallel boundary.
+Phase 6 uses it for watchlist items. Phase 7 uses it for portfolio items. Phase
+8 uses it for internal jobs. Phase 9 uses it for alerts. Future standalone
+parcel models must build on the same ownership pattern rather than inventing a
+parallel boundary.
 
 Recommended pattern:
 
@@ -187,6 +202,7 @@ Domain and tenancy drift risks:
   record;
 - storing portfolio items without verifying ownership of the underlying scored
   record or watchlist item;
+- exposing alerts across tenants or filling alert metadata with raw internals;
 - creating admin-like endpoints before user boundaries exist.
 
 ## Update Rules

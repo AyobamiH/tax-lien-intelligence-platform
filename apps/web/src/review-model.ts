@@ -1,4 +1,7 @@
 import type {
+  AlertResponse,
+  AlertSeverity,
+  AlertType,
   NormalizedScoredRecordFields,
   PortfolioItemResponse,
   PortfolioStatus,
@@ -87,6 +90,16 @@ export function sortPortfolioItemsForReview(items: PortfolioItemResponse[]): Por
     }
 
     return new Date(right.trackedAt).getTime() - new Date(left.trackedAt).getTime();
+  });
+}
+
+export function sortAlertsForReview(alerts: AlertResponse[]): AlertResponse[] {
+  return [...alerts].sort((left, right) => {
+    if (left.status !== right.status) {
+      return left.status === "unread" ? -1 : 1;
+    }
+
+    return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
   });
 }
 
@@ -207,6 +220,24 @@ export function portfolioStatusClassName(status: PortfolioStatus): string {
       return "border-amber-200 bg-amber-50 text-amber-800";
     case "tracked":
       return "border-line bg-field text-ink";
+  }
+}
+
+export function alertTypeLabel(type: AlertType): string {
+  switch (type) {
+    case "scoring_job_completed":
+      return "Scoring completed";
+    case "scoring_job_failed":
+      return "Scoring failed";
+  }
+}
+
+export function alertSeverityClassName(severity: AlertSeverity): string {
+  switch (severity) {
+    case "info":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    case "error":
+      return "border-red-200 bg-red-50 text-red-800";
   }
 }
 

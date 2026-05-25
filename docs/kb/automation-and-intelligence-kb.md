@@ -20,13 +20,13 @@ Current implementation:
 - frontend review of scored records exists;
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
-- no alerts;
-- no portfolio automation or monitoring.
+- in-app alert records exist for scoring job completion/failure;
+- no portfolio automation or external monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
 scoring foundation, manual review surface, watchlist shortlist, portfolio
-status tracking, and automation-ready internal job records. Automation is still
-intentionally absent.
+status tracking, automation-ready internal job records, and in-app alerts.
+Automation is still intentionally absent.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -71,7 +71,8 @@ Manual-first sequence:
 7. watchlist;
 8. portfolio;
 9. internal job plumbing;
-10. then automation.
+10. in-app alert visibility;
+11. then automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -114,6 +115,12 @@ The scoring package should expose:
 
 ## Monitoring And Alerting
 
+Current monitoring:
+
+- scoring job completion alerts;
+- scoring job failure alerts;
+- unread/read state in the app.
+
 Future monitoring could alert users about:
 
 - upload validation issues;
@@ -121,7 +128,8 @@ Future monitoring could alert users about:
 - portfolio review deadlines;
 - stale data.
 
-Alerts must be user-scoped and avoid leaking tenant data.
+Alerts must be user-scoped and avoid leaking tenant data. Current alerts are
+in-app only; external delivery is later work.
 
 ## Watchlist Assistance
 
@@ -161,17 +169,19 @@ Now:
 - watchlist shortlisting.
 - portfolio/status tracking.
 - internal job plumbing for scoring.
+- in-app alerts for scoring job outcomes.
 
 Later:
 
 - scheduled ingestion;
 - enrichment;
-- alerts;
+- external alert delivery;
 - portfolio automation;
 - AI or ML assistance.
 
 Internal jobs are not automation by themselves. They are the execution boundary
-that later automation can use safely.
+that later automation can use safely. In-app alerts are visibility records, not
+delivery automation.
 
 ## Security Expectations
 

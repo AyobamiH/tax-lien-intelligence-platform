@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type {
+  AlertResponse,
   AuthUserResponse,
   DatasetResponse,
   InternalJobResponse,
@@ -14,11 +15,14 @@ import {
   addWatchlistItem,
   getCurrentUser,
   getDataset,
+  listAlerts,
   listDatasets,
   listDatasetScores,
   listPortfolio,
   listWatchlist,
   login,
+  markAlertRead,
+  markAllAlertsRead,
   register,
   removePortfolioItem,
   removeWatchlistItem,
@@ -26,6 +30,8 @@ import {
   updatePortfolioItemStatus,
 } from "./api";
 import {
+  alertSeverityClassName,
+  alertTypeLabel,
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
@@ -40,6 +46,7 @@ import {
   primaryRecordLabel,
   reasoningPreview,
   scoreBand,
+  sortAlertsForReview,
   sortPortfolioItemsForReview,
   sortWatchlistItemsForReview,
   type ScoreFilter,
@@ -52,7 +59,8 @@ type PageState =
   | { name: "datasets" }
   | { name: "dataset"; datasetId: string }
   | { name: "watchlist" }
-  | { name: "portfolio" };
+  | { name: "portfolio" }
+  | { name: "alerts" };
 
 type AuthMode = "login" | "register";
 
@@ -85,6 +93,14 @@ interface PortfolioState {
   actionId: string | null;
 }
 
+interface AlertsState {
+  alerts: AlertResponse[];
+  unreadCount: number;
+  isLoading: boolean;
+  error: string | null;
+  actionId: string | null;
+}
+
 function App() {
   const [session, setSession] = useState<StoredSession | null>(() => loadStoredSession());
   const [page, setPage] = useState<PageState>(() => readRoute());
@@ -99,6 +115,13 @@ function App() {
   });
   const [portfolio, setPortfolio] = useState<PortfolioState>({
     items: [],
+    isLoading: false,
+    error: null,
+    actionId: null,
+  });
+  const [alerts, setAlerts] = useState<AlertsState>({
+    alerts: [],
+    unreadCount: 0,
     isLoading: false,
     error: null,
     actionId: null,
@@ -139,6 +162,13 @@ function App() {
         error: null,
         actionId: null,
       });
+      setAlerts({
+        alerts: [],
+        unreadCount: 0,
+        isLoading: false,
+        error: null,
+        actionId: null,
+      });
       return;
     }
 
@@ -165,6 +195,7 @@ function App() {
 
     void refreshWatchlist(authToken);
     void refreshPortfolio(authToken);
+    void refreshAlerts(authToken);
   }, [authToken]);
 
   function handleSignedIn(nextSession: StoredSession): void {
@@ -216,6 +247,98 @@ function App() {
       setPortfolio((current) => ({
         ...current,
         isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function refreshAlerts(token: string): Promise<void> {
+    setAlerts((current) => ({ ...current, isLoading: true, error: null }));
+
+    try {
+      const result = await listAlerts(token);
+      setAlerts((current) => ({
+        ...current,
+        alerts: sortAlertsForReview(result.alerts),
+        unreadCount: result.unreadCount,
+        isLoading: false,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setAlerts((current) => ({
+        ...current,
+        isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function markOneAlertRead(alertId: string): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setAlerts((current) => ({ ...current, actionId: alertId, error: null }));
+
+    try {
+      const result = await markAlertRead(session.token, alertId);
+      setAlerts((current) => ({
+        ...current,
+        alerts: sortAlertsForReview(
+          current.alerts.map((alert) => (alert.id === result.alert.id ? result.alert : alert)),
+        ),
+        unreadCount:
+          current.alerts.find((alert) => alert.id === result.alert.id)?.status === "unread"
+            ? Math.max(0, current.unreadCount - 1)
+            : current.unreadCount,
+        actionId: null,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setAlerts((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function markEveryAlertRead(): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setAlerts((current) => ({ ...current, actionId: "read-all", error: null }));
+
+    try {
+      await markAllAlertsRead(session.token);
+      const readAt = new Date().toISOString();
+      setAlerts((current) => ({
+        ...current,
+        alerts: sortAlertsForReview(
+          current.alerts.map((alert) => ({
+            ...alert,
+            status: "read",
+            readAt: alert.readAt ?? readAt,
+          })),
+        ),
+        unreadCount: 0,
+        actionId: null,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setAlerts((current) => ({
+        ...current,
+        actionId: null,
         error: errorMessage(error),
       }));
       if (isAuthError(error)) {
@@ -385,6 +508,7 @@ function App() {
         page={page}
         watchlistCount={watchlist.items.length}
         portfolioCount={portfolio.items.length}
+        unreadAlertCount={alerts.unreadCount}
         onNavigate={(nextPage) => navigate(nextPage, setPage)}
         onSignOut={handleSignOut}
       />
@@ -396,11 +520,14 @@ function App() {
           activeDatasetId={page.name === "dataset" ? page.datasetId : null}
           watchlistCount={watchlist.items.length}
           portfolioCount={portfolio.items.length}
+          unreadAlertCount={alerts.unreadCount}
           isWatchlistActive={page.name === "watchlist"}
           isPortfolioActive={page.name === "portfolio"}
+          isAlertsActive={page.name === "alerts"}
           onSelect={(datasetId) => navigate({ name: "dataset", datasetId }, setPage)}
           onWatchlistSelect={() => navigate({ name: "watchlist" }, setPage)}
           onPortfolioSelect={() => navigate({ name: "portfolio" }, setPage)}
+          onAlertsSelect={() => navigate({ name: "alerts" }, setPage)}
           onRetry={() => {
             setDatasetsLoading(true);
             setDatasetsError(null);
@@ -424,6 +551,7 @@ function App() {
             onRemoveFromWatchlist={(watchlistItemId) => void removeFromWatchlist(watchlistItemId)}
             onAddScoreToPortfolio={(scoredRecordId) => void addScoreToPortfolio(scoredRecordId)}
             onRemoveFromPortfolio={(portfolioItemId) => void removeFromPortfolio(portfolioItemId)}
+            onScoringCompleted={() => void refreshAlerts(session.token)}
           />
         ) : page.name === "watchlist" ? (
           <WatchlistPage
@@ -448,11 +576,24 @@ function App() {
             onStatusChange={(portfolioItemId, status) => void updatePortfolioStatus(portfolioItemId, status)}
             onRemove={(portfolioItemId) => void removeFromPortfolio(portfolioItemId)}
           />
+        ) : page.name === "alerts" ? (
+          <AlertsPage
+            alerts={alerts.alerts}
+            unreadCount={alerts.unreadCount}
+            isLoading={alerts.isLoading}
+            error={alerts.error}
+            actionId={alerts.actionId}
+            onRetry={() => void refreshAlerts(session.token)}
+            onMarkRead={(alertId) => void markOneAlertRead(alertId)}
+            onMarkAllRead={() => void markEveryAlertRead()}
+            onOpenDataset={(datasetId) => navigate({ name: "dataset", datasetId }, setPage)}
+          />
         ) : (
           <ReviewHome
             datasets={datasets}
             watchlistCount={watchlist.items.length}
             portfolioCount={portfolio.items.length}
+            unreadAlertCount={alerts.unreadCount}
             isLoading={datasetsLoading}
           />
         )}
@@ -560,6 +701,7 @@ function AppHeader({
   page,
   watchlistCount,
   portfolioCount,
+  unreadAlertCount,
   onNavigate,
   onSignOut,
 }: {
@@ -567,6 +709,7 @@ function AppHeader({
   page: PageState;
   watchlistCount: number;
   portfolioCount: number;
+  unreadAlertCount: number;
   onNavigate: (page: PageState) => void;
   onSignOut: () => void;
 }) {
@@ -601,6 +744,13 @@ function AppHeader({
           >
             Portfolio ({portfolioCount})
           </button>
+          <button
+            type="button"
+            onClick={() => onNavigate({ name: "alerts" })}
+            className={`border border-line px-3 py-2 font-medium ${page.name === "alerts" ? "bg-field" : "bg-white"}`}
+          >
+            Alerts ({unreadAlertCount})
+          </button>
         </nav>
         <div className="flex items-center gap-3 text-sm">
           <span className="max-w-[220px] truncate text-ink/70">{user.email}</span>
@@ -620,11 +770,14 @@ function DatasetListPanel({
   activeDatasetId,
   watchlistCount,
   portfolioCount,
+  unreadAlertCount,
   isWatchlistActive,
   isPortfolioActive,
+  isAlertsActive,
   onSelect,
   onWatchlistSelect,
   onPortfolioSelect,
+  onAlertsSelect,
   onRetry,
 }: {
   datasets: DatasetResponse[];
@@ -633,11 +786,14 @@ function DatasetListPanel({
   activeDatasetId: string | null;
   watchlistCount: number;
   portfolioCount: number;
+  unreadAlertCount: number;
   isWatchlistActive: boolean;
   isPortfolioActive: boolean;
+  isAlertsActive: boolean;
   onSelect: (datasetId: string) => void;
   onWatchlistSelect: () => void;
   onPortfolioSelect: () => void;
+  onAlertsSelect: () => void;
   onRetry: () => void;
 }) {
   return (
@@ -670,6 +826,19 @@ function DatasetListPanel({
           <span className="border border-line px-2 py-1 text-xs">{portfolioCount} tracked</span>
         </div>
         <p className="mt-1 text-xs text-ink/60">Track active decisions and status.</p>
+      </button>
+      <button
+        type="button"
+        onClick={onAlertsSelect}
+        className={`block w-full border-b border-line px-4 py-3 text-left hover:bg-field ${
+          isAlertsActive ? "bg-field" : "bg-white"
+        }`}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-semibold">Alerts</span>
+          <span className="border border-line px-2 py-1 text-xs">{unreadAlertCount} unread</span>
+        </div>
+        <p className="mt-1 text-xs text-ink/60">Review scoring outcomes that need visibility.</p>
       </button>
       {isLoading ? <PanelMessage label="Loading datasets..." /> : null}
       {error ? <PanelError message={error} onRetry={onRetry} /> : null}
@@ -707,20 +876,23 @@ function ReviewHome({
   datasets,
   watchlistCount,
   portfolioCount,
+  unreadAlertCount,
   isLoading,
 }: {
   datasets: DatasetResponse[];
   watchlistCount: number;
   portfolioCount: number;
+  unreadAlertCount: number;
   isLoading: boolean;
 }) {
   return (
     <section className="border border-line bg-white p-6">
       <h2 className="text-2xl font-semibold">Scored Results Review</h2>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <Metric label="Datasets" value={isLoading ? "..." : String(datasets.length)} />
         <Metric label="Watchlist" value={String(watchlistCount)} />
         <Metric label="Portfolio" value={String(portfolioCount)} />
+        <Metric label="Unread Alerts" value={String(unreadAlertCount)} />
         <Metric
           label="Rows Uploaded"
           value={isLoading ? "..." : String(datasets.reduce((total, dataset) => total + dataset.rowCount, 0))}
@@ -750,6 +922,7 @@ function DatasetDetailPage({
   onRemoveFromWatchlist,
   onAddScoreToPortfolio,
   onRemoveFromPortfolio,
+  onScoringCompleted,
 }: {
   token: string;
   datasetId: string;
@@ -763,6 +936,7 @@ function DatasetDetailPage({
   onRemoveFromWatchlist: (watchlistItemId: string) => void;
   onAddScoreToPortfolio: (scoredRecordId: string) => void;
   onRemoveFromPortfolio: (portfolioItemId: string) => void;
+  onScoringCompleted: () => void;
 }) {
   const [state, setState] = useState<DatasetDetailState>({
     dataset: null,
@@ -831,6 +1005,7 @@ function DatasetDetailPage({
         lastScoringJob: result.job,
         isScoring: false,
       }));
+      onScoringCompleted();
     } catch (error: unknown) {
       setState((current) => ({
         ...current,
@@ -929,6 +1104,136 @@ function DatasetDetailPage({
             onAddToPortfolio={onAddScoreToPortfolio}
             onRemoveFromPortfolio={onRemoveFromPortfolio}
           />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function AlertsPage({
+  alerts,
+  unreadCount,
+  isLoading,
+  error,
+  actionId,
+  onRetry,
+  onMarkRead,
+  onMarkAllRead,
+  onOpenDataset,
+}: {
+  alerts: AlertResponse[];
+  unreadCount: number;
+  isLoading: boolean;
+  error: string | null;
+  actionId: string | null;
+  onRetry: () => void;
+  onMarkRead: (alertId: string) => void;
+  onMarkAllRead: () => void;
+  onOpenDataset: (datasetId: string) => void;
+}) {
+  const sortedAlerts = useMemo(() => sortAlertsForReview(alerts), [alerts]);
+  const failureCount = sortedAlerts.filter((alert) => alert.severity === "error").length;
+
+  if (isLoading && sortedAlerts.length === 0) {
+    return <PanelMessage label="Loading alerts..." />;
+  }
+
+  return (
+    <section className="min-w-0 space-y-5">
+      <div className="border border-line bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-pine">Monitoring Layer</p>
+            <h2 className="mt-1 text-2xl font-semibold">Alerts</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/70">
+              Review important scoring job outcomes without exposing internal job payloads or stack traces.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Metric label="Unread" value={String(unreadCount)} />
+            <Metric label="Failures" value={String(failureCount)} />
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" onClick={onRetry} className="border border-line px-3 py-2 text-sm font-semibold">
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={onMarkAllRead}
+            disabled={unreadCount === 0 || actionId === "read-all"}
+            className="border border-line px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {actionId === "read-all" ? "Marking..." : "Mark all read"}
+          </button>
+        </div>
+        {error ? <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div> : null}
+      </div>
+
+      {sortedAlerts.length === 0 && !isLoading ? (
+        <div className="border border-line bg-white p-5">
+          <h3 className="text-lg font-semibold">No alerts yet</h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+            Scoring completions and scoring failures will appear here once jobs run.
+          </p>
+          {error ? <PanelError message={error} onRetry={onRetry} /> : null}
+        </div>
+      ) : (
+        <div className="border border-line bg-white">
+          <div className="border-b border-line px-4 py-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">
+              Recent Events ({sortedAlerts.length})
+            </h3>
+          </div>
+          <div className="divide-y divide-line">
+            {sortedAlerts.map((alert) => (
+              <article key={alert.id} className="grid gap-3 px-4 py-4 lg:grid-cols-[160px_minmax(0,1fr)_220px]">
+                <div>
+                  <span className={`inline-flex border px-2 py-1 text-xs font-semibold ${alertSeverityClassName(alert.severity)}`}>
+                    {alertTypeLabel(alert.type)}
+                  </span>
+                  <p className="mt-2 text-xs text-ink/55">{formatDateTime(alert.createdAt)}</p>
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="font-semibold">{alert.message}</h4>
+                    <span className="border border-line px-2 py-1 text-xs">
+                      {alert.status === "unread" ? "Unread" : "Read"}
+                    </span>
+                  </div>
+                  <dl className="mt-3 grid gap-2 text-xs text-ink/65 sm:grid-cols-3">
+                    {alert.metadata?.jobId ? <DetailTerm label="Job" value={shortId(alert.metadata.jobId)} /> : null}
+                    {alert.metadata?.datasetId ? <DetailTerm label="Dataset" value={shortId(alert.metadata.datasetId)} /> : null}
+                    {alert.metadata?.scoredRecordCount !== undefined ? (
+                      <DetailTerm label="Records" value={String(alert.metadata.scoredRecordCount)} />
+                    ) : null}
+                    {alert.metadata?.errorCode ? <DetailTerm label="Code" value={alert.metadata.errorCode} /> : null}
+                  </dl>
+                </div>
+                <div className="flex flex-wrap items-start justify-end gap-2">
+                  {alert.relatedEntityType === "dataset" && alert.relatedEntityId ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenDataset(alert.relatedEntityId as string)}
+                      className="border border-line px-3 py-2 text-xs font-semibold"
+                    >
+                      Open dataset
+                    </button>
+                  ) : null}
+                  {alert.status === "unread" ? (
+                    <button
+                      type="button"
+                      disabled={actionId === alert.id}
+                      onClick={() => onMarkRead(alert.id)}
+                      className="border border-line px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {actionId === alert.id ? "Marking" : "Mark read"}
+                    </button>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       )}
     </section>
@@ -1801,7 +2106,9 @@ function navigate(page: PageState, setPage: (page: PageState) => void): void {
         ? "#/watchlist"
         : page.name === "portfolio"
           ? "#/portfolio"
-          : `#/datasets/${page.datasetId}`;
+          : page.name === "alerts"
+            ? "#/alerts"
+            : `#/datasets/${page.datasetId}`;
   window.history.pushState(null, "", hash);
   setPage(page);
 }
@@ -1813,6 +2120,10 @@ function readRoute(): PageState {
 
   if (window.location.hash === "#/portfolio") {
     return { name: "portfolio" };
+  }
+
+  if (window.location.hash === "#/alerts") {
+    return { name: "alerts" };
   }
 
   const match = window.location.hash.match(/^#\/datasets\/([^/]+)$/);

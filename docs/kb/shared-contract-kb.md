@@ -38,6 +38,15 @@ Current shared types in `packages/types`:
 - `JobDetailResponse`;
 - `DatasetScoreRunResponse`;
 - `DatasetScoresResponse`.
+- `AlertType`;
+- `AlertSeverity`;
+- `AlertStatus`;
+- `AlertRelatedEntityType`;
+- `AlertMetadata`;
+- `AlertResponse`;
+- `AlertListResponse`;
+- `AlertDetailResponse`;
+- `MarkAllAlertsReadResponse`.
 - `AddWatchlistItemRequest`;
 - `WatchlistItemResponse`;
 - `AddWatchlistItemResponse`;
@@ -225,6 +234,36 @@ Current target entity type:
 Jobs are user-owned operational metadata. The frontend must not submit `userId`
 or raw job payloads, and job responses must not expose raw internals.
 
+## Alert Object Contract
+
+Current alert contracts include:
+
+- alert id;
+- type;
+- severity;
+- read/unread status;
+- safe human-readable message;
+- optional related entity type/id;
+- optional safe metadata;
+- created/updated timestamps;
+- optional read timestamp.
+
+Current alert types:
+
+- `scoring_job_completed`;
+- `scoring_job_failed`.
+
+Current alert metadata is limited to safe identifiers and summary values:
+
+- job id;
+- dataset id;
+- scored record count;
+- stable error code.
+
+Alert contracts must not expose raw job payloads, stack traces, source rows,
+tokens, secrets, provider responses, or another tenant's data. External delivery
+contracts are not implemented.
+
 ## Watchlist Object Contract
 
 Current watchlist contracts include:
@@ -296,6 +335,7 @@ possible or explicitly versioned.
 - Do not let package types describe future fields as current response fields.
 - Do not add client-supplied `userId` to create/update DTOs for user-owned data.
 - Do not represent scoring as a single number once explainable scoring exists.
+- Do not treat alert metadata as a raw logging or diagnostic payload.
 
 ## Security Contract Rules
 
@@ -304,6 +344,7 @@ Shared contracts must not expose:
 - password hashes;
 - secrets;
 - raw internal errors;
+- raw alert/job internals;
 - another user's identifiers;
 - admin-only fields;
 - server-derived trust fields as client-writable inputs.

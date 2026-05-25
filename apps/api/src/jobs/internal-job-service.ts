@@ -7,6 +7,7 @@ import type {
   InternalJobType,
   JobDetailResponse,
 } from "@tax-lien/types";
+import type { JobAlertSink } from "../alerts/alert-service.js";
 import { ApiError, isApiError } from "../errors/api-error.js";
 import type { InternalJobStore, StoredInternalJob } from "./internal-job-store.js";
 
@@ -26,9 +27,11 @@ export interface ExecuteInternalJobResult<TResult> {
 
 export class InternalJobService {
   private readonly jobStore: InternalJobStore;
+  private readonly alertSink: JobAlertSink | undefined;
 
-  public constructor(jobStore: InternalJobStore) {
+  public constructor(jobStore: InternalJobStore, alertSink?: JobAlertSink) {
     this.jobStore = jobStore;
+    this.alertSink = alertSink;
   }
 
   public async execute<TResult>(input: ExecuteInternalJobInput<TResult>): Promise<ExecuteInternalJobResult<TResult>> {
@@ -58,12 +61,17 @@ export class InternalJobService {
         throw new ApiError(500, "job_lifecycle_failed", "Internal job could not be completed.");
       }
 
+      await this.recordCompletedAlert(completedJob);
+
       return {
         job: toInternalJobResponse(completedJob),
         result,
       };
     } catch (error: unknown) {
-      await this.jobStore.markFailed(queuedJob.id, input.userId, new Date(), safeJobError(error));
+      const failedJob = await this.jobStore.markFailed(queuedJob.id, input.userId, new Date(), safeJobError(error));
+      if (failedJob) {
+        await this.recordFailedAlert(failedJob);
+      }
       throw error;
     }
   }
@@ -81,6 +89,22 @@ export class InternalJobService {
     return {
       job: toInternalJobResponse(job),
     };
+  }
+
+  private async recordCompletedAlert(job: StoredInternalJob): Promise<void> {
+    try {
+      await this.alertSink?.recordJobCompleted(job);
+    } catch {
+      // Alerts are monitoring records; they must not rewrite the completed job outcome.
+    }
+  }
+
+  private async recordFailedAlert(job: StoredInternalJob): Promise<void> {
+    try {
+      await this.alertSink?.recordJobFailed(job);
+    } catch {
+      // Preserve the original execution failure if alert recording also fails.
+    }
   }
 }
 

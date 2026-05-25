@@ -2,6 +2,8 @@ import type {
   ApiErrorResponse,
   AuthMeResponse,
   AuthSuccessResponse,
+  AlertDetailResponse,
+  AlertListResponse,
   AddWatchlistItemResponse,
   DatasetDetailResponse,
   DatasetListResponse,
@@ -11,6 +13,7 @@ import type {
   AddPortfolioItemResponse,
   DeletePortfolioItemResponse,
   JobDetailResponse,
+  MarkAllAlertsReadResponse,
   PortfolioDetailResponse,
   PortfolioListResponse,
   PortfolioStatus,
@@ -84,6 +87,26 @@ export async function scoreDataset(token: string, datasetId: string): Promise<Da
 
 export async function getJob(token: string, jobId: string): Promise<JobDetailResponse> {
   return requestJson<JobDetailResponse>(`/jobs/${encodeURIComponent(jobId)}`, {
+    token,
+  });
+}
+
+export async function listAlerts(token: string): Promise<AlertListResponse> {
+  return requestJson<AlertListResponse>("/alerts", {
+    token,
+  });
+}
+
+export async function markAlertRead(token: string, alertId: string): Promise<AlertDetailResponse> {
+  return requestJson<AlertDetailResponse>(`/alerts/${encodeURIComponent(alertId)}/read`, {
+    method: "PATCH",
+    token,
+  });
+}
+
+export async function markAllAlertsRead(token: string): Promise<MarkAllAlertsReadResponse> {
+  return requestJson<MarkAllAlertsReadResponse>("/alerts/read-all", {
+    method: "PATCH",
     token,
   });
 }

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { PortfolioItemResponse, ScoredRecordResponse, WatchlistItemResponse } from "@tax-lien/types";
+import type { AlertResponse, PortfolioItemResponse, ScoredRecordResponse, WatchlistItemResponse } from "@tax-lien/types";
 import {
+  alertSeverityClassName,
+  alertTypeLabel,
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
@@ -15,6 +17,7 @@ import {
   portfolioStatusOptions,
   reasoningPreview,
   scoreBand,
+  sortAlertsForReview,
   sortPortfolioItemsForReview,
   sortScoresForReview,
   sortWatchlistItemsForReview,
@@ -102,6 +105,19 @@ function portfolioItem(overrides: Partial<PortfolioItemResponse>): PortfolioItem
     reasoning: ["Strong value coverage."],
     scoredAt: "2026-05-25T00:00:00.000Z",
     trackedAt: "2026-05-25T00:00:00.000Z",
+    createdAt: "2026-05-25T00:00:00.000Z",
+    updatedAt: "2026-05-25T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function alertResponse(overrides: Partial<AlertResponse>): AlertResponse {
+  return {
+    id: "alert-1",
+    type: "scoring_job_completed",
+    severity: "info",
+    status: "unread",
+    message: "Scoring completed. 2 records are ready for review.",
     createdAt: "2026-05-25T00:00:00.000Z",
     updatedAt: "2026-05-25T00:00:00.000Z",
     ...overrides,
@@ -255,5 +271,30 @@ describe("review model helpers", () => {
     expect(byWatchlistId.has("watch-reviewing")).toBe(false);
     expect(portfolioStatusLabel("ready")).toBe("Ready");
     expect(portfolioStatusClassName("discarded")).toContain("red");
+  });
+
+  it("sorts and labels alerts for the monitoring surface", () => {
+    const olderUnread = alertResponse({ id: "older-unread", createdAt: "2026-05-25T01:00:00.000Z" });
+    const newerRead = alertResponse({
+      id: "newer-read",
+      status: "read",
+      readAt: "2026-05-25T03:00:00.000Z",
+      createdAt: "2026-05-25T03:00:00.000Z",
+    });
+    const newerUnread = alertResponse({
+      id: "newer-unread",
+      type: "scoring_job_failed",
+      severity: "error",
+      createdAt: "2026-05-25T02:00:00.000Z",
+    });
+
+    expect(sortAlertsForReview([newerRead, olderUnread, newerUnread]).map((alert) => alert.id)).toEqual([
+      "newer-unread",
+      "older-unread",
+      "newer-read",
+    ]);
+    expect(alertTypeLabel("scoring_job_completed")).toBe("Scoring completed");
+    expect(alertTypeLabel("scoring_job_failed")).toBe("Scoring failed");
+    expect(alertSeverityClassName("error")).toContain("red");
   });
 });

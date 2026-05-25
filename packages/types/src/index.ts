@@ -147,6 +147,45 @@ export interface DatasetScoresResponse {
   scores: ScoredRecordResponse[];
 }
 
+export type AlertType = "scoring_job_completed" | "scoring_job_failed";
+export type AlertSeverity = "info" | "error";
+export type AlertStatus = "unread" | "read";
+export type AlertRelatedEntityType = "dataset" | "job";
+
+export interface AlertMetadata {
+  jobId?: string;
+  datasetId?: string;
+  scoredRecordCount?: number;
+  errorCode?: string;
+}
+
+export interface AlertResponse {
+  id: string;
+  type: AlertType;
+  severity: AlertSeverity;
+  status: AlertStatus;
+  message: string;
+  relatedEntityType?: AlertRelatedEntityType;
+  relatedEntityId?: string;
+  metadata?: AlertMetadata;
+  createdAt: string;
+  updatedAt: string;
+  readAt?: string;
+}
+
+export interface AlertListResponse {
+  alerts: AlertResponse[];
+  unreadCount: number;
+}
+
+export interface AlertDetailResponse {
+  alert: AlertResponse;
+}
+
+export interface MarkAllAlertsReadResponse {
+  updatedCount: number;
+}
+
 export interface AddWatchlistItemRequest {
   scoredRecordId: string;
 }

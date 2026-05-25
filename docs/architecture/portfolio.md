@@ -137,8 +137,8 @@ Do not:
 - add fake P&L or return metrics before real domain support exists;
 - create portfolio items from arbitrary client-submitted score data;
 - rely on frontend filtering as authorization;
-- add automation or alerts through portfolio status without job security and
-  audit design.
+- add automation or external alert delivery through portfolio status without
+  job, alert, and audit design.
 
 ## Update Rules
 

@@ -5,7 +5,8 @@
 Phase 5 introduces the first real in-app review surface for scored datasets.
 Phase 6 extends that surface with watchlist actions and a dedicated shortlist
 comparison page. Phase 7 adds a portfolio/status tracking surface for records
-promoted from scoring review or the watchlist.
+promoted from scoring review or the watchlist. Phase 9 adds an in-app alerts
+surface for important scoring job outcomes.
 The frontend is no longer only a shell: it now authenticates against the API,
 lists the signed-in user's datasets, opens a dataset, triggers scoring, and
 renders scored records with flags and reasoning.
@@ -25,12 +26,15 @@ Implemented:
 - portfolio track/untrack actions on scored records;
 - watchlist-to-portfolio promotion action;
 - dedicated portfolio route and status tracking surface;
+- dedicated alerts route with unread/read state;
+- alert links back to related datasets when available;
 - loading, empty, and error states;
 - reusable review model helpers and unit tests.
 
 Not implemented:
 
 - browser CSV upload;
+- email/SMS alert delivery;
 - automation;
 - ML/AI features;
 - final design polish or advanced filtering.
@@ -45,6 +49,7 @@ Implemented hash routes:
 - `#/datasets/:datasetId`
 - `#/watchlist`
 - `#/portfolio`
+- `#/alerts`
 
 This avoids adding a router before the app needs nested navigation. If future
 phases add upload and settings pages, a router can be introduced with tests and
@@ -69,11 +74,17 @@ The frontend calls only the existing authenticated API routes:
 - `GET /portfolio`;
 - `GET /portfolio/:portfolioItemId`;
 - `PATCH /portfolio/:portfolioItemId`;
-- `DELETE /portfolio/:portfolioItemId`.
+- `DELETE /portfolio/:portfolioItemId`;
+- `GET /alerts`;
+- `PATCH /alerts/:alertId/read`;
+- `PATCH /alerts/read-all`.
 
 The frontend does not accept or send trusted score values. Scores remain
 server-derived. Scoring now returns internal job metadata; the frontend displays
 only the safe job id/status summary.
+
+Alert APIs return safe monitoring summaries. The frontend does not render raw
+job payloads, stack traces, or diagnostic internals.
 
 ## Review Table
 
@@ -125,6 +136,21 @@ The portfolio surface is operational rather than decorative. It shows:
 It is a decision/status foundation. It is not P&L tracking, accounting, live
 auction execution, alerts, or collaboration.
 
+## Alerts Surface
+
+The alerts surface is informational rather than noisy. It shows:
+
+- unread alert count;
+- recent scoring completion/failure alerts;
+- severity;
+- safe message;
+- related job/dataset identifiers;
+- read/read-all actions;
+- dataset navigation when the alert references a dataset.
+
+It is not email delivery, realtime notifications, an admin logs console, or a
+generic event feed.
+
 ## Security Notes
 
 The frontend stores the current JWT in `sessionStorage` so a page reload keeps
@@ -137,6 +163,7 @@ Authorization remains server-side:
 - dataset and score access still depends on API ownership checks;
 - watchlist actions still depend on backend ownership checks;
 - portfolio actions still depend on backend ownership checks;
+- alert reads and acknowledgements still depend on backend ownership checks;
 - auth failures clear the browser session;
 - user-owned data is not mocked into the UI.
 
@@ -155,6 +182,7 @@ Do not:
 - treat client-side filters as an authorization boundary;
 - add mock records that look like real user data;
 - duplicate scoring logic in the browser.
+- render raw alert metadata as if it were a diagnostic log.
 
 ## Update Rules
 
@@ -164,4 +192,4 @@ Update this document when:
 - CSV upload becomes a browser workflow;
 - score table columns change;
 - auth/session behavior changes;
-- watchlist or portfolio pages become real.
+- watchlist, portfolio, or alerts pages become real.

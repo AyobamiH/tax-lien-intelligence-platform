@@ -1,7 +1,8 @@
 # Internal Job Architecture
 
-Phase 8 introduces automation-ready job plumbing. It does not introduce
-automation, cron, external queue infrastructure, alerts, or background workers.
+Phase 8 introduced automation-ready job plumbing. Phase 9 adds in-app alerts
+from selected job outcomes. The job layer still does not introduce automation,
+cron, external queue infrastructure, email/SMS delivery, or background workers.
 
 The purpose is to move repeatable operations toward explicit, persisted,
 testable execution boundaries before future automation is added.
@@ -19,6 +20,7 @@ Implemented:
 - safe summary metadata;
 - safe error metadata;
 - dataset scoring routed through the job execution service;
+- alert creation for completed/failed dataset scoring jobs;
 - frontend scoring success message that exposes the completed job id/status;
 - integration and unit tests for lifecycle, success, failure, and cross-user
   job access.
@@ -30,7 +32,7 @@ Not implemented:
 - worker process;
 - third-party queue infrastructure;
 - retries;
-- alerting;
+- external alert delivery;
 - enrichment integrations;
 - ML/AI;
 - auction execution.
@@ -86,7 +88,8 @@ The current boundary is:
 - scored-record store: score persistence.
 
 Future automation should reuse the job service rather than adding hidden work to
-route handlers.
+route handlers. Future visibility events should use the alert service rather
+than exposing raw job internals directly.
 
 ## Security Considerations
 

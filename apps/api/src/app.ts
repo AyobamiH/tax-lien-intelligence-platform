@@ -2,6 +2,8 @@ import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
 import type { HealthResponse } from "@tax-lien/types";
+import { createAlertService } from "./alerts/factory.js";
+import type { AlertService } from "./alerts/alert-service.js";
 import type { AuthService } from "./auth/auth-service.js";
 import { createAuthService } from "./auth/factory.js";
 import { apiConfig } from "./config/env.js";
@@ -12,6 +14,7 @@ import { createInternalJobService } from "./jobs/factory.js";
 import type { InternalJobService } from "./jobs/internal-job-service.js";
 import { createPortfolioService } from "./portfolio/factory.js";
 import type { PortfolioService } from "./portfolio/portfolio-service.js";
+import { createAlertRouter } from "./routes/alerts.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createDatasetRouter } from "./routes/datasets.js";
 import { createInternalJobRouter } from "./routes/jobs.js";
@@ -30,13 +33,15 @@ export interface AppDependencies {
   scoringService?: ScoringService;
   watchlistService?: WatchlistService;
   portfolioService?: PortfolioService;
+  alertService?: AlertService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
   const app = express();
   const authService = dependencies.authService ?? createAuthService();
   const datasetService = dependencies.datasetService ?? createDatasetService();
-  const internalJobService = dependencies.internalJobService ?? createInternalJobService();
+  const alertService = dependencies.alertService ?? createAlertService();
+  const internalJobService = dependencies.internalJobService ?? createInternalJobService(alertService);
   const scoringService = dependencies.scoringService ?? createScoringService(internalJobService);
   const watchlistService = dependencies.watchlistService ?? createWatchlistService();
   const portfolioService = dependencies.portfolioService ?? createPortfolioService();
@@ -60,6 +65,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/datasets", createDatasetRouter(authService, datasetService));
   app.use("/datasets", createScoringRouter(authService, scoringService));
   app.use("/jobs", createInternalJobRouter(authService, internalJobService));
+  app.use("/alerts", createAlertRouter(authService, alertService));
   app.use("/watchlist", createWatchlistRouter(authService, watchlistService));
   app.use("/portfolio", createPortfolioRouter(authService, portfolioService));
 

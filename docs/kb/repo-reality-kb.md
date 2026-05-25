@@ -76,6 +76,7 @@ Implemented today:
 - internal dataset source row persistence for scoring;
 - scored-record model in `packages/db`;
 - tenant-owned internal job model in `packages/db`;
+- tenant-owned alert model in `packages/db`;
 - pure explainable scoring engine in `packages/scoring`;
 - dataset row normalization for common parcel/lien CSV headers;
 - authenticated scoring endpoints at `POST /datasets/:datasetId/score` and
@@ -84,6 +85,10 @@ Implemented today:
 - authenticated job detail endpoint at `GET /jobs/:jobId`;
 - queued/running/completed/failed job lifecycle;
 - safe job summaries and error metadata;
+- alert creation from completed/failed dataset scoring jobs;
+- authenticated alert endpoints at `GET /alerts`,
+  `PATCH /alerts/:alertId/read`, and `PATCH /alerts/read-all`;
+- alert ownership tests;
 - scored-record ownership tests;
 - frontend login/register review surface;
 - authenticated dataset list/detail review UI;
@@ -109,6 +114,7 @@ Implemented today:
 - dedicated portfolio status tracking page;
 - portfolio detail surface with flags, reasoning, and status controls;
 - frontend score-run success message with completed job id/status;
+- frontend alerts route with unread count and read/read-all actions;
 - structured JSON 404 for unknown API routes;
 - environment parsing with `zod`;
 - Mongo connection helper using Mongoose;
@@ -137,6 +143,9 @@ Not implemented:
 - frontend dataset upload screen;
 - browser upload workflow;
 - production deployment config.
+- email/SMS alert delivery;
+- realtime alert delivery;
+- external schedulers or background workers.
 
 ## Workflow Discipline
 
@@ -184,6 +193,8 @@ Current tests cover:
 - scoring API ownership boundaries;
 - internal job lifecycle success/failure behavior;
 - cross-user job detail rejection;
+- alert retrieval/read/read-all behavior;
+- cross-user alert acknowledgement rejection;
 - conservative scoring for partial records.
 - frontend review sorting, filtering, formatting, flags, and reasoning helpers.
 - watchlist add/list/remove behavior;
@@ -223,6 +234,7 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - auth middleware establishes the user identity boundary.
 - tenant-owned dataset records are implemented.
 - tenant-owned internal job records are implemented for scoring.
+- tenant-owned alert records are implemented for safe in-app monitoring.
 - CSV upload limits and validation are implemented.
 - tenant-owned scored-record and watchlist item records are implemented.
 - tenant-owned portfolio item records are implemented.
@@ -230,7 +242,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 
 Security cannot be considered complete until browser upload, rate limits, and
 additional cross-user resource tests for later resource types exist. The current
-job layer is in-process plumbing, not hardened external automation.
+job layer is in-process plumbing, and the current alert layer is in-app
+visibility only, not hardened external automation or delivery.
 
 ## Drift Risks
 
@@ -245,6 +258,7 @@ Repo drift risks:
 - duplicating scoring logic outside `packages/scoring`;
 - describing first-pass scoring as final underwriting.
 - describing job plumbing as full automation.
+- describing in-app alerts as external notification delivery.
 
 ## Update Rules
 

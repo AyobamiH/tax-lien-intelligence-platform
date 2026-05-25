@@ -36,6 +36,9 @@ Current implementation:
 - authenticated score run and score retrieval routes;
 - score runs routed through internal job execution;
 - authenticated job detail route;
+- alert model;
+- authenticated alert list/read/read-all routes;
+- scoring job completion/failure alert creation;
 - scoring ownership enforcement;
 - frontend score review surface consumes the scoring API;
 - watchlist item model;
@@ -65,6 +68,7 @@ The backend should become the trusted boundary for:
 - internal job orchestration;
 - watchlist persistence;
 - portfolio tracking persistence;
+- in-app alert persistence;
 - audit events;
 - security enforcement.
 
@@ -189,6 +193,36 @@ Current limitation:
 - no notes, tags, alerts, collaboration, auction execution, accounting, or
   realized-return tracking.
 
+## Alerts Implementation
+
+The alerts foundation now exists as in-app user-owned monitoring records.
+
+Current alert API:
+
+- `GET /alerts`;
+- `PATCH /alerts/:alertId/read`;
+- `PATCH /alerts/read-all`.
+
+Alert endpoints:
+
+- require auth;
+- scope reads and updates by authenticated `userId`;
+- expose safe event summaries only;
+- support unread/read state;
+- do not provide external delivery.
+
+Current alert sources:
+
+- completed `dataset_scoring` jobs;
+- failed `dataset_scoring` jobs.
+
+Current limitation:
+
+- no email/SMS delivery;
+- no realtime websocket feed;
+- no scheduled alert generation;
+- no admin monitoring dashboard.
+
 ## Service Boundaries
 
 Preferred backend boundaries:
@@ -258,6 +292,10 @@ Future automation may need background processing for large files, enrichment, or
 alerts. That should build on the job model rather than hiding work inside route
 handlers.
 
+Alerts are now the first user-facing visibility layer on top of job outcomes.
+Future alert sources should call the alert service with safe metadata rather
+than exposing raw job internals.
+
 When introduced, background work must include:
 
 - tenant ownership;
@@ -279,7 +317,8 @@ Backend implementation order should stay disciplined:
 6. watchlist APIs and review surface: implemented in Phase 6;
 7. portfolio APIs and status surface: implemented in Phase 7;
 8. automation-ready internal job plumbing: implemented in Phase 8;
-9. later external automation.
+9. alerts and monitoring foundation: implemented in Phase 9;
+10. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

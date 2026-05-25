@@ -17,6 +17,7 @@ Implemented:
 - authenticated `POST /datasets/:datasetId/score`;
 - authenticated `GET /datasets/:datasetId/scores`;
 - internal `dataset_scoring` job record created for score runs;
+- in-app alerts for completed/failed scoring jobs;
 - tenant ownership checks for scoring and retrieval;
 - frontend scored-results review surface;
 - score identifiers preserved across rescoring of the same source row where
@@ -151,6 +152,7 @@ Remaining hardening:
 - moving the current in-process scoring job to a worker if scoring becomes
   expensive;
 - audit trail for scoring runs;
+- external alert delivery security if scoring alerts leave the app;
 - stronger row-level validation once county adapters exist.
 
 ## Drift Risks

@@ -30,6 +30,8 @@ Current implementation:
 - dedicated portfolio status tracking page;
 - portfolio detail surface for flags, reasoning, and status;
 - scoring job completion visibility after a score run;
+- alerts route with unread count and read/read-all actions;
+- alert entries for scoring completion/failure outcomes;
 - loading, empty, and error states;
 - no browser upload flow yet.
 
@@ -62,6 +64,7 @@ Current and future page direction:
 - implemented: portfolio status tracking surface;
 - implemented: portfolio detail reasoning/status surface;
 - implemented: scoring job completion message;
+- implemented: alerts monitoring surface;
 - future: browser dataset upload page;
 - future: account/settings page.
 
@@ -114,6 +117,19 @@ Future portfolio expansion:
 - alerts;
 - decision history beyond status timestamps;
 - accounting or realized-return fields only after a separate domain phase.
+
+Implemented alerts:
+
+- show recent scoring job outcomes;
+- expose unread/read state;
+- link back to related datasets when available;
+- avoid raw job payloads, stack traces, or internal logs.
+
+Future alerts expansion:
+
+- delivery preferences;
+- email/SMS only after a separate security and product phase;
+- richer event sources only when backend contracts exist.
 
 ## Design Tone
 
@@ -181,8 +197,8 @@ repo truth:
 
 - do not invent pages that do not have implementation priority;
 - do not add mock data as if it were real;
-- do not imply browser upload, alerting, or automation workflows exist before
-  they are wired to backend contracts;
+- do not imply browser upload, external alert delivery, or automation workflows
+  exist before they are wired to backend contracts;
 - do not bypass shared API contracts;
 - do not change product positioning away from decision support.
 

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
+import { AlertService } from "../../apps/api/src/alerts/alert-service.js";
 import { AuthService } from "../../apps/api/src/auth/auth-service.js";
 import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
 import { createApp } from "../../apps/api/src/app.js";
@@ -17,6 +18,7 @@ import type {
   ScoredRecordStore,
   StoredScoredRecord,
 } from "../../apps/api/src/scoring/scored-record-store.js";
+import { InMemoryAlertStore } from "../support/in-memory-alert-store.js";
 import { InMemoryInternalJobStore } from "../support/in-memory-internal-job-store.js";
 
 const testJwtSecret = "test-scoring-secret-that-is-long-enough-for-jwt";
@@ -143,25 +145,29 @@ function createTestContext(): {
   datasetStore: InMemoryDatasetStore;
   scoredRecordStore: InMemoryScoredRecordStore;
   internalJobStore: InMemoryInternalJobStore;
+  alertStore: InMemoryAlertStore;
 } {
   const userStore = new InMemoryUserStore();
   const datasetStore = new InMemoryDatasetStore();
   const scoredRecordStore = new InMemoryScoredRecordStore();
   const internalJobStore = new InMemoryInternalJobStore();
+  const alertStore = new InMemoryAlertStore();
   const authService = new AuthService(userStore, {
     jwtSecret: testJwtSecret,
     jwtExpiresIn: "1h",
     passwordSaltRounds: 4,
   });
   const datasetService = new DatasetService(datasetStore);
-  const internalJobService = new InternalJobService(internalJobStore);
+  const alertService = new AlertService(alertStore);
+  const internalJobService = new InternalJobService(internalJobStore, alertService);
   const scoringService = new ScoringService(datasetStore, scoredRecordStore, internalJobService);
 
   return {
-    app: createApp({ authService, datasetService, internalJobService, scoringService }),
+    app: createApp({ authService, datasetService, internalJobService, scoringService, alertService }),
     datasetStore,
     scoredRecordStore,
     internalJobStore,
+    alertStore,
   };
 }
 
@@ -242,6 +248,25 @@ describe("dataset scoring API", () => {
       summary: {
         scoredRecordCount: 2,
       },
+    });
+
+    const alertsResponse = await request(app).get("/alerts").set("Authorization", `Bearer ${owner.token}`).expect(200);
+    expect(alertsResponse.body).toMatchObject({
+      unreadCount: 1,
+      alerts: [
+        {
+          type: "scoring_job_completed",
+          severity: "info",
+          status: "unread",
+          relatedEntityType: "dataset",
+          relatedEntityId: datasetId,
+          metadata: {
+            jobId: response.body.job.id,
+            datasetId,
+            scoredRecordCount: 2,
+          },
+        },
+      ],
     });
   });
 
@@ -397,6 +422,24 @@ describe("dataset scoring API", () => {
         code: "score_no_source_rows",
         message: "Dataset does not contain scoreable source rows.",
       },
+    });
+
+    const alertsResponse = await request(app).get("/alerts").set("Authorization", `Bearer ${owner.token}`).expect(200);
+    expect(alertsResponse.body).toMatchObject({
+      unreadCount: 1,
+      alerts: [
+        {
+          type: "scoring_job_failed",
+          severity: "error",
+          status: "unread",
+          relatedEntityType: "dataset",
+          relatedEntityId: dataset.id,
+          metadata: {
+            datasetId: dataset.id,
+            errorCode: "score_no_source_rows",
+          },
+        },
+      ],
     });
   });
 });
