@@ -10,6 +10,8 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1).default("mongodb://localhost:27017/tax_lien_platform"),
   MONGODB_DB_NAME: z.string().min(1).default("tax_lien_platform"),
   JWT_SECRET: z.string().min(32).optional(),
+  WORKER_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
+  SCHEDULER_TICK_INTERVAL_MS: z.coerce.number().int().positive().default(60000),
 });
 
 const developmentJwtSecret = "development-only-change-before-production";
@@ -27,6 +29,8 @@ export interface ApiConfig {
   mongoDbName: string;
   jwtSecret: string;
   jwtExpiresIn: "1h";
+  workerPollIntervalMs: number;
+  schedulerTickIntervalMs: number;
 }
 
 export const apiConfig: ApiConfig = {
@@ -36,4 +40,6 @@ export const apiConfig: ApiConfig = {
   mongoDbName: parsedEnv.MONGODB_DB_NAME,
   jwtSecret: parsedEnv.JWT_SECRET ?? developmentJwtSecret,
   jwtExpiresIn: "1h",
+  workerPollIntervalMs: parsedEnv.WORKER_POLL_INTERVAL_MS,
+  schedulerTickIntervalMs: parsedEnv.SCHEDULER_TICK_INTERVAL_MS,
 };

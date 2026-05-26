@@ -15,6 +15,7 @@ import {
   addWatchlistItem,
   getCurrentUser,
   getDataset,
+  getJob,
   listAlerts,
   listDatasets,
   listDatasetScores,
@@ -551,7 +552,7 @@ function App() {
             onRemoveFromWatchlist={(watchlistItemId) => void removeFromWatchlist(watchlistItemId)}
             onAddScoreToPortfolio={(scoredRecordId) => void addScoreToPortfolio(scoredRecordId)}
             onRemoveFromPortfolio={(portfolioItemId) => void removeFromPortfolio(portfolioItemId)}
-            onScoringCompleted={() => void refreshAlerts(session.token)}
+            onScoringJobUpdated={() => void refreshAlerts(session.token)}
           />
         ) : page.name === "watchlist" ? (
           <WatchlistPage
@@ -922,7 +923,7 @@ function DatasetDetailPage({
   onRemoveFromWatchlist,
   onAddScoreToPortfolio,
   onRemoveFromPortfolio,
-  onScoringCompleted,
+  onScoringJobUpdated,
 }: {
   token: string;
   datasetId: string;
@@ -936,7 +937,7 @@ function DatasetDetailPage({
   onRemoveFromWatchlist: (watchlistItemId: string) => void;
   onAddScoreToPortfolio: (scoredRecordId: string) => void;
   onRemoveFromPortfolio: (portfolioItemId: string) => void;
-  onScoringCompleted: () => void;
+  onScoringJobUpdated: () => void;
 }) {
   const [state, setState] = useState<DatasetDetailState>({
     dataset: null,
@@ -993,6 +994,80 @@ function DatasetDetailPage({
   const datasetPortfolioCount = state.scores.filter((score) => portfolioByScoreId.has(score.id)).length;
   const selectedScore = state.scores.find((score) => score.id === state.selectedScoreId) ?? visibleScores[0] ?? null;
 
+  useEffect(() => {
+    const job = state.lastScoringJob;
+    if (!job || !isActiveJobStatus(job.status)) {
+      return;
+    }
+
+    const jobId = job.id;
+    let isCancelled = false;
+
+    async function pollJob(): Promise<void> {
+      try {
+        const jobResult = await getJob(token, jobId);
+        if (isCancelled) {
+          return;
+        }
+
+        if (jobResult.job.status === "completed") {
+          const scoresResult = await listDatasetScores(token, datasetId);
+          if (isCancelled) {
+            return;
+          }
+
+          setState((current) => ({
+            ...current,
+            scores: scoresResult.scores,
+            selectedScoreId: scoresResult.scores[0]?.id ?? current.selectedScoreId,
+            lastScoringJob: jobResult.job,
+            isScoring: false,
+            error: null,
+          }));
+          onScoringJobUpdated();
+          return;
+        }
+
+        if (jobResult.job.status === "failed") {
+          setState((current) => ({
+            ...current,
+            lastScoringJob: jobResult.job,
+            isScoring: false,
+            error: jobResult.job.error?.message ?? "Scoring job failed.",
+          }));
+          onScoringJobUpdated();
+          return;
+        }
+
+        setState((current) => ({
+          ...current,
+          lastScoringJob: jobResult.job,
+          isScoring: jobResult.job.status === "queued" || jobResult.job.status === "running",
+        }));
+      } catch (error: unknown) {
+        if (isCancelled) {
+          return;
+        }
+
+        setState((current) => ({
+          ...current,
+          isScoring: false,
+          error: errorMessage(error),
+        }));
+      }
+    }
+
+    void pollJob();
+    const interval = window.setInterval(() => {
+      void pollJob();
+    }, 2000);
+
+    return () => {
+      isCancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [datasetId, state.lastScoringJob?.id, state.lastScoringJob?.status, token]);
+
   async function runScoring(): Promise<void> {
     setState((current) => ({ ...current, isScoring: true, error: null }));
 
@@ -1000,12 +1075,11 @@ function DatasetDetailPage({
       const result = await scoreDataset(token, datasetId);
       setState((current) => ({
         ...current,
-        scores: result.scores,
-        selectedScoreId: result.scores[0]?.id ?? null,
         lastScoringJob: result.job,
-        isScoring: false,
+        isScoring: true,
+        error: null,
       }));
-      onScoringCompleted();
+      onScoringJobUpdated();
     } catch (error: unknown) {
       setState((current) => ({
         ...current,
@@ -1051,9 +1125,13 @@ function DatasetDetailPage({
           <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{portfolioError}</div>
         ) : null}
         {state.lastScoringJob ? (
-          <div className="mt-4 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-            Scoring job {shortId(state.lastScoringJob.id)} {state.lastScoringJob.status};{" "}
-            {state.lastScoringJob.summary?.scoredRecordCount ?? state.scores.length} records are ready for review.
+          <div className={`mt-4 border px-3 py-2 text-sm ${jobStatusClassName(state.lastScoringJob.status)}`}>
+            Scoring job {shortId(state.lastScoringJob.id)} is {state.lastScoringJob.status}.{" "}
+            {state.lastScoringJob.status === "completed"
+              ? `${state.lastScoringJob.summary?.scoredRecordCount ?? state.scores.length} records are ready for review.`
+              : state.lastScoringJob.status === "failed"
+                ? state.lastScoringJob.error?.message ?? "The scoring worker reported a failure."
+                : "The background worker will update this view when processing finishes."}
           </div>
         ) : null}
         <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
@@ -2184,6 +2262,22 @@ function errorMessage(error: unknown): string {
   }
 
   return "Something went wrong.";
+}
+
+function isActiveJobStatus(status: InternalJobResponse["status"]): boolean {
+  return status === "queued" || status === "running";
+}
+
+function jobStatusClassName(status: InternalJobResponse["status"]): string {
+  switch (status) {
+    case "completed":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    case "failed":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "queued":
+    case "running":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+  }
 }
 
 function shortId(id: string): string {

@@ -35,6 +35,7 @@ export interface CreateInternalJobInput {
 
 export interface InternalJobStore {
   createJob(input: CreateInternalJobInput): Promise<StoredInternalJob>;
+  claimNextQueuedJob(startedAt: Date): Promise<StoredInternalJob | null>;
   markRunning(jobId: string, userId: string, startedAt: Date): Promise<StoredInternalJob | null>;
   markCompleted(
     jobId: string,
@@ -60,9 +61,35 @@ export class MongoInternalJobStore implements InternalJobStore {
     return mapInternalJob(document);
   }
 
+  public async claimNextQueuedJob(startedAt: Date): Promise<StoredInternalJob | null> {
+    const document = await InternalJobModel.findOneAndUpdate(
+      { status: "queued" },
+      {
+        $set: {
+          status: "running",
+          startedAt,
+        },
+        $unset: {
+          error: "",
+          completedAt: "",
+          failedAt: "",
+        },
+      },
+      {
+        new: true,
+        sort: {
+          queuedAt: 1,
+          createdAt: 1,
+        },
+      },
+    ).exec();
+
+    return document ? mapInternalJob(document) : null;
+  }
+
   public async markRunning(jobId: string, userId: string, startedAt: Date): Promise<StoredInternalJob | null> {
     const document = await InternalJobModel.findOneAndUpdate(
-      { _id: jobId, userId },
+      { _id: jobId, userId, status: "queued" },
       {
         $set: {
           status: "running",

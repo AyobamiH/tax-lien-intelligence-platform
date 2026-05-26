@@ -19,7 +19,7 @@ export function createScoringRouter(authService: AuthService, scoringService: Sc
         throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
       }
 
-      response.status(200).json(await scoringService.scoreDataset(datasetId, request.auth.userId));
+      response.status(202).json(await scoringService.scoreDataset(datasetId, request.auth.userId));
     } catch (error) {
       next(error);
     }

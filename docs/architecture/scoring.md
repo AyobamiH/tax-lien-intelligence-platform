@@ -17,6 +17,7 @@ Implemented:
 - authenticated `POST /datasets/:datasetId/score`;
 - authenticated `GET /datasets/:datasetId/scores`;
 - internal `dataset_scoring` job record created for score runs;
+- dedicated worker execution path for queued scoring jobs;
 - in-app alerts for completed/failed scoring jobs;
 - tenant ownership checks for scoring and retrieval;
 - frontend scored-results review surface;
@@ -39,10 +40,12 @@ Not implemented:
    the dataset record.
 3. The public dataset response still returns only metadata and validation
    summary.
-4. The scoring route verifies the dataset belongs to the authenticated user.
-5. Each stored source row is normalized into scoreable fields.
-6. The pure scoring package produces a deterministic score result.
-7. The API persists scored records with `userId`, `datasetId`, normalized fields,
+4. The scoring route verifies the dataset belongs to the authenticated user and
+   enqueues a `dataset_scoring` job.
+5. The worker claims the queued job and revalidates the dataset target.
+6. Each stored source row is normalized into scoreable fields.
+7. The pure scoring package produces a deterministic score result.
+8. The API persists scored records with `userId`, `datasetId`, normalized fields,
    flags, reasoning, and timestamps.
 
 ## Scoring Package Boundary
@@ -149,8 +152,7 @@ The API:
 Remaining hardening:
 
 - rate limits for repeated scoring;
-- moving the current in-process scoring job to a worker if scoring becomes
-  expensive;
+- retry/idempotency design before automatic reruns;
 - audit trail for scoring runs;
 - external alert delivery security if scoring alerts leave the app;
 - stronger row-level validation once county adapters exist.

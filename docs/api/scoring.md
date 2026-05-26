@@ -16,16 +16,15 @@ authenticated user.
 
 ## `POST /datasets/:datasetId/score`
 
-Runs first-pass scoring for a user-owned dataset through the internal job
+Enqueues first-pass scoring for a user-owned dataset through the internal job
 execution layer.
 
-The current scoring run still completes synchronously for a clean review UX, but
-it now creates a persisted `dataset_scoring` job and records lifecycle status.
-It refreshes existing scores for the same dataset from stored source rows while
-preserving scored record identifiers for the same source row where possible, so
-watchlist and portfolio references can remain stable across rescoring.
+Phase 10 moves score execution out of the request lifecycle. The route now
+creates a persisted `dataset_scoring` job and returns the queued job. A dedicated
+worker claims and executes the job, then records completed or failed lifecycle
+state.
 
-### Response `200`
+### Response `202`
 
 ```json
 {
@@ -35,47 +34,16 @@ watchlist and portfolio references can remain stable across rescoring.
     "type": "dataset_scoring",
     "targetEntityType": "dataset",
     "targetEntityId": "dataset-id",
-    "status": "completed",
-    "summary": {
-      "scoredRecordCount": 2
-    },
+    "status": "queued",
     "queuedAt": "2026-05-25T00:00:00.000Z",
-    "startedAt": "2026-05-25T00:00:00.000Z",
-    "completedAt": "2026-05-25T00:00:00.000Z",
     "createdAt": "2026-05-25T00:00:00.000Z",
     "updatedAt": "2026-05-25T00:00:00.000Z"
-  },
-  "scoredRecordCount": 2,
-  "scores": [
-    {
-      "id": "score-id",
-      "datasetId": "dataset-id",
-      "sourceRowNumber": 2,
-      "normalizedFields": {
-        "parcelId": "A-100",
-        "lienAmount": 1000,
-        "estimatedValue": 12000,
-        "propertyType": "Single-family residential",
-        "propertyTypeCategory": "residential"
-      },
-      "investmentScore": 82,
-      "riskScore": 18,
-      "liquidityScore": 86,
-      "redemptionProbability": 0.8,
-      "confidenceScore": 100,
-      "valueCoverageRatio": 12,
-      "flags": [],
-      "reasoning": [
-        "Residential property type usually has stronger resale and redemption signals.",
-        "Very strong value coverage ratio (12x) indicates a large safety margin."
-      ],
-      "scoredAt": "2026-05-25T00:00:00.000Z",
-      "createdAt": "2026-05-25T00:00:00.000Z",
-      "updatedAt": "2026-05-25T00:00:00.000Z"
-    }
-  ]
+  }
 }
 ```
+
+Use `GET /jobs/:jobId` to check job state and `GET /datasets/:datasetId/scores`
+to retrieve scores after the worker marks the job completed.
 
 ## `GET /datasets/:datasetId/scores`
 
@@ -103,9 +71,9 @@ Possible scoring errors:
 - `dataset_not_found`
 - `score_no_source_rows`
 
-If scoring fails after the dataset ownership check, the internal job is marked
-`failed` with safe error metadata before the API returns the safe error
-response.
+Errors discovered before enqueue, such as invalid dataset ids or cross-user
+dataset access, return immediately. Errors discovered by the worker after enqueue
+are recorded on the job as safe failure metadata.
 
 ## Current Limitation
 
@@ -118,6 +86,7 @@ Phase 5 adds a frontend review surface that calls these routes directly for the
 signed-in user. Phase 6 adds watchlist actions on top of scored records. Phase 7
 adds portfolio/status tracking for scored records or promoted watchlist items.
 Phase 8 adds internal job plumbing around scoring. Phase 9 adds in-app alerts
-for scoring job completion/failure outcomes. Future phases may add
+for scoring job completion/failure outcomes. Phase 10 adds a dedicated worker
+execution path for scoring jobs. Future phases may add
 stronger county adapters, enrichment, deduplication, geographic data, historical
 redemption signals, external alert delivery, and external automation.

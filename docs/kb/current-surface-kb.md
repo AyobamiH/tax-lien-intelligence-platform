@@ -19,7 +19,8 @@ It shows:
 - authenticated dataset list;
 - dataset detail route using `#/datasets/:datasetId`;
 - scoring action for a selected dataset;
-- scoring success message with internal job id/status;
+- scoring job queued/running/completed/failed status while the worker processes
+  the selected dataset;
 - scored-results table;
 - row-level detail surface with flags and reasoning;
 - watchlist keep/remove actions for scored records;
@@ -88,6 +89,7 @@ Real workflows now present:
 - dataset list/detail review for authenticated users;
 - score triggering for a selected dataset;
 - visible scoring job completion state after a scoring run;
+- background scoring status polling after a scoring run is requested;
 - scored-record table;
 - record-level flags and reasoning review.
 - add/remove watchlist actions;
@@ -127,6 +129,7 @@ The current API cannot:
 - provide a standalone parcel/lien row API;
 - persist user-owned parcel records outside scored-record outputs;
 - deliver alerts outside the app;
+- provide realtime worker status;
 - manage collaboration or auction execution.
 
 ## Where The Current Surface Could Mislead Contributors
@@ -134,9 +137,9 @@ The current API cannot:
 The review, watchlist, and portfolio surfaces could make future contributors
 think upload and automation workflows also exist. They do not.
 
-The presence of browser auth and score review could make contributors think the
-whole V1 app is implemented. It is not: browser upload and automation are still
-future work.
+The presence of browser auth, score review, and worker-backed scoring could make
+contributors think the whole V1 app is implemented. It is not: browser upload
+and product automation are still future work.
 
 The presence of a dataset model could make contributors think full parcel
 ingestion exists. It does not.

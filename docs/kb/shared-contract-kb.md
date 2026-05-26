@@ -36,7 +36,8 @@ Current shared types in `packages/types`:
 - `InternalJobError`;
 - `InternalJobResponse`;
 - `JobDetailResponse`;
-- `DatasetScoreRunResponse`;
+- `DatasetScoreJobResponse`;
+- `DatasetScoreRunResponse` for internal execution results;
 - `DatasetScoresResponse`.
 - `AlertType`;
 - `AlertSeverity`;
@@ -196,13 +197,17 @@ Current score contracts include:
 Scores should be server-derived. The client should not submit trusted score
 values.
 
-Current score routes return `ScoredRecordResponse` objects through:
+Current score routes return:
 
-- `DatasetScoreRunResponse`;
-- `DatasetScoresResponse`.
+- `DatasetScoreJobResponse` from `POST /datasets/:datasetId/score`;
+- `DatasetScoresResponse` from `GET /datasets/:datasetId/scores`.
 
-`DatasetScoreRunResponse` also includes an `InternalJobResponse` because scoring
-now runs through the internal job lifecycle.
+`POST /datasets/:datasetId/score` returns queued job metadata. The frontend
+uses `GET /jobs/:jobId` and then `GET /datasets/:datasetId/scores` after the
+worker completes scoring.
+
+`DatasetScoreRunResponse` remains the internal execution result shape used by
+the scoring service and tests, not the public score-trigger response.
 
 The Phase 5 frontend review surface imports these shared response types and
 does not define a separate browser-only score contract.
@@ -233,6 +238,9 @@ Current target entity type:
 
 Jobs are user-owned operational metadata. The frontend must not submit `userId`
 or raw job payloads, and job responses must not expose raw internals.
+
+Phase 10 adds worker claiming for queued jobs. This changes execution timing,
+but not the public job response contract.
 
 ## Alert Object Contract
 

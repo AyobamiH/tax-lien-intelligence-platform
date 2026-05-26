@@ -7,7 +7,7 @@ import type {
   AddWatchlistItemResponse,
   DatasetDetailResponse,
   DatasetListResponse,
-  DatasetScoreRunResponse,
+  DatasetScoreJobResponse,
   DatasetScoresResponse,
   DeleteWatchlistItemResponse,
   AddPortfolioItemResponse,
@@ -78,8 +78,8 @@ export async function listDatasetScores(token: string, datasetId: string): Promi
   });
 }
 
-export async function scoreDataset(token: string, datasetId: string): Promise<DatasetScoreRunResponse> {
-  return requestJson<DatasetScoreRunResponse>(`/datasets/${encodeURIComponent(datasetId)}/score`, {
+export async function scoreDataset(token: string, datasetId: string): Promise<DatasetScoreJobResponse> {
+  return requestJson<DatasetScoreJobResponse>(`/datasets/${encodeURIComponent(datasetId)}/score`, {
     method: "POST",
     token,
   });

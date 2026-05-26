@@ -19,9 +19,10 @@ The product is not yet fully implemented. The current repo now includes the
 baseline, auth foundation, dataset upload foundation, first-pass scoring
 foundation, frontend scored-results review surface, watchlist decision workflow,
 portfolio/status tracking foundation, automation-ready internal job plumbing,
-and in-app alerts/monitoring foundation. The product identity is visible through
-the README, package description, architecture docs, and frontend
-review/watchlist/portfolio surfaces.
+in-app alerts/monitoring foundation, and a background worker/scheduler
+groundwork layer. The product identity is visible through the README, package
+description, architecture docs, and frontend review/watchlist/portfolio
+surfaces.
 
 Current evidence:
 
@@ -33,8 +34,8 @@ Current evidence:
 - the watchlist surface lets signed-in users keep and compare scored records;
 - the portfolio surface lets signed-in users track active decisions with
   simple status;
-- internal job records make scoring execution explicit without adding external
-  automation;
+- internal job records and the worker path make scoring execution explicit
+  without adding external automation;
 - in-app alerts make scoring job outcomes visible without adding delivery
   automation;
 - architecture docs say every future user-owned document must include `userId`.
@@ -59,9 +60,9 @@ The intended product loop is:
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
-shortlisting, portfolio/status tracking, internal job plumbing, and in-app
-alerts exist. Browser CSV upload, external alert delivery, and richer automation
-remain future direction.
+shortlisting, portfolio/status tracking, internal job plumbing, in-app alerts,
+and worker-driven scoring execution exist. Browser CSV upload, external alert
+delivery, and richer automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -146,7 +147,8 @@ Current implementation:
 - frontend review of scored results exists;
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
-- scoring execution is recorded through internal jobs;
+- scoring execution is recorded through internal jobs and processed by the
+  worker path;
 - scoring job outcomes create in-app alerts;
 - no standalone parcel/lien schema;
 - no final investment decision, auction, or accounting workflow.

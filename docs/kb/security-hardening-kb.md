@@ -71,6 +71,9 @@ Current repo protections:
 - tenant-owned internal job persistence;
 - authenticated job detail route;
 - job ownership enforcement;
+- worker-side queued job claiming for supported job types;
+- worker-driven dataset scoring execution;
+- minimal scheduler module for local job polling;
 - safe job summary and error metadata;
 - cross-user job rejection tests;
 - tenant-owned alert records;
@@ -97,7 +100,7 @@ Not yet implemented:
 - audit logging;
 - production CORS restrictions;
 - final browser session architecture beyond the current session-scoped JWT;
-- external worker authorization model;
+- deployed worker authorization and credential isolation model;
 - external alert delivery security;
 - secret rotation guidance.
 
@@ -107,8 +110,8 @@ Deferred because the corresponding systems do not exist yet:
 
 - upload malware/content controls;
 - per-user rate limits;
-- external worker/job security;
-- external job execution hardening;
+- external worker fleet/job security;
+- external queue execution hardening;
 - admin security;
 - richer scoring audit trail;
 - external alert delivery;
@@ -437,11 +440,13 @@ watchlist item before tracking. Portfolio reads, status updates, and deletes are
 scoped to the authenticated user. Future portfolio expansion such as notes,
 alerts, or collaboration must add validation and cross-user tests before release.
 
-### Automation Jobs
+### Automation Jobs And Workers
 
-Internal jobs now include tenant ownership, lifecycle status, and safe
-summary/error metadata for dataset scoring. Future external jobs must add
-idempotency, rate limits, worker authorization, and safe logs.
+Internal jobs now include tenant ownership, lifecycle status, safe
+summary/error metadata, worker-side claiming, and worker-driven dataset scoring.
+The current worker is a trusted local backend process, not a deployed external
+worker fleet. Future external jobs must add idempotency, rate limits, worker
+authorization, credential isolation, and safe logs.
 
 ### Alerts And Notifications
 
@@ -499,7 +504,7 @@ Security drift risks:
 - keeping permissive CORS into production;
 - logging uploaded data or tokens;
 - allowing frontend-only access control;
-- adding external automation before external job security exists;
+- adding external automation before external job and worker security exists;
 - turning alerts into raw diagnostic payloads;
 - treating public source data as non-sensitive after user enrichment;
 - skipping cross-user tests.
@@ -515,6 +520,7 @@ Update this file when:
 - rate limiting is added;
 - logging/audit patterns are introduced;
 - background jobs are introduced;
+- worker execution or scheduler behavior changes;
 - security posture changes materially.
 
 When updating, keep these labels clear:

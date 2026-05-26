@@ -114,5 +114,5 @@ Possible alert errors:
 ## Current Limitations
 
 Alerts are currently in-app records only. There is no email delivery, SMS
-delivery, realtime websocket feed, external scheduler, background worker, or
+delivery, realtime websocket feed, external scheduler, delivery worker, or
 admin monitoring console.

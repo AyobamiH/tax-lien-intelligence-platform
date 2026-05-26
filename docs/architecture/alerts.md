@@ -1,8 +1,9 @@
 # Alerts And Monitoring Architecture
 
 Phase 9 adds the first user-visible monitoring layer on top of internal jobs.
-It does not add email delivery, SMS, realtime websockets, external schedulers,
-or background workers.
+Phase 10 preserves those alerts while moving scoring execution into the worker
+path. Alerts still do not add email delivery, SMS, realtime websockets,
+external schedulers, external delivery workers, or alert automation.
 
 ## Purpose
 
@@ -39,7 +40,7 @@ Not implemented:
 - email/SMS delivery;
 - push notifications;
 - realtime websocket subscriptions;
-- external background worker delivery;
+- external delivery workers;
 - scheduled alert generation;
 - admin observability dashboard;
 - alert rules engine.

@@ -316,6 +316,36 @@ Phase 9 does not include:
 - collaboration;
 - live auction execution.
 
+## Phase 10: Background Worker And Scheduler Groundwork
+
+Current status: implemented as execution groundwork, not full automation.
+
+Phase 10 includes:
+
+- dedicated worker entrypoint for the API package;
+- worker processor for queued internal jobs;
+- queued job claiming with status transition protection;
+- worker-driven execution for `dataset_scoring`;
+- safe success/failure recording through the existing internal job service;
+- existing scoring job alerts preserved;
+- minimal internal scheduler module for local timed task registration;
+- frontend job-status polling after scoring is requested;
+- tests for worker execution, failure handling, stale job targets, job claiming,
+  and scheduler behavior;
+- docs.
+
+Phase 10 does not include:
+
+- external scheduler or cron provider;
+- third-party queue infrastructure;
+- worker fleet coordination;
+- durable retry policy;
+- email/SMS/realtime delivery;
+- enrichment adapters;
+- ML/AI;
+- collaboration;
+- live auction execution.
+
 ## Later Phases
 
 Later phases may include:
@@ -326,6 +356,7 @@ Later phases may include:
 - enrichment;
 - external alert delivery;
 - scheduled ingestion;
+- external worker deployment hardening;
 - team workflows;
 - audit logs.
 
@@ -345,7 +376,8 @@ Dependency order matters:
 7. portfolio;
 8. internal job plumbing;
 9. alerts and monitoring foundation;
-10. automation.
+10. background worker and scheduler groundwork;
+11. automation.
 
 Do not invert this order without an explicit architecture decision.
 
@@ -378,6 +410,7 @@ Before heavy automation:
 - portfolio/status tracking must exist;
 - internal job boundaries must exist;
 - in-app visibility for important job outcomes must exist;
+- worker execution boundary must exist;
 - job ownership and logging patterns must be designed;
 - rate limits and failure handling must exist.
 

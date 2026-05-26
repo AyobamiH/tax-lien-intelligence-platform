@@ -1,16 +1,18 @@
 # Internal Jobs API
 
-Phase 8 introduces automation-ready internal job records. Jobs make repeatable
-or long-running operations explicit without adding external schedulers or
-background-worker infrastructure yet.
+Phase 8 introduced automation-ready internal job records. Phase 10 adds the
+first dedicated worker execution path. Jobs make repeatable or long-running
+operations explicit without adding external schedulers, third-party queues, or
+full automation.
 
 Current job usage:
 
-- dataset scoring creates and executes a `dataset_scoring` job in-process.
+- dataset scoring creates a queued `dataset_scoring` job.
+- the background worker claims and executes queued scoring jobs.
 - completed or failed scoring jobs now create safe in-app alerts.
 
-Automation itself is not implemented. Jobs are the foundation future automation
-will plug into.
+Automation itself is not implemented. Jobs and the worker foundation are the
+execution boundary future automation will plug into.
 
 ## Security Model
 
@@ -30,9 +32,8 @@ Supported statuses:
 - `completed`
 - `failed`
 
-The first implementation executes jobs synchronously in-process, so a successful
-scoring request normally returns a completed job. The status model exists so
-future background workers can use the same record shape.
+Scoring requests now return queued job metadata. The worker moves jobs through
+`running` into `completed` or `failed`.
 
 ## Job Types
 
@@ -104,7 +105,7 @@ fail, such as `score_no_source_rows`.
 
 ## Current Limitation
 
-There is no external queue, cron scheduler, worker fleet, retry policy, alert
+There is no external queue, cron provider, worker fleet, retry policy, alert
 delivery channel, or automation trigger yet. The job record is persisted and
-lifecycle-aware, but the first job-backed action still executes inside the
-request lifecycle.
+lifecycle-aware, and `dataset_scoring` now executes through the dedicated worker
+path.

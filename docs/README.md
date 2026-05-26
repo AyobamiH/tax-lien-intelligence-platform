@@ -26,6 +26,7 @@ before writing specs, prompts, or implementation plans.
 - [Portfolio Tracking Architecture](architecture/portfolio.md)
 - [Internal Job Architecture](architecture/internal-jobs.md)
 - [Alerts And Monitoring Architecture](architecture/alerts.md)
+- [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
 ## API

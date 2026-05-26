@@ -29,7 +29,7 @@ Current implementation:
 - watchlist-to-portfolio promotion actions;
 - dedicated portfolio status tracking page;
 - portfolio detail surface for flags, reasoning, and status;
-- scoring job completion visibility after a score run;
+- scoring job queued/running/completed/failed visibility after a score run;
 - alerts route with unread count and read/read-all actions;
 - alert entries for scoring completion/failure outcomes;
 - loading, empty, and error states;
@@ -63,7 +63,7 @@ Current and future page direction:
 - implemented: watchlist detail reasoning surface;
 - implemented: portfolio status tracking surface;
 - implemented: portfolio detail reasoning/status surface;
-- implemented: scoring job completion message;
+- implemented: scoring job status visibility and polling;
 - implemented: alerts monitoring surface;
 - future: browser dataset upload page;
 - future: account/settings page.
@@ -124,6 +124,12 @@ Implemented alerts:
 - expose unread/read state;
 - link back to related datasets when available;
 - avoid raw job payloads, stack traces, or internal logs.
+
+Implemented scoring execution visibility:
+
+- show queued, running, completed, or failed state for score jobs;
+- fetch scored records only after backend job completion;
+- keep worker execution state understandable without exposing raw internals.
 
 Future alerts expansion:
 

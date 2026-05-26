@@ -20,6 +20,13 @@ export interface ExecuteInternalJobInput<TResult> {
   summarize: (result: TResult) => InternalJobSummary;
 }
 
+export interface EnqueueInternalJobInput {
+  userId: string;
+  type: InternalJobType;
+  targetEntityType: InternalJobTargetType;
+  targetEntityId: string;
+}
+
 export interface ExecuteInternalJobResult<TResult> {
   job: InternalJobResponse;
   result: TResult;
@@ -34,14 +41,26 @@ export class InternalJobService {
     this.alertSink = alertSink;
   }
 
+  public async enqueue(input: EnqueueInternalJobInput): Promise<InternalJobResponse> {
+    const job = await this.jobStore.createJob({
+      ...input,
+      queuedAt: new Date(),
+    });
+
+    return toInternalJobResponse(job);
+  }
+
+  public async claimNextJob(): Promise<StoredInternalJob | null> {
+    return this.jobStore.claimNextQueuedJob(new Date());
+  }
+
   public async execute<TResult>(input: ExecuteInternalJobInput<TResult>): Promise<ExecuteInternalJobResult<TResult>> {
-    const queuedAt = new Date();
     const queuedJob = await this.jobStore.createJob({
       userId: input.userId,
       type: input.type,
       targetEntityType: input.targetEntityType,
       targetEntityId: input.targetEntityId,
-      queuedAt,
+      queuedAt: new Date(),
     });
 
     const runningJob = await this.jobStore.markRunning(queuedJob.id, input.userId, new Date());
@@ -49,31 +68,50 @@ export class InternalJobService {
       throw new ApiError(500, "job_lifecycle_failed", "Internal job could not be started.");
     }
 
+    return this.runClaimedJob({
+      job: runningJob,
+      run: input.run,
+      summarize: input.summarize,
+    });
+  }
+
+  public async runClaimedJob<TResult>(input: {
+    job: StoredInternalJob;
+    run: () => Promise<TResult>;
+    summarize: (result: TResult) => InternalJobSummary;
+  }): Promise<ExecuteInternalJobResult<TResult>> {
     try {
       const result = await input.run();
-      const completedJob = await this.jobStore.markCompleted(
-        queuedJob.id,
-        input.userId,
-        new Date(),
-        input.summarize(result),
-      );
-      if (!completedJob) {
-        throw new ApiError(500, "job_lifecycle_failed", "Internal job could not be completed.");
-      }
-
-      await this.recordCompletedAlert(completedJob);
+      const completedJob = await this.completeJob(input.job, input.summarize(result));
 
       return {
-        job: toInternalJobResponse(completedJob),
+        job: completedJob,
         result,
       };
     } catch (error: unknown) {
-      const failedJob = await this.jobStore.markFailed(queuedJob.id, input.userId, new Date(), safeJobError(error));
-      if (failedJob) {
-        await this.recordFailedAlert(failedJob);
-      }
+      await this.failJob(input.job, error);
       throw error;
     }
+  }
+
+  public async completeJob(job: StoredInternalJob, summary: InternalJobSummary): Promise<InternalJobResponse> {
+    const completedJob = await this.jobStore.markCompleted(job.id, job.userId, new Date(), summary);
+    if (!completedJob) {
+      throw new ApiError(500, "job_lifecycle_failed", "Internal job could not be completed.");
+    }
+
+    await this.recordCompletedAlert(completedJob);
+    return toInternalJobResponse(completedJob);
+  }
+
+  public async failJob(job: StoredInternalJob, error: unknown): Promise<InternalJobResponse> {
+    const failedJob = await this.jobStore.markFailed(job.id, job.userId, new Date(), safeJobError(error));
+    if (!failedJob) {
+      throw new ApiError(500, "job_lifecycle_failed", "Internal job could not be failed safely.");
+    }
+
+    await this.recordFailedAlert(failedJob);
+    return toInternalJobResponse(failedJob);
   }
 
   public async getJob(userId: string, jobId: string): Promise<JobDetailResponse> {

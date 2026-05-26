@@ -11,11 +11,13 @@ automation should support the core SaaS rather than become a separate product.
 Current implementation:
 
 - no automation;
-- no external background workers;
+- no external background worker fleet;
 - no AI;
 - no ingestion pipeline;
 - internal job plumbing exists;
-- dataset scoring runs through an in-process `dataset_scoring` job;
+- a dedicated worker entrypoint can claim and execute queued internal jobs;
+- minimal scheduler groundwork exists for local timed task registration;
+- dataset scoring runs through a worker-claimed `dataset_scoring` job;
 - first-pass deterministic scoring engine exists;
 - frontend review of scored records exists;
 - watchlist shortlisting exists;
@@ -25,8 +27,9 @@ Current implementation:
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
 scoring foundation, manual review surface, watchlist shortlist, portfolio
-status tracking, automation-ready internal job records, and in-app alerts.
-Automation is still intentionally absent.
+status tracking, automation-ready internal job records, in-app alerts, and a
+minimal worker/scheduler execution boundary. Product automation is still
+intentionally absent.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -72,7 +75,8 @@ Manual-first sequence:
 8. portfolio;
 9. internal job plumbing;
 10. in-app alert visibility;
-11. then automation.
+11. worker execution boundary;
+12. then automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -170,18 +174,21 @@ Now:
 - portfolio/status tracking.
 - internal job plumbing for scoring.
 - in-app alerts for scoring job outcomes.
+- worker-driven execution for queued scoring jobs.
+- minimal scheduler foundation for local task polling.
 
 Later:
 
 - scheduled ingestion;
 - enrichment;
 - external alert delivery;
+- external worker orchestration;
 - portfolio automation;
 - AI or ML assistance.
 
-Internal jobs are not automation by themselves. They are the execution boundary
-that later automation can use safely. In-app alerts are visibility records, not
-delivery automation.
+Internal jobs and the worker are not automation by themselves. They are the
+execution boundary that later automation can use safely. In-app alerts are
+visibility records, not delivery automation.
 
 ## Security Expectations
 
@@ -213,6 +220,8 @@ Update this file when:
 
 - background jobs are introduced;
 - job types are added;
+- worker execution changes;
+- scheduler behavior changes;
 - ingestion automation is added;
 - scoring changes substantially;
 - enrichment is added;

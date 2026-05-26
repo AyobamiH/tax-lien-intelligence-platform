@@ -85,9 +85,10 @@ mirror is not product truth.
 ## Current Surface
 
 What users can actually see or call today. Current callable API surface includes
-health, auth, dataset, and scoring endpoints. The browser surface includes
-login/register, dataset list/detail review, scoring trigger, scored table, and
-record reasoning detail.
+health, auth, dataset, scoring, internal job detail, alerts, watchlist, and
+portfolio endpoints. The browser surface includes login/register, dataset
+list/detail review, worker-backed scoring trigger/status, scored table, record
+reasoning detail, alerts, watchlist review, and portfolio tracking.
 
 ## Placeholder
 

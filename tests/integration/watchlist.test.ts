@@ -24,6 +24,7 @@ import type {
   StoredWatchlistItem,
   WatchlistStore,
 } from "../../apps/api/src/watchlist/watchlist-store.js";
+import { WorkerJobProcessor } from "../../apps/api/src/worker/worker-job-processor.js";
 import { InMemoryInternalJobStore } from "../support/in-memory-internal-job-store.js";
 
 const testJwtSecret = "test-watchlist-secret-that-is-long-enough-for-jwt";
@@ -217,7 +218,7 @@ class InMemoryWatchlistStore implements WatchlistStore {
   }
 }
 
-function createTestContext(): { app: ReturnType<typeof createApp> } {
+function createTestContext(): { app: ReturnType<typeof createApp>; workerProcessor: WorkerJobProcessor } {
   const userStore = new InMemoryUserStore();
   const datasetStore = new InMemoryDatasetStore();
   const scoredRecordStore = new InMemoryScoredRecordStore();
@@ -232,9 +233,11 @@ function createTestContext(): { app: ReturnType<typeof createApp> } {
   const internalJobService = new InternalJobService(internalJobStore);
   const scoringService = new ScoringService(datasetStore, scoredRecordStore, internalJobService);
   const watchlistService = new WatchlistService(watchlistStore, scoredRecordStore);
+  const workerProcessor = new WorkerJobProcessor(internalJobService, scoringService);
 
   return {
     app: createApp({ authService, datasetService, internalJobService, scoringService, watchlistService }),
+    workerProcessor,
   };
 }
 
@@ -250,7 +253,11 @@ async function registerUser(app: ReturnType<typeof createApp>, email: string): P
   };
 }
 
-async function createScoredRecord(app: ReturnType<typeof createApp>, token: string): Promise<string> {
+async function createScoredRecord(
+  app: ReturnType<typeof createApp>,
+  workerProcessor: WorkerJobProcessor,
+  token: string,
+): Promise<string> {
   const uploadResponse = await request(app)
     .post("/datasets")
     .set("Authorization", `Bearer ${token}`)
@@ -262,19 +269,25 @@ async function createScoredRecord(app: ReturnType<typeof createApp>, token: stri
     .expect(201);
 
   const datasetId = uploadResponse.body.dataset.id as string;
-  const scoreResponse = await request(app)
+  await request(app)
     .post(`/datasets/${datasetId}/score`)
+    .set("Authorization", `Bearer ${token}`)
+    .expect(202);
+  await workerProcessor.processNextJob();
+
+  const scoresResponse = await request(app)
+    .get(`/datasets/${datasetId}/scores`)
     .set("Authorization", `Bearer ${token}`)
     .expect(200);
 
-  return scoreResponse.body.scores[0].id as string;
+  return scoresResponse.body.scores[0].id as string;
 }
 
 describe("watchlist API", () => {
   it("adds a scored record to the authenticated user's watchlist", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
-    const scoredRecordId = await createScoredRecord(app, owner.token);
+    const scoredRecordId = await createScoredRecord(app, workerProcessor, owner.token);
 
     const response = await request(app)
       .post("/watchlist")
@@ -297,9 +310,9 @@ describe("watchlist API", () => {
   });
 
   it("handles duplicate adds idempotently without cluttering the watchlist", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
-    const scoredRecordId = await createScoredRecord(app, owner.token);
+    const scoredRecordId = await createScoredRecord(app, workerProcessor, owner.token);
 
     await request(app).post("/watchlist").set("Authorization", `Bearer ${owner.token}`).send({ scoredRecordId }).expect(201);
     const duplicate = await request(app)
@@ -314,11 +327,11 @@ describe("watchlist API", () => {
   });
 
   it("lists only the current user's watchlist items", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const other = await registerUser(app, "other@example.com");
-    const ownerScoreId = await createScoredRecord(app, owner.token);
-    const otherScoreId = await createScoredRecord(app, other.token);
+    const ownerScoreId = await createScoredRecord(app, workerProcessor, owner.token);
+    const otherScoreId = await createScoredRecord(app, workerProcessor, other.token);
 
     await request(app)
       .post("/watchlist")
@@ -338,9 +351,9 @@ describe("watchlist API", () => {
   });
 
   it("removes a watchlist item for the owner", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
-    const scoredRecordId = await createScoredRecord(app, owner.token);
+    const scoredRecordId = await createScoredRecord(app, workerProcessor, owner.token);
     const addResponse = await request(app)
       .post("/watchlist")
       .set("Authorization", `Bearer ${owner.token}`)
@@ -363,10 +376,10 @@ describe("watchlist API", () => {
   });
 
   it("rejects cross-user add and delete attempts", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const other = await registerUser(app, "other@example.com");
-    const ownerScoreId = await createScoredRecord(app, owner.token);
+    const ownerScoreId = await createScoredRecord(app, workerProcessor, owner.token);
     const addResponse = await request(app)
       .post("/watchlist")
       .set("Authorization", `Bearer ${owner.token}`)

@@ -2,6 +2,14 @@
 
 ## 2026-05-25
 
+- Implemented Phase 10 worker and scheduler foundation with a dedicated API
+  worker entrypoint, queued-job claiming, worker-driven dataset scoring,
+  minimal scheduler module, frontend job-status polling, and worker/scheduler
+  tests.
+- Added worker and scheduler architecture documentation and updated API/KB docs
+  to mark background execution groundwork as current while keeping external
+  schedulers, third-party queues, enrichment adapters, delivery channels, ML/AI,
+  collaboration, and auction execution as future work.
 - Implemented Phase 9 alerts and monitoring foundation with tenant-owned alert
   records, authenticated alert list/read/read-all endpoints, scoring job
   completion/failure alert creation, a frontend alerts surface with unread

@@ -113,6 +113,7 @@ const internalJobSchema = new Schema<InternalJobRecord>(
 
 internalJobSchema.index({ userId: 1, status: 1, queuedAt: -1 });
 internalJobSchema.index({ userId: 1, targetEntityType: 1, targetEntityId: 1, queuedAt: -1 });
+internalJobSchema.index({ status: 1, queuedAt: 1, createdAt: 1 });
 
 export const InternalJobModel: Model<InternalJobRecord> =
   mongoose.models.InternalJob ?? mongoose.model<InternalJobRecord>("InternalJob", internalJobSchema);

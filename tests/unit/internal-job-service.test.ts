@@ -4,6 +4,34 @@ import { InternalJobService } from "../../apps/api/src/jobs/internal-job-service
 import { InMemoryInternalJobStore } from "../support/in-memory-internal-job-store.js";
 
 describe("internal job service", () => {
+  it("enqueues and claims one queued job at a time", async () => {
+    const jobStore = new InMemoryInternalJobStore();
+    const service = new InternalJobService(jobStore);
+
+    const queued = await service.enqueue({
+      userId: "user-1",
+      type: "dataset_scoring",
+      targetEntityType: "dataset",
+      targetEntityId: "dataset-1",
+    });
+
+    expect(queued).toMatchObject({
+      status: "queued",
+      type: "dataset_scoring",
+      targetEntityId: "dataset-1",
+    });
+
+    const claimed = await service.claimNextJob();
+    const secondClaim = await service.claimNextJob();
+
+    expect(claimed).toMatchObject({
+      id: queued.id,
+      status: "running",
+      startedAt: expect.any(Date),
+    });
+    expect(secondClaim).toBeNull();
+  });
+
   it("persists queued, running, and completed lifecycle state", async () => {
     const jobStore = new InMemoryInternalJobStore();
     const service = new InternalJobService(jobStore);

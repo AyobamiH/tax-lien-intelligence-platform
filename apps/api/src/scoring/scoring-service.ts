@@ -1,8 +1,15 @@
 import mongoose from "mongoose";
 import { scoreLienCandidate } from "@tax-lien/scoring";
-import type { DatasetScoreRunResponse, DatasetScoresResponse, ScoredRecordResponse } from "@tax-lien/types";
+import type {
+  DatasetScoreJobResponse,
+  DatasetScoreRunResponse,
+  DatasetScoresResponse,
+  InternalJobSummary,
+  ScoredRecordResponse,
+} from "@tax-lien/types";
 import type { DatasetStore, StoredDatasetSourceRow } from "../datasets/dataset-store.js";
 import { ApiError } from "../errors/api-error.js";
+import type { StoredInternalJob } from "../jobs/internal-job-store.js";
 import type { InternalJobService } from "../jobs/internal-job-service.js";
 import { normalizeDatasetRow } from "./normalization.js";
 import type { CreateScoredRecordInput, ScoredRecordStore, StoredScoredRecord } from "./scored-record-store.js";
@@ -22,23 +29,19 @@ export class ScoringService {
     this.internalJobService = internalJobService;
   }
 
-  public async scoreDataset(datasetId: string, userId: string): Promise<DatasetScoreRunResponse> {
+  public async scoreDataset(datasetId: string, userId: string): Promise<DatasetScoreJobResponse> {
     const dataset = await this.getDatasetForScoring(datasetId, userId);
 
-    const execution = await this.internalJobService.execute({
+    const job = await this.internalJobService.enqueue({
       userId,
       type: "dataset_scoring",
       targetEntityType: "dataset",
       targetEntityId: dataset.id,
-      run: () => this.executeDatasetScoring(dataset.id, userId, dataset.sourceRows),
-      summarize: (result) => ({
-        scoredRecordCount: result.scoredRecordCount,
-      }),
     });
 
     return {
-      ...execution.result,
-      job: execution.job,
+      datasetId: dataset.id,
+      job,
     };
   }
 
@@ -49,6 +52,19 @@ export class ScoringService {
     return {
       datasetId: dataset.id,
       scores: scores.map(toScoredRecordResponse),
+    };
+  }
+
+  public async executeDatasetScoringJob(job: StoredInternalJob): Promise<InternalJobSummary> {
+    if (job.type !== "dataset_scoring" || job.targetEntityType !== "dataset") {
+      throw new ApiError(400, "job_unsupported_type", "Job type is not supported by the scoring worker.");
+    }
+
+    const dataset = await this.getDatasetForScoring(job.targetEntityId, job.userId);
+    const result = await this.executeDatasetScoring(dataset.id, job.userId, dataset.sourceRows);
+
+    return {
+      scoredRecordCount: result.scoredRecordCount,
     };
   }
 

@@ -31,6 +31,7 @@ import type {
   StoredWatchlistItem,
   WatchlistStore,
 } from "../../apps/api/src/watchlist/watchlist-store.js";
+import { WorkerJobProcessor } from "../../apps/api/src/worker/worker-job-processor.js";
 import type { PortfolioStatus } from "@tax-lien/types";
 import { InMemoryInternalJobStore } from "../support/in-memory-internal-job-store.js";
 
@@ -301,7 +302,7 @@ class InMemoryPortfolioStore implements PortfolioStore {
   }
 }
 
-function createTestContext(): { app: ReturnType<typeof createApp> } {
+function createTestContext(): { app: ReturnType<typeof createApp>; workerProcessor: WorkerJobProcessor } {
   const userStore = new InMemoryUserStore();
   const datasetStore = new InMemoryDatasetStore();
   const scoredRecordStore = new InMemoryScoredRecordStore();
@@ -318,9 +319,11 @@ function createTestContext(): { app: ReturnType<typeof createApp> } {
   const scoringService = new ScoringService(datasetStore, scoredRecordStore, internalJobService);
   const watchlistService = new WatchlistService(watchlistStore, scoredRecordStore);
   const portfolioService = new PortfolioService(portfolioStore, scoredRecordStore, watchlistStore);
+  const workerProcessor = new WorkerJobProcessor(internalJobService, scoringService);
 
   return {
     app: createApp({ authService, datasetService, internalJobService, scoringService, watchlistService, portfolioService }),
+    workerProcessor,
   };
 }
 
@@ -336,7 +339,11 @@ async function registerUser(app: ReturnType<typeof createApp>, email: string): P
   };
 }
 
-async function createScoredRecord(app: ReturnType<typeof createApp>, token: string): Promise<string> {
+async function createScoredRecord(
+  app: ReturnType<typeof createApp>,
+  workerProcessor: WorkerJobProcessor,
+  token: string,
+): Promise<string> {
   const uploadResponse = await request(app)
     .post("/datasets")
     .set("Authorization", `Bearer ${token}`)
@@ -348,12 +355,18 @@ async function createScoredRecord(app: ReturnType<typeof createApp>, token: stri
     .expect(201);
 
   const datasetId = uploadResponse.body.dataset.id as string;
-  const scoreResponse = await request(app)
+  await request(app)
     .post(`/datasets/${datasetId}/score`)
+    .set("Authorization", `Bearer ${token}`)
+    .expect(202);
+  await workerProcessor.processNextJob();
+
+  const scoresResponse = await request(app)
+    .get(`/datasets/${datasetId}/scores`)
     .set("Authorization", `Bearer ${token}`)
     .expect(200);
 
-  return scoreResponse.body.scores[0].id as string;
+  return scoresResponse.body.scores[0].id as string;
 }
 
 async function addWatchlistItem(app: ReturnType<typeof createApp>, token: string, scoredRecordId: string): Promise<string> {
@@ -368,9 +381,9 @@ async function addWatchlistItem(app: ReturnType<typeof createApp>, token: string
 
 describe("portfolio API", () => {
   it("adds a watchlist item to portfolio tracking", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
-    const scoredRecordId = await createScoredRecord(app, owner.token);
+    const scoredRecordId = await createScoredRecord(app, workerProcessor, owner.token);
     const watchlistItemId = await addWatchlistItem(app, owner.token, scoredRecordId);
 
     const response = await request(app)
@@ -396,9 +409,9 @@ describe("portfolio API", () => {
   });
 
   it("adds a scored record directly and handles duplicates idempotently", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
-    const scoredRecordId = await createScoredRecord(app, owner.token);
+    const scoredRecordId = await createScoredRecord(app, workerProcessor, owner.token);
 
     await request(app)
       .post("/portfolio")
@@ -418,11 +431,11 @@ describe("portfolio API", () => {
   });
 
   it("lists and returns portfolio detail only for the current user", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const other = await registerUser(app, "other@example.com");
-    const ownerScoreId = await createScoredRecord(app, owner.token);
-    const otherScoreId = await createScoredRecord(app, other.token);
+    const ownerScoreId = await createScoredRecord(app, workerProcessor, owner.token);
+    const otherScoreId = await createScoredRecord(app, workerProcessor, other.token);
 
     const addResponse = await request(app)
       .post("/portfolio")
@@ -447,9 +460,9 @@ describe("portfolio API", () => {
   });
 
   it("updates portfolio status for the owner", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
-    const scoredRecordId = await createScoredRecord(app, owner.token);
+    const scoredRecordId = await createScoredRecord(app, workerProcessor, owner.token);
     const addResponse = await request(app)
       .post("/portfolio")
       .set("Authorization", `Bearer ${owner.token}`)
@@ -467,9 +480,9 @@ describe("portfolio API", () => {
   });
 
   it("removes a portfolio item for the owner", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
-    const scoredRecordId = await createScoredRecord(app, owner.token);
+    const scoredRecordId = await createScoredRecord(app, workerProcessor, owner.token);
     const addResponse = await request(app)
       .post("/portfolio")
       .set("Authorization", `Bearer ${owner.token}`)
@@ -496,10 +509,10 @@ describe("portfolio API", () => {
   });
 
   it("rejects cross-user portfolio access and source references", async () => {
-    const { app } = createTestContext();
+    const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
     const other = await registerUser(app, "other@example.com");
-    const ownerScoreId = await createScoredRecord(app, owner.token);
+    const ownerScoreId = await createScoredRecord(app, workerProcessor, owner.token);
     const ownerWatchlistItemId = await addWatchlistItem(app, owner.token, ownerScoreId);
     const addResponse = await request(app)
       .post("/portfolio")

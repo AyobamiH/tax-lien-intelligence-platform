@@ -142,6 +142,11 @@ export interface DatasetScoreRunResponse {
   scores: ScoredRecordResponse[];
 }
 
+export interface DatasetScoreJobResponse {
+  datasetId: string;
+  job: InternalJobResponse;
+}
+
 export interface DatasetScoresResponse {
   datasetId: string;
   scores: ScoredRecordResponse[];

@@ -27,7 +27,29 @@ export class InMemoryInternalJobStore implements InternalJobStore {
     return job;
   }
 
+  public async claimNextQueuedJob(startedAt: Date): Promise<StoredInternalJob | null> {
+    const nextJob = [...this.jobsById.values()]
+      .filter((job) => job.status === "queued")
+      .sort((left, right) => left.queuedAt.getTime() - right.queuedAt.getTime())[0];
+
+    if (!nextJob) {
+      return null;
+    }
+
+    return this.updateJob(nextJob.id, nextJob.userId, "running", {
+      startedAt,
+      completedAt: undefined,
+      failedAt: undefined,
+      error: undefined,
+    });
+  }
+
   public async markRunning(jobId: string, userId: string, startedAt: Date): Promise<StoredInternalJob | null> {
+    const current = await this.findJobByIdForUser(jobId, userId);
+    if (!current || current.status !== "queued") {
+      return null;
+    }
+
     return this.updateJob(jobId, userId, "running", {
       startedAt,
       completedAt: undefined,

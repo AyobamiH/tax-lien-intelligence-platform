@@ -34,8 +34,10 @@ Current implementation:
 - internal job model;
 - deterministic scoring package integration;
 - authenticated score run and score retrieval routes;
-- score runs routed through internal job execution;
+- score runs routed through queued internal jobs and the worker execution path;
 - authenticated job detail route;
+- dedicated worker entrypoint;
+- minimal scheduler module;
 - alert model;
 - authenticated alert list/read/read-all routes;
 - scoring job completion/failure alert creation;
@@ -127,15 +129,16 @@ logic directly in route handlers.
 
 The scoring package is deterministic and independently tested. The API persists
 score outputs with reasoning and flags in tenant-owned scored records. Scoring
-runs now execute through a persisted internal `dataset_scoring` job.
+runs now execute through a persisted internal `dataset_scoring` job that is
+claimed and processed by the worker.
 
 Current scoring API:
 
 - `POST /datasets/:datasetId/score`;
 - `GET /datasets/:datasetId/scores`.
 
-The scoring trigger remains synchronous for the current UX, but returns job
-metadata and records lifecycle state.
+The scoring trigger now returns queued job metadata. The frontend polls job
+state and fetches scores after the worker completes the job.
 
 Current limitation:
 
@@ -276,7 +279,7 @@ Do not expose:
 
 ## Jobs And Workers Direction
 
-Internal job plumbing exists today. It is not external automation.
+Internal job and worker plumbing exists today. It is not external automation.
 
 Current job implementation:
 
@@ -285,7 +288,9 @@ Current job implementation:
 - `dataset` target entity type;
 - queued/running/completed/failed lifecycle;
 - authenticated `GET /jobs/:jobId`;
-- in-process execution for dataset scoring;
+- worker-side queued job claiming;
+- dedicated worker entrypoint for dataset scoring execution;
+- minimal scheduler module used for local job polling;
 - safe summary and error metadata.
 
 Future automation may need background processing for large files, enrichment, or
@@ -318,7 +323,8 @@ Backend implementation order should stay disciplined:
 7. portfolio APIs and status surface: implemented in Phase 7;
 8. automation-ready internal job plumbing: implemented in Phase 8;
 9. alerts and monitoring foundation: implemented in Phase 9;
-10. later external automation.
+10. background worker and scheduler groundwork: implemented in Phase 10;
+11. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -326,7 +332,7 @@ Do not introduce automation before the manual workflow is correct.
 
 Avoid:
 
-- generic distributed job systems before in-process job boundaries need them;
+- generic distributed job systems before the current worker boundary needs them;
 - complex roles before single-user tenancy is secure;
 - admin APIs before audit/security controls;
 - AI workflows before deterministic scoring;

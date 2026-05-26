@@ -84,6 +84,9 @@ Implemented today:
 - dataset scoring routed through a persisted `dataset_scoring` job;
 - authenticated job detail endpoint at `GET /jobs/:jobId`;
 - queued/running/completed/failed job lifecycle;
+- dedicated worker entrypoint for queued internal jobs;
+- worker-side job claiming and dataset scoring execution;
+- minimal internal scheduler module for local timed task registration;
 - safe job summaries and error metadata;
 - alert creation from completed/failed dataset scoring jobs;
 - authenticated alert endpoints at `GET /alerts`,
@@ -113,7 +116,7 @@ Implemented today:
 - watchlist-to-portfolio promotion actions;
 - dedicated portfolio status tracking page;
 - portfolio detail surface with flags, reasoning, and status controls;
-- frontend score-run success message with completed job id/status;
+- frontend score job status polling after a scoring trigger;
 - frontend alerts route with unread count and read/read-all actions;
 - structured JSON 404 for unknown API routes;
 - environment parsing with `zod`;
@@ -145,7 +148,7 @@ Not implemented:
 - production deployment config.
 - email/SMS alert delivery;
 - realtime alert delivery;
-- external schedulers or background workers.
+- external schedulers, worker fleets, or third-party queues.
 
 ## Workflow Discipline
 
@@ -192,6 +195,10 @@ Current tests cover:
 - scoring package behavior;
 - scoring API ownership boundaries;
 - internal job lifecycle success/failure behavior;
+- queued job claiming behavior;
+- worker-driven scoring success/failure behavior;
+- stale job target failure handling;
+- scheduler task registration, due execution, and failure behavior;
 - cross-user job detail rejection;
 - alert retrieval/read/read-all behavior;
 - cross-user alert acknowledgement rejection;
@@ -242,8 +249,9 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 
 Security cannot be considered complete until browser upload, rate limits, and
 additional cross-user resource tests for later resource types exist. The current
-job layer is in-process plumbing, and the current alert layer is in-app
-visibility only, not hardened external automation or delivery.
+worker layer is a local background execution boundary, not hardened external
+automation, distributed queueing, or delivery infrastructure. The current alert
+layer is in-app visibility only.
 
 ## Drift Risks
 
@@ -257,7 +265,7 @@ Repo drift risks:
 - letting placeholders harden into architecture accidentally.
 - duplicating scoring logic outside `packages/scoring`;
 - describing first-pass scoring as final underwriting.
-- describing job plumbing as full automation.
+- describing worker plumbing as full automation.
 - describing in-app alerts as external notification delivery.
 
 ## Update Rules
