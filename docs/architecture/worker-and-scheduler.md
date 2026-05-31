@@ -7,8 +7,8 @@ It moves dataset scoring from request-time execution to a worker-claimed job
 path while keeping automation deliberately narrow.
 
 This is groundwork. It is not an external automation product, distributed queue,
-cron platform, external enrichment system, email/SMS delivery system, ML system,
-collaboration workflow, or auction execution layer.
+cron platform, email/SMS delivery system, ML system, collaboration workflow, or
+auction execution layer.
 
 ## Current Implementation
 
@@ -21,7 +21,7 @@ Implemented:
 - `dataset_scoring` execution in the worker path;
 - safe completion/failure recording through the internal job service;
 - existing scoring completion/failure alerts preserved;
-- Phase 11 enrichment runs inside the scoring job before score generation;
+- Phase 11/12 enrichment runs inside the scoring job before score generation;
 - frontend score status polling after the scoring trigger returns a queued job;
 - unit tests for job claiming and scheduler behavior;
 - integration tests for worker-driven scoring success, failure, and stale
@@ -34,7 +34,8 @@ Not implemented:
 - durable retry policy;
 - worker fleet coordination;
 - email/SMS/realtime delivery;
-- external enrichment providers;
+- additional external enrichment providers beyond the opt-in Census Geocoder
+  adapter;
 - ML/AI;
 - auction execution.
 

@@ -12,6 +12,11 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32).optional(),
   WORKER_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
   SCHEDULER_TICK_INTERVAL_MS: z.coerce.number().int().positive().default(60000),
+  CENSUS_GEOCODER_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
+  CENSUS_GEOCODER_BASE_URL: z.string().url().default("https://geocoding.geo.census.gov"),
+  CENSUS_GEOCODER_BENCHMARK: z.string().min(1).max(80).default("Public_AR_Current"),
+  CENSUS_GEOCODER_TIMEOUT_MS: z.coerce.number().int().positive().max(10000).default(3000),
+  CENSUS_GEOCODER_MAX_ROWS_PER_JOB: z.coerce.number().int().min(0).max(500).default(25),
 });
 
 const developmentJwtSecret = "development-only-change-before-production";
@@ -20,6 +25,10 @@ const parsedEnv = envSchema.parse(process.env);
 
 if (parsedEnv.NODE_ENV === "production" && !parsedEnv.JWT_SECRET) {
   throw new Error("JWT_SECRET is required in production.");
+}
+
+if (parsedEnv.CENSUS_GEOCODER_ENABLED && !parsedEnv.CENSUS_GEOCODER_BASE_URL.startsWith("https://")) {
+  throw new Error("CENSUS_GEOCODER_BASE_URL must use https when Census geocoding is enabled.");
 }
 
 export interface ApiConfig {
@@ -31,6 +40,15 @@ export interface ApiConfig {
   jwtExpiresIn: "1h";
   workerPollIntervalMs: number;
   schedulerTickIntervalMs: number;
+  externalEnrichment: {
+    censusGeocoder: {
+      enabled: boolean;
+      baseUrl: string;
+      benchmark: string;
+      timeoutMs: number;
+      maxRowsPerJob: number;
+    };
+  };
 }
 
 export const apiConfig: ApiConfig = {
@@ -42,4 +60,13 @@ export const apiConfig: ApiConfig = {
   jwtExpiresIn: "1h",
   workerPollIntervalMs: parsedEnv.WORKER_POLL_INTERVAL_MS,
   schedulerTickIntervalMs: parsedEnv.SCHEDULER_TICK_INTERVAL_MS,
+  externalEnrichment: {
+    censusGeocoder: {
+      enabled: parsedEnv.CENSUS_GEOCODER_ENABLED,
+      baseUrl: parsedEnv.CENSUS_GEOCODER_BASE_URL,
+      benchmark: parsedEnv.CENSUS_GEOCODER_BENCHMARK,
+      timeoutMs: parsedEnv.CENSUS_GEOCODER_TIMEOUT_MS,
+      maxRowsPerJob: parsedEnv.CENSUS_GEOCODER_MAX_ROWS_PER_JOB,
+    },
+  },
 };

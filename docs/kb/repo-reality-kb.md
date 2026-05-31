@@ -81,6 +81,8 @@ Implemented today:
 - dataset row normalization for common parcel/lien CSV headers;
 - enrichment service and adapter boundary in `apps/api/src/enrichment`;
 - `source_field_inference` adapter for uploaded-row enrichment;
+- `census_geocoder` external adapter for opt-in U.S. Census Geocoder address
+  normalization/location context;
 - persisted enrichment metadata on scored records;
 - authenticated scoring endpoints at `POST /datasets/:datasetId/score` and
   `GET /datasets/:datasetId/scores`;
@@ -142,7 +144,7 @@ Placeholders today:
 - `scripts/ingestion` has only a README.
 - The frontend has no dataset upload UI yet even though dataset APIs exist.
 - Full county-specific parcel/lien normalization does not exist yet.
-- External enrichment providers do not exist yet.
+- Broad external enrichment provider coverage does not exist yet.
 
 ## Current Limitations
 
@@ -222,7 +224,8 @@ Tests do not yet cover:
 - cross-user resource isolation for future parcel records;
 - final underwriting model;
 - security boundaries;
-- external enrichment provider behavior.
+- external enrichment provider behavior beyond the current Census Geocoder
+  adapter.
 
 ## What Must Not Be Assumed Yet
 

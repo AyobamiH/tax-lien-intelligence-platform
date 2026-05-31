@@ -178,8 +178,9 @@ Security/trust focus:
 Current limitation:
 
 - the scoring model is rule-based and conservative, not final underwriting;
-- internal source-row enrichment now exists, but no external enrichment or
-  county-specific adapter exists yet.
+- internal source-row enrichment and one opt-in external Census Geocoder adapter
+  now exist, but no county-specific adapter or final underwriting model exists
+  yet.
 
 ## Phase 5: Scored Results Frontend Review Surface
 
@@ -369,6 +370,36 @@ Phase 11 does not include:
 
 - third-party geocoding;
 - external valuation providers;
+- county live integrations;
+- ML/AI enrichment;
+- scheduled enrichment passes;
+- collaboration;
+- auction execution.
+
+## Phase 12: First External Enrichment Integration
+
+Current status: implemented as one controlled external enrichment path, not
+broad provider coverage.
+
+Phase 12 includes:
+
+- async-capable enrichment adapter boundary;
+- `census_geocoder` adapter for the U.S. Census Geocoder;
+- opt-in environment config for Census geocoding;
+- HTTPS provider config validation;
+- timeout and per-job row limits;
+- safe external result persistence on scored-record enrichment metadata;
+- worker scoring path runs external enrichment inside the existing
+  `dataset_scoring` execution boundary;
+- frontend detail visibility for normalized external address/location context;
+- tests for matched, no-match, timeout, skipped, and worker-persisted external
+  enrichment behavior;
+- docs.
+
+Phase 12 does not include:
+
+- multiple provider integrations;
+- paid geocoding or valuation providers;
 - county live integrations;
 - ML/AI enrichment;
 - scheduled enrichment passes;

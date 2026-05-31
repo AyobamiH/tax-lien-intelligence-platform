@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import type { EnrichmentAdapter } from "../../apps/api/src/enrichment/enrichment-service.js";
-import { EnrichmentService } from "../../apps/api/src/enrichment/enrichment-service.js";
+import { createDefaultEnrichmentService, EnrichmentService } from "../../apps/api/src/enrichment/enrichment-service.js";
+import { CensusGeocoderAddressAdapter } from "../../apps/api/src/enrichment/census-geocoder-adapter.js";
+import {
+  HttpCensusGeocoderClient,
+  type CensusGeocoderClient,
+} from "../../apps/api/src/enrichment/census-geocoder-client.js";
 import { SourceFieldInferenceAdapter } from "../../apps/api/src/enrichment/source-field-inference-adapter.js";
 import { normalizeDatasetRow } from "../../apps/api/src/scoring/normalization.js";
 import type { StoredDatasetSourceRow } from "../../apps/api/src/datasets/dataset-store.js";
 
 describe("enrichment service", () => {
-  it("infers scoreable fields from alternate source headers", () => {
+  it("infers scoreable fields from alternate source headers", async () => {
     const sourceRow: StoredDatasetSourceRow = {
       rowNumber: 1,
       fields: {
@@ -23,7 +28,7 @@ describe("enrichment service", () => {
     const normalized = normalizeDatasetRow(sourceRow);
     const service = new EnrichmentService([new SourceFieldInferenceAdapter()]);
 
-    const enriched = service.enrichRow(sourceRow, normalized);
+    const enriched = await service.enrichRow(sourceRow, normalized);
 
     expect(enriched.normalizedFields).toMatchObject({
       parcelId: "A-100",
@@ -46,7 +51,7 @@ describe("enrichment service", () => {
     expect(enriched.enrichment.reasoning.join(" ")).toContain("Enrichment inferred property type");
   });
 
-  it("keeps weak rows conservative and records weak completeness", () => {
+  it("keeps weak rows conservative and records weak completeness", async () => {
     const sourceRow: StoredDatasetSourceRow = {
       rowNumber: 2,
       fields: {
@@ -55,14 +60,14 @@ describe("enrichment service", () => {
     };
     const service = new EnrichmentService([new SourceFieldInferenceAdapter()]);
 
-    const enriched = service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
+    const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
 
     expect(enriched.enrichment.dataQualityScore).toBe(20);
     expect(enriched.enrichment.flags).toContain("Enrichment found weak source-row completeness");
     expect(enriched.normalizedFields.propertyTypeCategory).toBe("unknown");
   });
 
-  it("fails closed when an adapter throws", () => {
+  it("fails closed when an adapter throws", async () => {
     const throwingAdapter: EnrichmentAdapter = {
       id: "source_field_inference",
       enrich: () => {
@@ -77,9 +82,241 @@ describe("enrichment service", () => {
     };
     const service = new EnrichmentService([throwingAdapter]);
 
-    const enriched = service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
+    const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
 
     expect(enriched.enrichment.flags).toContain("Enrichment adapter source_field_inference failed safely");
     expect(enriched.enrichment.reasoning.join(" ")).toContain("could not improve this row");
+  });
+
+  it("records safe external Census geocoder matches without raw provider payloads", async () => {
+    const geocoderClient: CensusGeocoderClient = {
+      geocodeAddress: async () => ({
+        status: "matched",
+        match: {
+          matchedAddress: "10 MAIN ST, AUSTIN, TX, 78701",
+          latitude: 30.2672,
+          longitude: -97.7431,
+          benchmark: "Public_AR_Current",
+        },
+      }),
+    };
+    const sourceRow: StoredDatasetSourceRow = {
+      rowNumber: 1,
+      fields: {
+        parcel_id: "A-400",
+        address: "10 Main St Austin TX 78701",
+      },
+    };
+    const service = new EnrichmentService([
+      new SourceFieldInferenceAdapter(),
+      new CensusGeocoderAddressAdapter(geocoderClient, {
+        maxRowsPerJob: 10,
+        now: () => new Date("2026-01-01T00:00:00.000Z"),
+      }),
+    ]);
+
+    const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
+
+    expect(enriched.enrichment.adapters).toEqual(["source_field_inference", "census_geocoder"]);
+    expect(enriched.enrichment.externalResults).toEqual([
+      {
+        adapterId: "census_geocoder",
+        provider: "us_census_geocoder",
+        status: "matched",
+        confidence: "medium",
+        message: "Census Geocoder matched and normalized the address.",
+        normalizedAddress: "10 MAIN ST, AUSTIN, TX, 78701",
+        latitude: 30.2672,
+        longitude: -97.7431,
+        benchmark: "Public_AR_Current",
+        enrichedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    expect(JSON.stringify(enriched.enrichment)).not.toContain("addressMatches");
+    expect(enriched.enrichment.reasoning.join(" ")).toContain("External Census Geocoder matched");
+  });
+
+  it("maps Census Geocoder provider responses into safe client results", async () => {
+    let requestedUrl = "";
+    const client = new HttpCensusGeocoderClient({
+      baseUrl: "https://geocoding.geo.census.gov",
+      benchmark: "Public_AR_Current",
+      timeoutMs: 3000,
+      fetchImpl: async (input) => {
+        requestedUrl = input.toString();
+        return new Response(
+          JSON.stringify({
+            result: {
+              addressMatches: [
+                {
+                  matchedAddress: "10 MAIN ST, AUSTIN, TX, 78701",
+                  coordinates: {
+                    x: -97.7431,
+                    y: 30.2672,
+                  },
+                },
+              ],
+            },
+          }),
+          {
+            status: 200,
+            headers: {
+              "content-type": "application/json",
+            },
+          },
+        );
+      },
+    });
+
+    const result = await client.geocodeAddress("10 Main St Austin TX 78701");
+
+    expect(requestedUrl).toContain("/geocoder/locations/onelineaddress");
+    expect(requestedUrl).toContain("benchmark=Public_AR_Current");
+    expect(result).toEqual({
+      status: "matched",
+      match: {
+        matchedAddress: "10 MAIN ST, AUSTIN, TX, 78701",
+        latitude: 30.2672,
+        longitude: -97.7431,
+        benchmark: "Public_AR_Current",
+      },
+    });
+  });
+
+  it("maps malformed Census Geocoder responses to safe failures", async () => {
+    const client = new HttpCensusGeocoderClient({
+      baseUrl: "https://geocoding.geo.census.gov",
+      benchmark: "Public_AR_Current",
+      timeoutMs: 3000,
+      fetchImpl: async () =>
+        new Response(JSON.stringify({ result: { addressMatches: [{ matchedAddress: "missing coordinates" }] } }), {
+          status: 200,
+          headers: {
+            "content-type": "application/json",
+          },
+        }),
+    });
+
+    const result = await client.geocodeAddress("10 Main St Austin TX 78701");
+
+    expect(result).toEqual({
+      status: "failed",
+      message: "Census Geocoder match was missing normalized location fields.",
+    });
+  });
+
+  it("handles weak external geocoder responses conservatively", async () => {
+    const geocoderClient: CensusGeocoderClient = {
+      geocodeAddress: async () => ({
+        status: "no_match",
+        message: "No match",
+      }),
+    };
+    const sourceRow: StoredDatasetSourceRow = {
+      rowNumber: 1,
+      fields: {
+        parcel_id: "A-401",
+        address: "Unmatched address",
+      },
+    };
+    const service = new EnrichmentService([
+      new SourceFieldInferenceAdapter(),
+      new CensusGeocoderAddressAdapter(geocoderClient, {
+        maxRowsPerJob: 10,
+        now: () => new Date("2026-01-01T00:00:00.000Z"),
+      }),
+    ]);
+
+    const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
+
+    expect(enriched.enrichment.externalResults?.[0]).toMatchObject({
+      adapterId: "census_geocoder",
+      provider: "us_census_geocoder",
+      status: "no_match",
+      confidence: "low",
+    });
+    expect(enriched.enrichment.flags).toContain("External geocoder did not match address");
+  });
+
+  it("records external geocoder timeout as a safe failure", async () => {
+    const geocoderClient: CensusGeocoderClient = {
+      geocodeAddress: async () => ({
+        status: "timeout",
+        message: "Timeout",
+      }),
+    };
+    const sourceRow: StoredDatasetSourceRow = {
+      rowNumber: 1,
+      fields: {
+        parcel_id: "A-402",
+        address: "10 Main St Austin TX 78701",
+      },
+    };
+    const service = new EnrichmentService([
+      new SourceFieldInferenceAdapter(),
+      new CensusGeocoderAddressAdapter(geocoderClient, {
+        maxRowsPerJob: 10,
+        now: () => new Date("2026-01-01T00:00:00.000Z"),
+      }),
+    ]);
+
+    const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
+
+    expect(enriched.enrichment.externalResults?.[0]).toMatchObject({
+      status: "timeout",
+      message: "External geocoder timed out before returning usable location context.",
+    });
+    expect(enriched.enrichment.flags).toContain("External geocoder unavailable");
+  });
+
+  it("skips external geocoding when the configured row limit is reached", async () => {
+    let callCount = 0;
+    const geocoderClient: CensusGeocoderClient = {
+      geocodeAddress: async () => {
+        callCount += 1;
+        return {
+          status: "failed",
+          message: "Should not be called",
+        };
+      },
+    };
+    const sourceRow: StoredDatasetSourceRow = {
+      rowNumber: 50,
+      fields: {
+        parcel_id: "A-403",
+        address: "10 Main St Austin TX 78701",
+      },
+    };
+    const service = new EnrichmentService([
+      new SourceFieldInferenceAdapter(),
+      new CensusGeocoderAddressAdapter(geocoderClient, {
+        maxRowsPerJob: 10,
+        now: () => new Date("2026-01-01T00:00:00.000Z"),
+      }),
+    ]);
+
+    const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
+
+    expect(callCount).toBe(0);
+    expect(enriched.enrichment.externalResults?.[0]).toMatchObject({
+      status: "skipped",
+      message: "External geocoding skipped by configured per-job row limit.",
+    });
+  });
+
+  it("keeps external geocoding disabled when no external config is supplied", async () => {
+    const sourceRow: StoredDatasetSourceRow = {
+      rowNumber: 1,
+      fields: {
+        parcel_id: "A-404",
+        address: "10 Main St Austin TX 78701",
+      },
+    };
+    const service = createDefaultEnrichmentService();
+
+    const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
+
+    expect(enriched.enrichment.adapters).toEqual(["source_field_inference"]);
+    expect(enriched.enrichment.externalResults).toBeUndefined();
   });
 });

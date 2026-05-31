@@ -228,17 +228,21 @@ Current enrichment contracts include:
 - adapter ids;
 - data quality score;
 - inferred field snapshot;
+- optional safe external enrichment results;
 - signals with field, confidence, and safe message;
 - safe flags;
 - safe reasoning.
 
-Current adapter id:
+Current adapter ids:
 
 - `source_field_inference`.
+- `census_geocoder`.
 
 The frontend may display enrichment context, but it must not treat enrichment as
-external verification or final truth. Enrichment responses must not expose raw
-source rows, stack traces, provider payloads, or secrets.
+final underwriting truth. External enrichment responses may expose normalized
+address/location context, provider tag, confidence, status, and timestamp. They
+must not expose raw source rows, stack traces, provider payloads, request
+internals, or secrets.
 
 ## Internal Job Contract
 

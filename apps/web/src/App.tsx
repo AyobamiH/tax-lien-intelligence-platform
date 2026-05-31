@@ -2038,6 +2038,27 @@ function ScoreDetail({
               ))}
             </ul>
           ) : null}
+          {score.enrichment.externalResults && score.enrichment.externalResults.length > 0 ? (
+            <div className="mt-3 space-y-2">
+              {score.enrichment.externalResults.map((result) => (
+                <div
+                  key={`${result.provider}-${result.status}-${result.enrichedAt}`}
+                  className="border border-line bg-white px-3 py-2 text-sm leading-6 text-ink/75"
+                >
+                  <p className="font-semibold">
+                    {result.provider} · {result.status} · {result.confidence}
+                  </p>
+                  <p>{result.message}</p>
+                  {result.normalizedAddress ? <p>Matched address: {result.normalizedAddress}</p> : null}
+                  {result.latitude !== undefined && result.longitude !== undefined ? (
+                    <p>
+                      Location: {result.latitude.toFixed(5)}, {result.longitude.toFixed(5)}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
           {score.enrichment.reasoning.length > 0 ? (
             <ol className="mt-2 space-y-2">
               {score.enrichment.reasoning.map((reason) => (

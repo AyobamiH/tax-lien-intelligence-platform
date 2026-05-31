@@ -75,10 +75,12 @@ the browser for the signed-in user. It is not final institutional underwriting.
 
 Enrichment is a server-side processing layer between normalization and scoring.
 It uses uploaded source-row fields to infer missing or weak normalized fields and
-data-quality context.
+data-quality context. Phase 12 also adds one controlled external provider path
+for U.S. Census Geocoder address normalization/location context.
 
 Current status: implemented as `source_field_inference` for uploaded-row
-aliases and component fields. It does not use external providers, geocoding,
+aliases and component fields, plus optional `census_geocoder` output when the
+provider is enabled. It does not include provider sprawl, paid integrations,
 ML/AI, or county live integrations.
 
 ### Watchlist

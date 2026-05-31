@@ -84,9 +84,18 @@ export interface NormalizedScoredRecordFields {
   address?: string;
 }
 
-export type EnrichmentAdapterId = "source_field_inference";
+export type EnrichmentAdapterId = "source_field_inference" | "census_geocoder";
 export type EnrichmentConfidence = "low" | "medium" | "high";
-export type EnrichedFieldName = "parcelId" | "lienAmount" | "estimatedValue" | "propertyType" | "address" | "dataQuality";
+export type EnrichedFieldName =
+  | "parcelId"
+  | "lienAmount"
+  | "estimatedValue"
+  | "propertyType"
+  | "address"
+  | "dataQuality"
+  | "externalLocation";
+export type ExternalEnrichmentProvider = "us_census_geocoder";
+export type ExternalEnrichmentStatus = "matched" | "no_match" | "skipped" | "failed" | "timeout";
 
 export interface EnrichedScoredRecordFields {
   parcelId?: string;
@@ -104,10 +113,24 @@ export interface EnrichmentSignal {
   message: string;
 }
 
+export interface ExternalEnrichmentResult {
+  adapterId: EnrichmentAdapterId;
+  provider: ExternalEnrichmentProvider;
+  status: ExternalEnrichmentStatus;
+  confidence: EnrichmentConfidence;
+  message: string;
+  normalizedAddress?: string;
+  latitude?: number;
+  longitude?: number;
+  benchmark?: string;
+  enrichedAt: string;
+}
+
 export interface EnrichmentResult {
   adapters: EnrichmentAdapterId[];
   dataQualityScore: number;
   inferredFields: EnrichedScoredRecordFields;
+  externalResults?: ExternalEnrichmentResult[];
   signals: EnrichmentSignal[];
   flags: string[];
   reasoning: string[];

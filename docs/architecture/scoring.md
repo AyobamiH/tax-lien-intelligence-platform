@@ -30,7 +30,7 @@ Implemented:
 Not implemented:
 
 - final institutional-grade underwriting;
-- external enrichment providers;
+- broad external enrichment provider coverage;
 - ML or AI scoring;
 - county-specific adapters.
 
@@ -123,9 +123,11 @@ warnings and conservative scoring behavior.
 
 ## Enrichment Boundary
 
-Phase 11 adds enrichment after normalization and before scoring. The current
-adapter is `source_field_inference`, which uses uploaded source-row fields only.
-It can infer:
+Phase 11 adds enrichment after normalization and before scoring. Phase 12 adds
+one controlled external enrichment path. Current adapters are
+`source_field_inference` and, when enabled, `census_geocoder`.
+
+`source_field_inference` can infer:
 
 - parcel identifiers from alternate aliases;
 - lien amounts from alternate tax/lien amount headers;
@@ -134,6 +136,10 @@ It can infer:
 - property type from use/classification descriptions;
 - address from alternate or component address fields;
 - data-quality score for mapped core fields.
+
+`census_geocoder` can record safe U.S. Census Geocoder address/location context
+when explicitly enabled. It is bounded by timeout and per-job row limits and
+does not store raw provider payloads.
 
 Enrichment fills missing or unknown fields. It does not call external services,
 use ML/AI, or override clearly mapped source fields with speculative values.
@@ -186,5 +192,5 @@ Do not duplicate scoring logic outside `packages/scoring`.
 
 Do not add frontend score displays that invent fields not returned by the API.
 
-Do not add automation, AI, or enrichment before the deterministic scoring
-foundation and review workflow are stable.
+Do not add automation, AI, or additional enrichment providers before the current
+worker-scoring and enrichment boundaries remain stable under tests.

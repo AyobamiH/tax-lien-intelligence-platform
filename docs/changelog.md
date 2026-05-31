@@ -2,14 +2,21 @@
 
 ## 2026-05-25
 
+- Implemented Phase 12 first external enrichment integration with a controlled
+  U.S. Census Geocoder adapter, secure opt-in configuration, timeout and
+  per-job row limits, safe external result persistence, worker-scoring
+  integration, frontend detail visibility, and external enrichment tests.
+- Updated enrichment/API/KB docs to mark one external enrichment path as
+  current while keeping provider sprawl, paid integrations, ML/AI,
+  collaboration, and auction execution as future work.
 - Implemented Phase 11 enrichment adapter foundation with an enrichment service,
   source-field inference adapter, persisted scored-record enrichment metadata,
   enrichment-aware worker scoring, frontend enrichment/detail visibility, and
   enrichment tests.
 - Added enrichment architecture documentation and updated API/KB docs to mark
-  internal source-data enrichment as current while keeping external enrichment
-  providers, geocoding, ML/AI, collaboration, and auction execution as future
-  work.
+  internal source-data enrichment as current for Phase 11 while keeping
+  external enrichment providers, geocoding, ML/AI, collaboration, and auction
+  execution out of that phase.
 - Implemented Phase 10 worker and scheduler foundation with a dedicated API
   worker entrypoint, queued-job claiming, worker-driven dataset scoring,
   minimal scheduler module, frontend job-status polling, and worker/scheduler

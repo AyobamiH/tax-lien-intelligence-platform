@@ -21,7 +21,7 @@ before writing specs, prompts, or implementation plans.
 - [Authentication Architecture](architecture/auth.md)
 - [Dataset Foundation Architecture](architecture/datasets.md)
 - [Scoring Foundation Architecture](architecture/scoring.md)
-- [Enrichment Adapter Foundation](architecture/enrichment.md)
+- [Enrichment Architecture](architecture/enrichment.md)
 - [Frontend Review Surface Architecture](architecture/frontend-review.md)
 - [Watchlist Workflow Architecture](architecture/watchlist.md)
 - [Portfolio Tracking Architecture](architecture/portfolio.md)

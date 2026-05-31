@@ -82,9 +82,11 @@ export class ScoringService {
     }
 
     const scoredAt = new Date();
-    const records: CreateScoredRecordInput[] = sourceRows.map((sourceRow) => {
+    const records: CreateScoredRecordInput[] = [];
+
+    for (const sourceRow of sourceRows) {
       const normalized = normalizeDatasetRow(sourceRow);
-      const enriched = this.enrichmentService.enrichRow(sourceRow, normalized);
+      const enriched = await this.enrichmentService.enrichRow(sourceRow, normalized);
       const score = scoreLienCandidate(enriched.scoreableRecord);
       const normalizationWarnings = filterResolvedNormalizationWarnings(normalized.warnings, enriched.normalizedFields);
       const flags = [...new Set([...score.flags, ...normalizationWarnings, ...enriched.enrichment.flags])];
@@ -96,7 +98,7 @@ export class ScoringService {
         ]),
       ];
 
-      return {
+      records.push({
         userId,
         datasetId,
         sourceRowNumber: enriched.sourceRowNumber,
@@ -108,8 +110,8 @@ export class ScoringService {
           reasoning,
         },
         scoredAt,
-      };
-    });
+      });
+    }
 
     const storedRecords = await this.scoredRecordStore.replaceScoresForDataset(userId, datasetId, records);
 

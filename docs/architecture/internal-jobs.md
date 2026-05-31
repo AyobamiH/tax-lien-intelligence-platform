@@ -4,7 +4,7 @@ Phase 8 introduced automation-ready job plumbing. Phase 9 added in-app alerts
 from selected job outcomes. Phase 10 adds a dedicated local worker execution
 boundary and minimal scheduler foundation. The job layer still does not
 introduce product automation, external queue infrastructure, email/SMS delivery,
-external schedulers, enrichment, ML/AI, or auction execution.
+external schedulers, ML/AI, or auction execution.
 
 The purpose is to move repeatable operations toward explicit, persisted,
 testable execution boundaries before future automation is added.
@@ -36,7 +36,7 @@ Not implemented:
 - third-party queue infrastructure;
 - retries;
 - external alert delivery;
-- enrichment integrations;
+- additional worker job types for enrichment-only passes;
 - ML/AI;
 - auction execution.
 

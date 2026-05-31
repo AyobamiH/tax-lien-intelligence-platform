@@ -152,6 +152,8 @@ Current implementation:
 - scoring execution is recorded through internal jobs and processed by the
   worker path;
 - scoring now uses internal source-row enrichment before final score generation;
+- scoring can use opt-in Census Geocoder enrichment for safe address/location
+  context;
 - scoring job outcomes create in-app alerts;
 - no standalone parcel/lien schema;
 - no final investment decision, auction, or accounting workflow.

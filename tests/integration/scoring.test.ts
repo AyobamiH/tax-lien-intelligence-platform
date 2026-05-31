@@ -11,6 +11,10 @@ import type {
   DatasetStore,
   StoredDataset,
 } from "../../apps/api/src/datasets/dataset-store.js";
+import { CensusGeocoderAddressAdapter } from "../../apps/api/src/enrichment/census-geocoder-adapter.js";
+import type { CensusGeocoderClient } from "../../apps/api/src/enrichment/census-geocoder-client.js";
+import { EnrichmentService } from "../../apps/api/src/enrichment/enrichment-service.js";
+import { SourceFieldInferenceAdapter } from "../../apps/api/src/enrichment/source-field-inference-adapter.js";
 import { InternalJobService } from "../../apps/api/src/jobs/internal-job-service.js";
 import { ScoringService } from "../../apps/api/src/scoring/scoring-service.js";
 import { WorkerJobProcessor } from "../../apps/api/src/worker/worker-job-processor.js";
@@ -142,7 +146,7 @@ class InMemoryScoredRecordStore implements ScoredRecordStore {
   }
 }
 
-function createTestContext(): {
+function createTestContext(options: { enrichmentService?: EnrichmentService } = {}): {
   app: ReturnType<typeof createApp>;
   datasetStore: InMemoryDatasetStore;
   scoredRecordStore: InMemoryScoredRecordStore;
@@ -164,7 +168,12 @@ function createTestContext(): {
   const datasetService = new DatasetService(datasetStore);
   const alertService = new AlertService(alertStore);
   const internalJobService = new InternalJobService(internalJobStore, alertService);
-  const scoringService = new ScoringService(datasetStore, scoredRecordStore, internalJobService);
+  const scoringService = new ScoringService(
+    datasetStore,
+    scoredRecordStore,
+    internalJobService,
+    options.enrichmentService,
+  );
   const workerProcessor = new WorkerJobProcessor(internalJobService, scoringService);
 
   return {
@@ -449,6 +458,68 @@ describe("dataset scoring API", () => {
     expect(score.flags).not.toContain("Missing or invalid lien amount");
     expect(score.flags).not.toContain("Missing or invalid property value");
     expect(score.reasoning.join(" ")).toContain("Enrichment note");
+  });
+
+  it("persists safe external enrichment results through the worker scoring path", async () => {
+    const geocoderClient: CensusGeocoderClient = {
+      geocodeAddress: async () => ({
+        status: "matched",
+        match: {
+          matchedAddress: "10 MAIN ST, AUSTIN, TX, 78701",
+          latitude: 30.2672,
+          longitude: -97.7431,
+          benchmark: "Public_AR_Current",
+        },
+      }),
+    };
+    const enrichmentService = new EnrichmentService([
+      new SourceFieldInferenceAdapter(),
+      new CensusGeocoderAddressAdapter(geocoderClient, {
+        maxRowsPerJob: 25,
+        now: () => new Date("2026-01-01T00:00:00.000Z"),
+      }),
+    ]);
+    const { app, workerProcessor } = createTestContext({ enrichmentService });
+    const owner = await registerUser(app, "owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      [
+        "parcel_id,lien_amount,estimated_value,property_type,address",
+        "A-901,1000,12000,Single family residence,10 Main St Austin TX 78701",
+      ].join("\n"),
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+
+    const scoresResponse = await request(app)
+      .get(`/datasets/${datasetId}/scores`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    const score = scoresResponse.body.scores[0];
+    expect(score.enrichment.externalResults).toEqual([
+      {
+        adapterId: "census_geocoder",
+        provider: "us_census_geocoder",
+        status: "matched",
+        confidence: "medium",
+        message: "Census Geocoder matched and normalized the address.",
+        normalizedAddress: "10 MAIN ST, AUSTIN, TX, 78701",
+        latitude: 30.2672,
+        longitude: -97.7431,
+        benchmark: "Public_AR_Current",
+        enrichedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    expect(score.enrichment.signals.map((signal: { adapterId: string }) => signal.adapterId)).toContain(
+      "census_geocoder",
+    );
+    expect(JSON.stringify(score.enrichment)).not.toContain("addressMatches");
   });
 
   it("rejects invalid dataset ids safely", async () => {

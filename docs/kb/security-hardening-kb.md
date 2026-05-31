@@ -426,21 +426,25 @@ display another tenant's data through cache/state reuse.
 
 ### Enrichment
 
-Current enrichment uses uploaded source-row data only and runs inside the
-trusted worker scoring path. It may infer missing fields and data-quality
-context, but it is not external verification.
+Current enrichment uses uploaded source-row data and, when explicitly enabled,
+one U.S. Census Geocoder adapter. It runs inside the trusted worker scoring
+path. It may infer missing fields, data-quality context, and safe external
+address/location metadata, but it is not final verification or underwriting
+truth.
 
 Enrichment output must stay safe:
 
 - no raw full source rows in browser responses;
 - no raw adapter exceptions;
 - no third-party provider payloads;
+- no unbounded external requests;
 - no secrets;
 - no cross-user enrichment leakage.
 
-Future external enrichment providers will require timeout controls, provider
-secret handling, tenant-safe logs, retry policy, and clear source/confidence
-labels before launch.
+The current external adapter is opt-in, uses HTTPS configuration, has timeout
+and per-job row limits, and requires no provider secret. Future external
+providers will require provider-secret handling, tenant-safe logs, retry policy,
+rate limits, and clear source/confidence labels before launch.
 
 ### Watchlists
 

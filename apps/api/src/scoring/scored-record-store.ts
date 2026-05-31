@@ -145,6 +145,22 @@ function mapEnrichmentResult(enrichment: NonNullable<ScoredRecordDocument["enric
         : {}),
       ...(enrichment.inferredFields.address ? { address: enrichment.inferredFields.address } : {}),
     },
+    ...(enrichment.externalResults && enrichment.externalResults.length > 0
+      ? {
+          externalResults: enrichment.externalResults.map((result) => ({
+            adapterId: result.adapterId,
+            provider: result.provider,
+            status: result.status,
+            confidence: result.confidence,
+            message: result.message,
+            ...(result.normalizedAddress ? { normalizedAddress: result.normalizedAddress } : {}),
+            ...(result.latitude !== undefined ? { latitude: result.latitude } : {}),
+            ...(result.longitude !== undefined ? { longitude: result.longitude } : {}),
+            ...(result.benchmark ? { benchmark: result.benchmark } : {}),
+            enrichedAt: result.enrichedAt,
+          })),
+        }
+      : {}),
     signals: enrichment.signals.map((signal) => ({
       adapterId: signal.adapterId,
       field: signal.field,

@@ -1,7 +1,7 @@
 import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 
 export type PropertyTypeCategoryRecord = "residential" | "multifamily" | "commercial" | "land" | "unknown";
-export type EnrichmentAdapterIdRecord = "source_field_inference";
+export type EnrichmentAdapterIdRecord = "source_field_inference" | "census_geocoder";
 export type EnrichmentConfidenceRecord = "low" | "medium" | "high";
 export type EnrichedFieldNameRecord =
   | "parcelId"
@@ -9,7 +9,10 @@ export type EnrichedFieldNameRecord =
   | "estimatedValue"
   | "propertyType"
   | "address"
-  | "dataQuality";
+  | "dataQuality"
+  | "externalLocation";
+export type ExternalEnrichmentProviderRecord = "us_census_geocoder";
+export type ExternalEnrichmentStatusRecord = "matched" | "no_match" | "skipped" | "failed" | "timeout";
 
 export interface NormalizedScoredRecordFieldsRecord {
   parcelId?: string;
@@ -47,10 +50,24 @@ export interface EnrichmentSignalRecord {
   message: string;
 }
 
+export interface ExternalEnrichmentResultRecord {
+  adapterId: EnrichmentAdapterIdRecord;
+  provider: ExternalEnrichmentProviderRecord;
+  status: ExternalEnrichmentStatusRecord;
+  confidence: EnrichmentConfidenceRecord;
+  message: string;
+  normalizedAddress?: string;
+  latitude?: number;
+  longitude?: number;
+  benchmark?: string;
+  enrichedAt: string;
+}
+
 export interface EnrichmentResultRecord {
   adapters: EnrichmentAdapterIdRecord[];
   dataQualityScore: number;
   inferredFields: EnrichedScoredRecordFieldsRecord;
+  externalResults?: ExternalEnrichmentResultRecord[];
   signals: EnrichmentSignalRecord[];
   flags: string[];
   reasoning: string[];
@@ -128,12 +145,12 @@ const enrichmentSignalSchema = new Schema<EnrichmentSignalRecord>(
   {
     adapterId: {
       type: String,
-      enum: ["source_field_inference"],
+      enum: ["source_field_inference", "census_geocoder"],
       required: true,
     },
     field: {
       type: String,
-      enum: ["parcelId", "lienAmount", "estimatedValue", "propertyType", "address", "dataQuality"],
+      enum: ["parcelId", "lienAmount", "estimatedValue", "propertyType", "address", "dataQuality", "externalLocation"],
       required: true,
     },
     confidence: {
@@ -149,19 +166,59 @@ const enrichmentSignalSchema = new Schema<EnrichmentSignalRecord>(
   },
 );
 
+const externalEnrichmentResultSchema = new Schema<ExternalEnrichmentResultRecord>(
+  {
+    adapterId: {
+      type: String,
+      enum: ["source_field_inference", "census_geocoder"],
+      required: true,
+    },
+    provider: {
+      type: String,
+      enum: ["us_census_geocoder"],
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["matched", "no_match", "skipped", "failed", "timeout"],
+      required: true,
+    },
+    confidence: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      required: true,
+    },
+    message: { type: String, required: true, trim: true, maxlength: 255 },
+    normalizedAddress: { type: String, trim: true, maxlength: 255 },
+    latitude: { type: Number, min: -90, max: 90 },
+    longitude: { type: Number, min: -180, max: 180 },
+    benchmark: { type: String, trim: true, maxlength: 80 },
+    enrichedAt: { type: String, required: true, trim: true, maxlength: 40 },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
 const enrichmentResultSchema = new Schema<EnrichmentResultRecord>(
   {
     adapters: {
       type: [String],
       required: true,
       default: [],
-      enum: ["source_field_inference"],
+      enum: ["source_field_inference", "census_geocoder"],
     },
     dataQualityScore: { type: Number, required: true, min: 0, max: 100 },
     inferredFields: {
       type: enrichedFieldsSchema,
       required: true,
       default: {},
+    },
+    externalResults: {
+      type: [externalEnrichmentResultSchema],
+      required: false,
+      default: undefined,
     },
     signals: {
       type: [enrichmentSignalSchema],

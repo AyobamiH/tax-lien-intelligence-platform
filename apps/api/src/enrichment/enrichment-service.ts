@@ -3,11 +3,14 @@ import type {
   EnrichmentAdapterId,
   EnrichmentResult,
   EnrichmentSignal,
+  ExternalEnrichmentResult,
   NormalizedScoredRecordFields,
 } from "@tax-lien/types";
 import type { ScoreableRecord } from "@tax-lien/scoring";
 import type { StoredDatasetSourceRow } from "../datasets/dataset-store.js";
 import type { NormalizedDatasetRow } from "../scoring/normalization.js";
+import { CensusGeocoderAddressAdapter } from "./census-geocoder-adapter.js";
+import { HttpCensusGeocoderClient } from "./census-geocoder-client.js";
 import { SourceFieldInferenceAdapter } from "./source-field-inference-adapter.js";
 
 export interface EnrichmentAdapterInput {
@@ -18,6 +21,7 @@ export interface EnrichmentAdapterInput {
 
 export interface EnrichmentAdapterResult {
   inferredFields: EnrichedScoredRecordFields;
+  externalResults?: ExternalEnrichmentResult[];
   signals: EnrichmentSignal[];
   flags: string[];
   reasoning: string[];
@@ -25,7 +29,7 @@ export interface EnrichmentAdapterResult {
 
 export interface EnrichmentAdapter {
   id: EnrichmentAdapterId;
-  enrich(input: EnrichmentAdapterInput): EnrichmentAdapterResult;
+  enrich(input: EnrichmentAdapterInput): EnrichmentAdapterResult | Promise<EnrichmentAdapterResult>;
 }
 
 export interface EnrichedDatasetRow {
@@ -42,7 +46,7 @@ export class EnrichmentService {
     this.adapters = adapters;
   }
 
-  public enrichRow(sourceRow: StoredDatasetSourceRow, normalizedRow: NormalizedDatasetRow): EnrichedDatasetRow {
+  public async enrichRow(sourceRow: StoredDatasetSourceRow, normalizedRow: NormalizedDatasetRow): Promise<EnrichedDatasetRow> {
     const normalizedFields: NormalizedScoredRecordFields = {
       ...normalizedRow.normalizedFields,
     };
@@ -51,6 +55,7 @@ export class EnrichmentService {
     };
     const inferredFields: EnrichedScoredRecordFields = {};
     const signals: EnrichmentSignal[] = [];
+    const externalResults: ExternalEnrichmentResult[] = [];
     const flags: string[] = [];
     const reasoning: string[] = [];
     const adapters: EnrichmentAdapterId[] = [];
@@ -58,7 +63,7 @@ export class EnrichmentService {
     for (const adapter of this.adapters) {
       adapters.push(adapter.id);
       try {
-        const result = adapter.enrich({
+        const result = await adapter.enrich({
           sourceRow,
           normalizedFields,
           scoreableRecord,
@@ -69,6 +74,7 @@ export class EnrichmentService {
           scoreableRecord,
           inferredFields,
         });
+        externalResults.push(...(result.externalResults ?? []));
         signals.push(...result.signals);
         flags.push(...result.flags);
         reasoning.push(...result.reasoning);
@@ -99,6 +105,7 @@ export class EnrichmentService {
         adapters: uniqueAdapters(adapters),
         dataQualityScore,
         inferredFields,
+        ...(externalResults.length > 0 ? { externalResults: uniqueExternalResults(externalResults) } : {}),
         signals: uniqueSignals(signals),
         flags: uniqueStrings(flags),
         reasoning: uniqueStrings(reasoning),
@@ -107,8 +114,37 @@ export class EnrichmentService {
   }
 }
 
-export function createDefaultEnrichmentService(): EnrichmentService {
-  return new EnrichmentService([new SourceFieldInferenceAdapter()]);
+export interface CensusGeocoderEnrichmentConfig {
+  enabled: boolean;
+  baseUrl: string;
+  benchmark: string;
+  timeoutMs: number;
+  maxRowsPerJob: number;
+}
+
+export interface EnrichmentServiceConfig {
+  censusGeocoder: CensusGeocoderEnrichmentConfig;
+}
+
+export function createDefaultEnrichmentService(config?: EnrichmentServiceConfig): EnrichmentService {
+  const adapters: EnrichmentAdapter[] = [new SourceFieldInferenceAdapter()];
+
+  if (config?.censusGeocoder.enabled) {
+    adapters.push(
+      new CensusGeocoderAddressAdapter(
+        new HttpCensusGeocoderClient({
+          baseUrl: config.censusGeocoder.baseUrl,
+          benchmark: config.censusGeocoder.benchmark,
+          timeoutMs: config.censusGeocoder.timeoutMs,
+        }),
+        {
+          maxRowsPerJob: config.censusGeocoder.maxRowsPerJob,
+        },
+      ),
+    );
+  }
+
+  return new EnrichmentService(adapters);
 }
 
 function applyInferredFields(
@@ -205,6 +241,25 @@ function uniqueSignals(values: EnrichmentSignal[]): EnrichmentSignal[] {
 
     seen.add(key);
     unique.push(signal);
+  }
+
+  return unique;
+}
+
+function uniqueExternalResults(values: ExternalEnrichmentResult[]): ExternalEnrichmentResult[] {
+  const seen = new Set<string>();
+  const unique: ExternalEnrichmentResult[] = [];
+
+  for (const value of values) {
+    const key = `${value.adapterId}:${value.provider}:${value.status}:${value.normalizedAddress ?? ""}:${value.latitude ?? ""}:${
+      value.longitude ?? ""
+    }`;
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    unique.push(value);
   }
 
   return unique;

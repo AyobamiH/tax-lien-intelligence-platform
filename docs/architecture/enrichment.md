@@ -1,31 +1,35 @@
-# Enrichment Adapter Foundation
+# Enrichment Architecture
 
 ## Scope
 
-Phase 11 introduces the first enrichment layer between uploaded source rows and
-scoring. The purpose is to improve data quality from the uploaded data already
-available in the system, not to add external providers.
+Phase 11 introduced the first enrichment layer between uploaded source rows and
+scoring. Phase 12 proves that boundary with one controlled external provider:
+the U.S. Census Geocoder.
 
 Implemented:
 
 - enrichment adapter interface in `apps/api/src/enrichment`;
-- enrichment service that applies adapters safely;
-- first adapter: `source_field_inference`;
+- enrichment service that applies internal and external adapters safely;
+- internal adapter: `source_field_inference`;
+- external adapter: `census_geocoder`;
+- opt-in Census Geocoder configuration through environment variables;
+- timeout and per-job row limits for external geocoding;
 - persisted enrichment result embedded on scored records;
 - enrichment-aware scoring pipeline: source row -> normalization -> enrichment
   -> scoring -> scored record;
-- frontend record detail surface for enrichment signals and data quality;
-- tests for adapter behavior, weak data, safe adapter failure, and scoring
-  improvement through enrichment.
+- frontend record detail surface for enrichment signals, data quality, and safe
+  external location context;
+- tests for adapter behavior, weak data, safe adapter failure, external success,
+  timeout/failure, row-limit skipping, and worker scoring persistence.
 
 Not implemented:
 
-- third-party geocoding;
+- multiple external providers;
+- paid geocoding or valuation services;
 - county live integrations;
-- external valuation providers;
 - ML/AI enrichment;
 - enrichment scheduling;
-- enrichment-specific UI or admin console.
+- enrichment-specific management UI or admin console.
 
 ## Boundary
 
@@ -34,15 +38,19 @@ The enrichment layer distinguishes:
 - raw uploaded/source row fields stored on the dataset;
 - normalized scoreable fields mapped by existing header normalization;
 - enriched fields inferred from safe source-row aliases and components;
+- safe external enrichment result metadata;
 - scoring outputs generated after enrichment.
 
-Adapters may derive fields from existing source data. They must not trust client
-claims as authoritative, call external services, or mutate another tenant's
-records.
+Adapters may derive fields from existing source data or from explicitly
+configured external providers. They must not trust client claims as
+authoritative, mutate another tenant's records, expose raw provider payloads, or
+turn external context into hidden final investment truth.
 
-## Current Adapter
+## Current Adapters
 
-`source_field_inference` improves common uploaded data inconsistencies:
+### `source_field_inference`
+
+This internal adapter improves common uploaded data inconsistencies:
 
 - infers parcel identifiers from aliases such as `account_number`;
 - infers lien amounts from aliases such as `tax_due`;
@@ -52,8 +60,37 @@ records.
 - builds address context from alternate or component address fields;
 - computes a data-quality score for mapped core fields.
 
-The adapter is conservative. It fills missing or unknown normalized fields; it
-does not override clearly mapped source fields with lower-confidence guesses.
+It is conservative. It fills missing or unknown normalized fields; it does not
+override clearly mapped source fields with lower-confidence guesses.
+
+### `census_geocoder`
+
+This external adapter uses the U.S. Census Geocoder for address normalization
+and location context. It is disabled by default and enabled explicitly through:
+
+```text
+CENSUS_GEOCODER_ENABLED=true
+CENSUS_GEOCODER_BASE_URL=https://geocoding.geo.census.gov
+CENSUS_GEOCODER_BENCHMARK=Public_AR_Current
+CENSUS_GEOCODER_TIMEOUT_MS=3000
+CENSUS_GEOCODER_MAX_ROWS_PER_JOB=25
+```
+
+The adapter:
+
+- uses the normalized address produced by earlier normalization/enrichment;
+- calls only the configured Census Geocoder endpoint;
+- applies a bounded timeout;
+- skips rows beyond the configured per-job row limit;
+- records matched address, latitude, longitude, benchmark, confidence, status,
+  and timestamp when a match exists;
+- records safe `no_match`, `timeout`, `failed`, or `skipped` status metadata
+  without exposing raw provider errors.
+
+The current external result improves review visibility and creates a safe
+foundation for future location-aware scoring. It does not claim that a geocode
+match proves property quality, title status, access, buildability, or investment
+suitability.
 
 ## Persistence
 
@@ -62,14 +99,14 @@ Scored records may now include an `enrichment` object with:
 - adapters used;
 - data quality score;
 - inferred fields;
+- safe external enrichment results;
 - enrichment signals;
 - safe flags;
 - safe reasoning.
 
-This keeps enrichment inspectable without storing noisy raw diagnostics in the
-browser response. Existing watchlist and portfolio snapshots continue to store
-the score context they already owned; enrichment is currently surfaced on scored
-record detail.
+External results persist only normalized, user-visible metadata. Raw Census
+responses, stack traces, request internals, and full source rows are not stored
+in scored-record enrichment output.
 
 ## Failure Handling
 
@@ -77,10 +114,12 @@ Adapter failures are fail-closed:
 
 - scoring continues with available normalized fields;
 - safe enrichment flags/reasoning are recorded;
-- raw exceptions are not exposed to the user.
+- external provider timeout/failure/no-match states are represented as low
+  confidence metadata;
+- raw exceptions and raw provider payloads are not exposed to the user.
 
-Future external adapters will need stronger isolation, timeout handling, retry
-rules, provider-secret handling, and auditability before use.
+The scoring job remains a worker-claimed `dataset_scoring` job. External
+enrichment runs inside that worker scoring path after dataset ownership checks.
 
 ## Security Notes
 
@@ -91,18 +130,27 @@ Current protections:
 - enrichment runs inside the worker scoring path after dataset ownership checks;
 - enriched output is persisted only on the authenticated user's scored records;
 - cross-user score access remains blocked by existing dataset/score ownership;
+- the external adapter is opt-in and uses HTTPS-only provider config;
+- external geocoding has timeout and per-job row limits;
 - adapter failures produce safe metadata only;
-- no external secrets or network calls are introduced.
+- no API keys or external provider secrets are required for the current Census
+  provider.
+
+Future providers that require credentials must use environment/config only,
+avoid browser exposure, add provider-specific timeout/rate controls, and define
+what metadata is safe to persist before integration.
 
 ## Drift Controls
 
 Do not:
 
-- add external enrichment providers in this layer without a separate phase;
+- add provider sprawl in this layer without a separate phase;
 - let adapters overwrite trusted source mappings without clear rules;
-- store raw stack traces or full source rows in enrichment output;
+- store raw provider payloads, raw stack traces, or full source rows in
+  enrichment output;
 - expose enrichment as final truth;
-- describe enrichment as ML/AI or county-specific intelligence.
+- describe enrichment as ML/AI or county-specific intelligence;
+- enable unbounded external calls during scoring.
 
 ## Update Rules
 
@@ -110,6 +158,7 @@ Update this document when:
 
 - adapters are added or removed;
 - enrichment output shape changes;
-- enrichment begins using external providers;
+- external enrichment config changes;
+- enrichment begins using provider credentials;
 - enrichment scheduling is added;
 - frontend enrichment visibility changes.

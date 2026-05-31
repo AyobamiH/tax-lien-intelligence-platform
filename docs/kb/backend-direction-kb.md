@@ -144,8 +144,9 @@ state and fetches scores after the worker completes the job.
 Current limitation:
 
 - scoring is first-pass and conservative;
-- enrichment uses uploaded source-row fields only;
-- no external enrichment provider or final underwriting model exists yet.
+- enrichment now includes uploaded source-row inference plus an opt-in Census
+  Geocoder adapter for address normalization/location context;
+- no broad external provider coverage or final underwriting model exists yet.
 
 ## Enrichment Implementation
 
@@ -157,6 +158,7 @@ Current implementation:
 - enrichment adapter interface;
 - enrichment service;
 - `source_field_inference` adapter;
+- `census_geocoder` external adapter, disabled unless configured;
 - enrichment result persisted on scored records;
 - worker scoring path applies normalization, enrichment, then scoring;
 - adapter failure handling records safe enrichment metadata and keeps scoring
@@ -168,10 +170,12 @@ Current adapter capabilities:
   address from alternate uploaded headers;
 - derive value from land plus improvement components when both are available;
 - compute data-quality score for mapped fields.
+- call the U.S. Census Geocoder for bounded, opt-in address normalization and
+  location context when a normalized address is available.
 
 Current limitation:
 
-- no third-party geocoding;
+- no provider sprawl or paid-service dependency;
 - no external valuation provider;
 - no ML/AI enrichment;
 - no county-specific live integration.

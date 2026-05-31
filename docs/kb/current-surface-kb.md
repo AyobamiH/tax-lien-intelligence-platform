@@ -23,6 +23,8 @@ It shows:
   the selected dataset;
 - scored-results table;
 - scored-record enrichment/data-quality detail;
+- safe external enrichment detail when Census geocoding is enabled and a row
+  has usable address context;
 - row-level detail surface with flags and reasoning;
 - watchlist keep/remove actions for scored records;
 - dedicated watchlist comparison route using `#/watchlist`;
