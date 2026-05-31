@@ -22,6 +22,7 @@ It shows:
 - scoring job queued/running/completed/failed status while the worker processes
   the selected dataset;
 - scored-results table;
+- scored-record enrichment/data-quality detail;
 - row-level detail surface with flags and reasoning;
 - watchlist keep/remove actions for scored records;
 - dedicated watchlist comparison route using `#/watchlist`;
@@ -92,6 +93,7 @@ Real workflows now present:
 - background scoring status polling after a scoring run is requested;
 - scored-record table;
 - record-level flags and reasoning review.
+- enrichment and data-quality context for scored records.
 - add/remove watchlist actions;
 - watchlist shortlist comparison.
 - portfolio tracking and status updates.
@@ -130,6 +132,7 @@ The current API cannot:
 - persist user-owned parcel records outside scored-record outputs;
 - deliver alerts outside the app;
 - provide realtime worker status;
+- show external enrichment/provider verification;
 - manage collaboration or auction execution.
 
 ## Where The Current Surface Could Mislead Contributors

@@ -14,6 +14,7 @@ Implemented:
 - internal dataset source row persistence for uploaded CSV rows;
 - scored record Mongo model;
 - row normalization from common CSV column names;
+- enrichment service and source-field inference adapter;
 - authenticated `POST /datasets/:datasetId/score`;
 - authenticated `GET /datasets/:datasetId/scores`;
 - internal `dataset_scoring` job record created for score runs;
@@ -29,7 +30,7 @@ Implemented:
 Not implemented:
 
 - final institutional-grade underwriting;
-- external enrichment;
+- external enrichment providers;
 - ML or AI scoring;
 - county-specific adapters.
 
@@ -44,9 +45,11 @@ Not implemented:
    enqueues a `dataset_scoring` job.
 5. The worker claims the queued job and revalidates the dataset target.
 6. Each stored source row is normalized into scoreable fields.
-7. The pure scoring package produces a deterministic score result.
-8. The API persists scored records with `userId`, `datasetId`, normalized fields,
-   flags, reasoning, and timestamps.
+7. The enrichment service infers missing fields and data-quality context from
+   safe source-row aliases.
+8. The pure scoring package produces a deterministic score result.
+9. The API persists scored records with `userId`, `datasetId`, normalized fields,
+   enrichment metadata, flags, reasoning, and timestamps.
 
 ## Scoring Package Boundary
 
@@ -118,6 +121,23 @@ variants such as:
 Headers are not trusted as perfect county schemas. Unmapped fields produce
 warnings and conservative scoring behavior.
 
+## Enrichment Boundary
+
+Phase 11 adds enrichment after normalization and before scoring. The current
+adapter is `source_field_inference`, which uses uploaded source-row fields only.
+It can infer:
+
+- parcel identifiers from alternate aliases;
+- lien amounts from alternate tax/lien amount headers;
+- property value from total assessed/market value fields or land plus
+  improvement components;
+- property type from use/classification descriptions;
+- address from alternate or component address fields;
+- data-quality score for mapped core fields.
+
+Enrichment fills missing or unknown fields. It does not call external services,
+use ML/AI, or override clearly mapped source fields with speculative values.
+
 ## Persistence Boundary
 
 Datasets remain the upload/source container. Scored records are separate
@@ -127,6 +147,7 @@ server-derived documents with:
 - `datasetId`;
 - source row number;
 - normalized fields;
+- enrichment metadata;
 - scoring output;
 - `scoredAt`;
 - timestamps.

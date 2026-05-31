@@ -84,11 +84,41 @@ export interface NormalizedScoredRecordFields {
   address?: string;
 }
 
+export type EnrichmentAdapterId = "source_field_inference";
+export type EnrichmentConfidence = "low" | "medium" | "high";
+export type EnrichedFieldName = "parcelId" | "lienAmount" | "estimatedValue" | "propertyType" | "address" | "dataQuality";
+
+export interface EnrichedScoredRecordFields {
+  parcelId?: string;
+  lienAmount?: number;
+  estimatedValue?: number;
+  propertyType?: string;
+  propertyTypeCategory?: PropertyTypeCategory;
+  address?: string;
+}
+
+export interface EnrichmentSignal {
+  adapterId: EnrichmentAdapterId;
+  field: EnrichedFieldName;
+  confidence: EnrichmentConfidence;
+  message: string;
+}
+
+export interface EnrichmentResult {
+  adapters: EnrichmentAdapterId[];
+  dataQualityScore: number;
+  inferredFields: EnrichedScoredRecordFields;
+  signals: EnrichmentSignal[];
+  flags: string[];
+  reasoning: string[];
+}
+
 export interface ScoredRecordResponse {
   id: string;
   datasetId: string;
   sourceRowNumber: number;
   normalizedFields: NormalizedScoredRecordFields;
+  enrichment?: EnrichmentResult;
   investmentScore: number;
   riskScore: number;
   liquidityScore: number;

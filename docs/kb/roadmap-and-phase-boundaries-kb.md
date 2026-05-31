@@ -178,7 +178,8 @@ Security/trust focus:
 Current limitation:
 
 - the scoring model is rule-based and conservative, not final underwriting;
-- no external enrichment or county-specific adapter exists yet.
+- internal source-row enrichment now exists, but no external enrichment or
+  county-specific adapter exists yet.
 
 ## Phase 5: Scored Results Frontend Review Surface
 
@@ -346,6 +347,34 @@ Phase 10 does not include:
 - collaboration;
 - live auction execution.
 
+## Phase 11: Enrichment Adapter Foundation
+
+Current status: implemented as internal source-data enrichment, not external
+provider enrichment.
+
+Phase 11 includes:
+
+- enrichment service and adapter interface;
+- `source_field_inference` adapter;
+- inferred parcel id, lien amount, estimated value, property type, address, and
+  data-quality context from uploaded fields;
+- persisted enrichment metadata on scored records;
+- enrichment-aware worker scoring path;
+- frontend enrichment visibility in scored record detail;
+- tests for enrichment behavior, weak data, safe adapter failure, and scoring
+  improvement;
+- docs.
+
+Phase 11 does not include:
+
+- third-party geocoding;
+- external valuation providers;
+- county live integrations;
+- ML/AI enrichment;
+- scheduled enrichment passes;
+- collaboration;
+- auction execution.
+
 ## Later Phases
 
 Later phases may include:
@@ -353,7 +382,8 @@ Later phases may include:
 - notes and decision history;
 - richer filtering;
 - import templates;
-- enrichment;
+- richer enrichment adapters;
+- external enrichment provider hardening;
 - external alert delivery;
 - scheduled ingestion;
 - external worker deployment hardening;
@@ -377,7 +407,8 @@ Dependency order matters:
 8. internal job plumbing;
 9. alerts and monitoring foundation;
 10. background worker and scheduler groundwork;
-11. automation.
+11. enrichment adapter foundation;
+12. automation.
 
 Do not invert this order without an explicit architecture decision.
 

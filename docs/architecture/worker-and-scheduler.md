@@ -7,7 +7,7 @@ It moves dataset scoring from request-time execution to a worker-claimed job
 path while keeping automation deliberately narrow.
 
 This is groundwork. It is not an external automation product, distributed queue,
-cron platform, enrichment adapter, email/SMS delivery system, ML system,
+cron platform, external enrichment system, email/SMS delivery system, ML system,
 collaboration workflow, or auction execution layer.
 
 ## Current Implementation
@@ -21,6 +21,7 @@ Implemented:
 - `dataset_scoring` execution in the worker path;
 - safe completion/failure recording through the internal job service;
 - existing scoring completion/failure alerts preserved;
+- Phase 11 enrichment runs inside the scoring job before score generation;
 - frontend score status polling after the scoring trigger returns a queued job;
 - unit tests for job claiming and scheduler behavior;
 - integration tests for worker-driven scoring success, failure, and stale
@@ -33,7 +34,7 @@ Not implemented:
 - durable retry policy;
 - worker fleet coordination;
 - email/SMS/realtime delivery;
-- enrichment adapters;
+- external enrichment providers;
 - ML/AI;
 - auction execution.
 
@@ -75,9 +76,10 @@ Flow:
 3. API returns `202` with queued job metadata;
 4. worker claims the job;
 5. worker validates the job target and ownership context;
-6. worker generates scored records from stored dataset source rows;
-7. worker marks the job completed or failed;
-8. alert service creates a safe in-app alert for the outcome.
+6. worker normalizes and enriches stored dataset source rows;
+7. worker generates scored records;
+8. worker marks the job completed or failed;
+9. alert service creates a safe in-app alert for the outcome.
 
 The client never sends trusted score values or job ownership fields.
 

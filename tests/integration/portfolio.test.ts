@@ -128,6 +128,7 @@ class InMemoryScoredRecordStore implements ScoredRecordStore {
         datasetId,
         sourceRowNumber: record.sourceRowNumber,
         normalizedFields: record.normalizedFields,
+        enrichment: record.enrichment,
         score: record.score,
         scoredAt: record.scoredAt,
         createdAt: existing?.createdAt ?? now,

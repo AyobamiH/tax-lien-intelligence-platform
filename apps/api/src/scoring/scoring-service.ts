@@ -8,6 +8,7 @@ import type {
   ScoredRecordResponse,
 } from "@tax-lien/types";
 import type { DatasetStore, StoredDatasetSourceRow } from "../datasets/dataset-store.js";
+import { createDefaultEnrichmentService, type EnrichmentService } from "../enrichment/enrichment-service.js";
 import { ApiError } from "../errors/api-error.js";
 import type { StoredInternalJob } from "../jobs/internal-job-store.js";
 import type { InternalJobService } from "../jobs/internal-job-service.js";
@@ -18,15 +19,18 @@ export class ScoringService {
   private readonly datasetStore: DatasetStore;
   private readonly scoredRecordStore: ScoredRecordStore;
   private readonly internalJobService: InternalJobService;
+  private readonly enrichmentService: EnrichmentService;
 
   public constructor(
     datasetStore: DatasetStore,
     scoredRecordStore: ScoredRecordStore,
     internalJobService: InternalJobService,
+    enrichmentService: EnrichmentService = createDefaultEnrichmentService(),
   ) {
     this.datasetStore = datasetStore;
     this.scoredRecordStore = scoredRecordStore;
     this.internalJobService = internalJobService;
+    this.enrichmentService = enrichmentService;
   }
 
   public async scoreDataset(datasetId: string, userId: string): Promise<DatasetScoreJobResponse> {
@@ -80,20 +84,24 @@ export class ScoringService {
     const scoredAt = new Date();
     const records: CreateScoredRecordInput[] = sourceRows.map((sourceRow) => {
       const normalized = normalizeDatasetRow(sourceRow);
-      const score = scoreLienCandidate(normalized.scoreableRecord);
-      const flags = [...new Set([...score.flags, ...normalized.warnings])];
+      const enriched = this.enrichmentService.enrichRow(sourceRow, normalized);
+      const score = scoreLienCandidate(enriched.scoreableRecord);
+      const normalizationWarnings = filterResolvedNormalizationWarnings(normalized.warnings, enriched.normalizedFields);
+      const flags = [...new Set([...score.flags, ...normalizationWarnings, ...enriched.enrichment.flags])];
       const reasoning = [
         ...new Set([
           ...score.reasoning,
-          ...normalized.warnings.map((warning) => `Normalization warning: ${warning}`),
+          ...normalizationWarnings.map((warning) => `Normalization warning: ${warning}`),
+          ...enriched.enrichment.reasoning.map((reason) => `Enrichment note: ${reason}`),
         ]),
       ];
 
       return {
         userId,
         datasetId,
-        sourceRowNumber: normalized.sourceRowNumber,
-        normalizedFields: normalized.normalizedFields,
+        sourceRowNumber: enriched.sourceRowNumber,
+        normalizedFields: enriched.normalizedFields,
+        enrichment: enriched.enrichment,
         score: {
           ...score,
           flags,
@@ -132,6 +140,7 @@ export function toScoredRecordResponse(record: StoredScoredRecord): ScoredRecord
     datasetId: record.datasetId,
     sourceRowNumber: record.sourceRowNumber,
     normalizedFields: record.normalizedFields,
+    ...(record.enrichment ? { enrichment: record.enrichment } : {}),
     investmentScore: record.score.investmentScore,
     riskScore: record.score.riskScore,
     liquidityScore: record.score.liquidityScore,
@@ -144,4 +153,29 @@ export function toScoredRecordResponse(record: StoredScoredRecord): ScoredRecord
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };
+}
+
+function filterResolvedNormalizationWarnings(
+  warnings: string[],
+  normalizedFields: ReturnType<typeof normalizeDatasetRow>["normalizedFields"],
+): string[] {
+  return warnings.filter((warning) => {
+    if (warning === "No parcel identifier column could be mapped.") {
+      return !normalizedFields.parcelId;
+    }
+
+    if (warning === "No positive lien amount could be mapped.") {
+      return normalizedFields.lienAmount === undefined;
+    }
+
+    if (warning === "No positive property value could be mapped.") {
+      return normalizedFields.estimatedValue === undefined;
+    }
+
+    if (warning === "No property type could be mapped.") {
+      return !normalizedFields.propertyType;
+    }
+
+    return true;
+  });
 }

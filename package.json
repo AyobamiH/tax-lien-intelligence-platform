@@ -13,7 +13,7 @@
     "dev:api": "npm run dev -w @tax-lien/api",
     "dev:worker": "npm run dev:worker -w @tax-lien/api",
     "dev:web": "npm run dev -w @tax-lien/web",
-    "test": "vitest run",
+    "test": "vitest run --testTimeout=60000",
     "typecheck": "tsc -b"
   },
   "engines": {

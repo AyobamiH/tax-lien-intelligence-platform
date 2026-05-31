@@ -2021,7 +2021,34 @@ function ScoreDetail({
         <DetailTerm label="Value" value={formatMoney(score.normalizedFields.estimatedValue)} />
         <DetailTerm label="Coverage" value={formatRatio(score.valueCoverageRatio)} />
         <DetailTerm label="Type" value={score.normalizedFields.propertyTypeCategory} />
+        {score.enrichment ? <DetailTerm label="Data quality" value={`${score.enrichment.dataQualityScore}/100`} /> : null}
       </dl>
+      {score.enrichment && (score.enrichment.signals.length > 0 || score.enrichment.reasoning.length > 0) ? (
+        <section className="mt-5">
+          <h4 className="text-sm font-semibold">Enrichment</h4>
+          {score.enrichment.signals.length > 0 ? (
+            <ul className="mt-2 space-y-2">
+              {score.enrichment.signals.map((signal) => (
+                <li
+                  key={`${signal.field}-${signal.message}`}
+                  className="border border-line bg-field px-3 py-2 text-sm leading-6 text-ink/80"
+                >
+                  <span className="font-semibold">{signal.field}</span>: {signal.message}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {score.enrichment.reasoning.length > 0 ? (
+            <ol className="mt-2 space-y-2">
+              {score.enrichment.reasoning.map((reason) => (
+                <li key={reason} className="border border-line bg-white px-3 py-2 text-sm leading-6 text-ink/75">
+                  {reason}
+                </li>
+              ))}
+            </ol>
+          ) : null}
+        </section>
+      ) : null}
       <section className="mt-5">
         <h4 className="text-sm font-semibold">Flags</h4>
         {score.flags.length === 0 ? (

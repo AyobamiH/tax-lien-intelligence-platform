@@ -23,12 +23,14 @@ Current implementation:
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
 - in-app alert records exist for scoring job completion/failure;
+- first internal enrichment adapter exists for uploaded source-row inference;
 - no portfolio automation or external monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
 scoring foundation, manual review surface, watchlist shortlist, portfolio
 status tracking, automation-ready internal job records, in-app alerts, and a
-minimal worker/scheduler execution boundary. Product automation is still
+minimal worker/scheduler execution boundary. It also has a first internal
+enrichment adapter for source-row inference. Product automation is still
 intentionally absent.
 
 ## Why Automation Is Part Of The SaaS
@@ -76,7 +78,8 @@ Manual-first sequence:
 9. internal job plumbing;
 10. in-app alert visibility;
 11. worker execution boundary;
-12. then automation.
+12. enrichment foundation;
+13. then automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -92,7 +95,15 @@ Future ingestion automation may include:
 
 It should not begin before CSV upload and validation are solid.
 
-## Enrichment Automation
+## Enrichment Foundation
+
+Current enrichment:
+
+- runs inside worker-driven dataset scoring;
+- uses uploaded source-row data only;
+- infers missing core fields from alternate headers;
+- persists safe enrichment metadata on scored records;
+- improves scoring confidence when uploaded data is inconsistent.
 
 Future enrichment may include:
 
@@ -176,11 +187,12 @@ Now:
 - in-app alerts for scoring job outcomes.
 - worker-driven execution for queued scoring jobs.
 - minimal scheduler foundation for local task polling.
+- source-row enrichment before scoring.
 
 Later:
 
 - scheduled ingestion;
-- enrichment;
+- external enrichment providers;
 - external alert delivery;
 - external worker orchestration;
 - portfolio automation;

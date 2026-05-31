@@ -62,6 +62,7 @@ records the current implementation state:
 - Dataset API exists.
 - Scoring API exists.
 - Internal job API exists.
+- enrichment adapter foundation exists.
 - frontend scored-results review surface exists.
 - watchlist API and review surface exist.
 - portfolio API and status tracking surface exist.
@@ -69,6 +70,7 @@ records the current implementation state:
 - user model exists.
 - dataset model exists.
 - scored-record model exists.
+- scored records can include safe enrichment metadata.
 - internal job model exists.
 - watchlist item model exists.
 - portfolio item model exists.

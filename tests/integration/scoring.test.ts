@@ -112,6 +112,7 @@ class InMemoryScoredRecordStore implements ScoredRecordStore {
       datasetId,
       sourceRowNumber: record.sourceRowNumber,
       normalizedFields: record.normalizedFields,
+      enrichment: record.enrichment,
       score: record.score,
       scoredAt: record.scoredAt,
       createdAt: now,
@@ -397,6 +398,57 @@ describe("dataset scoring API", () => {
     expect(score.flags).toContain("Missing or invalid lien amount");
     expect(score.flags).toContain("Missing or invalid property value");
     expect(score.reasoning.join(" ")).toContain("Normalization warning");
+  });
+
+  it("uses enrichment to improve scoring from alternate source fields", async () => {
+    const { app, workerProcessor } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      [
+        "parcel_id,tax_due,total_assessed_value,use_description,situs_street,situs_city,situs_state,situs_zip",
+        "A-900,1000,12000,Single family residence,10 Main St,Austin,TX,78701",
+      ].join("\n"),
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+
+    const scoresResponse = await request(app)
+      .get(`/datasets/${datasetId}/scores`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    const score = scoresResponse.body.scores[0];
+    expect(score.normalizedFields).toMatchObject({
+      parcelId: "A-900",
+      lienAmount: 1000,
+      estimatedValue: 12000,
+      propertyType: "Single family residence",
+      propertyTypeCategory: "residential",
+      address: "10 Main St Austin, TX 78701",
+    });
+    expect(score.enrichment).toMatchObject({
+      adapters: ["source_field_inference"],
+      dataQualityScore: 100,
+      inferredFields: {
+        lienAmount: 1000,
+        estimatedValue: 12000,
+        propertyType: "Single family residence",
+        propertyTypeCategory: "residential",
+      },
+    });
+    expect(score.enrichment.signals.map((signal: { field: string }) => signal.field)).toEqual(
+      expect.arrayContaining(["lienAmount", "estimatedValue", "propertyType", "address", "dataQuality"]),
+    );
+    expect(score.investmentScore).toBeGreaterThanOrEqual(70);
+    expect(score.flags).not.toContain("Missing or invalid lien amount");
+    expect(score.flags).not.toContain("Missing or invalid property value");
+    expect(score.reasoning.join(" ")).toContain("Enrichment note");
   });
 
   it("rejects invalid dataset ids safely", async () => {

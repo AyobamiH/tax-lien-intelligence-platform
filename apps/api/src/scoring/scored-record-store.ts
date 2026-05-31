@@ -1,7 +1,7 @@
 import type { ScoredRecordDocument } from "@tax-lien/db";
 import { ScoredRecordModel } from "@tax-lien/db";
 import type { ScoringResult } from "@tax-lien/scoring";
-import type { NormalizedScoredRecordFields } from "@tax-lien/types";
+import type { EnrichmentResult, NormalizedScoredRecordFields } from "@tax-lien/types";
 
 export interface StoredScoredRecord {
   id: string;
@@ -9,6 +9,7 @@ export interface StoredScoredRecord {
   datasetId: string;
   sourceRowNumber: number;
   normalizedFields: NormalizedScoredRecordFields;
+  enrichment?: EnrichmentResult;
   score: ScoringResult;
   scoredAt: Date;
   createdAt: Date;
@@ -20,6 +21,7 @@ export interface CreateScoredRecordInput {
   datasetId: string;
   sourceRowNumber: number;
   normalizedFields: NormalizedScoredRecordFields;
+  enrichment: EnrichmentResult;
   score: ScoringResult;
   scoredAt: Date;
 }
@@ -63,6 +65,7 @@ export class MongoScoredRecordStore implements ScoredRecordStore {
           update: {
             $set: {
               normalizedFields: record.normalizedFields,
+              enrichment: record.enrichment,
               score: record.score,
               scoredAt: record.scoredAt,
             },
@@ -109,6 +112,7 @@ function mapScoredRecord(document: ScoredRecordDocument): StoredScoredRecord {
       ...(document.normalizedFields.propertyType ? { propertyType: document.normalizedFields.propertyType } : {}),
       ...(document.normalizedFields.address ? { address: document.normalizedFields.address } : {}),
     },
+    ...(document.enrichment ? { enrichment: mapEnrichmentResult(document.enrichment) } : {}),
     score: {
       investmentScore: document.score.investmentScore,
       riskScore: document.score.riskScore,
@@ -122,5 +126,32 @@ function mapScoredRecord(document: ScoredRecordDocument): StoredScoredRecord {
     scoredAt: document.scoredAt,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
+  };
+}
+
+function mapEnrichmentResult(enrichment: NonNullable<ScoredRecordDocument["enrichment"]>): EnrichmentResult {
+  return {
+    adapters: enrichment.adapters,
+    dataQualityScore: enrichment.dataQualityScore,
+    inferredFields: {
+      ...(enrichment.inferredFields.parcelId ? { parcelId: enrichment.inferredFields.parcelId } : {}),
+      ...(enrichment.inferredFields.lienAmount !== undefined ? { lienAmount: enrichment.inferredFields.lienAmount } : {}),
+      ...(enrichment.inferredFields.estimatedValue !== undefined
+        ? { estimatedValue: enrichment.inferredFields.estimatedValue }
+        : {}),
+      ...(enrichment.inferredFields.propertyType ? { propertyType: enrichment.inferredFields.propertyType } : {}),
+      ...(enrichment.inferredFields.propertyTypeCategory
+        ? { propertyTypeCategory: enrichment.inferredFields.propertyTypeCategory }
+        : {}),
+      ...(enrichment.inferredFields.address ? { address: enrichment.inferredFields.address } : {}),
+    },
+    signals: enrichment.signals.map((signal) => ({
+      adapterId: signal.adapterId,
+      field: signal.field,
+      confidence: signal.confidence,
+      message: signal.message,
+    })),
+    flags: enrichment.flags,
+    reasoning: enrichment.reasoning,
   };
 }

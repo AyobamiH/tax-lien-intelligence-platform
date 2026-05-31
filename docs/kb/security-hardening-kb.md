@@ -74,6 +74,8 @@ Current repo protections:
 - worker-side queued job claiming for supported job types;
 - worker-driven dataset scoring execution;
 - minimal scheduler module for local job polling;
+- internal source-row enrichment before scoring;
+- persisted safe enrichment metadata on scored records;
 - safe job summary and error metadata;
 - cross-user job rejection tests;
 - tenant-owned alert records;
@@ -112,6 +114,7 @@ Deferred because the corresponding systems do not exist yet:
 - per-user rate limits;
 - external worker fleet/job security;
 - external queue execution hardening;
+- external enrichment provider security;
 - admin security;
 - richer scoring audit trail;
 - external alert delivery;
@@ -421,6 +424,24 @@ The current frontend displays server-derived flags and reasoning for the
 signed-in user's scored records. It must not add client-derived score claims or
 display another tenant's data through cache/state reuse.
 
+### Enrichment
+
+Current enrichment uses uploaded source-row data only and runs inside the
+trusted worker scoring path. It may infer missing fields and data-quality
+context, but it is not external verification.
+
+Enrichment output must stay safe:
+
+- no raw full source rows in browser responses;
+- no raw adapter exceptions;
+- no third-party provider payloads;
+- no secrets;
+- no cross-user enrichment leakage.
+
+Future external enrichment providers will require timeout controls, provider
+secret handling, tenant-safe logs, retry policy, and clear source/confidence
+labels before launch.
+
 ### Watchlists
 
 Watchlists now verify ownership of referenced scored records before a user can
@@ -505,6 +526,7 @@ Security drift risks:
 - logging uploaded data or tokens;
 - allowing frontend-only access control;
 - adding external automation before external job and worker security exists;
+- adding external enrichment providers before provider security exists;
 - turning alerts into raw diagnostic payloads;
 - treating public source data as non-sensitive after user enrichment;
 - skipping cross-user tests.

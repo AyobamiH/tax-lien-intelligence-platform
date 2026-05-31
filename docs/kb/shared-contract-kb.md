@@ -28,6 +28,12 @@ Current shared types in `packages/types`:
 - `DatasetDetailResponse`.
 - `PropertyTypeCategory`;
 - `NormalizedScoredRecordFields`;
+- `EnrichmentAdapterId`;
+- `EnrichmentConfidence`;
+- `EnrichedFieldName`;
+- `EnrichedScoredRecordFields`;
+- `EnrichmentSignal`;
+- `EnrichmentResult`;
 - `ScoredRecordResponse`;
 - `InternalJobStatus`;
 - `InternalJobType`;
@@ -190,6 +196,7 @@ Current score contracts include:
 - optional `valueCoverageRatio`;
 - `flags`;
 - `reasoning`;
+- optional `enrichment`;
 - normalized source fields;
 - source row number;
 - timestamps.
@@ -213,6 +220,25 @@ The Phase 5 frontend review surface imports these shared response types and
 does not define a separate browser-only score contract.
 
 The contract represents first-pass explainable scoring, not final underwriting.
+
+## Enrichment Object Contract
+
+Current enrichment contracts include:
+
+- adapter ids;
+- data quality score;
+- inferred field snapshot;
+- signals with field, confidence, and safe message;
+- safe flags;
+- safe reasoning.
+
+Current adapter id:
+
+- `source_field_inference`.
+
+The frontend may display enrichment context, but it must not treat enrichment as
+external verification or final truth. Enrichment responses must not expose raw
+source rows, stack traces, provider payloads, or secrets.
 
 ## Internal Job Contract
 
@@ -344,6 +370,8 @@ possible or explicitly versioned.
 - Do not add client-supplied `userId` to create/update DTOs for user-owned data.
 - Do not represent scoring as a single number once explainable scoring exists.
 - Do not treat alert metadata as a raw logging or diagnostic payload.
+- Do not let enrichment contracts imply external verification when enrichment is
+  only internal source-row inference.
 
 ## Security Contract Rules
 

@@ -18,6 +18,8 @@ Current implementation:
 - user model exists for authentication;
 - dataset model exists for authenticated manual CSV uploads;
 - scored-record model exists for first-pass scoring outputs;
+- enrichment metadata exists on scored records for internal source-row
+  inference;
 - internal job model exists for user-owned execution metadata;
 - alert model exists for user-owned workflow monitoring events;
 - watchlist item model exists for user-owned scored-record shortlists;
@@ -35,7 +37,8 @@ Current documentation direction:
 - every query must enforce user ownership;
 - authentication exists and provides the user identity boundary;
 - dataset upload now uses auth and tenant ownership;
-- first-pass scoring uses lightweight normalization and remains conservative.
+- first-pass scoring uses lightweight normalization plus internal enrichment and
+  remains conservative.
 
 ## Core Domain Concepts
 
@@ -67,6 +70,16 @@ Current status: implemented as a first-pass, rule-based scored-record model and
 scoring package. It includes investment, risk, liquidity, redemption,
 confidence, flags, and reasoning. Phase 5 now makes those results visible in
 the browser for the signed-in user. It is not final institutional underwriting.
+
+### Enrichment
+
+Enrichment is a server-side processing layer between normalization and scoring.
+It uses uploaded source-row fields to infer missing or weak normalized fields and
+data-quality context.
+
+Current status: implemented as `source_field_inference` for uploaded-row
+aliases and component fields. It does not use external providers, geocoding,
+ML/AI, or county live integrations.
 
 ### Watchlist
 
@@ -117,6 +130,7 @@ User-owned data includes or will include:
 - uploaded datasets;
 - parcel/lien records;
 - score outputs;
+- enrichment metadata;
 - watchlist entries;
 - portfolio records;
 - internal job records;
@@ -140,6 +154,7 @@ Tenant isolation protects:
 - dataset metadata;
 - normalized records;
 - scores;
+- enrichment context;
 - reasoning;
 - watchlists;
 - decisions;

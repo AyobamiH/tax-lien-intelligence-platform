@@ -43,6 +43,12 @@ export {
 } from "./models/portfolio-item.js";
 export {
   ScoredRecordModel,
+  type EnrichedFieldNameRecord,
+  type EnrichedScoredRecordFieldsRecord,
+  type EnrichmentAdapterIdRecord,
+  type EnrichmentConfidenceRecord,
+  type EnrichmentResultRecord,
+  type EnrichmentSignalRecord,
   type NormalizedScoredRecordFieldsRecord,
   type PropertyTypeCategoryRecord,
   type ScoredRecordDocument,

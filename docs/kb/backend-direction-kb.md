@@ -32,6 +32,7 @@ Current implementation:
 - internal dataset source rows for scoring;
 - scored-record model;
 - internal job model;
+- enrichment service and source-field inference adapter;
 - deterministic scoring package integration;
 - authenticated score run and score retrieval routes;
 - score runs routed through queued internal jobs and the worker execution path;
@@ -128,9 +129,9 @@ The backend now calls the pure scoring package rather than embedding scoring
 logic directly in route handlers.
 
 The scoring package is deterministic and independently tested. The API persists
-score outputs with reasoning and flags in tenant-owned scored records. Scoring
-runs now execute through a persisted internal `dataset_scoring` job that is
-claimed and processed by the worker.
+score outputs with reasoning, flags, and safe enrichment metadata in
+tenant-owned scored records. Scoring runs now execute through a persisted
+internal `dataset_scoring` job that is claimed and processed by the worker.
 
 Current scoring API:
 
@@ -143,8 +144,37 @@ state and fetches scores after the worker completes the job.
 Current limitation:
 
 - scoring is first-pass and conservative;
-- normalization maps common headers only;
-- no external enrichment or final underwriting model exists yet.
+- enrichment uses uploaded source-row fields only;
+- no external enrichment provider or final underwriting model exists yet.
+
+## Enrichment Implementation
+
+The enrichment foundation now exists as a backend-only source-row processing
+layer between normalization and scoring.
+
+Current implementation:
+
+- enrichment adapter interface;
+- enrichment service;
+- `source_field_inference` adapter;
+- enrichment result persisted on scored records;
+- worker scoring path applies normalization, enrichment, then scoring;
+- adapter failure handling records safe enrichment metadata and keeps scoring
+  conservative.
+
+Current adapter capabilities:
+
+- infer missing parcel id, lien amount, estimated value, property type, and
+  address from alternate uploaded headers;
+- derive value from land plus improvement components when both are available;
+- compute data-quality score for mapped fields.
+
+Current limitation:
+
+- no third-party geocoding;
+- no external valuation provider;
+- no ML/AI enrichment;
+- no county-specific live integration.
 
 ## Watchlist Implementation
 
@@ -324,7 +354,8 @@ Backend implementation order should stay disciplined:
 8. automation-ready internal job plumbing: implemented in Phase 8;
 9. alerts and monitoring foundation: implemented in Phase 9;
 10. background worker and scheduler groundwork: implemented in Phase 10;
-11. later external automation.
+11. enrichment adapter foundation: implemented in Phase 11;
+12. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

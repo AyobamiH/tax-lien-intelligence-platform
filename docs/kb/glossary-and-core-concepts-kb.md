@@ -67,8 +67,14 @@ data.
 
 ## Enrichment
 
-Future process of adding context to source records from additional data sources
-or derived heuristics.
+The process of adding safe derived context to source records before scoring.
+Current enrichment is internal source-row inference from uploaded fields only.
+External provider enrichment is future work.
+
+## Enrichment Adapter
+
+A backend extension point that derives safe enrichment output from a normalized
+source row. Current adapter: `source_field_inference`.
 
 ## Scoring Package
 

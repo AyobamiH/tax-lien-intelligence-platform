@@ -70,7 +70,19 @@ export function assessPropertyType(propertyType: string | undefined): PropertyTy
     };
   }
 
-  if (containsAny(normalized, ["single family", "single-family", "residential", "sfr", "home", "house"])) {
+  if (
+    containsAny(normalized, [
+      "single family",
+      "single-family",
+      "residential",
+      "residence",
+      "sfr",
+      "home",
+      "house",
+      "condo",
+      "townhouse",
+    ])
+  ) {
     return {
       category: "residential",
       score: 88,

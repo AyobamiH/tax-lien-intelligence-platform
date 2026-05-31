@@ -79,6 +79,9 @@ Implemented today:
 - tenant-owned alert model in `packages/db`;
 - pure explainable scoring engine in `packages/scoring`;
 - dataset row normalization for common parcel/lien CSV headers;
+- enrichment service and adapter boundary in `apps/api/src/enrichment`;
+- `source_field_inference` adapter for uploaded-row enrichment;
+- persisted enrichment metadata on scored records;
 - authenticated scoring endpoints at `POST /datasets/:datasetId/score` and
   `GET /datasets/:datasetId/scores`;
 - dataset scoring routed through a persisted `dataset_scoring` job;
@@ -93,10 +96,12 @@ Implemented today:
   `PATCH /alerts/:alertId/read`, and `PATCH /alerts/read-all`;
 - alert ownership tests;
 - scored-record ownership tests;
+- enrichment adapter and enrichment-aware scoring tests;
 - frontend login/register review surface;
 - authenticated dataset list/detail review UI;
 - frontend score triggering;
 - scored-results table with flags and reasoning detail;
+- frontend record detail enrichment/data-quality visibility;
 - tenant-owned watchlist item model in `packages/db`;
 - authenticated watchlist endpoints at `POST /watchlist`, `GET /watchlist`,
   and `DELETE /watchlist/:watchlistItemId`;
@@ -137,6 +142,7 @@ Placeholders today:
 - `scripts/ingestion` has only a README.
 - The frontend has no dataset upload UI yet even though dataset APIs exist.
 - Full county-specific parcel/lien normalization does not exist yet.
+- External enrichment providers do not exist yet.
 
 ## Current Limitations
 
@@ -215,7 +221,8 @@ Tests do not yet cover:
 
 - cross-user resource isolation for future parcel records;
 - final underwriting model;
-- security boundaries.
+- security boundaries;
+- external enrichment provider behavior.
 
 ## What Must Not Be Assumed Yet
 
