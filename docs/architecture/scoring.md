@@ -12,6 +12,8 @@ Implemented:
 - modular scoring functions for value coverage, property type, access,
   liquidity, redemption probability, and final score composition;
 - internal dataset source row persistence for uploaded CSV rows;
+- county import adapter boundary with one Maricopa-style CSV adapter and generic
+  fallback;
 - scored record Mongo model;
 - row normalization from common CSV column names;
 - enrichment service and source-field inference adapter;
@@ -38,23 +40,26 @@ Not implemented:
 - final institutional-grade underwriting;
 - broad external enrichment provider coverage;
 - ML or AI scoring;
-- county-specific adapters.
+- broad county-specific adapter coverage.
 
 ## Data Flow
 
 1. The user uploads a CSV through the Phase 3 dataset endpoint.
-2. The parser validates the CSV and stores sanitized source rows internally on
-   the dataset record.
-3. The public dataset response still returns only metadata and validation
-   summary.
-4. The scoring or refresh route verifies the dataset belongs to the
+2. The parser validates the CSV.
+3. The county import adapter boundary may add canonical internal fields when the
+   Maricopa-style adapter matches, or use generic CSV fallback.
+4. The dataset service stores sanitized source rows internally on the dataset
+   record.
+5. The public dataset response returns metadata, validation summary, and safe
+   import summary metadata.
+6. The scoring or refresh route verifies the dataset belongs to the
    authenticated user and enqueues a `dataset_scoring` job.
-5. The worker claims the queued job and revalidates the dataset target.
-6. Each stored source row is normalized into scoreable fields.
-7. The enrichment service infers missing fields and data-quality context from
+7. The worker claims the queued job and revalidates the dataset target.
+8. Each stored source row is normalized into scoreable fields.
+9. The enrichment service infers missing fields and data-quality context from
    safe source-row aliases.
-8. The pure scoring package produces a deterministic score result.
-9. The API persists scored records with `userId`, `datasetId`, normalized fields,
+10. The pure scoring package produces a deterministic score result.
+11. The API persists scored records with `userId`, `datasetId`, normalized fields,
    enrichment metadata, flags, reasoning, and timestamps.
 
 ## Scoring Package Boundary
@@ -200,7 +205,7 @@ Remaining hardening:
 - retry/idempotency design before automatic reruns;
 - audit trail for scoring runs;
 - external alert delivery security if scoring alerts leave the app;
-- stronger row-level validation once county adapters exist.
+- stronger row-level validation before broad county adapter coverage expands.
 
 ## Drift Risks
 

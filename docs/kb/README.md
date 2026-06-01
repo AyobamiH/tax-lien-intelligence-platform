@@ -60,6 +60,7 @@ records the current implementation state:
 - API health endpoint exists.
 - Auth API exists.
 - Dataset API exists.
+- Dataset import summary metadata exists.
 - Scoring API exists.
 - Internal job API exists.
 - enrichment adapter foundation exists, including one opt-in external Census
@@ -74,6 +75,8 @@ records the current implementation state:
 - Mongo connection package exists.
 - user model exists.
 - dataset model exists.
+- county import adapter boundary exists with one Maricopa-style CSV adapter and
+  generic fallback.
 - scored-record model exists.
 - scored records can include safe enrichment metadata.
 - internal job model exists.
@@ -82,6 +85,7 @@ records the current implementation state:
 - shared types exist.
 - scoring package is a real first-pass deterministic engine.
 - full parcel models, browser upload, user-facing scheduler controls, and broad
+  county coverage, live county sync, user-facing scheduler controls, and broad
   external automation are not implemented yet.
 
 Do not use the legacy personal mirror as product truth. The primary startup
@@ -98,7 +102,7 @@ The current repo has baseline controls such as strict TypeScript, environment
 validation, Helmet, a JSON body limit, ignored local env files, quality gates,
 password hashing, JWT auth, auth middleware, safe auth error handling,
 tenant-owned dataset records, upload size limits, CSV validation, and
-authenticated score review. It now also has tenant-owned watchlist items and
+safe import summary metadata. It now also has tenant-owned watchlist items and
 cross-user watchlist tests. It now also has tenant-owned portfolio items and
 cross-user portfolio tests. It now has tenant-owned internal job records for
 scoring, controlled refresh/reprocessing, scheduled maintenance policy gates,

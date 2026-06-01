@@ -19,6 +19,10 @@ export {
 export {
   DatasetModel,
   type DatasetDocument,
+  type DatasetImportAdapterIdRecord,
+  type DatasetImportConfidenceRecord,
+  type DatasetImportSourceRecord,
+  type DatasetImportSummaryRecord,
   type DatasetRecord,
   type DatasetSourceRowRecord,
   type DatasetSourceType,

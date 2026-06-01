@@ -2,6 +2,9 @@ import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 
 export type DatasetStatus = "validated";
 export type DatasetSourceType = "manual_csv";
+export type DatasetImportAdapterIdRecord = "generic_csv" | "maricopa_tax_lien_v1";
+export type DatasetImportSourceRecord = "generic_csv" | "county_adapter";
+export type DatasetImportConfidenceRecord = "low" | "medium" | "high";
 
 export interface DatasetValidationSummaryRecord {
   totalRows: number;
@@ -16,6 +19,17 @@ export interface DatasetSourceRowRecord {
   fields: Record<string, string>;
 }
 
+export interface DatasetImportSummaryRecord {
+  adapterMatched: boolean;
+  adapterId: DatasetImportAdapterIdRecord;
+  adapterName: string;
+  source: DatasetImportSourceRecord;
+  confidence: DatasetImportConfidenceRecord;
+  fallbackUsed: boolean;
+  mappedFields: string[];
+  warnings: string[];
+}
+
 export interface DatasetRecord {
   userId: string;
   originalFilename: string;
@@ -27,6 +41,7 @@ export interface DatasetRecord {
   headers: string[];
   sourceRows: DatasetSourceRowRecord[];
   validationSummary: DatasetValidationSummaryRecord;
+  importSummary?: DatasetImportSummaryRecord;
   uploadedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -57,6 +72,40 @@ const datasetSourceRowSchema = new Schema<DatasetSourceRowRecord>(
       required: true,
       default: {},
     },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
+const datasetImportSummarySchema = new Schema<DatasetImportSummaryRecord>(
+  {
+    adapterMatched: { type: Boolean, required: true },
+    adapterId: {
+      type: String,
+      enum: ["generic_csv", "maricopa_tax_lien_v1"],
+      required: true,
+    },
+    adapterName: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 120,
+    },
+    source: {
+      type: String,
+      enum: ["generic_csv", "county_adapter"],
+      required: true,
+    },
+    confidence: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      required: true,
+    },
+    fallbackUsed: { type: Boolean, required: true },
+    mappedFields: { type: [String], required: true, default: [] },
+    warnings: { type: [String], required: true, default: [] },
   },
   {
     _id: false,
@@ -116,6 +165,9 @@ const datasetSchema = new Schema<DatasetRecord>(
     validationSummary: {
       type: datasetValidationSummarySchema,
       required: true,
+    },
+    importSummary: {
+      type: datasetImportSummarySchema,
     },
     uploadedAt: {
       type: Date,

@@ -60,6 +60,7 @@ class InMemoryDatasetStore implements DatasetStore {
       headers: input.headers,
       sourceRows: input.sourceRows,
       validationSummary: input.validationSummary,
+      ...(input.importSummary ? { importSummary: input.importSummary } : {}),
       uploadedAt: input.uploadedAt,
       createdAt: now,
       updatedAt: now,
@@ -118,6 +119,16 @@ function validCsv(): Buffer {
   return Buffer.from("parcel_id,lien_amount,estimated_value\nA-100,1000,10000\nA-101,500,9000\n", "utf8");
 }
 
+function maricopaCsv(): Buffer {
+  return Buffer.from(
+    [
+      "APN,Total Due,Full Cash Value,Property Use Description,Situs Street,Situs City,Situs State,Situs Zip",
+      "123-45-678,$1250,$85000,Single Family Residence,100 Main St,Phoenix,AZ,85001",
+    ].join("\n"),
+    "utf8",
+  );
+}
+
 describe("dataset API", () => {
   it("uploads and validates a CSV dataset for an authenticated user", async () => {
     const { app } = createTestContext();
@@ -147,9 +158,45 @@ describe("dataset API", () => {
           warnings: [],
           errors: [],
         },
+        importSummary: {
+          adapterMatched: false,
+          adapterId: "generic_csv",
+          adapterName: "Generic CSV normalization",
+          source: "generic_csv",
+          confidence: "low",
+          fallbackUsed: true,
+          mappedFields: [],
+          warnings: [],
+        },
       },
     });
     expect(JSON.stringify(response.body)).not.toContain("A-100");
+  });
+
+  it("detects a Maricopa-style dataset and returns safe import summary metadata", async () => {
+    const { app } = createTestContext();
+    const token = await registerUser(app, "owner@example.com");
+
+    const response = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", maricopaCsv(), { filename: "maricopa-tax-liens.csv", contentType: "text/csv" })
+      .expect(201);
+
+    expect(response.body.dataset).toMatchObject({
+      originalFilename: "maricopa-tax-liens.csv",
+      importSummary: {
+        adapterMatched: true,
+        adapterId: "maricopa_tax_lien_v1",
+        adapterName: "Maricopa-style tax lien CSV",
+        source: "county_adapter",
+        confidence: "high",
+        fallbackUsed: false,
+        mappedFields: ["parcel_id", "lien_amount", "estimated_value", "property_type", "address"],
+        warnings: [],
+      },
+    });
+    expect(JSON.stringify(response.body)).not.toContain("100 Main St");
   });
 
   it("rejects dataset upload without authentication", async () => {

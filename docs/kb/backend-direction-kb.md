@@ -29,6 +29,9 @@ Current implementation:
 - authenticated dataset upload/list/detail routes;
 - CSV upload handling;
 - CSV validation and dataset ownership enforcement;
+- county import adapter boundary for uploaded CSV rows;
+- first Maricopa-style tax lien CSV adapter with generic fallback;
+- safe import summary metadata on dataset responses;
 - internal dataset source rows for scoring;
 - scored-record model;
 - internal job model;
@@ -115,14 +118,18 @@ Current backend responsibilities:
 - validate file presence;
 - validate file type/size;
 - parse CSV safely;
+- apply the current county import adapter boundary when headers match explicit
+  evidence;
 - reject empty or malformed CSVs;
 - record validation summaries;
+- record safe import summaries;
 - avoid persistence on unsafe parse failures;
 - associate every stored dataset with `userId`.
 
 Future backend responsibilities:
 
 - normalize parcel/lien rows;
+- add tested county adapters behind the existing import adapter boundary;
 - validate required domain fields;
 - handle duplicate parcel identities;
 - persist row-level records safely.
@@ -153,7 +160,30 @@ Current limitation:
 - scoring is first-pass and conservative;
 - enrichment now includes uploaded source-row inference plus an opt-in Census
   Geocoder adapter for address normalization/location context;
+- county import now includes one Maricopa-style CSV adapter before generic
+  normalization and scoring;
 - no broad external provider coverage or final underwriting model exists yet.
+
+## County Import Adapter Implementation
+
+Phase 16 adds a dataset import adapter boundary after safe CSV parsing and
+before dataset persistence. The current adapter list is intentionally small:
+
+- `maricopa_tax_lien_v1` for Maricopa-style tax lien CSV headers;
+- `generic_csv` fallback for all other uploads.
+
+The adapter may add canonical internal fields such as `parcel_id`,
+`lien_amount`, `estimated_value`, `property_type`, and `address` to stored
+source rows when APN-style evidence and supporting headers are present. Dataset
+API responses expose only safe import summary metadata: adapter id/name,
+confidence, mapped fields, and warnings. They do not expose raw source rows.
+
+Current limitation:
+
+- no broad county adapter catalog;
+- no live county sync;
+- no scraping;
+- no ML/AI import classification.
 
 ## Enrichment Implementation
 
@@ -386,7 +416,8 @@ Backend implementation order should stay disciplined:
 12. controlled refresh/reprocessing workflow: implemented in Phase 14;
 13. scheduled maintenance and policy-driven auto-refresh foundation:
     implemented in Phase 15;
-14. later external automation.
+14. county import adapter foundation: implemented in Phase 16;
+15. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -419,6 +450,8 @@ Backend drift risks:
 - route handlers growing without service boundaries;
 - client-supplied `userId`;
 - unvalidated parcel/lien row ingestion;
+- treating one county adapter as broad county coverage;
+- trusting filenames or user labels as county proof;
 - scoring logic duplicated outside the scoring package;
 - inconsistent error shapes;
 - permissive CORS into production;

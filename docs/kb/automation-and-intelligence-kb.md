@@ -30,6 +30,8 @@ Current implementation:
   scored datasets;
 - policy auto-refresh exists only as an explicit server-side mode and is
   manual-only by default;
+- county import adapter boundary exists with one Maricopa-style CSV adapter and
+  a generic fallback;
 - no portfolio automation or external monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
@@ -38,7 +40,9 @@ status tracking, automation-ready internal job records, in-app alerts, and a
 minimal worker/scheduler execution boundary. It also has enrichment
 orchestration, a controlled manual refresh workflow for dataset reprocessing,
 and scheduled maintenance groundwork with explicit policy gates. Broad product
-automation is still intentionally absent.
+automation is still intentionally absent. Phase 16 adds a deterministic
+county-import boundary for one Maricopa-style CSV path, but not broad county
+sync, scraping, or automated ingestion.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -88,7 +92,8 @@ Manual-first sequence:
 12. enrichment foundation;
 13. controlled refresh/reprocessing;
 14. scheduled maintenance policy groundwork;
-15. then broader automation.
+15. county import adapter boundary;
+16. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -102,7 +107,13 @@ Future ingestion automation may include:
 - scheduled import reminders;
 - validation presets.
 
-It should not begin before CSV upload and validation are solid.
+Current ingestion intelligence is limited to one deterministic Maricopa-style
+CSV adapter that can map APN, tax-due, value, property-use, and situs-address
+headers into canonical internal fields before scoring. All other uploads fall
+back to generic CSV handling.
+
+Broader ingestion automation should not begin before CSV upload, validation,
+and deterministic adapter behavior are solid.
 
 ## Enrichment Foundation
 
@@ -191,8 +202,10 @@ County data is often inconsistent. The product should expect:
 - outdated values;
 - inconsistent property classifications.
 
-Automation must be built around this messy reality rather than assuming clean
-third-party APIs.
+Phase 16 starts addressing this reality through a county import adapter boundary,
+not through scraping or provider automation. A county adapter should be explicit,
+test-backed, deterministic, and honest about confidence/warnings. Automation
+must be built around messy files rather than assuming clean third-party APIs.
 
 ## What Belongs Later Versus Now
 
@@ -213,10 +226,12 @@ Now:
 - one opt-in external Census Geocoder enrichment path.
 - controlled refresh/reprocessing for user-owned datasets.
 - scheduled maintenance scans and policy-gated refresh creation.
+- one Maricopa-style county import adapter with generic CSV fallback.
 
 Later:
 
 - scheduled ingestion;
+- additional county adapters after deterministic mapping tests;
 - user-facing refresh policy controls;
 - broader automatic recurring refresh;
 - additional external enrichment providers;
@@ -251,6 +266,7 @@ Automation drift risks:
 - hiding errors behind background processes;
 - introducing AI before deterministic scoring is trusted;
 - treating county data as clean;
+- treating one county adapter as broad county coverage;
 - logging sensitive dataset content;
 - making investment recommendations without explainability.
 

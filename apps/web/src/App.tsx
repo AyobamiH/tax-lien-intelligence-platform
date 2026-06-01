@@ -872,6 +872,7 @@ function DatasetListPanel({
             <p className="mt-2 text-xs text-ink/60">
               {dataset.validationSummary.validRows} valid / {dataset.validationSummary.invalidRows} invalid
             </p>
+            <p className="mt-1 truncate text-xs text-ink/60">{datasetImportLabel(dataset)}</p>
           </button>
         ))}
       </div>
@@ -1251,6 +1252,13 @@ function DatasetDetailPage({
               : "manual refresh only"} ·{" "}
             {state.scoringStatus.maintenance.message}
           </p>
+        ) : null}
+        <p className="mt-2 text-xs text-ink/60">
+          Import: {datasetImportLabel(state.dataset)} · {state.dataset.importSummary.mappedFields.length} mapped field
+          {state.dataset.importSummary.mappedFields.length === 1 ? "" : "s"} · {state.dataset.importSummary.confidence} confidence
+        </p>
+        {state.dataset.importSummary.warnings.length > 0 ? (
+          <p className="mt-1 text-xs text-amber-800">{state.dataset.importSummary.warnings[0]}</p>
         ) : null}
       </div>
 
@@ -2461,6 +2469,12 @@ function defaultMaintenanceStatus(): DatasetScoringStatusResponse["maintenance"]
     eligibleForPolicyRefresh: false,
     message: "Dataset refresh is manual-only until maintenance policy is loaded.",
   };
+}
+
+function datasetImportLabel(dataset: DatasetResponse): string {
+  return dataset.importSummary.adapterMatched
+    ? `${dataset.importSummary.adapterName}`
+    : "Generic CSV handling";
 }
 
 function jobRequestKindLabel(requestKind: InternalJobResponse["requestKind"]): string {

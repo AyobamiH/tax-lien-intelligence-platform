@@ -179,8 +179,9 @@ Current limitation:
 
 - the scoring model is rule-based and conservative, not final underwriting;
 - internal source-row enrichment and one opt-in external Census Geocoder adapter
-  now exist, but no county-specific adapter or final underwriting model exists
-  yet.
+  now exist;
+- one Maricopa-style county import adapter now exists for upload-time mapping,
+  but no broad county adapter coverage or final underwriting model exists yet.
 
 ## Phase 5: Scored Results Frontend Review Surface
 
@@ -497,6 +498,35 @@ Phase 15 does not include:
 - collaboration;
 - auction execution.
 
+## Phase 16: County-Specific Import Adapter Foundation
+
+Current status: implemented as one deterministic county import adapter boundary,
+not broad county coverage.
+
+Phase 16 includes:
+
+- county import adapter interface for uploaded CSV rows;
+- `maricopa_tax_lien_v1` adapter for Maricopa-style tax lien CSV headers;
+- generic CSV fallback for all non-matching uploads;
+- safe import summary metadata on dataset responses;
+- canonical mapping for parcel id, lien amount, estimated value, property type,
+  and address when explicit header evidence is present;
+- tests for adapter match, fallback, partial files, non-match behavior, and
+  scoreability improvement;
+- frontend dataset list/detail visibility for adapter/fallback context;
+- docs.
+
+Phase 16 does not include:
+
+- broad county adapter coverage;
+- live county sync;
+- scraping;
+- external provider import integrations;
+- ML/AI import classification;
+- browser upload UI;
+- collaboration;
+- auction execution.
+
 ## Later Phases
 
 Later phases may include:
@@ -504,6 +534,7 @@ Later phases may include:
 - notes and decision history;
 - richer filtering;
 - import templates;
+- additional county import adapters after deterministic mapping tests;
 - richer enrichment adapters;
 - external enrichment provider hardening;
 - external alert delivery;
@@ -532,7 +563,8 @@ Dependency order matters:
 11. enrichment adapter foundation;
 12. controlled refresh/reprocessing workflow;
 13. scheduled maintenance and policy-driven auto-refresh foundation;
-14. broader automation.
+14. county import adapter foundation;
+15. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 
@@ -566,6 +598,8 @@ Before heavy automation:
 - internal job boundaries must exist;
 - in-app visibility for important job outcomes must exist;
 - worker execution boundary must exist;
+- deterministic import adapter behavior should exist for any county-specific
+  source before automating it;
 - job ownership and logging patterns must be designed;
 - rate limits and failure handling must exist.
 

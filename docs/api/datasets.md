@@ -15,6 +15,8 @@ authenticated and tenant-scoped.
 - Public dataset responses contain metadata and validation summary only. The
   server stores sanitized source rows internally so scoring can derive records
   without exposing raw row content in dataset metadata responses.
+- County-specific import handling exposes only safe adapter summary metadata,
+  not raw source rows or parser internals.
 
 ## `POST /datasets`
 
@@ -58,6 +60,16 @@ sourceLabel=County May file
       "warnings": [],
       "errors": []
     },
+    "importSummary": {
+      "adapterMatched": false,
+      "adapterId": "generic_csv",
+      "adapterName": "Generic CSV normalization",
+      "source": "generic_csv",
+      "confidence": "low",
+      "fallbackUsed": true,
+      "mappedFields": [],
+      "warnings": []
+    },
     "uploadedAt": "2026-05-25T00:00:00.000Z",
     "createdAt": "2026-05-25T00:00:00.000Z",
     "updatedAt": "2026-05-25T00:00:00.000Z"
@@ -88,6 +100,16 @@ Lists datasets owned by the authenticated user.
         "invalidRows": 0,
         "warnings": [],
         "errors": []
+      },
+      "importSummary": {
+        "adapterMatched": true,
+        "adapterId": "maricopa_tax_lien_v1",
+        "adapterName": "Maricopa-style tax lien CSV",
+        "source": "county_adapter",
+        "confidence": "high",
+        "fallbackUsed": false,
+        "mappedFields": ["parcel_id", "lien_amount", "estimated_value", "property_type", "address"],
+        "warnings": []
       },
       "uploadedAt": "2026-05-25T00:00:00.000Z",
       "createdAt": "2026-05-25T00:00:00.000Z",
@@ -123,6 +145,16 @@ user's dataset exists.
       "warnings": [],
       "errors": []
     },
+    "importSummary": {
+      "adapterMatched": false,
+      "adapterId": "generic_csv",
+      "adapterName": "Generic CSV normalization",
+      "source": "generic_csv",
+      "confidence": "low",
+      "fallbackUsed": true,
+      "mappedFields": [],
+      "warnings": []
+    },
     "uploadedAt": "2026-05-25T00:00:00.000Z",
     "createdAt": "2026-05-25T00:00:00.000Z",
     "updatedAt": "2026-05-25T00:00:00.000Z"
@@ -156,6 +188,8 @@ Auth errors use the Auth API error contract.
 
 Dataset responses still expose only metadata and validation summaries. Phase 4
 adds internal source row persistence for scoring, and Phase 5 adds a frontend
-dataset review surface backed by this API. There is not yet a browser CSV upload
-screen or county-specific normalization adapter. Phase 7 portfolio tracking is
-implemented separately from dataset responses.
+dataset review surface backed by this API. Phase 16 adds the first
+county-specific import adapter boundary with a Maricopa-style CSV adapter and
+generic fallback. There is not yet a browser CSV upload screen, broad county
+coverage, live county sync, scraping, or ML/AI import classification. Phase 7
+portfolio tracking is implemented separately from dataset responses.

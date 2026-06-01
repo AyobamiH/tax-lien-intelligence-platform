@@ -17,6 +17,8 @@ Current implementation:
 
 - user model exists for authentication;
 - dataset model exists for authenticated manual CSV uploads;
+- dataset import summary metadata exists for generic fallback or the current
+  Maricopa-style county import adapter;
 - scored-record model exists for first-pass scoring outputs;
 - enrichment metadata exists on scored records for internal source-row
   inference;
@@ -43,6 +45,8 @@ Current documentation direction:
 - dataset upload now uses auth and tenant ownership;
 - first-pass scoring uses lightweight normalization plus internal enrichment and
   remains conservative.
+- one deterministic county import adapter exists, but broad county coverage and
+  live county sync do not.
 
 ## Core Domain Concepts
 
@@ -55,6 +59,12 @@ validation summary.
 Current status: implemented as a manual CSV dataset foundation. Sanitized source
 rows are stored internally for scoring, but public dataset responses expose only
 metadata and validation summaries.
+
+Phase 16 adds safe import summary metadata to datasets. The current adapter can
+recognize Maricopa-style tax lien CSV headers and map selected source columns
+into canonical internal fields before scoring. Non-matching uploads use the
+generic CSV fallback. This is not broad county coverage or proof of county
+identity.
 
 ### Parcel
 
@@ -165,6 +175,7 @@ Tenant isolation protects:
 
 - uploaded files;
 - dataset metadata;
+- dataset import summaries;
 - normalized records;
 - scores;
 - enrichment context;
@@ -225,6 +236,8 @@ submit their own `investmentScore` and have it treated as system truth.
 Domain and tenancy drift risks:
 
 - adding parcel records without `userId`;
+- treating adapter matches, filenames, or source labels as authoritative county
+  identity;
 - accepting `userId` from request bodies;
 - writing frontend filters that imply security;
 - adding scoring outputs without dataset/source row linkage;

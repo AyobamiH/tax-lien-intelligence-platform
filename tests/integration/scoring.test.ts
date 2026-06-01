@@ -77,6 +77,7 @@ class InMemoryDatasetStore implements DatasetStore {
       headers: input.headers,
       sourceRows: input.sourceRows,
       validationSummary: input.validationSummary,
+      ...(input.importSummary ? { importSummary: input.importSummary } : {}),
       uploadedAt: input.uploadedAt,
       createdAt: now,
       updatedAt: now,
@@ -507,6 +508,59 @@ describe("dataset scoring API", () => {
     expect(score.flags).not.toContain("Missing or invalid lien amount");
     expect(score.flags).not.toContain("Missing or invalid property value");
     expect(score.reasoning.join(" ")).toContain("Enrichment note");
+  });
+
+  it("uses county-specific import mapping to make Maricopa-style rows scoreable", async () => {
+    const { app, workerProcessor } = createTestContext();
+    const owner = await registerUser(app, "maricopa-owner@example.com");
+    const datasetResponse = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .attach(
+        "file",
+        Buffer.from(
+          [
+            "APN,Total Due,Full Cash Value,Property Use Description,Situs Street,Situs City,Situs State,Situs Zip",
+            "123-45-678,$1250,$85000,Single Family Residence,100 Main St,Phoenix,AZ,85001",
+          ].join("\n"),
+          "utf8",
+        ),
+        { filename: "maricopa-tax-liens.csv", contentType: "text/csv" },
+      )
+      .expect(201);
+    const datasetId = datasetResponse.body.dataset.id as string;
+
+    expect(datasetResponse.body.dataset.importSummary).toMatchObject({
+      adapterMatched: true,
+      adapterId: "maricopa_tax_lien_v1",
+      mappedFields: ["parcel_id", "lien_amount", "estimated_value", "property_type", "address"],
+    });
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+
+    const scoresResponse = await request(app)
+      .get(`/datasets/${datasetId}/scores`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(scoresResponse.body.scores[0]).toMatchObject({
+      normalizedFields: {
+        parcelId: "123-45-678",
+        lienAmount: 1250,
+        estimatedValue: 85000,
+        propertyType: "Single Family Residence",
+        propertyTypeCategory: "residential",
+        address: "100 Main St Phoenix AZ 85001",
+      },
+      confidenceScore: expect.any(Number),
+    });
+    expect(scoresResponse.body.scores[0].confidenceScore).toBeGreaterThanOrEqual(70);
+    expect(scoresResponse.body.scores[0].flags).not.toContain("Missing or invalid lien amount");
+    expect(scoresResponse.body.scores[0].flags).not.toContain("Missing or invalid property value");
   });
 
   it("persists safe external enrichment results through the worker scoring path", async () => {

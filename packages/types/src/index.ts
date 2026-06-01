@@ -41,6 +41,9 @@ export interface AuthenticatedPrincipal {
 
 export type DatasetStatus = "validated";
 export type DatasetSourceType = "manual_csv";
+export type DatasetImportAdapterId = "generic_csv" | "maricopa_tax_lien_v1";
+export type DatasetImportSource = "generic_csv" | "county_adapter";
+export type DatasetImportConfidence = "low" | "medium" | "high";
 
 export interface DatasetValidationSummary {
   totalRows: number;
@@ -48,6 +51,17 @@ export interface DatasetValidationSummary {
   invalidRows: number;
   warnings: string[];
   errors: string[];
+}
+
+export interface DatasetImportSummary {
+  adapterMatched: boolean;
+  adapterId: DatasetImportAdapterId;
+  adapterName: string;
+  source: DatasetImportSource;
+  confidence: DatasetImportConfidence;
+  fallbackUsed: boolean;
+  mappedFields: string[];
+  warnings: string[];
 }
 
 export interface DatasetResponse {
@@ -60,6 +74,7 @@ export interface DatasetResponse {
   columnCount: number;
   headers: string[];
   validationSummary: DatasetValidationSummary;
+  importSummary: DatasetImportSummary;
   uploadedAt: string;
   createdAt: string;
   updatedAt: string;

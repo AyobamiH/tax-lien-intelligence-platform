@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import type { DatasetDetailResponse, DatasetListResponse, DatasetResponse } from "@tax-lien/types";
 import { ApiError } from "../errors/api-error.js";
 import { parseCsvUpload, type CsvUploadFile } from "./csv-parser.js";
+import { applyCountyImportAdapters, genericImportSummary } from "./import-adapters.js";
 import type { DatasetStore, StoredDataset } from "./dataset-store.js";
 
 export interface CreateDatasetRequest {
@@ -19,6 +20,7 @@ export class DatasetService {
 
   public async createDataset(request: CreateDatasetRequest): Promise<DatasetDetailResponse> {
     const parsedCsv = parseCsvUpload(request.file);
+    const importResult = applyCountyImportAdapters(parsedCsv);
     const sourceLabel = normalizeSourceLabel(request.sourceLabel);
     const dataset = await this.store.createDataset({
       userId: request.userId,
@@ -29,7 +31,7 @@ export class DatasetService {
       rowCount: parsedCsv.rowCount,
       columnCount: parsedCsv.columnCount,
       headers: parsedCsv.headers,
-      sourceRows: parsedCsv.sourceRows,
+      sourceRows: importResult.sourceRows,
       validationSummary: {
         totalRows: parsedCsv.totalRows,
         validRows: parsedCsv.validRows,
@@ -37,6 +39,7 @@ export class DatasetService {
         warnings: parsedCsv.warnings,
         errors: [],
       },
+      importSummary: importResult.importSummary,
       uploadedAt: new Date(),
     });
 
@@ -73,6 +76,7 @@ export function toDatasetResponse(dataset: StoredDataset): DatasetResponse {
     columnCount: dataset.columnCount,
     headers: dataset.headers,
     validationSummary: dataset.validationSummary,
+    importSummary: dataset.importSummary ?? genericImportSummary(),
     uploadedAt: dataset.uploadedAt.toISOString(),
     createdAt: dataset.createdAt.toISOString(),
     updatedAt: dataset.updatedAt.toISOString(),

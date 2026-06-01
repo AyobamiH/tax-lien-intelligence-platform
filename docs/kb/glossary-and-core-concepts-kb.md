@@ -11,8 +11,9 @@ A multi-tenant SaaS intended to turn tax lien and parcel datasets into structure
 investment decision support.
 
 Current status: auth, dataset upload, first-pass scoring, browser score review,
-watchlists, and portfolio/status tracking are implemented. Browser upload and
-automation remain future work.
+watchlists, portfolio/status tracking, and one county import adapter boundary
+are implemented. Browser upload, broad county coverage, and automation remain
+future work.
 
 ## Multi-Tenant SaaS
 
@@ -24,8 +25,22 @@ by `userId`.
 
 A user-uploaded county parcel or tax lien CSV file and its associated metadata.
 Implemented as a tenant-owned dataset record with validation summary; normalized
-source rows are stored internally for scoring, but public dataset responses do
-not expose raw row content.
+source rows are stored internally for scoring, but public dataset responses
+expose only metadata, validation summary, and safe import summary context.
+
+## County Import Adapter
+
+A deterministic upload-time mapping layer that can recognize a specific county
+CSV shape from explicit headers and add canonical internal fields before
+scoring. Current adapter: `maricopa_tax_lien_v1`. This is not broad county
+coverage, live sync, scraping, or county identity verification.
+
+## Import Summary
+
+Browser-safe metadata on dataset responses that explains whether generic CSV
+fallback or a county adapter handled the upload, which canonical fields were
+mapped, the confidence level, and safe warnings. It must not expose raw source
+rows.
 
 ## Parcel
 
@@ -93,8 +108,9 @@ mirror is not product truth.
 What users can actually see or call today. Current callable API surface includes
 health, auth, dataset, scoring, internal job detail, alerts, watchlist, and
 portfolio endpoints. The browser surface includes login/register, dataset
-list/detail review, worker-backed scoring trigger/status, scored table, record
-reasoning detail, alerts, watchlist review, and portfolio tracking.
+list/detail review with import summary context, worker-backed scoring
+trigger/status, scored table, record reasoning detail, alerts, watchlist review,
+and portfolio tracking.
 
 ## Placeholder
 

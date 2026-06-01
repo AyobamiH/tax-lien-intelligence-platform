@@ -20,6 +20,7 @@ before writing specs, prompts, or implementation plans.
 - [Phase 1 Architecture Baseline](architecture/phase-1-baseline.md)
 - [Authentication Architecture](architecture/auth.md)
 - [Dataset Foundation Architecture](architecture/datasets.md)
+- [County Import Adapter Foundation](architecture/county-import-adapters.md)
 - [Scoring Foundation Architecture](architecture/scoring.md)
 - [Enrichment Architecture](architecture/enrichment.md)
 - [Frontend Review Surface Architecture](architecture/frontend-review.md)

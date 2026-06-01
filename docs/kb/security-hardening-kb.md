@@ -52,6 +52,9 @@ Current repo protections:
 - authenticated dataset upload/list/detail routes;
 - 1 MiB CSV upload limit;
 - CSV parser row, column, and record-size guardrails;
+- deterministic county import adapter boundary with one Maricopa-style adapter
+  and generic fallback;
+- import summary responses expose safe metadata only;
 - cross-user dataset detail rejection tests;
 - tenant-owned scored-record persistence;
 - authenticated scoring run and score retrieval routes;
@@ -418,8 +421,32 @@ Tests must include:
 
 Uploads are high-risk because they accept external input. Phase 3 now has size
 limits, safe parsing, ownership, and error handling for manual CSV dataset
-metadata. Future row normalization and raw file persistence, if added, need
-additional controls.
+metadata. Phase 16 adds one deterministic county import adapter boundary that
+runs after parsing and before persistence. It must use explicit header evidence,
+return safe summary metadata, and avoid trusting filenames or user-provided
+source labels as proof of county identity.
+
+Future row normalization and raw file persistence, if added, need additional
+controls.
+
+### County Import Adapters
+
+Current county import support is intentionally narrow:
+
+- `maricopa_tax_lien_v1` can map Maricopa-style APN/tax/value/use/address
+  headers into canonical internal fields;
+- `generic_csv` remains the fallback for non-matching uploads.
+
+Security requirements for all import adapters:
+
+- deterministic detection based on explicit headers;
+- no live provider calls during upload;
+- no scraping;
+- no ML/AI classification before deterministic rules are reliable;
+- no raw source rows or parser internals in browser responses;
+- no trusting client-supplied county labels as authority;
+- tests for false-positive non-match behavior;
+- tenant ownership unchanged by adapter selection.
 
 ### Scoring Explanations
 
@@ -557,6 +584,9 @@ Security drift risks:
 - allowing frontend-only access control;
 - adding external automation before external job and worker security exists;
 - adding external enrichment providers before provider security exists;
+- adding county adapters without deterministic detection and false-positive
+  tests;
+- treating a filename, label, or one adapter match as broad county verification;
 - turning alerts into raw diagnostic payloads;
 - treating public source data as non-sensitive after user enrichment;
 - skipping cross-user tests.
@@ -568,6 +598,7 @@ Update this file when:
 - auth is implemented;
 - user-owned models are added;
 - upload endpoints are added;
+- county import adapters are added or changed;
 - CORS/header behavior changes;
 - rate limiting is added;
 - logging/audit patterns are introduced;

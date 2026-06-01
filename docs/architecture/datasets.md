@@ -15,6 +15,9 @@ Implemented:
 - CSV upload handling with `multer`;
 - safe CSV parsing and validation;
 - dataset validation summary;
+- county import adapter boundary;
+- first Maricopa-style tax lien CSV adapter;
+- safe import summary metadata;
 - internal source row persistence for later scoring;
 - dataset integration tests for ownership and upload failures.
 
@@ -23,7 +26,8 @@ Not implemented:
 - full parcel/lien normalization;
 - scoring inside the upload handler;
 - browser dataset upload UI;
-- county adapters;
+- broad county adapter coverage;
+- live county sync;
 - background ingestion automation.
 
 ## Dataset Model
@@ -42,6 +46,7 @@ Stored concepts:
 - `headers`;
 - internal sanitized `sourceRows`;
 - `validationSummary`;
+- `importSummary`;
 - `uploadedAt`;
 - timestamps.
 
@@ -100,6 +105,25 @@ Validation summary includes:
 The public API uses `errors`; the Mongo record stores those internally as
 `errorMessages` to avoid Mongoose reserved field warnings.
 
+## County Import Adapter Boundary
+
+Phase 16 adds an adapter layer after CSV parsing and before dataset persistence.
+The first adapter is `maricopa_tax_lien_v1`, a Maricopa-style tax lien CSV
+mapper.
+
+The adapter can add canonical internal fields such as `parcel_id`,
+`lien_amount`, `estimated_value`, `property_type`, and `address` to source rows
+when APN-style evidence and supporting county headers are present. This improves
+downstream normalization and scoring without exposing raw rows in dataset
+responses.
+
+If the adapter does not match, the upload stays on the generic CSV path. Generic
+fallback is explicit in `importSummary` and preserves existing behavior.
+
+Partial county-style files may match with lower confidence and import warnings.
+Those warnings are summary metadata; scoring still applies its conservative
+missing-data flags.
+
 ## Dependency Decision
 
 `multer` is used as the minimal multipart upload middleware for Express.
@@ -124,18 +148,22 @@ Remaining hardening:
 - rate limiting;
 - raw file persistence strategy if needed later;
 - richer normalized row validation;
+- additional county adapters only after deterministic mapping tests;
 - duplicate parcel handling after parcel identity exists;
 - audit logging;
 - antivirus/malware scanning if larger or persisted files are introduced.
 
 ## Drift Risks
 
-Do not treat Phase 3 as full ingestion. It stores dataset metadata, validation
-summary, and internal source rows. County-specific normalization remains a
+Do not treat Phase 3 or Phase 16 as full ingestion. The repo now stores dataset
+metadata, validation summary, import summary, and internal source rows. One
+county-specific adapter exists; broad county-specific normalization remains a
 future layer.
 
 Do not add scoring into upload handlers.
 
 Do not trust uploaded headers as normalized parcel fields.
+
+Do not treat a user source label as county proof.
 
 Do not add background jobs before manual upload and validation are reliable.

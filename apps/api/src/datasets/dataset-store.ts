@@ -1,6 +1,6 @@
 import type { DatasetDocument } from "@tax-lien/db";
 import { DatasetModel } from "@tax-lien/db";
-import type { DatasetValidationSummary } from "@tax-lien/types";
+import type { DatasetImportSummary, DatasetValidationSummary } from "@tax-lien/types";
 
 export interface StoredDataset {
   id: string;
@@ -14,6 +14,7 @@ export interface StoredDataset {
   headers: string[];
   sourceRows: StoredDatasetSourceRow[];
   validationSummary: DatasetValidationSummary;
+  importSummary?: DatasetImportSummary;
   uploadedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +36,7 @@ export interface CreateDatasetInput {
   headers: string[];
   sourceRows: StoredDatasetSourceRow[];
   validationSummary: DatasetValidationSummary;
+  importSummary?: DatasetImportSummary;
   uploadedAt: Date;
 }
 
@@ -65,6 +67,20 @@ function mapDataset(document: DatasetDocument): StoredDataset {
       warnings: document.validationSummary.warnings,
       errors: document.validationSummary.errorMessages,
     },
+    ...(document.importSummary
+      ? {
+          importSummary: {
+            adapterMatched: document.importSummary.adapterMatched,
+            adapterId: document.importSummary.adapterId,
+            adapterName: document.importSummary.adapterName,
+            source: document.importSummary.source,
+            confidence: document.importSummary.confidence,
+            fallbackUsed: document.importSummary.fallbackUsed,
+            mappedFields: document.importSummary.mappedFields,
+            warnings: document.importSummary.warnings,
+          },
+        }
+      : {}),
     uploadedAt: document.uploadedAt,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
@@ -88,6 +104,7 @@ export class MongoDatasetStore implements DatasetStore {
         warnings: input.validationSummary.warnings,
         errorMessages: input.validationSummary.errors,
       },
+      ...(input.importSummary ? { importSummary: input.importSummary } : {}),
     });
     return mapDataset(document);
   }

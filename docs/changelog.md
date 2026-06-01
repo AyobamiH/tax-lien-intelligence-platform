@@ -2,6 +2,14 @@
 
 ## 2026-06-01
 
+- Implemented Phase 16 county-specific import adapter foundation with an
+  explicit county adapter interface, a Maricopa-style tax lien CSV adapter,
+  safe generic fallback, dataset import summaries, frontend import context
+  visibility, and tests for match/fallback/partial mapping/scoring readiness.
+- Updated dataset/import/API/architecture/KB docs to mark one county-specific
+  import path as current while keeping broad county coverage, live county sync,
+  scraping, provider sprawl, ML/AI import classification, collaboration, and
+  auction execution out of scope.
 - Implemented Phase 15 scheduled maintenance foundation with a
   `dataset_maintenance` job type, stale scored-record scanning, explicit
   manual-only versus policy auto-refresh gating, scheduler-driven maintenance

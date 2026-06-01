@@ -21,6 +21,8 @@ Current implementation:
 - hash-based dataset review routes;
 - API integration for dataset list/detail, scoring runs, controlled refresh,
   scoring status, maintenance status, and scored records;
+- dataset import summary visibility for generic fallback and the current
+  Maricopa-style import adapter;
 - scored-results table;
 - record detail surface for flags and reasoning;
 - watchlist keep/remove actions;
@@ -88,6 +90,8 @@ Future upload page:
 - accept CSV files;
 - explain required columns;
 - show validation errors;
+- show safe adapter/fallback import summaries after upload when backend support
+  exists;
 - prevent upload confusion;
 - never claim data was scored before backend confirms it.
 
@@ -173,6 +177,8 @@ Trust is created through:
 
 - clear source labels;
 - visible validation status;
+- clear import/fallback status when a dataset was interpreted through an
+  adapter;
 - transparent scoring factors;
 - visible execution status for score runs;
 - consistent error states;
@@ -213,6 +219,7 @@ repo truth:
 - do not add mock data as if it were real;
 - do not imply browser upload, external alert delivery, or automation workflows
   exist before they are wired to backend contracts;
+- do not imply one county adapter means broad county import support;
 - do not bypass shared API contracts;
 - do not change product positioning away from decision support.
 
@@ -249,6 +256,7 @@ Frontend drift risks:
 - making marketing copy outrun product truth;
 - building mock screens that look real;
 - creating UI-only scoring concepts not backed by `packages/scoring`;
+- creating county-specific UI promises not backed by tested import adapters;
 - using local-only data instead of API contracts;
 - ignoring error/empty states until late;
 - weakening security by relying on hidden buttons instead of backend checks.

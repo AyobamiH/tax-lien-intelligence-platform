@@ -22,6 +22,10 @@ Current shared types in `packages/types`:
 - `AuthenticatedPrincipal`.
 - `DatasetStatus`;
 - `DatasetSourceType`;
+- `DatasetImportAdapterId`;
+- `DatasetImportSource`;
+- `DatasetImportConfidence`;
+- `DatasetImportSummary`;
 - `DatasetValidationSummary`;
 - `DatasetResponse`;
 - `DatasetListResponse`;
@@ -164,11 +168,34 @@ Current dataset contracts include:
 - row count;
 - column count;
 - headers;
+- import summary;
 - validation summary;
 - upload and created/updated timestamps.
 
 Owner is implied by auth, not client-set. Do not let frontend contracts accept
 `userId` for creating datasets.
+
+## Dataset Import Summary Contract
+
+Phase 16 adds a safe import summary contract for dataset responses. It includes:
+
+- whether a county adapter matched;
+- adapter id and display name;
+- source type: `generic_csv` or `county_adapter`;
+- confidence: `low`, `medium`, or `high`;
+- whether generic fallback was used;
+- mapped canonical field names;
+- safe warnings.
+
+Current adapter ids:
+
+- `generic_csv`;
+- `maricopa_tax_lien_v1`.
+
+The import summary is browser-safe metadata. It must not expose raw source rows,
+file contents, parser internals, county provider payloads, or client-supplied
+`userId`. A matched adapter improves deterministic mapping into stored source
+rows, but it is not proof of county identity or broad county coverage.
 
 ## Parcel Object Direction
 
@@ -403,6 +430,8 @@ possible or explicitly versioned.
 - Do not treat alert metadata as a raw logging or diagnostic payload.
 - Do not let enrichment contracts imply external verification when enrichment is
   only internal source-row inference.
+- Do not let an import adapter summary imply broad county coverage or live
+  county verification.
 
 ## Security Contract Rules
 

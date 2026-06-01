@@ -72,6 +72,9 @@ Implemented today:
 - tenant-owned dataset model in `packages/db`;
 - manual CSV upload handling;
 - safe CSV parsing and validation summary;
+- county import adapter boundary in `apps/api/src/datasets/import-adapters.ts`;
+- first Maricopa-style tax lien CSV adapter with generic CSV fallback;
+- safe dataset import summary metadata for matched and fallback imports;
 - dataset ownership tests;
 - internal dataset source row persistence for scoring;
 - scored-record model in `packages/db`;
@@ -156,7 +159,8 @@ Placeholders today:
 
 - `scripts/ingestion` has only a README.
 - The frontend has no dataset upload UI yet even though dataset APIs exist.
-- Full county-specific parcel/lien normalization does not exist yet.
+- Broad county-specific parcel/lien normalization does not exist yet.
+- Only one county import adapter exists, and it targets Maricopa-style CSVs.
 - Broad external enrichment provider coverage does not exist yet.
 - Unlimited autonomous refresh does not exist yet.
 - User-facing scheduler configuration does not exist yet.
@@ -168,6 +172,8 @@ Not implemented:
 - tenant-owned parcel model;
 - frontend dataset upload screen;
 - browser upload workflow;
+- broad county adapter coverage.
+- live county sync or scraping.
 - production deployment config.
 - email/SMS alert delivery;
 - realtime alert delivery;
@@ -226,6 +232,8 @@ Current tests cover:
 - scheduled maintenance policy evaluation, stale dataset scan, duplicate
   suppression, manual-only decisions, policy refresh creation, and recent
   failure suppression;
+- county import adapter match, fallback, partial-file, and non-match behavior;
+- Maricopa-style import mapping into scoreable normalized fields;
 - scheduler task registration, due execution, and failure behavior;
 - cross-user job detail rejection;
 - alert retrieval/read/read-all behavior;
@@ -255,6 +263,8 @@ Do not assume:
 - user-owned parcel data exists;
 - full ingestion exists beyond dataset metadata, source rows, and first-pass
   scoring;
+- the Maricopa-style adapter means broad county support exists;
+- source labels or filenames prove county identity;
 - browser upload exists.
 
 ## Security Notes
@@ -273,6 +283,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - tenant-owned internal job records are implemented for scoring.
 - tenant-owned alert records are implemented for safe in-app monitoring.
 - CSV upload limits and validation are implemented.
+- county import adapter detection uses explicit header evidence and returns
+  safe summary metadata rather than raw source rows.
 - tenant-owned scored-record and watchlist item records are implemented.
 - tenant-owned portfolio item records are implemented.
 - tenant-owned parcel records are not yet implemented.
