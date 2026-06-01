@@ -4,7 +4,9 @@
 
 Phase 10 introduces the first background execution boundary for the platform.
 It moves dataset scoring from request-time execution to a worker-claimed job
-path while keeping automation deliberately narrow.
+path while keeping automation deliberately narrow. Phase 14 adds a controlled
+refresh request path that reuses worker-claimed dataset scoring jobs rather than
+creating autonomous refresh automation.
 
 This is groundwork. It is not an external automation product, distributed queue,
 cron platform, email/SMS delivery system, ML system, collaboration workflow, or
@@ -23,6 +25,8 @@ Implemented:
 - existing scoring completion/failure alerts preserved;
 - Phase 11/12/13 enrichment runs inside the scoring job before score generation
   and records safe enrichment summary/reprocess metadata;
+- Phase 14 refresh requests create or reuse `dataset_scoring` jobs with
+  `requestKind: "refresh"`;
 - frontend score status polling after the scoring trigger returns a queued job;
 - unit tests for job claiming and scheduler behavior;
 - integration tests for worker-driven scoring success, failure, and stale
@@ -74,6 +78,7 @@ The first worker-driven job is `dataset_scoring`.
 Flow:
 
 1. authenticated user calls `POST /datasets/:datasetId/score`;
+   or `POST /datasets/:datasetId/refresh`;
 2. API verifies dataset ownership and creates a queued job;
 3. API returns `202` with queued job metadata;
 4. worker claims the job;

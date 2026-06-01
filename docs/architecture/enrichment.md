@@ -6,7 +6,8 @@ Phase 11 introduced the first enrichment layer between uploaded source rows and
 scoring. Phase 12 proved that boundary with one controlled external provider:
 the U.S. Census Geocoder. Phase 13 makes enrichment an explicit orchestration
 subsystem with adapter outcomes, deliberate fallback records, freshness
-metadata, and reprocessing readiness.
+metadata, and reprocessing readiness. Phase 14 adds the first controlled
+user-triggered refresh path on top of that readiness.
 
 Implemented:
 
@@ -20,6 +21,8 @@ Implemented:
 - adapter outcome records for success, skipped, partial, and failed enrichment;
 - freshness metadata with `enrichedAt`, `staleAt`, `reprocessAfter`, source
   version, and reprocess eligibility;
+- authenticated refresh/reprocessing requests that enqueue or reuse
+  dataset-scoring jobs;
 - persisted enrichment result embedded on scored records;
 - enrichment-aware scoring pipeline: source row -> normalization -> enrichment
   -> scoring -> scored record;
@@ -35,6 +38,7 @@ Not implemented:
 - county live integrations;
 - ML/AI enrichment;
 - enrichment scheduling;
+- automatic recurring refresh;
 - enrichment-specific management UI or admin console.
 
 ## Boundary
@@ -134,11 +138,16 @@ New results are fresh. The stored `reprocessAfter` timestamp gives future
 schedulers or workers a clear, tenant-safe way to decide which scored records
 should be re-enriched when provider config changes or external context ages.
 
-Dataset scoring is already a worker-backed rerun path. Re-running
-`POST /datasets/:datasetId/score` enqueues a new `dataset_scoring` job that
-re-runs normalization, orchestration, enrichment, scoring, and persistence for
-that owned dataset. Job summaries now include enrichment counts and earliest
-reprocess timing.
+Dataset scoring is already a worker-backed rerun path. Phase 14 adds
+`POST /datasets/:datasetId/refresh`, a deliberate refresh request that enqueues
+a `dataset_scoring` job with `requestKind: "refresh"` or returns the already
+queued/running dataset job when one exists. The worker re-runs normalization,
+orchestration, enrichment, scoring, and persistence for the owned dataset. Job
+summaries include enrichment counts and earliest reprocess timing.
+
+Refresh replaces the current scored-record set for the dataset by source row.
+Watchlist and portfolio records keep their denormalized decision snapshots; the
+refreshed scored records are the current dataset-review truth.
 
 ## Persistence
 
@@ -186,6 +195,8 @@ Current protections:
 - external geocoding has timeout and per-job row limits;
 - enrichment has bounded freshness metadata for later reprocessing rather than
   unbounded rerun loops;
+- refresh requests are authenticated, tenant-scoped, and duplicate-safe while a
+  dataset job is queued or running;
 - adapter failures produce safe metadata only;
 - no API keys or external provider secrets are required for the current Census
   provider.

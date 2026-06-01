@@ -87,8 +87,11 @@ Implemented today:
   and reprocess-after metadata;
 - persisted enrichment metadata on scored records;
 - authenticated scoring endpoints at `POST /datasets/:datasetId/score` and
-  `GET /datasets/:datasetId/scores`;
+  `POST /datasets/:datasetId/refresh`, `GET /datasets/:datasetId/scoring-status`,
+  and `GET /datasets/:datasetId/scores`;
 - dataset scoring routed through a persisted `dataset_scoring` job;
+- refresh requests use `requestKind: "refresh"` and reuse active queued/running
+  dataset jobs instead of duplicating work;
 - authenticated job detail endpoint at `GET /jobs/:jobId`;
 - queued/running/completed/failed job lifecycle;
 - dedicated worker entrypoint for queued internal jobs;
@@ -104,6 +107,7 @@ Implemented today:
 - frontend login/register review surface;
 - authenticated dataset list/detail review UI;
 - frontend score triggering;
+- frontend controlled refresh action and scoring freshness/status display;
 - scored-results table with flags and reasoning detail;
 - frontend record detail enrichment/data-quality visibility;
 - tenant-owned watchlist item model in `packages/db`;
@@ -147,6 +151,7 @@ Placeholders today:
 - The frontend has no dataset upload UI yet even though dataset APIs exist.
 - Full county-specific parcel/lien normalization does not exist yet.
 - Broad external enrichment provider coverage does not exist yet.
+- Automatic recurring refresh does not exist yet.
 
 ## Current Limitations
 
@@ -159,6 +164,7 @@ Not implemented:
 - email/SMS alert delivery;
 - realtime alert delivery;
 - external schedulers, worker fleets, or third-party queues.
+- broad cron-based refresh or external sync automation.
 
 ## Workflow Discipline
 

@@ -30,6 +30,7 @@ export {
   type InternalJobDocument,
   type InternalJobErrorRecord,
   type InternalJobRecord,
+  type InternalJobRequestKindRecord,
   type InternalJobStatusRecord,
   type InternalJobSummaryRecord,
   type InternalJobTargetTypeRecord,

@@ -669,6 +669,278 @@ describe("dataset scoring API", () => {
     expect(scoresResponse.body.scores[0].enrichment.freshness.reprocessAfter).toEqual(expect.any(String));
   });
 
+  it("queues a controlled refresh job and exposes refresh status", async () => {
+    const { app, workerProcessor } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-904,1000,12000,Single family residence\n",
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+
+    const refreshResponse = await request(app)
+      .post(`/datasets/${datasetId}/refresh`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+
+    expect(refreshResponse.body).toMatchObject({
+      datasetId,
+      requestStatus: "queued",
+      job: {
+        type: "dataset_scoring",
+        requestKind: "refresh",
+        status: "queued",
+        targetEntityId: datasetId,
+      },
+    });
+
+    const queuedStatus = await request(app)
+      .get(`/datasets/${datasetId}/scoring-status`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(queuedStatus.body).toMatchObject({
+      datasetId,
+      status: "refresh_requested",
+      scoredRecordCount: 1,
+      staleRecordCount: 0,
+      activeJob: {
+        id: refreshResponse.body.job.id,
+        requestKind: "refresh",
+        status: "queued",
+      },
+    });
+
+    const workerResult = await workerProcessor.processNextJob();
+    expect(workerResult).toMatchObject({
+      status: "completed",
+      job: {
+        id: refreshResponse.body.job.id,
+        requestKind: "refresh",
+        status: "completed",
+        summary: {
+          scoredRecordCount: 1,
+          enrichedRecordCount: 1,
+        },
+      },
+    });
+
+    const completedStatus = await request(app)
+      .get(`/datasets/${datasetId}/scoring-status`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(completedStatus.body).toMatchObject({
+      datasetId,
+      status: "refresh_completed",
+      scoredRecordCount: 1,
+      staleRecordCount: 0,
+      latestJob: {
+        id: refreshResponse.body.job.id,
+        requestKind: "refresh",
+        status: "completed",
+      },
+    });
+    expect(completedStatus.body.activeJob).toBeUndefined();
+
+    const alertsResponse = await request(app).get("/alerts").set("Authorization", `Bearer ${owner.token}`).expect(200);
+    expect(alertsResponse.body.alerts[0]).toMatchObject({
+      type: "scoring_job_completed",
+      message: "Refresh completed. 1 records are ready for review.",
+      metadata: {
+        datasetId,
+        requestKind: "refresh",
+        scoredRecordCount: 1,
+      },
+    });
+  });
+
+  it("reports stale scoring status when enrichment reprocess timing has passed", async () => {
+    const enrichmentService = new EnrichmentService(
+      [new SourceFieldInferenceAdapter()],
+      {
+        freshnessWindowDays: 1,
+        now: () => new Date("2026-01-01T00:00:00.000Z"),
+        sourceVersion: "source_field_inference@1",
+      },
+    );
+    const { app, workerProcessor } = createTestContext({ enrichmentService });
+    const owner = await registerUser(app, "owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-904B,1000,12000,Single family residence\n",
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+
+    const statusResponse = await request(app)
+      .get(`/datasets/${datasetId}/scoring-status`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(statusResponse.body).toMatchObject({
+      datasetId,
+      status: "stale",
+      scoredRecordCount: 1,
+      staleRecordCount: 1,
+      earliestReprocessAfter: "2026-01-02T00:00:00.000Z",
+    });
+  });
+
+  it("returns an active refresh job instead of duplicating queued refresh requests", async () => {
+    const { app, internalJobStore } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-905,1000,12000,Single family residence\n",
+    );
+
+    const firstRefresh = await request(app)
+      .post(`/datasets/${datasetId}/refresh`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    const duplicateRefresh = await request(app)
+      .post(`/datasets/${datasetId}/refresh`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+
+    expect(duplicateRefresh.body).toMatchObject({
+      datasetId,
+      requestStatus: "already_running",
+      job: {
+        id: firstRefresh.body.job.id,
+        requestKind: "refresh",
+        status: "queued",
+      },
+    });
+    expect(internalJobStore.listJobsForUser(owner.userId)).toHaveLength(1);
+  });
+
+  it("returns an already-running refresh job when processing is in progress", async () => {
+    const { app, internalJobService } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-906,1000,12000,Single family residence\n",
+    );
+
+    const refresh = await request(app)
+      .post(`/datasets/${datasetId}/refresh`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    const claimed = await internalJobService.claimNextJob();
+    expect(claimed).toMatchObject({
+      id: refresh.body.job.id,
+      status: "running",
+    });
+
+    const duplicateRefresh = await request(app)
+      .post(`/datasets/${datasetId}/refresh`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+
+    expect(duplicateRefresh.body).toMatchObject({
+      requestStatus: "already_running",
+      job: {
+        id: refresh.body.job.id,
+        status: "running",
+      },
+    });
+  });
+
+  it("rejects refresh without auth and across users", async () => {
+    const { app } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const other = await registerUser(app, "other@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value\nA-907,1000,12000\n",
+    );
+
+    const missingAuth = await request(app).post(`/datasets/${datasetId}/refresh`).expect(401);
+    const crossUser = await request(app)
+      .post(`/datasets/${datasetId}/refresh`)
+      .set("Authorization", `Bearer ${other.token}`)
+      .expect(404);
+    const crossStatus = await request(app)
+      .get(`/datasets/${datasetId}/scoring-status`)
+      .set("Authorization", `Bearer ${other.token}`)
+      .expect(404);
+
+    expect(missingAuth.body.error.code).toBe("auth_missing_token");
+    expect(crossUser.body.error.code).toBe("dataset_not_found");
+    expect(crossStatus.body.error.code).toBe("dataset_not_found");
+  });
+
+  it("records a safe failed refresh job when refresh cannot score the dataset", async () => {
+    const { app, datasetStore, workerProcessor } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const dataset = await datasetStore.createDataset({
+      userId: owner.userId,
+      originalFilename: "empty-refresh.csv",
+      sourceType: "manual_csv",
+      status: "validated",
+      rowCount: 0,
+      columnCount: 0,
+      headers: [],
+      sourceRows: [],
+      validationSummary: {
+        totalRows: 0,
+        validRows: 0,
+        invalidRows: 0,
+        warnings: [],
+        errors: [],
+      },
+      uploadedAt: new Date(),
+    });
+
+    const refreshResponse = await request(app)
+      .post(`/datasets/${dataset.id}/refresh`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    const workerResult = await workerProcessor.processNextJob();
+
+    expect(workerResult).toMatchObject({
+      status: "failed",
+      job: {
+        id: refreshResponse.body.job.id,
+        requestKind: "refresh",
+        status: "failed",
+        error: {
+          code: "score_no_source_rows",
+        },
+      },
+    });
+
+    const statusResponse = await request(app)
+      .get(`/datasets/${dataset.id}/scoring-status`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+    expect(statusResponse.body).toMatchObject({
+      status: "refresh_failed",
+      scoredRecordCount: 0,
+      latestJob: {
+        id: refreshResponse.body.job.id,
+        requestKind: "refresh",
+        status: "failed",
+      },
+    });
+  });
+
   it("rejects invalid dataset ids safely", async () => {
     const { app } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");

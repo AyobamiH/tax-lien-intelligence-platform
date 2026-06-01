@@ -8,6 +8,8 @@ full automation.
 Current job usage:
 
 - dataset scoring creates a queued `dataset_scoring` job.
+- dataset refresh creates or reuses a queued/running `dataset_scoring` job with
+  `requestKind: "refresh"`.
 - the background worker claims and executes queued scoring jobs.
 - completed or failed scoring jobs now create safe in-app alerts.
 
@@ -35,6 +37,11 @@ Supported statuses:
 Scoring requests now return queued job metadata. The worker moves jobs through
 `running` into `completed` or `failed`.
 
+Jobs also carry a request kind:
+
+- `score` for first scoring and normal re-run requests;
+- `refresh` for controlled Phase 14 refresh/reprocessing requests.
+
 ## Job Types
 
 Supported job types:
@@ -58,6 +65,7 @@ Returns one job owned by the authenticated user.
     "type": "dataset_scoring",
     "targetEntityType": "dataset",
     "targetEntityId": "dataset-id",
+    "requestKind": "refresh",
     "status": "completed",
     "summary": {
       "scoredRecordCount": 2,
@@ -83,6 +91,7 @@ Returns one job owned by the authenticated user.
     "type": "dataset_scoring",
     "targetEntityType": "dataset",
     "targetEntityId": "dataset-id",
+    "requestKind": "refresh",
     "status": "failed",
     "error": {
       "code": "score_no_source_rows",
@@ -109,6 +118,7 @@ fail, such as `score_no_source_rows`.
 ## Current Limitation
 
 There is no external queue, cron provider, worker fleet, retry policy, alert
-delivery channel, or automation trigger yet. The job record is persisted and
-lifecycle-aware, and `dataset_scoring` now executes through the dedicated worker
-path.
+delivery channel, or autonomous automation trigger yet. The job record is
+persisted and lifecycle-aware, `dataset_scoring` executes through the dedicated
+worker path, and Phase 14 refresh requests are duplicate-safe wrappers around
+that same execution boundary.

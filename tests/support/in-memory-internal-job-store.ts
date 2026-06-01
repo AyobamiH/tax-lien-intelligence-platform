@@ -17,6 +17,7 @@ export class InMemoryInternalJobStore implements InternalJobStore {
       type: input.type,
       targetEntityType: input.targetEntityType,
       targetEntityId: input.targetEntityId,
+      requestKind: input.requestKind,
       status: "queued",
       queuedAt: input.queuedAt,
       createdAt: now,
@@ -42,6 +43,45 @@ export class InMemoryInternalJobStore implements InternalJobStore {
       failedAt: undefined,
       error: undefined,
     });
+  }
+
+  public async findActiveJobForTarget(
+    userId: string,
+    type: StoredInternalJob["type"],
+    targetEntityType: StoredInternalJob["targetEntityType"],
+    targetEntityId: string,
+  ): Promise<StoredInternalJob | null> {
+    return (
+      [...this.jobsById.values()]
+        .filter(
+          (job) =>
+            job.userId === userId &&
+            job.type === type &&
+            job.targetEntityType === targetEntityType &&
+            job.targetEntityId === targetEntityId &&
+            (job.status === "queued" || job.status === "running"),
+        )
+        .sort((left, right) => left.queuedAt.getTime() - right.queuedAt.getTime())[0] ?? null
+    );
+  }
+
+  public async findLatestJobForTarget(
+    userId: string,
+    type: StoredInternalJob["type"],
+    targetEntityType: StoredInternalJob["targetEntityType"],
+    targetEntityId: string,
+  ): Promise<StoredInternalJob | null> {
+    return (
+      [...this.jobsById.values()]
+        .filter(
+          (job) =>
+            job.userId === userId &&
+            job.type === type &&
+            job.targetEntityType === targetEntityType &&
+            job.targetEntityId === targetEntityId,
+        )
+        .sort((left, right) => right.queuedAt.getTime() - left.queuedAt.getTime())[0] ?? null
+    );
   }
 
   public async markRunning(jobId: string, userId: string, startedAt: Date): Promise<StoredInternalJob | null> {
@@ -116,6 +156,7 @@ export class InMemoryInternalJobStore implements InternalJobStore {
       type: current.type,
       targetEntityType: current.targetEntityType,
       targetEntityId: current.targetEntityId,
+      requestKind: current.requestKind,
       status,
       queuedAt: current.queuedAt,
       ...(fields.summary ? { summary: fields.summary } : {}),

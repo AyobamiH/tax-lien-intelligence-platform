@@ -108,6 +108,7 @@ export function mapAlert(document: AlertDocument): StoredAlert {
               ? { scoredRecordCount: document.metadata.scoredRecordCount }
               : {}),
             ...(document.metadata.errorCode ? { errorCode: document.metadata.errorCode } : {}),
+            ...(document.metadata.requestKind ? { requestKind: document.metadata.requestKind } : {}),
           },
         }
       : {}),

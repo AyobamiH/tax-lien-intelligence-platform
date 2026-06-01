@@ -24,13 +24,16 @@ Current implementation:
 - portfolio/status tracking exists;
 - in-app alert records exist for scoring job completion/failure;
 - first internal enrichment adapter exists for uploaded source-row inference;
+- controlled user-triggered dataset refresh/reprocessing exists through the
+  worker job boundary;
 - no portfolio automation or external monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
 scoring foundation, manual review surface, watchlist shortlist, portfolio
 status tracking, automation-ready internal job records, in-app alerts, and a
-minimal worker/scheduler execution boundary. It also has a first internal
-enrichment adapter for source-row inference. Product automation is still
+minimal worker/scheduler execution boundary. It also has enrichment
+orchestration and a controlled manual refresh workflow for dataset
+reprocessing. Product automation is still
 intentionally absent.
 
 ## Why Automation Is Part Of The SaaS
@@ -79,7 +82,8 @@ Manual-first sequence:
 10. in-app alert visibility;
 11. worker execution boundary;
 12. enrichment foundation;
-13. then automation.
+13. controlled refresh/reprocessing;
+14. then automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -107,6 +111,8 @@ Current enrichment:
 - records adapter outcomes for success, skipped, partial, and failed states;
 - records freshness and reprocess-after metadata for later scheduled
   re-enrichment;
+- exposes a manual refresh path that safely reruns enrichment/scoring through a
+  dataset job;
 - records safe external address/location context without raw provider payloads;
 - persists safe enrichment metadata on scored records;
 - improves scoring confidence when uploaded data is inconsistent.
@@ -198,10 +204,12 @@ Now:
 - minimal scheduler foundation for local task polling.
 - source-row enrichment before scoring.
 - one opt-in external Census Geocoder enrichment path.
+- controlled refresh/reprocessing for user-owned datasets.
 
 Later:
 
 - scheduled ingestion;
+- automatic recurring refresh;
 - additional external enrichment providers;
 - external alert delivery;
 - external worker orchestration;

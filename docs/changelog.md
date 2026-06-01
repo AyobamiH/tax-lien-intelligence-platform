@@ -2,6 +2,14 @@
 
 ## 2026-06-01
 
+- Implemented Phase 14 controlled refresh workflow with authenticated
+  dataset refresh requests, duplicate-safe active job reuse, scoring status
+  visibility, refresh-aware job metadata, frontend refresh controls, safe
+  refresh alerts, and refresh ownership/failure tests.
+- Updated scoring/jobs/enrichment/frontend/KB docs to mark manual
+  refresh/reprocessing as current while keeping autonomous recurring refresh,
+  provider sprawl, ML/AI, collaboration, auction execution, and broad external
+  sync out of scope.
 - Implemented Phase 13 enrichment orchestration foundation with explicit
   adapter outcomes, deliberate disabled/provider fallback records, freshness and
   reprocess-after metadata, reprocessing-ready scoring job summaries, frontend

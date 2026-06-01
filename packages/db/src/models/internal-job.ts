@@ -3,6 +3,7 @@ import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 export type InternalJobStatusRecord = "queued" | "running" | "completed" | "failed";
 export type InternalJobTypeRecord = "dataset_scoring";
 export type InternalJobTargetTypeRecord = "dataset";
+export type InternalJobRequestKindRecord = "score" | "refresh";
 
 export interface InternalJobSummaryRecord {
   scoredRecordCount?: number;
@@ -21,6 +22,7 @@ export interface InternalJobRecord {
   type: InternalJobTypeRecord;
   targetEntityType: InternalJobTargetTypeRecord;
   targetEntityId: string;
+  requestKind: InternalJobRequestKindRecord;
   status: InternalJobStatusRecord;
   summary?: InternalJobSummaryRecord;
   error?: InternalJobErrorRecord;
@@ -82,6 +84,13 @@ const internalJobSchema = new Schema<InternalJobRecord>(
       required: true,
       index: true,
     },
+    requestKind: {
+      type: String,
+      enum: ["score", "refresh"],
+      required: true,
+      default: "score",
+      index: true,
+    },
     status: {
       type: String,
       enum: ["queued", "running", "completed", "failed"],
@@ -119,6 +128,7 @@ const internalJobSchema = new Schema<InternalJobRecord>(
 
 internalJobSchema.index({ userId: 1, status: 1, queuedAt: -1 });
 internalJobSchema.index({ userId: 1, targetEntityType: 1, targetEntityId: 1, queuedAt: -1 });
+internalJobSchema.index({ userId: 1, type: 1, targetEntityType: 1, targetEntityId: 1, status: 1 });
 internalJobSchema.index({ status: 1, queuedAt: 1, createdAt: 1 });
 
 export const InternalJobModel: Model<InternalJobRecord> =

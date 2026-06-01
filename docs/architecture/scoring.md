@@ -16,10 +16,13 @@ Implemented:
 - row normalization from common CSV column names;
 - enrichment service and source-field inference adapter;
 - authenticated `POST /datasets/:datasetId/score`;
+- authenticated `POST /datasets/:datasetId/refresh`;
+- authenticated `GET /datasets/:datasetId/scoring-status`;
 - authenticated `GET /datasets/:datasetId/scores`;
 - internal `dataset_scoring` job record created for score runs;
 - dedicated worker execution path for queued scoring jobs;
 - in-app alerts for completed/failed scoring jobs;
+- refresh job request-kind metadata and duplicate-safe active job reuse;
 - tenant ownership checks for scoring and retrieval;
 - frontend scored-results review surface;
 - score identifiers preserved across rescoring of the same source row where
@@ -41,8 +44,8 @@ Not implemented:
    the dataset record.
 3. The public dataset response still returns only metadata and validation
    summary.
-4. The scoring route verifies the dataset belongs to the authenticated user and
-   enqueues a `dataset_scoring` job.
+4. The scoring or refresh route verifies the dataset belongs to the
+   authenticated user and enqueues a `dataset_scoring` job.
 5. The worker claims the queued job and revalidates the dataset target.
 6. Each stored source row is normalized into scoreable fields.
 7. The enrichment service infers missing fields and data-quality context from
@@ -141,8 +144,10 @@ one controlled external enrichment path. Current adapters are
 when explicitly enabled. It is bounded by timeout and per-job row limits and
 does not store raw provider payloads.
 
-Enrichment fills missing or unknown fields. It does not call external services,
-use ML/AI, or override clearly mapped source fields with speculative values.
+Internal source-field enrichment fills missing or unknown fields. External
+enrichment is limited to explicitly configured adapters such as the current
+Census Geocoder path. Enrichment does not use ML/AI or override clearly mapped
+source fields with speculative values.
 
 ## Persistence Boundary
 
@@ -158,10 +163,11 @@ server-derived documents with:
 - `scoredAt`;
 - timestamps.
 
-Scores are refreshed for a dataset when a new scoring run occurs. Existing
-scored-record identifiers are preserved for the same `userId`, `datasetId`, and
-source row number where possible, because Phase 6 watchlist items reference
-scored records. Rows no longer present in the scoring run are removed.
+Scores are refreshed for a dataset when a new scoring run or controlled refresh
+occurs. Existing scored-record identifiers are preserved for the same `userId`,
+`datasetId`, and source row number where possible, because Phase 6 watchlist
+items reference scored records. Rows no longer present in the scoring run are
+removed.
 
 ## Security Notes
 
@@ -175,6 +181,8 @@ The API:
 - scopes score reads by `userId` and `datasetId`;
 - does not accept client-submitted scores;
 - does not return raw CSV rows in dataset metadata responses.
+- returns an active queued/running dataset job rather than creating duplicate
+  refresh work.
 
 Remaining hardening:
 

@@ -2,6 +2,7 @@ import type {
   AlertResponse,
   AlertSeverity,
   AlertType,
+  DatasetScoringStatus,
   NormalizedScoredRecordFields,
   PortfolioItemResponse,
   PortfolioStatus,
@@ -238,6 +239,42 @@ export function alertSeverityClassName(severity: AlertSeverity): string {
       return "border-emerald-200 bg-emerald-50 text-emerald-900";
     case "error":
       return "border-red-200 bg-red-50 text-red-800";
+  }
+}
+
+export function datasetScoringStatusLabel(status: DatasetScoringStatus): string {
+  switch (status) {
+    case "not_scored":
+      return "Not scored";
+    case "fresh":
+      return "Fresh";
+    case "stale":
+      return "Stale";
+    case "refresh_requested":
+      return "Refresh queued";
+    case "refresh_in_progress":
+      return "Refresh running";
+    case "refresh_failed":
+      return "Refresh failed";
+    case "refresh_completed":
+      return "Refresh completed";
+  }
+}
+
+export function datasetScoringStatusClassName(status: DatasetScoringStatus): string {
+  switch (status) {
+    case "fresh":
+    case "refresh_completed":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    case "stale":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+    case "refresh_requested":
+    case "refresh_in_progress":
+      return "border-sky-200 bg-sky-50 text-sky-900";
+    case "refresh_failed":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "not_scored":
+      return "border-line bg-field text-ink";
   }
 }
 

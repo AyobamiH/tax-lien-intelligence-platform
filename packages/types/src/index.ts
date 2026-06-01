@@ -183,6 +183,7 @@ export interface ScoredRecordResponse {
 export type InternalJobStatus = "queued" | "running" | "completed" | "failed";
 export type InternalJobType = "dataset_scoring";
 export type InternalJobTargetType = "dataset";
+export type InternalJobRequestKind = "score" | "refresh";
 
 export interface InternalJobSummary {
   scoredRecordCount?: number;
@@ -201,6 +202,7 @@ export interface InternalJobResponse {
   type: InternalJobType;
   targetEntityType: InternalJobTargetType;
   targetEntityId: string;
+  requestKind: InternalJobRequestKind;
   status: InternalJobStatus;
   summary?: InternalJobSummary;
   error?: InternalJobError;
@@ -231,6 +233,35 @@ export interface DatasetScoreJobResponse {
   job: InternalJobResponse;
 }
 
+export type DatasetRefreshRequestStatus = "queued" | "already_running";
+
+export interface DatasetRefreshJobResponse {
+  datasetId: string;
+  job: InternalJobResponse;
+  requestStatus: DatasetRefreshRequestStatus;
+  message: string;
+}
+
+export type DatasetScoringStatus =
+  | "not_scored"
+  | "fresh"
+  | "stale"
+  | "refresh_requested"
+  | "refresh_in_progress"
+  | "refresh_failed"
+  | "refresh_completed";
+
+export interface DatasetScoringStatusResponse {
+  datasetId: string;
+  status: DatasetScoringStatus;
+  scoredRecordCount: number;
+  staleRecordCount: number;
+  latestScoredAt?: string;
+  earliestReprocessAfter?: string;
+  activeJob?: InternalJobResponse;
+  latestJob?: InternalJobResponse;
+}
+
 export interface DatasetScoresResponse {
   datasetId: string;
   scores: ScoredRecordResponse[];
@@ -246,6 +277,7 @@ export interface AlertMetadata {
   datasetId?: string;
   scoredRecordCount?: number;
   errorCode?: string;
+  requestKind?: InternalJobRequestKind;
 }
 
 export interface AlertResponse {

@@ -65,6 +65,7 @@ records the current implementation state:
 - enrichment adapter foundation exists, including one opt-in external Census
   Geocoder path.
 - enrichment orchestration/fallback/freshness metadata exists.
+- controlled dataset refresh/reprocessing exists through the scoring job path.
 - frontend scored-results review surface exists.
 - watchlist API and review surface exist.
 - portfolio API and status tracking surface exist.
@@ -97,9 +98,10 @@ tenant-owned dataset records, upload size limits, CSV validation, and
 authenticated score review. It now also has tenant-owned watchlist items and
 cross-user watchlist tests. It now also has tenant-owned portfolio items and
 cross-user portfolio tests. It now has tenant-owned internal job records for
-scoring and cross-user job tests. It does not yet have standalone parcel models,
-rate limiting, external automation, or full cross-user tests for future resource
-types because those workflows do not exist yet.
+scoring, controlled refresh/reprocessing, and cross-user job tests. It does not
+yet have standalone parcel models, rate limiting, external automation, or full
+cross-user tests for future resource types because those workflows do not exist
+yet.
 
 ## How Future Contributors Should Update The KB
 

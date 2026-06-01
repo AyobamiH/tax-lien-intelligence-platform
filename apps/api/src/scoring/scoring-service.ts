@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 import { scoreLienCandidate } from "@tax-lien/scoring";
 import type {
+  DatasetRefreshJobResponse,
   DatasetScoreJobResponse,
+  DatasetScoringStatus,
+  DatasetScoringStatusResponse,
   DatasetScoreRunResponse,
   DatasetScoresResponse,
   InternalJobSummary,
@@ -41,11 +44,79 @@ export class ScoringService {
       type: "dataset_scoring",
       targetEntityType: "dataset",
       targetEntityId: dataset.id,
+      requestKind: "score",
     });
 
     return {
       datasetId: dataset.id,
       job,
+    };
+  }
+
+  public async refreshDataset(datasetId: string, userId: string): Promise<DatasetRefreshJobResponse> {
+    const dataset = await this.getDatasetForScoring(datasetId, userId);
+    const activeJob = await this.internalJobService.findActiveTargetJob({
+      userId,
+      type: "dataset_scoring",
+      targetEntityType: "dataset",
+      targetEntityId: dataset.id,
+    });
+
+    if (activeJob) {
+      return {
+        datasetId: dataset.id,
+        job: activeJob,
+        requestStatus: "already_running",
+        message: "A scoring refresh is already queued or running for this dataset.",
+      };
+    }
+
+    const job = await this.internalJobService.enqueue({
+      userId,
+      type: "dataset_scoring",
+      targetEntityType: "dataset",
+      targetEntityId: dataset.id,
+      requestKind: "refresh",
+    });
+
+    return {
+      datasetId: dataset.id,
+      job,
+      requestStatus: "queued",
+      message: "Dataset refresh has been queued for worker processing.",
+    };
+  }
+
+  public async getScoringStatus(datasetId: string, userId: string): Promise<DatasetScoringStatusResponse> {
+    const dataset = await this.getDatasetForScoring(datasetId, userId);
+    const [scores, activeJob, latestJob] = await Promise.all([
+      this.scoredRecordStore.listScoresForDataset(userId, dataset.id),
+      this.internalJobService.findActiveTargetJob({
+        userId,
+        type: "dataset_scoring",
+        targetEntityType: "dataset",
+        targetEntityId: dataset.id,
+      }),
+      this.internalJobService.findLatestTargetJob({
+        userId,
+        type: "dataset_scoring",
+        targetEntityType: "dataset",
+        targetEntityId: dataset.id,
+      }),
+    ]);
+    const scoreFreshness = summarizeScoreFreshness(scores);
+
+    return {
+      datasetId: dataset.id,
+      status: datasetScoringStatus({ scores, activeJob, latestJob, staleRecordCount: scoreFreshness.staleRecordCount }),
+      scoredRecordCount: scores.length,
+      staleRecordCount: scoreFreshness.staleRecordCount,
+      ...(scoreFreshness.latestScoredAt ? { latestScoredAt: scoreFreshness.latestScoredAt } : {}),
+      ...(scoreFreshness.earliestReprocessAfter
+        ? { earliestReprocessAfter: scoreFreshness.earliestReprocessAfter }
+        : {}),
+      ...(activeJob ? { activeJob } : {}),
+      ...(latestJob ? { latestJob } : {}),
     };
   }
 
@@ -145,6 +216,76 @@ export class ScoringService {
 
     return dataset;
   }
+}
+
+function summarizeScoreFreshness(scores: StoredScoredRecord[]): {
+  staleRecordCount: number;
+  latestScoredAt?: string;
+  earliestReprocessAfter?: string;
+} {
+  const now = Date.now();
+  let staleRecordCount = 0;
+  let latestScoredAt: string | undefined;
+  let latestScoredAtTime = Number.NEGATIVE_INFINITY;
+  const reprocessAfterValues: string[] = [];
+
+  for (const score of scores) {
+    const scoredAtTime = score.scoredAt.getTime();
+    if (Number.isFinite(scoredAtTime) && scoredAtTime > latestScoredAtTime) {
+      latestScoredAt = score.scoredAt.toISOString();
+      latestScoredAtTime = scoredAtTime;
+    }
+
+    const reprocessAfter = score.enrichment?.freshness.reprocessAfter;
+    if (reprocessAfter) {
+      reprocessAfterValues.push(reprocessAfter);
+      const reprocessTime = Date.parse(reprocessAfter);
+      if (score.enrichment?.freshness.reprocessEligible || (Number.isFinite(reprocessTime) && reprocessTime <= now)) {
+        staleRecordCount += 1;
+      }
+    }
+  }
+
+  const earliestReprocessAfter = earliestIsoString(reprocessAfterValues);
+
+  return {
+    staleRecordCount,
+    ...(latestScoredAt ? { latestScoredAt } : {}),
+    ...(earliestReprocessAfter ? { earliestReprocessAfter } : {}),
+  };
+}
+
+function datasetScoringStatus(input: {
+  scores: StoredScoredRecord[];
+  activeJob: Awaited<ReturnType<InternalJobService["findActiveTargetJob"]>>;
+  latestJob: Awaited<ReturnType<InternalJobService["findLatestTargetJob"]>>;
+  staleRecordCount: number;
+}): DatasetScoringStatus {
+  if (input.activeJob?.status === "queued") {
+    return "refresh_requested";
+  }
+
+  if (input.activeJob?.status === "running") {
+    return "refresh_in_progress";
+  }
+
+  if (input.latestJob?.status === "failed") {
+    return "refresh_failed";
+  }
+
+  if (input.scores.length === 0) {
+    return "not_scored";
+  }
+
+  if (input.latestJob?.requestKind === "refresh" && input.latestJob.status === "completed") {
+    return "refresh_completed";
+  }
+
+  if (input.staleRecordCount > 0) {
+    return "stale";
+  }
+
+  return "fresh";
 }
 
 function earliestIsoString(values: string[]): string | undefined {

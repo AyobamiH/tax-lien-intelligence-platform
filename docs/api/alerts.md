@@ -8,6 +8,8 @@ Current alert sources:
 
 - dataset scoring job completed;
 - dataset scoring job failed.
+- dataset refresh job completed or failed through the same scoring job alert
+  types, with `requestKind: "refresh"` metadata.
 
 ## Security Model
 
@@ -56,7 +58,8 @@ Lists recent alerts owned by the authenticated user and returns an unread count.
       "metadata": {
         "jobId": "job-id",
         "datasetId": "dataset-id",
-        "scoredRecordCount": 2
+        "scoredRecordCount": 2,
+        "requestKind": "score"
       },
       "createdAt": "2026-05-25T00:00:00.000Z",
       "updatedAt": "2026-05-25T00:00:00.000Z"

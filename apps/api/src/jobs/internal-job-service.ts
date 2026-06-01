@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import type {
   InternalJobError,
+  InternalJobRequestKind,
   InternalJobResponse,
   InternalJobSummary,
   InternalJobTargetType,
@@ -16,6 +17,7 @@ export interface ExecuteInternalJobInput<TResult> {
   type: InternalJobType;
   targetEntityType: InternalJobTargetType;
   targetEntityId: string;
+  requestKind?: InternalJobRequestKind;
   run: () => Promise<TResult>;
   summarize: (result: TResult) => InternalJobSummary;
 }
@@ -25,6 +27,7 @@ export interface EnqueueInternalJobInput {
   type: InternalJobType;
   targetEntityType: InternalJobTargetType;
   targetEntityId: string;
+  requestKind?: InternalJobRequestKind;
 }
 
 export interface ExecuteInternalJobResult<TResult> {
@@ -44,6 +47,7 @@ export class InternalJobService {
   public async enqueue(input: EnqueueInternalJobInput): Promise<InternalJobResponse> {
     const job = await this.jobStore.createJob({
       ...input,
+      requestKind: input.requestKind ?? "score",
       queuedAt: new Date(),
     });
 
@@ -54,12 +58,45 @@ export class InternalJobService {
     return this.jobStore.claimNextQueuedJob(new Date());
   }
 
+  public async findActiveTargetJob(input: {
+    userId: string;
+    type: InternalJobType;
+    targetEntityType: InternalJobTargetType;
+    targetEntityId: string;
+  }): Promise<InternalJobResponse | null> {
+    const job = await this.jobStore.findActiveJobForTarget(
+      input.userId,
+      input.type,
+      input.targetEntityType,
+      input.targetEntityId,
+    );
+
+    return job ? toInternalJobResponse(job) : null;
+  }
+
+  public async findLatestTargetJob(input: {
+    userId: string;
+    type: InternalJobType;
+    targetEntityType: InternalJobTargetType;
+    targetEntityId: string;
+  }): Promise<InternalJobResponse | null> {
+    const job = await this.jobStore.findLatestJobForTarget(
+      input.userId,
+      input.type,
+      input.targetEntityType,
+      input.targetEntityId,
+    );
+
+    return job ? toInternalJobResponse(job) : null;
+  }
+
   public async execute<TResult>(input: ExecuteInternalJobInput<TResult>): Promise<ExecuteInternalJobResult<TResult>> {
     const queuedJob = await this.jobStore.createJob({
       userId: input.userId,
       type: input.type,
       targetEntityType: input.targetEntityType,
       targetEntityId: input.targetEntityId,
+      requestKind: input.requestKind ?? "score",
       queuedAt: new Date(),
     });
 
@@ -152,6 +189,7 @@ export function toInternalJobResponse(job: StoredInternalJob): InternalJobRespon
     type: job.type,
     targetEntityType: job.targetEntityType,
     targetEntityId: job.targetEntityId,
+    requestKind: job.requestKind,
     status: job.status,
     ...(job.summary ? { summary: job.summary } : {}),
     ...(job.error ? { error: job.error } : {}),

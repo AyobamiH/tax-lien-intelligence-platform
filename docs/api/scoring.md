@@ -25,6 +25,9 @@ creates a persisted `dataset_scoring` job and returns the queued job. A dedicate
 worker claims and executes the job, then records completed or failed lifecycle
 state.
 
+Phase 14 keeps this route as the first-score/re-run path and adds a separate
+controlled refresh route for deliberate reprocessing of existing scored state.
+
 ### Response `202`
 
 ```json
@@ -35,6 +38,7 @@ state.
     "type": "dataset_scoring",
     "targetEntityType": "dataset",
     "targetEntityId": "dataset-id",
+    "requestKind": "score",
     "status": "queued",
     "queuedAt": "2026-05-25T00:00:00.000Z",
     "createdAt": "2026-05-25T00:00:00.000Z",
@@ -45,6 +49,100 @@ state.
 
 Use `GET /jobs/:jobId` to check job state and `GET /datasets/:datasetId/scores`
 to retrieve scores after the worker marks the job completed.
+
+## `POST /datasets/:datasetId/refresh`
+
+Queues a controlled refresh/reprocessing job for a user-owned dataset. Refresh
+means the worker reruns normalization, enrichment orchestration, and scoring for
+the stored dataset source rows, then replaces the current scored-record set for
+that dataset by source row. Existing watchlist and portfolio records retain
+their denormalized decision snapshots; refreshed score rows are the current
+review truth for the dataset.
+
+The route is duplicate-safe. If a `dataset_scoring` job for the dataset is
+already `queued` or `running`, the API returns that active job instead of
+creating another one.
+
+### Queued Response `202`
+
+```json
+{
+  "datasetId": "dataset-id",
+  "requestStatus": "queued",
+  "message": "Dataset refresh has been queued for worker processing.",
+  "job": {
+    "id": "job-id",
+    "type": "dataset_scoring",
+    "targetEntityType": "dataset",
+    "targetEntityId": "dataset-id",
+    "requestKind": "refresh",
+    "status": "queued",
+    "queuedAt": "2026-06-01T00:00:00.000Z",
+    "createdAt": "2026-06-01T00:00:00.000Z",
+    "updatedAt": "2026-06-01T00:00:00.000Z"
+  }
+}
+```
+
+### Already Active Response `202`
+
+```json
+{
+  "datasetId": "dataset-id",
+  "requestStatus": "already_running",
+  "message": "A scoring refresh is already queued or running for this dataset.",
+  "job": {
+    "id": "existing-job-id",
+    "type": "dataset_scoring",
+    "targetEntityType": "dataset",
+    "targetEntityId": "dataset-id",
+    "requestKind": "refresh",
+    "status": "running",
+    "queuedAt": "2026-06-01T00:00:00.000Z",
+    "startedAt": "2026-06-01T00:01:00.000Z",
+    "createdAt": "2026-06-01T00:00:00.000Z",
+    "updatedAt": "2026-06-01T00:01:00.000Z"
+  }
+}
+```
+
+## `GET /datasets/:datasetId/scoring-status`
+
+Returns compact scoring/refresh status for a user-owned dataset.
+
+### Response `200`
+
+```json
+{
+  "datasetId": "dataset-id",
+  "status": "refresh_requested",
+  "scoredRecordCount": 12,
+  "staleRecordCount": 2,
+  "latestScoredAt": "2026-06-01T00:00:00.000Z",
+  "earliestReprocessAfter": "2026-07-01T00:00:00.000Z",
+  "activeJob": {
+    "id": "job-id",
+    "type": "dataset_scoring",
+    "targetEntityType": "dataset",
+    "targetEntityId": "dataset-id",
+    "requestKind": "refresh",
+    "status": "queued",
+    "queuedAt": "2026-06-01T00:02:00.000Z",
+    "createdAt": "2026-06-01T00:02:00.000Z",
+    "updatedAt": "2026-06-01T00:02:00.000Z"
+  }
+}
+```
+
+Supported status values:
+
+- `not_scored`
+- `fresh`
+- `stale`
+- `refresh_requested`
+- `refresh_in_progress`
+- `refresh_failed`
+- `refresh_completed`
 
 ## `GET /datasets/:datasetId/scores`
 
@@ -178,7 +276,8 @@ Phase 8 adds internal job plumbing around scoring. Phase 9 adds in-app alerts
 for scoring job completion/failure outcomes. Phase 10 adds a dedicated worker
 execution path for scoring jobs. Phase 11 adds an internal enrichment adapter
 layer. Phase 12 proves one external enrichment path through the Census Geocoder.
-Phase 13 makes enrichment operationally explicit and rerun-ready. Future phases
-may add stronger county adapters, additional providers, deduplication,
-historical redemption signals, external alert delivery, and external
-automation.
+Phase 13 makes enrichment operationally explicit and rerun-ready. Phase 14 adds
+a controlled user-triggered refresh path and status visibility on top of that
+readiness. Future phases may add stronger county adapters, additional
+providers, deduplication, historical redemption signals, external alert
+delivery, and external automation.

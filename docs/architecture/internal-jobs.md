@@ -2,7 +2,9 @@
 
 Phase 8 introduced automation-ready job plumbing. Phase 9 added in-app alerts
 from selected job outcomes. Phase 10 adds a dedicated local worker execution
-boundary and minimal scheduler foundation. The job layer still does not
+boundary and minimal scheduler foundation. Phase 14 adds controlled dataset
+refresh/reprocessing requests that reuse the same job boundary. The job layer
+still does not
 introduce product automation, external queue infrastructure, email/SMS delivery,
 external schedulers, ML/AI, or auction execution.
 
@@ -18,7 +20,9 @@ Implemented:
 - authenticated `GET /jobs/:jobId` route;
 - `dataset_scoring` job type;
 - `dataset` target entity type;
+- request kind metadata: `score` or `refresh`;
 - queued/running/completed/failed lifecycle;
+- duplicate-safe active job lookup for dataset refresh requests;
 - safe summary metadata;
 - safe error metadata;
 - dataset scoring routed through the job execution service;
@@ -49,6 +53,7 @@ The job model stores:
 - target entity type;
 - target entity id;
 - status;
+- request kind;
 - summary metadata;
 - safe error metadata;
 - queued timestamp;
@@ -79,6 +84,10 @@ Dataset scoring now creates a `dataset_scoring` job for the owned dataset and
 returns queued job metadata. The dedicated worker claims the job, generates
 scores, records completion/failure, stores enrichment counts/reprocess timing in
 the safe job summary, and emits safe in-app alerts.
+
+Phase 14 refresh requests use the same job type with `requestKind: "refresh"`.
+When a dataset already has a queued/running scoring job, refresh returns the
+active job instead of creating duplicate work.
 
 The frontend keeps the review UX understandable by polling `GET /jobs/:jobId`
 and fetching scores after the worker marks the job completed.
@@ -111,6 +120,7 @@ Current protections:
 - cross-user job access tests;
 - safe API errors for inaccessible jobs;
 - safe stored error metadata.
+- duplicate-safe refresh job reuse while a dataset job is queued or running.
 
 Future protections needed before external automation:
 
@@ -130,6 +140,7 @@ Do not:
 - treat jobs as automation by themselves;
 - add retries without idempotency and test coverage.
 - add new worker job types without ownership and stale-reference tests.
+- create refresh loops or duplicate dataset jobs from repeated button clicks.
 
 ## Update Rules
 

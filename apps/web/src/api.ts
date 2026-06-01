@@ -12,6 +12,8 @@ import type {
   DeleteWatchlistItemResponse,
   AddPortfolioItemResponse,
   DeletePortfolioItemResponse,
+  DatasetRefreshJobResponse,
+  DatasetScoringStatusResponse,
   JobDetailResponse,
   MarkAllAlertsReadResponse,
   PortfolioDetailResponse,
@@ -81,6 +83,22 @@ export async function listDatasetScores(token: string, datasetId: string): Promi
 export async function scoreDataset(token: string, datasetId: string): Promise<DatasetScoreJobResponse> {
   return requestJson<DatasetScoreJobResponse>(`/datasets/${encodeURIComponent(datasetId)}/score`, {
     method: "POST",
+    token,
+  });
+}
+
+export async function refreshDatasetScoring(token: string, datasetId: string): Promise<DatasetRefreshJobResponse> {
+  return requestJson<DatasetRefreshJobResponse>(`/datasets/${encodeURIComponent(datasetId)}/refresh`, {
+    method: "POST",
+    token,
+  });
+}
+
+export async function getDatasetScoringStatus(
+  token: string,
+  datasetId: string,
+): Promise<DatasetScoringStatusResponse> {
+  return requestJson<DatasetScoringStatusResponse>(`/datasets/${encodeURIComponent(datasetId)}/scoring-status`, {
     token,
   });
 }

@@ -2,6 +2,7 @@ import type { InternalJobDocument } from "@tax-lien/db";
 import { InternalJobModel } from "@tax-lien/db";
 import type {
   InternalJobError,
+  InternalJobRequestKind,
   InternalJobStatus,
   InternalJobSummary,
   InternalJobTargetType,
@@ -14,6 +15,7 @@ export interface StoredInternalJob {
   type: InternalJobType;
   targetEntityType: InternalJobTargetType;
   targetEntityId: string;
+  requestKind: InternalJobRequestKind;
   status: InternalJobStatus;
   summary?: InternalJobSummary;
   error?: InternalJobError;
@@ -30,12 +32,25 @@ export interface CreateInternalJobInput {
   type: InternalJobType;
   targetEntityType: InternalJobTargetType;
   targetEntityId: string;
+  requestKind: InternalJobRequestKind;
   queuedAt: Date;
 }
 
 export interface InternalJobStore {
   createJob(input: CreateInternalJobInput): Promise<StoredInternalJob>;
   claimNextQueuedJob(startedAt: Date): Promise<StoredInternalJob | null>;
+  findActiveJobForTarget(
+    userId: string,
+    type: InternalJobType,
+    targetEntityType: InternalJobTargetType,
+    targetEntityId: string,
+  ): Promise<StoredInternalJob | null>;
+  findLatestJobForTarget(
+    userId: string,
+    type: InternalJobType,
+    targetEntityType: InternalJobTargetType,
+    targetEntityId: string,
+  ): Promise<StoredInternalJob | null>;
   markRunning(jobId: string, userId: string, startedAt: Date): Promise<StoredInternalJob | null>;
   markCompleted(
     jobId: string,
@@ -83,6 +98,43 @@ export class MongoInternalJobStore implements InternalJobStore {
         },
       },
     ).exec();
+
+    return document ? mapInternalJob(document) : null;
+  }
+
+  public async findActiveJobForTarget(
+    userId: string,
+    type: InternalJobType,
+    targetEntityType: InternalJobTargetType,
+    targetEntityId: string,
+  ): Promise<StoredInternalJob | null> {
+    const document = await InternalJobModel.findOne({
+      userId,
+      type,
+      targetEntityType,
+      targetEntityId,
+      status: { $in: ["queued", "running"] },
+    })
+      .sort({ queuedAt: 1, createdAt: 1 })
+      .exec();
+
+    return document ? mapInternalJob(document) : null;
+  }
+
+  public async findLatestJobForTarget(
+    userId: string,
+    type: InternalJobType,
+    targetEntityType: InternalJobTargetType,
+    targetEntityId: string,
+  ): Promise<StoredInternalJob | null> {
+    const document = await InternalJobModel.findOne({
+      userId,
+      type,
+      targetEntityType,
+      targetEntityId,
+    })
+      .sort({ queuedAt: -1, createdAt: -1 })
+      .exec();
 
     return document ? mapInternalJob(document) : null;
   }
@@ -170,6 +222,7 @@ export function mapInternalJob(document: InternalJobDocument): StoredInternalJob
     type: document.type,
     targetEntityType: document.targetEntityType,
     targetEntityId: document.targetEntityId,
+    requestKind: document.requestKind ?? "score",
     status: document.status,
     ...(document.summary
       ? {

@@ -73,6 +73,8 @@ Current repo protections:
 - job ownership enforcement;
 - worker-side queued job claiming for supported job types;
 - worker-driven dataset scoring execution;
+- request-kind metadata for scoring vs refresh jobs;
+- duplicate-safe refresh job reuse for queued/running dataset jobs;
 - minimal scheduler module for local job polling;
 - internal source-row enrichment before scoring;
 - persisted safe enrichment metadata on scored records;
@@ -103,6 +105,7 @@ Not yet implemented:
 - production CORS restrictions;
 - final browser session architecture beyond the current session-scoped JWT;
 - deployed worker authorization and credential isolation model;
+- rate limits for repeated refresh requests;
 - external alert delivery security;
 - secret rotation guidance.
 
@@ -436,6 +439,10 @@ Phase 13 adds explicit orchestration and fallback metadata. Disabled providers,
 provider no-match, timeout, and failure states are represented as safe outcomes
 on the scored record instead of raw provider errors.
 
+Phase 14 adds a controlled refresh path. Refresh is authenticated,
+tenant-scoped, job-backed, and duplicate-safe while a dataset job is queued or
+running. It is not an automatic loop or broad sync mechanism.
+
 Enrichment output must stay safe:
 
 - no raw full source rows in browser responses;
@@ -443,6 +450,7 @@ Enrichment output must stay safe:
 - no third-party provider payloads;
 - no unbounded external requests;
 - no unbounded reprocessing loops;
+- no duplicate refresh storms from repeated user actions;
 - no secrets;
 - no cross-user enrichment leakage.
 
@@ -474,10 +482,12 @@ alerts, or collaboration must add validation and cross-user tests before release
 ### Automation Jobs And Workers
 
 Internal jobs now include tenant ownership, lifecycle status, safe
-summary/error metadata, worker-side claiming, and worker-driven dataset scoring.
-The current worker is a trusted local backend process, not a deployed external
-worker fleet. Future external jobs must add idempotency, rate limits, worker
-authorization, credential isolation, and safe logs.
+summary/error metadata, request-kind metadata, worker-side claiming, and
+worker-driven dataset scoring. Controlled refresh requests reuse active
+queued/running dataset jobs instead of creating duplicate work. The current
+worker is a trusted local backend process, not a deployed external worker fleet.
+Future external jobs must add idempotency, rate limits, worker authorization,
+credential isolation, and safe logs.
 
 ### Alerts And Notifications
 

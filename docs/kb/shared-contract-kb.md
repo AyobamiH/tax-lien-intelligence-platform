@@ -207,11 +207,18 @@ values.
 Current score routes return:
 
 - `DatasetScoreJobResponse` from `POST /datasets/:datasetId/score`;
+- `DatasetRefreshJobResponse` from `POST /datasets/:datasetId/refresh`;
+- `DatasetScoringStatusResponse` from
+  `GET /datasets/:datasetId/scoring-status`;
 - `DatasetScoresResponse` from `GET /datasets/:datasetId/scores`.
 
 `POST /datasets/:datasetId/score` returns queued job metadata. The frontend
 uses `GET /jobs/:jobId` and then `GET /datasets/:datasetId/scores` after the
 worker completes scoring.
+
+`POST /datasets/:datasetId/refresh` returns queued job metadata or the active
+queued/running dataset job when refresh is already in progress. It must not
+create duplicate refresh jobs for repeated user actions.
 
 `DatasetScoreRunResponse` remains the internal execution result shape used by
 the scoring service and tests, not the public score-trigger response.
@@ -255,6 +262,7 @@ Current job contracts include:
 - type;
 - target entity type;
 - target entity id;
+- request kind: `score` or `refresh`;
 - status;
 - optional safe summary;
 - optional safe error;
@@ -274,6 +282,9 @@ or raw job payloads, and job responses must not expose raw internals.
 
 Phase 10 adds worker claiming for queued jobs. This changes execution timing,
 but not the public job response contract.
+
+Phase 14 adds refresh request metadata and dataset scoring status states. The
+status response is a safe user-facing summary, not a raw job log.
 
 ## Alert Object Contract
 
@@ -300,6 +311,7 @@ Current alert metadata is limited to safe identifiers and summary values:
 - dataset id;
 - scored record count;
 - stable error code.
+- request kind.
 
 Alert contracts must not expose raw job payloads, stack traces, source rows,
 tokens, secrets, provider responses, or another tenant's data. External delivery

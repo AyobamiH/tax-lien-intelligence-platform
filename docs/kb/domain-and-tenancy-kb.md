@@ -29,6 +29,8 @@ Current implementation:
 - frontend watchlist surface exposes user-owned shortlisted scored records;
 - frontend portfolio surface exposes user-owned tracked records and status;
 - frontend alerts surface exposes user-owned scoring job outcome alerts;
+- controlled refresh/reprocessing exists for owned datasets through
+  tenant-owned internal jobs;
 - no parcel model;
 
 Current documentation direction:
@@ -81,8 +83,10 @@ for U.S. Census Geocoder address normalization/location context.
 Current status: implemented as `source_field_inference` for uploaded-row
 aliases and component fields, plus optional `census_geocoder` output when the
 provider is enabled. Phase 13 adds adapter outcomes, fallback state, freshness,
-and reprocess-after metadata. It does not include provider sprawl, paid
-integrations, ML/AI, or county live integrations.
+and reprocess-after metadata. Phase 14 adds controlled user-triggered refresh
+that reruns enrichment/scoring for an owned dataset through the job boundary. It
+does not include provider sprawl, paid integrations, ML/AI, broad scheduled
+refresh, or county live integrations.
 
 ### Watchlist
 
@@ -137,6 +141,7 @@ User-owned data includes or will include:
 - watchlist entries;
 - portfolio records;
 - internal job records;
+- refresh/reprocessing state;
 - alerts;
 - decision notes;
 - upload errors;
@@ -158,6 +163,7 @@ Tenant isolation protects:
 - normalized records;
 - scores;
 - enrichment context;
+- refresh status;
 - reasoning;
 - watchlists;
 - decisions;

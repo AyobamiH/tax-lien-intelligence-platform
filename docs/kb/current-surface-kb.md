@@ -19,6 +19,8 @@ It shows:
 - authenticated dataset list;
 - dataset detail route using `#/datasets/:datasetId`;
 - scoring action for a selected dataset;
+- controlled refresh action for a scored dataset;
+- scoring freshness/status badge and stale-record count;
 - scoring job queued/running/completed/failed status while the worker processes
   the selected dataset;
 - scored-results table;
@@ -53,6 +55,8 @@ The current API surface is minimal:
 - `GET /datasets`
 - `GET /datasets/:datasetId`
 - `POST /datasets/:datasetId/score`
+- `POST /datasets/:datasetId/refresh`
+- `GET /datasets/:datasetId/scoring-status`
 - `GET /datasets/:datasetId/scores`
 - `GET /jobs/:jobId`
 - `GET /alerts`
@@ -92,7 +96,9 @@ Real workflows now present:
 - browser-based login;
 - dataset list/detail review for authenticated users;
 - score triggering for a selected dataset;
+- controlled refresh/reprocessing for a selected dataset;
 - visible scoring job completion state after a scoring run;
+- visible refresh requested/running/failed/completed state;
 - background scoring status polling after a scoring run is requested;
 - scored-record table;
 - record-level flags and reasoning review.
@@ -128,6 +134,7 @@ The current frontend cannot:
 - upload datasets through the browser;
 - upload files;
 - run automation.
+- run automatic recurring refresh.
 
 The current API cannot:
 
@@ -136,6 +143,7 @@ The current API cannot:
 - deliver alerts outside the app;
 - provide realtime worker status;
 - show external enrichment/provider verification;
+- perform broad scheduled refresh or sync;
 - manage collaboration or auction execution.
 
 ## Where The Current Surface Could Mislead Contributors

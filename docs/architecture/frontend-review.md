@@ -6,7 +6,8 @@ Phase 5 introduces the first real in-app review surface for scored datasets.
 Phase 6 extends that surface with watchlist actions and a dedicated shortlist
 comparison page. Phase 7 adds a portfolio/status tracking surface for records
 promoted from scoring review or the watchlist. Phase 9 adds an in-app alerts
-surface for important scoring job outcomes.
+surface for important scoring job outcomes. Phase 14 adds controlled refresh
+actions and scoring freshness/status visibility on the dataset detail surface.
 The frontend is no longer only a shell: it now authenticates against the API,
 lists the signed-in user's datasets, opens a dataset, triggers scoring, and
 renders scored records with flags and reasoning.
@@ -18,6 +19,8 @@ Implemented:
 - authenticated dataset list view;
 - hash-based dataset detail route;
 - scoring action for a selected dataset;
+- controlled refresh action for an already scored dataset;
+- scoring/refresh status badge and stale-record count;
 - scoring job completion message after a score run;
 - scored results table;
 - record detail surface with flags and reasoning;
@@ -65,6 +68,8 @@ The frontend calls only the existing authenticated API routes:
 - `GET /datasets`;
 - `GET /datasets/:datasetId`;
 - `POST /datasets/:datasetId/score`;
+- `POST /datasets/:datasetId/refresh`;
+- `GET /datasets/:datasetId/scoring-status`;
 - `GET /datasets/:datasetId/scores`;
 - `GET /jobs/:jobId`;
 - `POST /watchlist`;
@@ -80,8 +85,8 @@ The frontend calls only the existing authenticated API routes:
 - `PATCH /alerts/read-all`.
 
 The frontend does not accept or send trusted score values. Scores remain
-server-derived. Scoring now returns internal job metadata; the frontend displays
-only the safe job id/status summary.
+server-derived. Scoring and refresh requests return internal job metadata; the
+frontend displays only the safe job id/status/request-kind summary.
 
 Alert APIs return safe monitoring summaries. The frontend does not render raw
 job payloads, stack traces, or diagnostic internals.
@@ -164,6 +169,7 @@ Authorization remains server-side:
 - watchlist actions still depend on backend ownership checks;
 - portfolio actions still depend on backend ownership checks;
 - alert reads and acknowledgements still depend on backend ownership checks;
+- refresh requests still depend on backend dataset ownership checks;
 - auth failures clear the browser session;
 - user-owned data is not mocked into the UI.
 
@@ -183,6 +189,7 @@ Do not:
 - add mock records that look like real user data;
 - duplicate scoring logic in the browser.
 - render raw alert metadata as if it were a diagnostic log.
+- turn refresh into a client-side automation loop.
 
 ## Update Rules
 
@@ -193,3 +200,4 @@ Update this document when:
 - score table columns change;
 - auth/session behavior changes;
 - watchlist, portfolio, or alerts pages become real.
+- refresh status or dataset review actions change.

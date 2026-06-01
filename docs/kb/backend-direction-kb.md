@@ -136,10 +136,13 @@ internal `dataset_scoring` job that is claimed and processed by the worker.
 Current scoring API:
 
 - `POST /datasets/:datasetId/score`;
+- `POST /datasets/:datasetId/refresh`;
+- `GET /datasets/:datasetId/scoring-status`;
 - `GET /datasets/:datasetId/scores`.
 
-The scoring trigger now returns queued job metadata. The frontend polls job
-state and fetches scores after the worker completes the job.
+The scoring trigger now returns queued job metadata. The refresh trigger queues
+or reuses a dataset scoring job with `requestKind: "refresh"`. The frontend
+polls job state and fetches scores after the worker completes the job.
 
 Current limitation:
 
@@ -161,6 +164,8 @@ Current implementation:
 - `census_geocoder` external adapter, disabled unless configured;
 - adapter outcomes for success, skipped, partial, and failed enrichment;
 - enrichment freshness metadata with reprocess-after timing;
+- controlled refresh/reprocessing requests that rerun scoring/enrichment
+  through the existing worker job path;
 - enrichment result persisted on scored records;
 - worker scoring path applies normalization, enrichment, then scoring;
 - adapter failure handling records safe enrichment metadata and keeps scoring
@@ -183,6 +188,7 @@ Current limitation:
 - no external valuation provider;
 - no ML/AI enrichment;
 - no county-specific live integration.
+- no automatic recurring refresh or broad sync automation.
 
 ## Watchlist Implementation
 
@@ -324,7 +330,9 @@ Current job implementation:
 - tenant-owned internal job model;
 - `dataset_scoring` job type;
 - `dataset` target entity type;
+- request kind metadata for normal scoring vs controlled refresh;
 - queued/running/completed/failed lifecycle;
+- duplicate-safe active job lookup for refresh requests;
 - authenticated `GET /jobs/:jobId`;
 - worker-side queued job claiming;
 - dedicated worker entrypoint for dataset scoring execution;
@@ -363,7 +371,8 @@ Backend implementation order should stay disciplined:
 9. alerts and monitoring foundation: implemented in Phase 9;
 10. background worker and scheduler groundwork: implemented in Phase 10;
 11. enrichment adapter foundation: implemented in Phase 11;
-12. later external automation.
+12. controlled refresh/reprocessing workflow: implemented in Phase 14;
+13. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

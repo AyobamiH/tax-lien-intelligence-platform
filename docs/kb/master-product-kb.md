@@ -21,6 +21,8 @@ foundation, frontend scored-results review surface, watchlist decision workflow,
 portfolio/status tracking foundation, automation-ready internal job plumbing,
 in-app alerts/monitoring foundation, and a background worker/scheduler
 groundwork layer. Phase 11 adds internal source-row enrichment before scoring.
+Phase 14 adds controlled dataset refresh/reprocessing on top of the job and
+enrichment foundations.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio surfaces.
 
@@ -36,6 +38,8 @@ Current evidence:
   simple status;
 - internal job records and the worker path make scoring execution explicit
   without adding external automation;
+- controlled refresh lets users deliberately rerun scoring/enrichment without
+  creating autonomous automation;
 - internal enrichment improves uploaded-row interpretation without claiming
   external verification;
 - in-app alerts make scoring job outcomes visible without adding delivery
@@ -58,13 +62,15 @@ The intended product loop is:
 6. the user reviews scored rows with explanations and warnings;
 7. the user adds promising items to a watchlist;
 8. the user tracks decisions over time;
-9. the user sees important scoring outcomes in an in-app alert surface.
+9. the user sees important scoring outcomes in an in-app alert surface;
+10. the user can deliberately refresh stale or weak scoring/enrichment state.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
 shortlisting, portfolio/status tracking, internal job plumbing, in-app alerts,
-worker-driven scoring execution, and source-row enrichment exist. Browser CSV
-upload, external alert delivery, and richer automation remain future direction.
+worker-driven scoring execution, source-row enrichment, and controlled refresh
+exist. Browser CSV upload, external alert delivery, automatic recurring
+refresh, and richer automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -156,6 +162,7 @@ Current implementation:
   context;
 - enrichment now records adapter outcomes, fallback state, and freshness for
   future reprocessing readiness;
+- controlled refresh/reprocessing now exists for user-owned datasets;
 - scoring job outcomes create in-app alerts;
 - no standalone parcel/lien schema;
 - no final investment decision, auction, or accounting workflow.

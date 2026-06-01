@@ -19,7 +19,8 @@ Current implementation:
 - authenticated review workspace in `apps/web/src/App.tsx`;
 - browser login/register backed by the auth API;
 - hash-based dataset review routes;
-- API integration for dataset list/detail, scoring runs, and scored records;
+- API integration for dataset list/detail, scoring runs, controlled refresh,
+  scoring status, and scored records;
 - scored-results table;
 - record detail surface for flags and reasoning;
 - watchlist keep/remove actions;
@@ -30,6 +31,7 @@ Current implementation:
 - dedicated portfolio status tracking page;
 - portfolio detail surface for flags, reasoning, and status;
 - scoring job queued/running/completed/failed visibility after a score run;
+- refresh action/status visibility for scored datasets;
 - alerts route with unread count and read/read-all actions;
 - alert entries for scoring completion/failure outcomes;
 - loading, empty, and error states;
@@ -64,6 +66,7 @@ Current and future page direction:
 - implemented: portfolio status tracking surface;
 - implemented: portfolio detail reasoning/status surface;
 - implemented: scoring job status visibility and polling;
+- implemented: controlled refresh action and scoring status badge;
 - implemented: alerts monitoring surface;
 - future: browser dataset upload page;
 - future: account/settings page.
@@ -74,6 +77,7 @@ Future dashboard:
 
 - summarize recent uploads;
 - show scoring progress and dataset health;
+- show refresh/staleness state when backend status exists;
 - show watchlist count and important warnings;
 - avoid fake metrics before real data exists.
 
@@ -128,6 +132,8 @@ Implemented alerts:
 Implemented scoring execution visibility:
 
 - show queued, running, completed, or failed state for score jobs;
+- show refresh requested/running/failed/completed state for controlled refresh
+  jobs;
 - fetch scored records only after backend job completion;
 - keep worker execution state understandable without exposing raw internals.
 

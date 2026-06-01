@@ -25,6 +25,40 @@ export function createScoringRouter(authService: AuthService, scoringService: Sc
     }
   });
 
+  router.post("/:datasetId/refresh", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      const datasetId = request.params.datasetId;
+      if (typeof datasetId !== "string") {
+        throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
+      }
+
+      response.status(202).json(await scoringService.refreshDataset(datasetId, request.auth.userId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/:datasetId/scoring-status", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      const datasetId = request.params.datasetId;
+      if (typeof datasetId !== "string") {
+        throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
+      }
+
+      response.status(200).json(await scoringService.getScoringStatus(datasetId, request.auth.userId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get("/:datasetId/scores", requireAuthenticatedUser, async (request, response, next) => {
     try {
       if (!request.auth) {

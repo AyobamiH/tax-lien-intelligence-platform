@@ -4,6 +4,7 @@ import type {
   AlertListResponse,
   AlertResponse,
   InternalJobError,
+  InternalJobRequestKind,
   InternalJobStatus,
   InternalJobSummary,
   InternalJobTargetType,
@@ -24,6 +25,7 @@ export interface JobAlertEvent {
   type: InternalJobType;
   targetEntityType: InternalJobTargetType;
   targetEntityId: string;
+  requestKind: InternalJobRequestKind;
   status: InternalJobStatus;
   summary?: InternalJobSummary;
   error?: InternalJobError;
@@ -46,17 +48,19 @@ export class AlertService implements JobAlertSink {
     }
 
     const scoredRecordCount = job.summary?.scoredRecordCount ?? 0;
+    const actionLabel = job.requestKind === "refresh" ? "Refresh" : "Scoring";
     await this.createAlert({
       userId: job.userId,
       type: "scoring_job_completed",
       severity: "info",
-      message: `Scoring completed. ${scoredRecordCount} records are ready for review.`,
+      message: `${actionLabel} completed. ${scoredRecordCount} records are ready for review.`,
       relatedEntityType: "dataset",
       relatedEntityId: job.targetEntityId,
       metadata: {
         jobId: job.id,
         datasetId: job.targetEntityId,
         scoredRecordCount,
+        requestKind: job.requestKind,
       },
     });
   }
@@ -70,12 +74,13 @@ export class AlertService implements JobAlertSink {
       userId: job.userId,
       type: "scoring_job_failed",
       severity: "error",
-      message: `Scoring failed. ${job.error?.message ?? "The scoring job needs attention."}`,
+      message: `${job.requestKind === "refresh" ? "Refresh" : "Scoring"} failed. ${job.error?.message ?? "The scoring job needs attention."}`,
       relatedEntityType: "dataset",
       relatedEntityId: job.targetEntityId,
       metadata: {
         jobId: job.id,
         datasetId: job.targetEntityId,
+        requestKind: job.requestKind,
         ...(job.error?.code ? { errorCode: job.error.code } : {}),
       },
     });

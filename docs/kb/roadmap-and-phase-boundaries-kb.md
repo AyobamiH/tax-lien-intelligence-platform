@@ -434,6 +434,37 @@ Phase 13 does not include:
 - collaboration;
 - auction execution.
 
+## Phase 14: Controlled Refresh And Reprocessing Workflow
+
+Current status: implemented as a manual/user-triggered refresh workflow, not
+autonomous recurring automation.
+
+Phase 14 includes:
+
+- authenticated `POST /datasets/:datasetId/refresh`;
+- authenticated `GET /datasets/:datasetId/scoring-status`;
+- refresh requests that enqueue `dataset_scoring` jobs with
+  `requestKind: "refresh"`;
+- duplicate-safe behavior that returns an active queued/running dataset job
+  instead of creating duplicate refresh work;
+- compact scoring status states: `not_scored`, `fresh`, `stale`,
+  `refresh_requested`, `refresh_in_progress`, `refresh_failed`, and
+  `refresh_completed`;
+- frontend refresh action and status visibility on the dataset detail surface;
+- refresh-aware alerts and safe job metadata;
+- tests for refresh success, duplicate/in-progress behavior, unauthenticated and
+  cross-user rejection, failure handling, and status visibility.
+
+Phase 14 does not include:
+
+- automatic recurring refresh;
+- cron-based broad dataset sync;
+- provider expansion;
+- ML/AI refresh logic;
+- email/SMS delivery;
+- collaboration;
+- auction execution.
+
 ## Later Phases
 
 Later phases may include:
@@ -467,7 +498,8 @@ Dependency order matters:
 9. alerts and monitoring foundation;
 10. background worker and scheduler groundwork;
 11. enrichment adapter foundation;
-12. automation.
+12. controlled refresh/reprocessing workflow;
+13. automation.
 
 Do not invert this order without an explicit architecture decision.
 

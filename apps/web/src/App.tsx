@@ -3,6 +3,7 @@ import type {
   AlertResponse,
   AuthUserResponse,
   DatasetResponse,
+  DatasetScoringStatusResponse,
   InternalJobResponse,
   PortfolioItemResponse,
   PortfolioStatus,
@@ -15,6 +16,7 @@ import {
   addWatchlistItem,
   getCurrentUser,
   getDataset,
+  getDatasetScoringStatus,
   getJob,
   listAlerts,
   listDatasets,
@@ -27,6 +29,7 @@ import {
   register,
   removePortfolioItem,
   removeWatchlistItem,
+  refreshDatasetScoring,
   scoreDataset,
   updatePortfolioItemStatus,
 } from "./api";
@@ -36,6 +39,8 @@ import {
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
+  datasetScoringStatusClassName,
+  datasetScoringStatusLabel,
   filterScoresForReview,
   flagPreview,
   formatMoney,
@@ -73,6 +78,7 @@ interface StoredSession {
 interface DatasetDetailState {
   dataset: DatasetResponse | null;
   scores: ScoredRecordResponse[];
+  scoringStatus: DatasetScoringStatusResponse | null;
   selectedScoreId: string | null;
   lastScoringJob: InternalJobResponse | null;
   isLoading: boolean;
@@ -942,6 +948,7 @@ function DatasetDetailPage({
   const [state, setState] = useState<DatasetDetailState>({
     dataset: null,
     scores: [],
+    scoringStatus: null,
     selectedScoreId: null,
     lastScoringJob: null,
     isLoading: true,
@@ -955,6 +962,7 @@ function DatasetDetailPage({
     setState({
       dataset: null,
       scores: [],
+      scoringStatus: null,
       selectedScoreId: null,
       lastScoringJob: null,
       isLoading: true,
@@ -962,15 +970,16 @@ function DatasetDetailPage({
       error: null,
     });
 
-    Promise.all([getDataset(token, datasetId), listDatasetScores(token, datasetId)])
-      .then(([datasetResult, scoresResult]) => {
+    Promise.all([getDataset(token, datasetId), listDatasetScores(token, datasetId), getDatasetScoringStatus(token, datasetId)])
+      .then(([datasetResult, scoresResult, scoringStatusResult]) => {
         setState({
           dataset: datasetResult.dataset,
           scores: scoresResult.scores,
+          scoringStatus: scoringStatusResult,
           selectedScoreId: scoresResult.scores[0]?.id ?? null,
-          lastScoringJob: null,
+          lastScoringJob: scoringStatusResult.activeJob ?? scoringStatusResult.latestJob ?? null,
           isLoading: false,
-          isScoring: false,
+          isScoring: Boolean(scoringStatusResult.activeJob),
           error: null,
         });
       })
@@ -1019,6 +1028,18 @@ function DatasetDetailPage({
           setState((current) => ({
             ...current,
             scores: scoresResult.scores,
+            scoringStatus: {
+              ...(current.scoringStatus ? withoutActiveJob(current.scoringStatus) : {
+                datasetId,
+                scoredRecordCount: scoresResult.scores.length,
+                staleRecordCount: 0,
+                status: "refresh_completed",
+              }),
+              status: jobResult.job.requestKind === "refresh" ? "refresh_completed" : "fresh",
+              scoredRecordCount: scoresResult.scores.length,
+              staleRecordCount: 0,
+              latestJob: jobResult.job,
+            },
             selectedScoreId: scoresResult.scores[0]?.id ?? current.selectedScoreId,
             lastScoringJob: jobResult.job,
             isScoring: false,
@@ -1031,6 +1052,13 @@ function DatasetDetailPage({
         if (jobResult.job.status === "failed") {
           setState((current) => ({
             ...current,
+            scoringStatus: current.scoringStatus
+              ? {
+                  ...withoutActiveJob(current.scoringStatus),
+                  status: "refresh_failed",
+                  latestJob: jobResult.job,
+                }
+              : current.scoringStatus,
             lastScoringJob: jobResult.job,
             isScoring: false,
             error: jobResult.job.error?.message ?? "Scoring job failed.",
@@ -1041,6 +1069,14 @@ function DatasetDetailPage({
 
         setState((current) => ({
           ...current,
+          scoringStatus: current.scoringStatus
+            ? {
+                ...current.scoringStatus,
+                status: jobResult.job.status === "queued" ? "refresh_requested" : "refresh_in_progress",
+                activeJob: jobResult.job,
+                latestJob: jobResult.job,
+              }
+            : current.scoringStatus,
           lastScoringJob: jobResult.job,
           isScoring: jobResult.job.status === "queued" || jobResult.job.status === "running",
         }));
@@ -1075,9 +1111,46 @@ function DatasetDetailPage({
       const result = await scoreDataset(token, datasetId);
       setState((current) => ({
         ...current,
+        scoringStatus: current.scoringStatus
+          ? {
+              ...current.scoringStatus,
+              status: "refresh_requested",
+              activeJob: result.job,
+              latestJob: result.job,
+            }
+          : current.scoringStatus,
         lastScoringJob: result.job,
         isScoring: true,
         error: null,
+      }));
+      onScoringJobUpdated();
+    } catch (error: unknown) {
+      setState((current) => ({
+        ...current,
+        isScoring: false,
+        error: errorMessage(error),
+      }));
+    }
+  }
+
+  async function refreshScoring(): Promise<void> {
+    setState((current) => ({ ...current, isScoring: true, error: null }));
+
+    try {
+      const result = await refreshDatasetScoring(token, datasetId);
+      setState((current) => ({
+        ...current,
+        scoringStatus: current.scoringStatus
+          ? {
+              ...current.scoringStatus,
+              status: result.job.status === "running" ? "refresh_in_progress" : "refresh_requested",
+              activeJob: result.job,
+              latestJob: result.job,
+            }
+          : current.scoringStatus,
+        lastScoringJob: result.job,
+        isScoring: result.job.status === "queued" || result.job.status === "running",
+        error: result.requestStatus === "already_running" ? result.message : null,
       }));
       onScoringJobUpdated();
     } catch (error: unknown) {
@@ -1106,14 +1179,31 @@ function DatasetDetailPage({
             <h2 className="mt-1 truncate text-2xl font-semibold">{state.dataset.sourceLabel ?? state.dataset.originalFilename}</h2>
             <p className="mt-1 text-sm text-ink/60">{state.dataset.originalFilename}</p>
           </div>
-          <button
-            type="button"
-            onClick={() => void runScoring()}
-            disabled={state.isScoring}
-            className="bg-pine px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {state.isScoring ? "Scoring..." : state.scores.length > 0 ? "Re-run scoring" : "Run scoring"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {state.scoringStatus ? (
+              <span className={`border px-3 py-2 text-xs font-semibold ${datasetScoringStatusClassName(state.scoringStatus.status)}`}>
+                {datasetScoringStatusLabel(state.scoringStatus.status)}
+              </span>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => void runScoring()}
+              disabled={state.isScoring}
+              className="bg-pine px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {state.isScoring ? "Scoring..." : state.scores.length > 0 ? "Re-run scoring" : "Run scoring"}
+            </button>
+            {state.scores.length > 0 ? (
+              <button
+                type="button"
+                onClick={() => void refreshScoring()}
+                disabled={state.isScoring}
+                className="border border-line bg-white px-4 py-2 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {state.isScoring ? "Refresh pending" : "Refresh"}
+              </button>
+            ) : null}
+          </div>
         </div>
         {state.error ? (
           <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{state.error}</div>
@@ -1126,7 +1216,8 @@ function DatasetDetailPage({
         ) : null}
         {state.lastScoringJob ? (
           <div className={`mt-4 border px-3 py-2 text-sm ${jobStatusClassName(state.lastScoringJob.status)}`}>
-            Scoring job {shortId(state.lastScoringJob.id)} is {state.lastScoringJob.status}.{" "}
+            {state.lastScoringJob.requestKind === "refresh" ? "Refresh" : "Scoring"} job{" "}
+            {shortId(state.lastScoringJob.id)} is {state.lastScoringJob.status}.{" "}
             {state.lastScoringJob.status === "completed"
               ? `${state.lastScoringJob.summary?.scoredRecordCount ?? state.scores.length} records are ready for review.`
               : state.lastScoringJob.status === "failed"
@@ -1134,14 +1225,20 @@ function DatasetDetailPage({
                 : "The background worker will update this view when processing finishes."}
           </div>
         ) : null}
-        <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-7">
           <Metric label="Rows" value={String(state.dataset.rowCount)} />
           <Metric label="Scores" value={String(stats.count)} />
           <Metric label="Avg Investment" value={stats.count > 0 ? String(stats.averageInvestmentScore) : "-"} />
           <Metric label="Flagged" value={stats.count > 0 ? String(stats.flaggedCount) : "-"} />
+          <Metric label="Stale" value={state.scoringStatus ? String(state.scoringStatus.staleRecordCount) : "-"} />
           <Metric label="Kept" value={String(datasetWatchlistCount)} />
           <Metric label="Tracked" value={String(datasetPortfolioCount)} />
         </div>
+        {state.scoringStatus?.earliestReprocessAfter ? (
+          <p className="mt-3 text-xs text-ink/60">
+            Earliest refresh point: {formatDateTime(state.scoringStatus.earliestReprocessAfter)}
+          </p>
+        ) : null}
       </div>
 
       {state.scores.length === 0 ? (
@@ -2337,6 +2434,11 @@ function errorMessage(error: unknown): string {
 
 function isActiveJobStatus(status: InternalJobResponse["status"]): boolean {
   return status === "queued" || status === "running";
+}
+
+function withoutActiveJob(status: DatasetScoringStatusResponse): DatasetScoringStatusResponse {
+  const { activeJob: _activeJob, ...rest } = status;
+  return rest;
 }
 
 function jobStatusClassName(status: InternalJobResponse["status"]): string {

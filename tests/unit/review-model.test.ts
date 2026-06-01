@@ -6,6 +6,8 @@ import {
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
+  datasetScoringStatusClassName,
+  datasetScoringStatusLabel,
   filterScoresForReview,
   flagPreview,
   formatMoney,
@@ -296,5 +298,15 @@ describe("review model helpers", () => {
     expect(alertTypeLabel("scoring_job_completed")).toBe("Scoring completed");
     expect(alertTypeLabel("scoring_job_failed")).toBe("Scoring failed");
     expect(alertSeverityClassName("error")).toContain("red");
+  });
+
+  it("labels dataset refresh and scoring status states", () => {
+    expect(datasetScoringStatusLabel("not_scored")).toBe("Not scored");
+    expect(datasetScoringStatusLabel("refresh_requested")).toBe("Refresh queued");
+    expect(datasetScoringStatusLabel("refresh_in_progress")).toBe("Refresh running");
+    expect(datasetScoringStatusLabel("refresh_completed")).toBe("Refresh completed");
+    expect(datasetScoringStatusClassName("stale")).toContain("amber");
+    expect(datasetScoringStatusClassName("refresh_failed")).toContain("red");
+    expect(datasetScoringStatusClassName("fresh")).toContain("emerald");
   });
 });
