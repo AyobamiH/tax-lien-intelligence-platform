@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-06-01
+
+- Implemented Phase 13 enrichment orchestration foundation with explicit
+  adapter outcomes, deliberate disabled/provider fallback records, freshness and
+  reprocess-after metadata, reprocessing-ready scoring job summaries, frontend
+  enrichment state visibility, and orchestration/fallback tests.
+- Updated enrichment/API/KB docs to mark orchestration, fallback behavior, and
+  recency-aware reprocessing readiness as current while keeping provider
+  sprawl, ML/AI, collaboration, auction execution, and broad scheduled sync out
+  of scope.
+
 ## 2026-05-25
 
 - Implemented Phase 12 first external enrichment integration with a controlled

@@ -80,8 +80,9 @@ for U.S. Census Geocoder address normalization/location context.
 
 Current status: implemented as `source_field_inference` for uploaded-row
 aliases and component fields, plus optional `census_geocoder` output when the
-provider is enabled. It does not include provider sprawl, paid integrations,
-ML/AI, or county live integrations.
+provider is enabled. Phase 13 adds adapter outcomes, fallback state, freshness,
+and reprocess-after metadata. It does not include provider sprawl, paid
+integrations, ML/AI, or county live integrations.
 
 ### Watchlist
 

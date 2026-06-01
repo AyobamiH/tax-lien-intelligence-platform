@@ -17,6 +17,7 @@ const envSchema = z.object({
   CENSUS_GEOCODER_BENCHMARK: z.string().min(1).max(80).default("Public_AR_Current"),
   CENSUS_GEOCODER_TIMEOUT_MS: z.coerce.number().int().positive().max(10000).default(3000),
   CENSUS_GEOCODER_MAX_ROWS_PER_JOB: z.coerce.number().int().min(0).max(500).default(25),
+  ENRICHMENT_FRESHNESS_WINDOW_DAYS: z.coerce.number().int().positive().max(365).default(30),
 });
 
 const developmentJwtSecret = "development-only-change-before-production";
@@ -41,6 +42,7 @@ export interface ApiConfig {
   workerPollIntervalMs: number;
   schedulerTickIntervalMs: number;
   externalEnrichment: {
+    freshnessWindowDays: number;
     censusGeocoder: {
       enabled: boolean;
       baseUrl: string;
@@ -61,6 +63,7 @@ export const apiConfig: ApiConfig = {
   workerPollIntervalMs: parsedEnv.WORKER_POLL_INTERVAL_MS,
   schedulerTickIntervalMs: parsedEnv.SCHEDULER_TICK_INTERVAL_MS,
   externalEnrichment: {
+    freshnessWindowDays: parsedEnv.ENRICHMENT_FRESHNESS_WINDOW_DAYS,
     censusGeocoder: {
       enabled: parsedEnv.CENSUS_GEOCODER_ENABLED,
       baseUrl: parsedEnv.CENSUS_GEOCODER_BASE_URL,

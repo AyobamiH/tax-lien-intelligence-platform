@@ -2022,10 +2022,33 @@ function ScoreDetail({
         <DetailTerm label="Coverage" value={formatRatio(score.valueCoverageRatio)} />
         <DetailTerm label="Type" value={score.normalizedFields.propertyTypeCategory} />
         {score.enrichment ? <DetailTerm label="Data quality" value={`${score.enrichment.dataQualityScore}/100`} /> : null}
+        {score.enrichment ? <DetailTerm label="Freshness" value={score.enrichment.freshness.status} /> : null}
       </dl>
       {score.enrichment && (score.enrichment.signals.length > 0 || score.enrichment.reasoning.length > 0) ? (
         <section className="mt-5">
           <h4 className="text-sm font-semibold">Enrichment</h4>
+          <div className="mt-2 border border-line bg-white px-3 py-2 text-sm leading-6 text-ink/75">
+            <p>
+              Last enriched: {formatDateTime(score.enrichment.enrichedAt)} · Reprocess after:{" "}
+              {formatDateTime(score.enrichment.freshness.reprocessAfter)}
+            </p>
+            <p>Source version: {score.enrichment.freshness.sourceVersion}</p>
+          </div>
+          {score.enrichment.adapterOutcomes.length > 0 ? (
+            <ul className="mt-2 space-y-2">
+              {score.enrichment.adapterOutcomes.map((outcome) => (
+                <li
+                  key={`${outcome.adapterId}-${outcome.status}-${outcome.startedAt}`}
+                  className="border border-line bg-field px-3 py-2 text-sm leading-6 text-ink/80"
+                >
+                  <span className="font-semibold">
+                    {outcome.adapterId} · {outcome.stage} · {outcome.status}
+                  </span>
+                  : {outcome.message}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {score.enrichment.signals.length > 0 ? (
             <ul className="mt-2 space-y-2">
               {score.enrichment.signals.map((signal) => (

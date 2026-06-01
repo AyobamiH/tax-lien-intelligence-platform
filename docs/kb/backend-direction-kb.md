@@ -156,9 +156,11 @@ layer between normalization and scoring.
 Current implementation:
 
 - enrichment adapter interface;
-- enrichment service;
+- enrichment service and explicit orchestration layer;
 - `source_field_inference` adapter;
 - `census_geocoder` external adapter, disabled unless configured;
+- adapter outcomes for success, skipped, partial, and failed enrichment;
+- enrichment freshness metadata with reprocess-after timing;
 - enrichment result persisted on scored records;
 - worker scoring path applies normalization, enrichment, then scoring;
 - adapter failure handling records safe enrichment metadata and keeps scoring
@@ -172,6 +174,8 @@ Current adapter capabilities:
 - compute data-quality score for mapped fields.
 - call the U.S. Census Geocoder for bounded, opt-in address normalization and
   location context when a normalized address is available.
+- record disabled, no-match, timeout, and failed provider states as deliberate
+  fallback metadata rather than hidden errors.
 
 Current limitation:
 

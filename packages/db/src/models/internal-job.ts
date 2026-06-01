@@ -6,6 +6,9 @@ export type InternalJobTargetTypeRecord = "dataset";
 
 export interface InternalJobSummaryRecord {
   scoredRecordCount?: number;
+  enrichedRecordCount?: number;
+  enrichmentFallbackCount?: number;
+  earliestReprocessAfter?: string;
 }
 
 export interface InternalJobErrorRecord {
@@ -34,6 +37,9 @@ export type InternalJobDocument = HydratedDocument<InternalJobRecord>;
 const internalJobSummarySchema = new Schema<InternalJobSummaryRecord>(
   {
     scoredRecordCount: { type: Number, min: 0 },
+    enrichedRecordCount: { type: Number, min: 0 },
+    enrichmentFallbackCount: { type: Number, min: 0 },
+    earliestReprocessAfter: { type: String, trim: true, maxlength: 40 },
   },
   {
     _id: false,

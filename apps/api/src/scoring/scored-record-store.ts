@@ -130,8 +130,36 @@ function mapScoredRecord(document: ScoredRecordDocument): StoredScoredRecord {
 }
 
 function mapEnrichmentResult(enrichment: NonNullable<ScoredRecordDocument["enrichment"]>): EnrichmentResult {
+  const enrichedAt = enrichment.enrichedAt ?? new Date(0).toISOString();
   return {
     adapters: enrichment.adapters,
+    orchestrationVersion: enrichment.orchestrationVersion ?? "legacy-enrichment-v0",
+    enrichedAt,
+    adapterOutcomes: (enrichment.adapterOutcomes ?? []).map((outcome) => ({
+      adapterId: outcome.adapterId,
+      stage: outcome.stage,
+      status: outcome.status,
+      message: outcome.message,
+      startedAt: outcome.startedAt,
+      completedAt: outcome.completedAt,
+    })),
+    freshness: enrichment.freshness
+      ? {
+          status: enrichment.freshness.status,
+          enrichedAt: enrichment.freshness.enrichedAt,
+          staleAt: enrichment.freshness.staleAt,
+          reprocessAfter: enrichment.freshness.reprocessAfter,
+          reprocessEligible: enrichment.freshness.reprocessEligible,
+          sourceVersion: enrichment.freshness.sourceVersion,
+        }
+      : {
+          status: "unknown",
+          enrichedAt,
+          staleAt: enrichedAt,
+          reprocessAfter: enrichedAt,
+          reprocessEligible: false,
+          sourceVersion: "legacy-enrichment-v0",
+        },
     dataQualityScore: enrichment.dataQualityScore,
     inferredFields: {
       ...(enrichment.inferredFields.parcelId ? { parcelId: enrichment.inferredFields.parcelId } : {}),

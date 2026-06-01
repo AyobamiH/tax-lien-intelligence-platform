@@ -66,10 +66,14 @@ export class ScoringService {
 
     const dataset = await this.getDatasetForScoring(job.targetEntityId, job.userId);
     const result = await this.executeDatasetScoring(dataset.id, job.userId, dataset.sourceRows);
-
-    return {
+    const summary: InternalJobSummary = {
       scoredRecordCount: result.scoredRecordCount,
+      ...(result.enrichedRecordCount !== undefined ? { enrichedRecordCount: result.enrichedRecordCount } : {}),
+      ...(result.enrichmentFallbackCount !== undefined ? { enrichmentFallbackCount: result.enrichmentFallbackCount } : {}),
+      ...(result.earliestReprocessAfter ? { earliestReprocessAfter: result.earliestReprocessAfter } : {}),
     };
+
+    return summary;
   }
 
   private async executeDatasetScoring(
@@ -114,10 +118,17 @@ export class ScoringService {
     }
 
     const storedRecords = await this.scoredRecordStore.replaceScoresForDataset(userId, datasetId, records);
+    const enrichmentFallbackCount = records.filter((record) =>
+      record.enrichment.adapterOutcomes.some((outcome) => outcome.status === "skipped" || outcome.status === "partial" || outcome.status === "failed"),
+    ).length;
+    const earliestReprocessAfter = earliestIsoString(records.map((record) => record.enrichment.freshness.reprocessAfter));
 
     return {
       datasetId,
       scoredRecordCount: storedRecords.length,
+      enrichedRecordCount: records.length,
+      enrichmentFallbackCount,
+      ...(earliestReprocessAfter ? { earliestReprocessAfter } : {}),
       scores: storedRecords.map(toScoredRecordResponse),
     };
   }
@@ -134,6 +145,21 @@ export class ScoringService {
 
     return dataset;
   }
+}
+
+function earliestIsoString(values: string[]): string | undefined {
+  let earliest: string | undefined;
+  let earliestTime = Number.POSITIVE_INFINITY;
+
+  for (const value of values) {
+    const parsed = Date.parse(value);
+    if (Number.isFinite(parsed) && parsed < earliestTime) {
+      earliest = value;
+      earliestTime = parsed;
+    }
+  }
+
+  return earliest;
 }
 
 export function toScoredRecordResponse(record: StoredScoredRecord): ScoredRecordResponse {

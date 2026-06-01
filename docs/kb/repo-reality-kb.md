@@ -83,6 +83,8 @@ Implemented today:
 - `source_field_inference` adapter for uploaded-row enrichment;
 - `census_geocoder` external adapter for opt-in U.S. Census Geocoder address
   normalization/location context;
+- enrichment orchestration records adapter outcomes, fallback states, freshness,
+  and reprocess-after metadata;
 - persisted enrichment metadata on scored records;
 - authenticated scoring endpoints at `POST /datasets/:datasetId/score` and
   `GET /datasets/:datasetId/scores`;

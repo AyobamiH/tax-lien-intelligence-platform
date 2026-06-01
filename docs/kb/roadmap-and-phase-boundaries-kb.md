@@ -406,6 +406,34 @@ Phase 12 does not include:
 - collaboration;
 - auction execution.
 
+## Phase 13: Enrichment Orchestration And Recency Foundation
+
+Current status: implemented as operational maturity for the existing enrichment
+layer, not provider expansion.
+
+Phase 13 includes:
+
+- explicit enrichment orchestration layer;
+- ordered internal/external adapter execution;
+- adapter outcomes for success, skipped, partial, and failed states;
+- deliberate fallback records when Census geocoding is disabled, weak,
+  unavailable, or fails;
+- freshness metadata with source version, `enrichedAt`, `staleAt`,
+  `reprocessAfter`, and reprocess eligibility;
+- job summary enrichment counts and earliest reprocess timing;
+- frontend detail visibility for adapter outcomes and freshness;
+- tests for orchestration order, disabled fallback, no-match/timeout fallback,
+  freshness evaluation, worker scoring continuity, and safe persistence.
+
+Phase 13 does not include:
+
+- new providers;
+- provider marketplace/plugin framework;
+- ML/AI enrichment;
+- external scheduler or broad sync automation;
+- collaboration;
+- auction execution.
+
 ## Later Phases
 
 Later phases may include:

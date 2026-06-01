@@ -70,6 +70,34 @@ Returns stored scored records for a user-owned dataset.
       },
       "enrichment": {
         "adapters": ["source_field_inference", "census_geocoder"],
+        "orchestrationVersion": "enrichment-orchestration-v1",
+        "enrichedAt": "2026-05-25T00:00:00.000Z",
+        "adapterOutcomes": [
+          {
+            "adapterId": "source_field_inference",
+            "stage": "internal",
+            "status": "success",
+            "message": "Adapter completed successfully.",
+            "startedAt": "2026-05-25T00:00:00.000Z",
+            "completedAt": "2026-05-25T00:00:00.000Z"
+          },
+          {
+            "adapterId": "census_geocoder",
+            "stage": "external",
+            "status": "success",
+            "message": "Adapter completed with an external match.",
+            "startedAt": "2026-05-25T00:00:00.000Z",
+            "completedAt": "2026-05-25T00:00:00.000Z"
+          }
+        ],
+        "freshness": {
+          "status": "fresh",
+          "enrichedAt": "2026-05-25T00:00:00.000Z",
+          "staleAt": "2026-06-24T00:00:00.000Z",
+          "reprocessAfter": "2026-06-24T00:00:00.000Z",
+          "reprocessEligible": false,
+          "sourceVersion": "source_field_inference@1+census_geocoder@Public_AR_Current"
+        },
         "dataQualityScore": 100,
         "inferredFields": {
           "lienAmount": 1000,
@@ -137,10 +165,11 @@ are recorded on the job as safe failure metadata.
 
 Phase 4 scoring is a first-pass, rule-based foundation. Phase 11 adds internal
 source-row enrichment before scoring. Phase 12 adds an opt-in U.S. Census
-Geocoder adapter for address normalization and location context. Scoring is
-still not a final institutional underwriting model. It uses fields that can be
-mapped or safely inferred from the uploaded dataset, plus safe external
-enrichment metadata when the Census provider is enabled.
+Geocoder adapter for address normalization and location context. Phase 13 adds
+explicit enrichment orchestration, fallback outcomes, and freshness/reprocess
+metadata. Scoring is still not a final institutional underwriting model. It uses
+fields that can be mapped or safely inferred from the uploaded dataset, plus
+safe external enrichment metadata when the Census provider is enabled.
 
 Phase 5 adds a frontend review surface that calls these routes directly for the
 signed-in user. Phase 6 adds watchlist actions on top of scored records. Phase 7
@@ -149,6 +178,7 @@ Phase 8 adds internal job plumbing around scoring. Phase 9 adds in-app alerts
 for scoring job completion/failure outcomes. Phase 10 adds a dedicated worker
 execution path for scoring jobs. Phase 11 adds an internal enrichment adapter
 layer. Phase 12 proves one external enrichment path through the Census Geocoder.
-Future phases may add stronger county adapters, additional providers,
-deduplication, historical redemption signals, external alert delivery, and
-external automation.
+Phase 13 makes enrichment operationally explicit and rerun-ready. Future phases
+may add stronger county adapters, additional providers, deduplication,
+historical redemption signals, external alert delivery, and external
+automation.

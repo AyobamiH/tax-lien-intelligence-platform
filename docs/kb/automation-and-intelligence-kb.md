@@ -100,9 +100,13 @@ It should not begin before CSV upload and validation are solid.
 Current enrichment:
 
 - runs inside worker-driven dataset scoring;
+- runs through an explicit orchestration layer;
 - uses uploaded source-row data and, when enabled, one controlled external
   Census Geocoder adapter;
 - infers missing core fields from alternate headers;
+- records adapter outcomes for success, skipped, partial, and failed states;
+- records freshness and reprocess-after metadata for later scheduled
+  re-enrichment;
 - records safe external address/location context without raw provider payloads;
 - persists safe enrichment metadata on scored records;
 - improves scoring confidence when uploaded data is inconsistent.
@@ -116,9 +120,10 @@ Future enrichment may include:
 - geographic indicators.
 - additional external providers after provider-specific security design.
 
-Enrichment must label source and confidence. It must not silently overwrite user
-or source data without traceability. External enrichment must stay bounded,
-timeout-controlled, and opt-in.
+Enrichment must label source, confidence, outcome, and freshness. It must not
+silently overwrite user or source data without traceability. External enrichment
+must stay bounded, timeout-controlled, opt-in, and rerun-ready without unbounded
+loops.
 
 ## Scoring And Reasoning Automation
 

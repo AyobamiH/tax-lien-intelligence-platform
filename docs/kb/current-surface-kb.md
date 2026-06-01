@@ -25,6 +25,7 @@ It shows:
 - scored-record enrichment/data-quality detail;
 - safe external enrichment detail when Census geocoding is enabled and a row
   has usable address context;
+- enrichment adapter outcome and freshness/reprocess timing detail;
 - row-level detail surface with flags and reasoning;
 - watchlist keep/remove actions for scored records;
 - dedicated watchlist comparison route using `#/watchlist`;

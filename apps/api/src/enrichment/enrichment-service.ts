@@ -1,8 +1,12 @@
 import type {
+  EnrichmentAdapterOutcome,
   EnrichedScoredRecordFields,
   EnrichmentAdapterId,
+  EnrichmentAdapterStage,
+  EnrichmentFreshness,
   EnrichmentResult,
   EnrichmentSignal,
+  ExternalEnrichmentProvider,
   ExternalEnrichmentResult,
   NormalizedScoredRecordFields,
 } from "@tax-lien/types";
@@ -32,6 +36,20 @@ export interface EnrichmentAdapter {
   enrich(input: EnrichmentAdapterInput): EnrichmentAdapterResult | Promise<EnrichmentAdapterResult>;
 }
 
+export interface DisabledEnrichmentAdapterStep {
+  id: EnrichmentAdapterId;
+  stage: EnrichmentAdapterStage;
+  message: string;
+  externalProvider?: ExternalEnrichmentProvider;
+}
+
+export interface EnrichmentServiceOptions {
+  disabledAdapters?: DisabledEnrichmentAdapterStep[];
+  freshnessWindowDays?: number;
+  now?: () => Date;
+  sourceVersion?: string;
+}
+
 export interface EnrichedDatasetRow {
   sourceRowNumber: number;
   normalizedFields: NormalizedScoredRecordFields;
@@ -40,10 +58,63 @@ export interface EnrichedDatasetRow {
 }
 
 export class EnrichmentService {
-  private readonly adapters: EnrichmentAdapter[];
+  private readonly orchestrator: EnrichmentOrchestrator;
 
-  public constructor(adapters: EnrichmentAdapter[]) {
-    this.adapters = adapters;
+  public constructor(adapters: EnrichmentAdapter[], options: EnrichmentServiceOptions = {}) {
+    this.orchestrator = new EnrichmentOrchestrator(
+      [
+        ...adapters.map((adapter) => ({
+          id: adapter.id,
+          stage: adapterStage(adapter.id),
+          adapter,
+        })),
+        ...(options.disabledAdapters ?? []).map((disabledAdapter) => ({
+          id: disabledAdapter.id,
+          stage: disabledAdapter.stage,
+          disabledReason: disabledAdapter.message,
+          ...(disabledAdapter.externalProvider ? { externalProvider: disabledAdapter.externalProvider } : {}),
+        })),
+      ],
+      {
+        freshnessWindowDays: options.freshnessWindowDays ?? 30,
+        now: options.now ?? (() => new Date()),
+        sourceVersion: options.sourceVersion ?? "source_field_inference@1",
+      },
+    );
+  }
+
+  public async enrichRow(sourceRow: StoredDatasetSourceRow, normalizedRow: NormalizedDatasetRow): Promise<EnrichedDatasetRow> {
+    return this.orchestrator.enrichRow(sourceRow, normalizedRow);
+  }
+}
+
+interface EnrichmentPipelineStep {
+  id: EnrichmentAdapterId;
+  stage: EnrichmentAdapterStage;
+  adapter?: EnrichmentAdapter;
+  disabledReason?: string;
+  externalProvider?: ExternalEnrichmentProvider;
+}
+
+interface EnrichmentOrchestratorOptions {
+  freshnessWindowDays: number;
+  now: () => Date;
+  sourceVersion: string;
+}
+
+export const ENRICHMENT_ORCHESTRATION_VERSION = "enrichment-orchestration-v1";
+
+export class EnrichmentOrchestrator {
+  private readonly pipeline: EnrichmentPipelineStep[];
+  private readonly freshnessWindowDays: number;
+  private readonly now: () => Date;
+  private readonly sourceVersion: string;
+
+  public constructor(pipeline: EnrichmentPipelineStep[], options: EnrichmentOrchestratorOptions) {
+    this.pipeline = pipeline;
+    this.freshnessWindowDays = options.freshnessWindowDays;
+    this.now = options.now;
+    this.sourceVersion = options.sourceVersion;
   }
 
   public async enrichRow(sourceRow: StoredDatasetSourceRow, normalizedRow: NormalizedDatasetRow): Promise<EnrichedDatasetRow> {
@@ -56,14 +127,49 @@ export class EnrichmentService {
     const inferredFields: EnrichedScoredRecordFields = {};
     const signals: EnrichmentSignal[] = [];
     const externalResults: ExternalEnrichmentResult[] = [];
+    const adapterOutcomes: EnrichmentAdapterOutcome[] = [];
     const flags: string[] = [];
     const reasoning: string[] = [];
     const adapters: EnrichmentAdapterId[] = [];
 
-    for (const adapter of this.adapters) {
-      adapters.push(adapter.id);
+    for (const step of this.pipeline) {
+      const startedAt = this.now();
+
+      if (!step.adapter) {
+        const completedAt = this.now();
+        adapterOutcomes.push({
+          adapterId: step.id,
+          stage: step.stage,
+          status: "skipped",
+          message: step.disabledReason ?? "Adapter disabled by configuration.",
+          startedAt: startedAt.toISOString(),
+          completedAt: completedAt.toISOString(),
+        });
+
+        if (step.externalProvider) {
+          externalResults.push({
+            adapterId: step.id,
+            provider: step.externalProvider,
+            status: "skipped",
+            confidence: "low",
+            message: step.disabledReason ?? "External enrichment adapter disabled by configuration.",
+            enrichedAt: completedAt.toISOString(),
+          });
+          signals.push({
+            adapterId: step.id,
+            field: "externalLocation",
+            confidence: "low",
+            message: step.disabledReason ?? "External enrichment adapter disabled by configuration.",
+          });
+          reasoning.push(step.disabledReason ?? "External enrichment adapter disabled by configuration.");
+        }
+
+        continue;
+      }
+
+      adapters.push(step.id);
       try {
-        const result = await adapter.enrich({
+        const result = await step.adapter.enrich({
           sourceRow,
           normalizedFields,
           scoreableRecord,
@@ -78,9 +184,39 @@ export class EnrichmentService {
         signals.push(...result.signals);
         flags.push(...result.flags);
         reasoning.push(...result.reasoning);
+        const completedAt = this.now();
+        adapterOutcomes.push({
+          adapterId: step.id,
+          stage: step.stage,
+          status: adapterOutcomeStatus(result),
+          message: adapterOutcomeMessage(result),
+          startedAt: startedAt.toISOString(),
+          completedAt: completedAt.toISOString(),
+        });
       } catch {
-        flags.push(`Enrichment adapter ${adapter.id} failed safely`);
-        reasoning.push(`Enrichment adapter ${adapter.id} could not improve this row, so scoring used available normalized data.`);
+        const completedAt = this.now();
+        const message = `Enrichment adapter ${step.id} failed safely`;
+        flags.push(message);
+        reasoning.push(`Enrichment adapter ${step.id} could not improve this row, so scoring used available normalized data.`);
+        adapterOutcomes.push({
+          adapterId: step.id,
+          stage: step.stage,
+          status: "failed",
+          message,
+          startedAt: startedAt.toISOString(),
+          completedAt: completedAt.toISOString(),
+        });
+
+        if (step.externalProvider) {
+          externalResults.push({
+            adapterId: step.id,
+            provider: step.externalProvider,
+            status: "failed",
+            confidence: "low",
+            message,
+            enrichedAt: completedAt.toISOString(),
+          });
+        }
       }
     }
 
@@ -97,12 +233,23 @@ export class EnrichmentService {
       flags.push("Enrichment found weak source-row completeness");
     }
 
+    const runCompletedAt = this.now();
+    const freshness = buildFreshness({
+      enrichedAt: runCompletedAt,
+      freshnessWindowDays: this.freshnessWindowDays,
+      sourceVersion: this.sourceVersion,
+    });
+
     return {
       sourceRowNumber: normalizedRow.sourceRowNumber,
       normalizedFields,
       scoreableRecord,
       enrichment: {
         adapters: uniqueAdapters(adapters),
+        orchestrationVersion: ENRICHMENT_ORCHESTRATION_VERSION,
+        enrichedAt: runCompletedAt.toISOString(),
+        adapterOutcomes: uniqueAdapterOutcomes(adapterOutcomes),
+        freshness,
         dataQualityScore,
         inferredFields,
         ...(externalResults.length > 0 ? { externalResults: uniqueExternalResults(externalResults) } : {}),
@@ -124,12 +271,16 @@ export interface CensusGeocoderEnrichmentConfig {
 
 export interface EnrichmentServiceConfig {
   censusGeocoder: CensusGeocoderEnrichmentConfig;
+  freshnessWindowDays?: number;
 }
 
 export function createDefaultEnrichmentService(config?: EnrichmentServiceConfig): EnrichmentService {
   const adapters: EnrichmentAdapter[] = [new SourceFieldInferenceAdapter()];
+  const disabledAdapters: DisabledEnrichmentAdapterStep[] = [];
+  const sourceVersionParts = ["source_field_inference@1"];
 
   if (config?.censusGeocoder.enabled) {
+    sourceVersionParts.push(`census_geocoder@${safeSourceVersionSegment(config.censusGeocoder.benchmark)}`);
     adapters.push(
       new CensusGeocoderAddressAdapter(
         new HttpCensusGeocoderClient({
@@ -142,9 +293,47 @@ export function createDefaultEnrichmentService(config?: EnrichmentServiceConfig)
         },
       ),
     );
+  } else if (config?.censusGeocoder) {
+    sourceVersionParts.push("census_geocoder@disabled");
+    disabledAdapters.push({
+      id: "census_geocoder",
+      stage: "external",
+      externalProvider: "us_census_geocoder",
+      message: "Census Geocoder enrichment is disabled by configuration.",
+    });
   }
 
-  return new EnrichmentService(adapters);
+  const options: EnrichmentServiceOptions = {
+    disabledAdapters,
+    sourceVersion: sourceVersionParts.join("+"),
+  };
+
+  if (config?.freshnessWindowDays !== undefined) {
+    options.freshnessWindowDays = config.freshnessWindowDays;
+  }
+
+  return new EnrichmentService(adapters, options);
+}
+
+export function evaluateEnrichmentFreshness(
+  freshness: EnrichmentFreshness,
+  now: Date = new Date(),
+): EnrichmentFreshness {
+  const reprocessAt = Date.parse(freshness.reprocessAfter);
+  if (!Number.isFinite(reprocessAt)) {
+    return {
+      ...freshness,
+      status: "unknown",
+      reprocessEligible: false,
+    };
+  }
+
+  const reprocessEligible = now.getTime() >= reprocessAt;
+  return {
+    ...freshness,
+    status: reprocessEligible ? "stale" : "fresh",
+    reprocessEligible,
+  };
 }
 
 function applyInferredFields(
@@ -229,6 +418,23 @@ function uniqueAdapters(values: EnrichmentAdapterId[]): EnrichmentAdapterId[] {
   return [...new Set(values)];
 }
 
+function uniqueAdapterOutcomes(values: EnrichmentAdapterOutcome[]): EnrichmentAdapterOutcome[] {
+  const seen = new Set<string>();
+  const unique: EnrichmentAdapterOutcome[] = [];
+
+  for (const value of values) {
+    const key = `${value.adapterId}:${value.stage}:${value.status}:${value.message}`;
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    unique.push(value);
+  }
+
+  return unique;
+}
+
 function uniqueSignals(values: EnrichmentSignal[]): EnrichmentSignal[] {
   const seen = new Set<string>();
   const unique: EnrichmentSignal[] = [];
@@ -263,4 +469,76 @@ function uniqueExternalResults(values: ExternalEnrichmentResult[]): ExternalEnri
   }
 
   return unique;
+}
+
+function adapterStage(adapterId: EnrichmentAdapterId): EnrichmentAdapterStage {
+  return adapterId === "source_field_inference" ? "internal" : "external";
+}
+
+function adapterOutcomeStatus(result: EnrichmentAdapterResult): EnrichmentAdapterOutcome["status"] {
+  const externalStatuses = result.externalResults?.map((externalResult) => externalResult.status) ?? [];
+  if (externalStatuses.includes("failed") || externalStatuses.includes("timeout")) {
+    return "failed";
+  }
+
+  if (externalStatuses.includes("no_match")) {
+    return "partial";
+  }
+
+  if (externalStatuses.length > 0 && externalStatuses.every((status) => status === "skipped")) {
+    return "skipped";
+  }
+
+  if (externalStatuses.includes("matched")) {
+    return "success";
+  }
+
+  return "success";
+}
+
+function adapterOutcomeMessage(result: EnrichmentAdapterResult): string {
+  const externalStatus = result.externalResults?.[0]?.status;
+  if (externalStatus === "matched") {
+    return "Adapter completed with an external match.";
+  }
+
+  if (externalStatus === "no_match") {
+    return "Adapter completed with weak or partial external enrichment.";
+  }
+
+  if (externalStatus === "timeout" || externalStatus === "failed") {
+    return "Adapter failed safely and scoring continued.";
+  }
+
+  if (externalStatus === "skipped") {
+    return "Adapter skipped enrichment deliberately.";
+  }
+
+  return "Adapter completed successfully.";
+}
+
+function buildFreshness(input: {
+  enrichedAt: Date;
+  freshnessWindowDays: number;
+  sourceVersion: string;
+}): EnrichmentFreshness {
+  const staleAt = addDays(input.enrichedAt, input.freshnessWindowDays);
+  return {
+    status: "fresh",
+    enrichedAt: input.enrichedAt.toISOString(),
+    staleAt: staleAt.toISOString(),
+    reprocessAfter: staleAt.toISOString(),
+    reprocessEligible: false,
+    sourceVersion: input.sourceVersion,
+  };
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setUTCDate(next.getUTCDate() + Math.max(1, days));
+  return next;
+}
+
+function safeSourceVersionSegment(value: string): string {
+  return value.trim().replaceAll(/[^a-zA-Z0-9_.-]+/g, "_").slice(0, 60) || "unknown";
 }

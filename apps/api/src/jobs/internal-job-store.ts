@@ -177,6 +177,15 @@ export function mapInternalJob(document: InternalJobDocument): StoredInternalJob
             ...(document.summary.scoredRecordCount !== undefined
               ? { scoredRecordCount: document.summary.scoredRecordCount }
               : {}),
+            ...(document.summary.enrichedRecordCount !== undefined
+              ? { enrichedRecordCount: document.summary.enrichedRecordCount }
+              : {}),
+            ...(document.summary.enrichmentFallbackCount !== undefined
+              ? { enrichmentFallbackCount: document.summary.enrichmentFallbackCount }
+              : {}),
+            ...(document.summary.earliestReprocessAfter
+              ? { earliestReprocessAfter: document.summary.earliestReprocessAfter }
+              : {}),
           },
         }
       : {}),

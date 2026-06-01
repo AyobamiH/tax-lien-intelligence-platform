@@ -432,19 +432,25 @@ path. It may infer missing fields, data-quality context, and safe external
 address/location metadata, but it is not final verification or underwriting
 truth.
 
+Phase 13 adds explicit orchestration and fallback metadata. Disabled providers,
+provider no-match, timeout, and failure states are represented as safe outcomes
+on the scored record instead of raw provider errors.
+
 Enrichment output must stay safe:
 
 - no raw full source rows in browser responses;
 - no raw adapter exceptions;
 - no third-party provider payloads;
 - no unbounded external requests;
+- no unbounded reprocessing loops;
 - no secrets;
 - no cross-user enrichment leakage.
 
 The current external adapter is opt-in, uses HTTPS configuration, has timeout
-and per-job row limits, and requires no provider secret. Future external
-providers will require provider-secret handling, tenant-safe logs, retry policy,
-rate limits, and clear source/confidence labels before launch.
+and per-job row limits, records freshness/reprocess metadata, and requires no
+provider secret. Future external providers will require provider-secret
+handling, tenant-safe logs, retry policy, rate limits, and clear
+source/confidence/outcome labels before launch.
 
 ### Watchlists
 

@@ -2,6 +2,8 @@ import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 
 export type PropertyTypeCategoryRecord = "residential" | "multifamily" | "commercial" | "land" | "unknown";
 export type EnrichmentAdapterIdRecord = "source_field_inference" | "census_geocoder";
+export type EnrichmentAdapterStageRecord = "internal" | "external";
+export type EnrichmentAdapterOutcomeStatusRecord = "success" | "skipped" | "partial" | "failed";
 export type EnrichmentConfidenceRecord = "low" | "medium" | "high";
 export type EnrichedFieldNameRecord =
   | "parcelId"
@@ -13,6 +15,7 @@ export type EnrichedFieldNameRecord =
   | "externalLocation";
 export type ExternalEnrichmentProviderRecord = "us_census_geocoder";
 export type ExternalEnrichmentStatusRecord = "matched" | "no_match" | "skipped" | "failed" | "timeout";
+export type EnrichmentFreshnessStatusRecord = "fresh" | "stale" | "unknown";
 
 export interface NormalizedScoredRecordFieldsRecord {
   parcelId?: string;
@@ -63,8 +66,30 @@ export interface ExternalEnrichmentResultRecord {
   enrichedAt: string;
 }
 
+export interface EnrichmentAdapterOutcomeRecord {
+  adapterId: EnrichmentAdapterIdRecord;
+  stage: EnrichmentAdapterStageRecord;
+  status: EnrichmentAdapterOutcomeStatusRecord;
+  message: string;
+  startedAt: string;
+  completedAt: string;
+}
+
+export interface EnrichmentFreshnessRecord {
+  status: EnrichmentFreshnessStatusRecord;
+  enrichedAt: string;
+  staleAt: string;
+  reprocessAfter: string;
+  reprocessEligible: boolean;
+  sourceVersion: string;
+}
+
 export interface EnrichmentResultRecord {
   adapters: EnrichmentAdapterIdRecord[];
+  orchestrationVersion: string;
+  enrichedAt: string;
+  adapterOutcomes: EnrichmentAdapterOutcomeRecord[];
+  freshness: EnrichmentFreshnessRecord;
   dataQualityScore: number;
   inferredFields: EnrichedScoredRecordFieldsRecord;
   externalResults?: ExternalEnrichmentResultRecord[];
@@ -201,6 +226,52 @@ const externalEnrichmentResultSchema = new Schema<ExternalEnrichmentResultRecord
   },
 );
 
+const enrichmentAdapterOutcomeSchema = new Schema<EnrichmentAdapterOutcomeRecord>(
+  {
+    adapterId: {
+      type: String,
+      enum: ["source_field_inference", "census_geocoder"],
+      required: true,
+    },
+    stage: {
+      type: String,
+      enum: ["internal", "external"],
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["success", "skipped", "partial", "failed"],
+      required: true,
+    },
+    message: { type: String, required: true, trim: true, maxlength: 255 },
+    startedAt: { type: String, required: true, trim: true, maxlength: 40 },
+    completedAt: { type: String, required: true, trim: true, maxlength: 40 },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
+const enrichmentFreshnessSchema = new Schema<EnrichmentFreshnessRecord>(
+  {
+    status: {
+      type: String,
+      enum: ["fresh", "stale", "unknown"],
+      required: true,
+    },
+    enrichedAt: { type: String, required: true, trim: true, maxlength: 40 },
+    staleAt: { type: String, required: true, trim: true, maxlength: 40 },
+    reprocessAfter: { type: String, required: true, trim: true, maxlength: 40 },
+    reprocessEligible: { type: Boolean, required: true },
+    sourceVersion: { type: String, required: true, trim: true, maxlength: 160 },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
 const enrichmentResultSchema = new Schema<EnrichmentResultRecord>(
   {
     adapters: {
@@ -208,6 +279,17 @@ const enrichmentResultSchema = new Schema<EnrichmentResultRecord>(
       required: true,
       default: [],
       enum: ["source_field_inference", "census_geocoder"],
+    },
+    orchestrationVersion: { type: String, required: true, trim: true, maxlength: 80 },
+    enrichedAt: { type: String, required: true, trim: true, maxlength: 40 },
+    adapterOutcomes: {
+      type: [enrichmentAdapterOutcomeSchema],
+      required: true,
+      default: [],
+    },
+    freshness: {
+      type: enrichmentFreshnessSchema,
+      required: true,
     },
     dataQualityScore: { type: Number, required: true, min: 0, max: 100 },
     inferredFields: {

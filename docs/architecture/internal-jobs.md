@@ -77,7 +77,8 @@ boundary future automation can reuse.
 
 Dataset scoring now creates a `dataset_scoring` job for the owned dataset and
 returns queued job metadata. The dedicated worker claims the job, generates
-scores, records completion/failure, and emits safe in-app alerts.
+scores, records completion/failure, stores enrichment counts/reprocess timing in
+the safe job summary, and emits safe in-app alerts.
 
 The frontend keeps the review UX understandable by polling `GET /jobs/:jobId`
 and fetching scores after the worker marks the job completed.

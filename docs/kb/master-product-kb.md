@@ -154,6 +154,8 @@ Current implementation:
 - scoring now uses internal source-row enrichment before final score generation;
 - scoring can use opt-in Census Geocoder enrichment for safe address/location
   context;
+- enrichment now records adapter outcomes, fallback state, and freshness for
+  future reprocessing readiness;
 - scoring job outcomes create in-app alerts;
 - no standalone parcel/lien schema;
 - no final investment decision, auction, or accounting workflow.

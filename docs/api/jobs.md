@@ -60,7 +60,10 @@ Returns one job owned by the authenticated user.
     "targetEntityId": "dataset-id",
     "status": "completed",
     "summary": {
-      "scoredRecordCount": 2
+      "scoredRecordCount": 2,
+      "enrichedRecordCount": 2,
+      "enrichmentFallbackCount": 0,
+      "earliestReprocessAfter": "2026-06-24T00:00:00.000Z"
     },
     "queuedAt": "2026-05-25T00:00:00.000Z",
     "startedAt": "2026-05-25T00:00:00.000Z",

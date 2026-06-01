@@ -3,17 +3,23 @@
 ## Scope
 
 Phase 11 introduced the first enrichment layer between uploaded source rows and
-scoring. Phase 12 proves that boundary with one controlled external provider:
-the U.S. Census Geocoder.
+scoring. Phase 12 proved that boundary with one controlled external provider:
+the U.S. Census Geocoder. Phase 13 makes enrichment an explicit orchestration
+subsystem with adapter outcomes, deliberate fallback records, freshness
+metadata, and reprocessing readiness.
 
 Implemented:
 
 - enrichment adapter interface in `apps/api/src/enrichment`;
-- enrichment service that applies internal and external adapters safely;
+- enrichment orchestration layer that applies internal and external adapters in
+  explicit order;
 - internal adapter: `source_field_inference`;
 - external adapter: `census_geocoder`;
 - opt-in Census Geocoder configuration through environment variables;
 - timeout and per-job row limits for external geocoding;
+- adapter outcome records for success, skipped, partial, and failed enrichment;
+- freshness metadata with `enrichedAt`, `staleAt`, `reprocessAfter`, source
+  version, and reprocess eligibility;
 - persisted enrichment result embedded on scored records;
 - enrichment-aware scoring pipeline: source row -> normalization -> enrichment
   -> scoring -> scored record;
@@ -74,6 +80,7 @@ CENSUS_GEOCODER_BASE_URL=https://geocoding.geo.census.gov
 CENSUS_GEOCODER_BENCHMARK=Public_AR_Current
 CENSUS_GEOCODER_TIMEOUT_MS=3000
 CENSUS_GEOCODER_MAX_ROWS_PER_JOB=25
+ENRICHMENT_FRESHNESS_WINDOW_DAYS=30
 ```
 
 The adapter:
@@ -92,11 +99,55 @@ foundation for future location-aware scoring. It does not claim that a geocode
 match proves property quality, title status, access, buildability, or investment
 suitability.
 
+## Orchestration And Fallback
+
+The enrichment service now wraps adapters in an orchestration layer. The
+pipeline order is explicit:
+
+1. internal source-field inference;
+2. external Census geocoder when configured, or a deliberate skipped fallback
+   outcome when disabled.
+
+Every adapter produces an adapter outcome with:
+
+- adapter id;
+- stage: `internal` or `external`;
+- status: `success`, `skipped`, `partial`, or `failed`;
+- safe message;
+- started/completed timestamps.
+
+External provider weakness is not fatal. `no_match` is recorded as partial,
+timeout/failure is recorded as failed-safe, disabled configuration is recorded
+as skipped, and scoring continues with available normalized/enriched fields.
+
+## Freshness And Reprocessing Readiness
+
+Every enrichment result stores freshness metadata:
+
+- overall `enrichedAt`;
+- source/version tag;
+- `staleAt`;
+- `reprocessAfter`;
+- `reprocessEligible`.
+
+New results are fresh. The stored `reprocessAfter` timestamp gives future
+schedulers or workers a clear, tenant-safe way to decide which scored records
+should be re-enriched when provider config changes or external context ages.
+
+Dataset scoring is already a worker-backed rerun path. Re-running
+`POST /datasets/:datasetId/score` enqueues a new `dataset_scoring` job that
+re-runs normalization, orchestration, enrichment, scoring, and persistence for
+that owned dataset. Job summaries now include enrichment counts and earliest
+reprocess timing.
+
 ## Persistence
 
 Scored records may now include an `enrichment` object with:
 
 - adapters used;
+- orchestration version;
+- adapter outcomes;
+- freshness metadata;
 - data quality score;
 - inferred fields;
 - safe external enrichment results;
@@ -114,6 +165,7 @@ Adapter failures are fail-closed:
 
 - scoring continues with available normalized fields;
 - safe enrichment flags/reasoning are recorded;
+- adapter outcome status records the failure or skip;
 - external provider timeout/failure/no-match states are represented as low
   confidence metadata;
 - raw exceptions and raw provider payloads are not exposed to the user.
@@ -132,6 +184,8 @@ Current protections:
 - cross-user score access remains blocked by existing dataset/score ownership;
 - the external adapter is opt-in and uses HTTPS-only provider config;
 - external geocoding has timeout and per-job row limits;
+- enrichment has bounded freshness metadata for later reprocessing rather than
+  unbounded rerun loops;
 - adapter failures produce safe metadata only;
 - no API keys or external provider secrets are required for the current Census
   provider.

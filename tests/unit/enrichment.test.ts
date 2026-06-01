@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { EnrichmentAdapter } from "../../apps/api/src/enrichment/enrichment-service.js";
-import { createDefaultEnrichmentService, EnrichmentService } from "../../apps/api/src/enrichment/enrichment-service.js";
+import {
+  createDefaultEnrichmentService,
+  EnrichmentService,
+  evaluateEnrichmentFreshness,
+} from "../../apps/api/src/enrichment/enrichment-service.js";
 import { CensusGeocoderAddressAdapter } from "../../apps/api/src/enrichment/census-geocoder-adapter.js";
 import {
   HttpCensusGeocoderClient,
@@ -51,6 +55,50 @@ describe("enrichment service", () => {
     expect(enriched.enrichment.reasoning.join(" ")).toContain("Enrichment inferred property type");
   });
 
+  it("records orchestration order and freshness metadata", async () => {
+    const sourceRow: StoredDatasetSourceRow = {
+      rowNumber: 1,
+      fields: {
+        account_number: "A-110",
+        tax_due: "1,000",
+        total_assessed_value: "12,000",
+        use_description: "Single family residence",
+      },
+    };
+    const service = new EnrichmentService([new SourceFieldInferenceAdapter()], {
+      freshnessWindowDays: 10,
+      now: () => new Date("2026-01-01T00:00:00.000Z"),
+      sourceVersion: "test-source-version",
+    });
+
+    const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
+
+    expect(enriched.enrichment.orchestrationVersion).toBe("enrichment-orchestration-v1");
+    expect(enriched.enrichment.adapterOutcomes).toEqual([
+      {
+        adapterId: "source_field_inference",
+        stage: "internal",
+        status: "success",
+        message: "Adapter completed successfully.",
+        startedAt: "2026-01-01T00:00:00.000Z",
+        completedAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    expect(enriched.enrichment.freshness).toEqual({
+      status: "fresh",
+      enrichedAt: "2026-01-01T00:00:00.000Z",
+      staleAt: "2026-01-11T00:00:00.000Z",
+      reprocessAfter: "2026-01-11T00:00:00.000Z",
+      reprocessEligible: false,
+      sourceVersion: "test-source-version",
+    });
+
+    expect(evaluateEnrichmentFreshness(enriched.enrichment.freshness, new Date("2026-01-12T00:00:00.000Z"))).toMatchObject({
+      status: "stale",
+      reprocessEligible: true,
+    });
+  });
+
   it("keeps weak rows conservative and records weak completeness", async () => {
     const sourceRow: StoredDatasetSourceRow = {
       rowNumber: 2,
@@ -85,6 +133,11 @@ describe("enrichment service", () => {
     const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
 
     expect(enriched.enrichment.flags).toContain("Enrichment adapter source_field_inference failed safely");
+    expect(enriched.enrichment.adapterOutcomes[0]).toMatchObject({
+      adapterId: "source_field_inference",
+      stage: "internal",
+      status: "failed",
+    });
     expect(enriched.enrichment.reasoning.join(" ")).toContain("could not improve this row");
   });
 
@@ -118,6 +171,7 @@ describe("enrichment service", () => {
     const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
 
     expect(enriched.enrichment.adapters).toEqual(["source_field_inference", "census_geocoder"]);
+    expect(enriched.enrichment.adapterOutcomes.map((outcome) => outcome.status)).toEqual(["success", "success"]);
     expect(enriched.enrichment.externalResults).toEqual([
       {
         adapterId: "census_geocoder",
@@ -235,6 +289,11 @@ describe("enrichment service", () => {
       status: "no_match",
       confidence: "low",
     });
+    expect(enriched.enrichment.adapterOutcomes[1]).toMatchObject({
+      adapterId: "census_geocoder",
+      stage: "external",
+      status: "partial",
+    });
     expect(enriched.enrichment.flags).toContain("External geocoder did not match address");
   });
 
@@ -265,6 +324,11 @@ describe("enrichment service", () => {
     expect(enriched.enrichment.externalResults?.[0]).toMatchObject({
       status: "timeout",
       message: "External geocoder timed out before returning usable location context.",
+    });
+    expect(enriched.enrichment.adapterOutcomes[1]).toMatchObject({
+      adapterId: "census_geocoder",
+      stage: "external",
+      status: "failed",
     });
     expect(enriched.enrichment.flags).toContain("External geocoder unavailable");
   });
@@ -302,9 +366,14 @@ describe("enrichment service", () => {
       status: "skipped",
       message: "External geocoding skipped by configured per-job row limit.",
     });
+    expect(enriched.enrichment.adapterOutcomes[1]).toMatchObject({
+      adapterId: "census_geocoder",
+      stage: "external",
+      status: "skipped",
+    });
   });
 
-  it("keeps external geocoding disabled when no external config is supplied", async () => {
+  it("records disabled external geocoding as deliberate fallback when configured off", async () => {
     const sourceRow: StoredDatasetSourceRow = {
       rowNumber: 1,
       fields: {
@@ -312,11 +381,27 @@ describe("enrichment service", () => {
         address: "10 Main St Austin TX 78701",
       },
     };
-    const service = createDefaultEnrichmentService();
+    const service = createDefaultEnrichmentService({
+      censusGeocoder: {
+        enabled: false,
+        baseUrl: "https://geocoding.geo.census.gov",
+        benchmark: "Public_AR_Current",
+        timeoutMs: 3000,
+        maxRowsPerJob: 25,
+      },
+      freshnessWindowDays: 30,
+    });
 
     const enriched = await service.enrichRow(sourceRow, normalizeDatasetRow(sourceRow));
 
     expect(enriched.enrichment.adapters).toEqual(["source_field_inference"]);
-    expect(enriched.enrichment.externalResults).toBeUndefined();
+    expect(enriched.enrichment.adapterOutcomes.map((outcome) => outcome.status)).toEqual(["success", "skipped"]);
+    expect(enriched.enrichment.externalResults?.[0]).toMatchObject({
+      adapterId: "census_geocoder",
+      provider: "us_census_geocoder",
+      status: "skipped",
+      message: "Census Geocoder enrichment is disabled by configuration.",
+    });
+    expect(enriched.enrichment.freshness.sourceVersion).toBe("source_field_inference@1+census_geocoder@disabled");
   });
 });

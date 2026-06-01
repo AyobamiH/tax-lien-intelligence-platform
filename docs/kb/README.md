@@ -64,6 +64,7 @@ records the current implementation state:
 - Internal job API exists.
 - enrichment adapter foundation exists, including one opt-in external Census
   Geocoder path.
+- enrichment orchestration/fallback/freshness metadata exists.
 - frontend scored-results review surface exists.
 - watchlist API and review surface exist.
 - portfolio API and status tracking surface exist.

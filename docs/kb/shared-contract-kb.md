@@ -226,6 +226,9 @@ The contract represents first-pass explainable scoring, not final underwriting.
 Current enrichment contracts include:
 
 - adapter ids;
+- orchestration version;
+- adapter outcomes with stage, status, safe message, and timestamps;
+- freshness metadata with source version and reprocess timing;
 - data quality score;
 - inferred field snapshot;
 - optional safe external enrichment results;

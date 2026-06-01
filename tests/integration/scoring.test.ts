@@ -472,13 +472,20 @@ describe("dataset scoring API", () => {
         },
       }),
     };
-    const enrichmentService = new EnrichmentService([
-      new SourceFieldInferenceAdapter(),
-      new CensusGeocoderAddressAdapter(geocoderClient, {
-        maxRowsPerJob: 25,
+    const enrichmentService = new EnrichmentService(
+      [
+        new SourceFieldInferenceAdapter(),
+        new CensusGeocoderAddressAdapter(geocoderClient, {
+          maxRowsPerJob: 25,
+          now: () => new Date("2026-01-01T00:00:00.000Z"),
+        }),
+      ],
+      {
+        freshnessWindowDays: 30,
         now: () => new Date("2026-01-01T00:00:00.000Z"),
-      }),
-    ]);
+        sourceVersion: "source_field_inference@1+census_geocoder@Public_AR_Current",
+      },
+    );
     const { app, workerProcessor } = createTestContext({ enrichmentService });
     const owner = await registerUser(app, "owner@example.com");
     const datasetId = await uploadDataset(
@@ -494,7 +501,18 @@ describe("dataset scoring API", () => {
       .post(`/datasets/${datasetId}/score`)
       .set("Authorization", `Bearer ${owner.token}`)
       .expect(202);
-    await workerProcessor.processNextJob();
+    const workerResult = await workerProcessor.processNextJob();
+    expect(workerResult).toMatchObject({
+      status: "completed",
+      job: {
+        summary: {
+          scoredRecordCount: 1,
+          enrichedRecordCount: 1,
+          enrichmentFallbackCount: 0,
+          earliestReprocessAfter: "2026-01-31T00:00:00.000Z",
+        },
+      },
+    });
 
     const scoresResponse = await request(app)
       .get(`/datasets/${datasetId}/scores`)
@@ -519,7 +537,136 @@ describe("dataset scoring API", () => {
     expect(score.enrichment.signals.map((signal: { adapterId: string }) => signal.adapterId)).toContain(
       "census_geocoder",
     );
+    expect(score.enrichment.adapterOutcomes.map((outcome: { status: string }) => outcome.status)).toEqual([
+      "success",
+      "success",
+    ]);
+    expect(score.enrichment.freshness).toMatchObject({
+      status: "fresh",
+      reprocessAfter: "2026-01-31T00:00:00.000Z",
+      reprocessEligible: false,
+      sourceVersion: "source_field_inference@1+census_geocoder@Public_AR_Current",
+    });
     expect(JSON.stringify(score.enrichment)).not.toContain("addressMatches");
+  });
+
+  it("keeps scoring coherent when external enrichment times out", async () => {
+    const geocoderClient: CensusGeocoderClient = {
+      geocodeAddress: async () => ({
+        status: "timeout",
+        message: "Timeout",
+      }),
+    };
+    const enrichmentService = new EnrichmentService(
+      [
+        new SourceFieldInferenceAdapter(),
+        new CensusGeocoderAddressAdapter(geocoderClient, {
+          maxRowsPerJob: 25,
+          now: () => new Date("2026-01-01T00:00:00.000Z"),
+        }),
+      ],
+      {
+        freshnessWindowDays: 30,
+        now: () => new Date("2026-01-01T00:00:00.000Z"),
+        sourceVersion: "source_field_inference@1+census_geocoder@Public_AR_Current",
+      },
+    );
+    const { app, workerProcessor } = createTestContext({ enrichmentService });
+    const owner = await registerUser(app, "owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      [
+        "parcel_id,lien_amount,estimated_value,property_type,address",
+        "A-902,1000,12000,Single family residence,10 Main St Austin TX 78701",
+      ].join("\n"),
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    const workerResult = await workerProcessor.processNextJob();
+
+    expect(workerResult).toMatchObject({
+      status: "completed",
+      job: {
+        summary: {
+          scoredRecordCount: 1,
+          enrichedRecordCount: 1,
+          enrichmentFallbackCount: 1,
+        },
+      },
+    });
+
+    const scoresResponse = await request(app)
+      .get(`/datasets/${datasetId}/scores`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    const score = scoresResponse.body.scores[0];
+    expect(score.investmentScore).toBeGreaterThan(0);
+    expect(score.enrichment.externalResults[0]).toMatchObject({
+      adapterId: "census_geocoder",
+      status: "timeout",
+      message: "External geocoder timed out before returning usable location context.",
+    });
+    expect(score.enrichment.adapterOutcomes[1]).toMatchObject({
+      adapterId: "census_geocoder",
+      status: "failed",
+      message: "Adapter failed safely and scoring continued.",
+    });
+    expect(score.flags).toContain("External geocoder unavailable");
+  });
+
+  it("supports reprocessing readiness by rerunning dataset scoring through jobs", async () => {
+    const { app, workerProcessor } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-903,1000,12000,Single family residence\n",
+    );
+
+    const firstResponse = await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    const firstWorkerResult = await workerProcessor.processNextJob();
+    expect(firstWorkerResult).toMatchObject({
+      status: "completed",
+      job: {
+        id: firstResponse.body.job.id,
+        summary: {
+          scoredRecordCount: 1,
+          enrichedRecordCount: 1,
+        },
+      },
+    });
+
+    const secondResponse = await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    const secondWorkerResult = await workerProcessor.processNextJob();
+    expect(secondWorkerResult).toMatchObject({
+      status: "completed",
+      job: {
+        id: secondResponse.body.job.id,
+        summary: {
+          scoredRecordCount: 1,
+          enrichedRecordCount: 1,
+        },
+      },
+    });
+
+    const scoresResponse = await request(app)
+      .get(`/datasets/${datasetId}/scores`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(scoresResponse.body.scores).toHaveLength(1);
+    expect(scoresResponse.body.scores[0].enrichment.freshness.reprocessAfter).toEqual(expect.any(String));
   });
 
   it("rejects invalid dataset ids safely", async () => {

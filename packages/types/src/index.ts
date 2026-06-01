@@ -85,6 +85,8 @@ export interface NormalizedScoredRecordFields {
 }
 
 export type EnrichmentAdapterId = "source_field_inference" | "census_geocoder";
+export type EnrichmentAdapterStage = "internal" | "external";
+export type EnrichmentAdapterOutcomeStatus = "success" | "skipped" | "partial" | "failed";
 export type EnrichmentConfidence = "low" | "medium" | "high";
 export type EnrichedFieldName =
   | "parcelId"
@@ -96,6 +98,7 @@ export type EnrichedFieldName =
   | "externalLocation";
 export type ExternalEnrichmentProvider = "us_census_geocoder";
 export type ExternalEnrichmentStatus = "matched" | "no_match" | "skipped" | "failed" | "timeout";
+export type EnrichmentFreshnessStatus = "fresh" | "stale" | "unknown";
 
 export interface EnrichedScoredRecordFields {
   parcelId?: string;
@@ -126,8 +129,30 @@ export interface ExternalEnrichmentResult {
   enrichedAt: string;
 }
 
+export interface EnrichmentAdapterOutcome {
+  adapterId: EnrichmentAdapterId;
+  stage: EnrichmentAdapterStage;
+  status: EnrichmentAdapterOutcomeStatus;
+  message: string;
+  startedAt: string;
+  completedAt: string;
+}
+
+export interface EnrichmentFreshness {
+  status: EnrichmentFreshnessStatus;
+  enrichedAt: string;
+  staleAt: string;
+  reprocessAfter: string;
+  reprocessEligible: boolean;
+  sourceVersion: string;
+}
+
 export interface EnrichmentResult {
   adapters: EnrichmentAdapterId[];
+  orchestrationVersion: string;
+  enrichedAt: string;
+  adapterOutcomes: EnrichmentAdapterOutcome[];
+  freshness: EnrichmentFreshness;
   dataQualityScore: number;
   inferredFields: EnrichedScoredRecordFields;
   externalResults?: ExternalEnrichmentResult[];
@@ -161,6 +186,9 @@ export type InternalJobTargetType = "dataset";
 
 export interface InternalJobSummary {
   scoredRecordCount?: number;
+  enrichedRecordCount?: number;
+  enrichmentFallbackCount?: number;
+  earliestReprocessAfter?: string;
 }
 
 export interface InternalJobError {
@@ -192,6 +220,9 @@ export interface DatasetScoreRunResponse {
   datasetId: string;
   job: InternalJobResponse;
   scoredRecordCount: number;
+  enrichedRecordCount?: number;
+  enrichmentFallbackCount?: number;
+  earliestReprocessAfter?: string;
   scores: ScoredRecordResponse[];
 }
 

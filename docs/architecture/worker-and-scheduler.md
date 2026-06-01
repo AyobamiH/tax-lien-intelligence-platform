@@ -21,7 +21,8 @@ Implemented:
 - `dataset_scoring` execution in the worker path;
 - safe completion/failure recording through the internal job service;
 - existing scoring completion/failure alerts preserved;
-- Phase 11/12 enrichment runs inside the scoring job before score generation;
+- Phase 11/12/13 enrichment runs inside the scoring job before score generation
+  and records safe enrichment summary/reprocess metadata;
 - frontend score status polling after the scoring trigger returns a queued job;
 - unit tests for job claiming and scheduler behavior;
 - integration tests for worker-driven scoring success, failure, and stale
