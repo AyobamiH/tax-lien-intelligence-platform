@@ -61,6 +61,7 @@ class InMemoryDatasetStore implements DatasetStore {
       sourceRows: input.sourceRows,
       validationSummary: input.validationSummary,
       ...(input.importSummary ? { importSummary: input.importSummary } : {}),
+      ...(input.readinessSummary ? { readinessSummary: input.readinessSummary } : {}),
       uploadedAt: input.uploadedAt,
       createdAt: now,
       updatedAt: now,
@@ -168,6 +169,16 @@ describe("dataset API", () => {
           mappedFields: [],
           warnings: [],
         },
+        readinessSummary: {
+          status: "partial",
+          score: 65,
+          scoringRecommended: true,
+          issues: expect.arrayContaining([
+            expect.objectContaining({ code: "generic_fallback_used", severity: "info" }),
+            expect.objectContaining({ code: "missing_property_type", severity: "warning" }),
+            expect.objectContaining({ code: "weak_address_context", severity: "info" }),
+          ]),
+        },
       },
     });
     expect(JSON.stringify(response.body)).not.toContain("A-100");
@@ -195,8 +206,40 @@ describe("dataset API", () => {
         mappedFields: ["parcel_id", "lien_amount", "estimated_value", "property_type", "address"],
         warnings: [],
       },
+      readinessSummary: {
+        status: "ready",
+        score: 100,
+        scoringRecommended: true,
+        issues: [],
+      },
     });
     expect(JSON.stringify(response.body)).not.toContain("100 Main St");
+  });
+
+  it("returns blocked readiness when upload lacks required value fields", async () => {
+    const { app } = createTestContext();
+    const token = await registerUser(app, "owner@example.com");
+
+    const response = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", Buffer.from("parcel_id,lien_amount\nA-100,1000\n", "utf8"), {
+        filename: "missing-value.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    expect(response.body.dataset.readinessSummary).toMatchObject({
+      status: "blocked",
+      scoringRecommended: false,
+      issues: expect.arrayContaining([
+        expect.objectContaining({
+          code: "missing_estimated_value",
+          severity: "error",
+          field: "estimated_value",
+        }),
+      ]),
+    });
   });
 
   it("rejects dataset upload without authentication", async () => {

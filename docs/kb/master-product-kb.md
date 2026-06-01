@@ -25,7 +25,8 @@ Phase 14 adds controlled dataset refresh/reprocessing on top of the job and
 enrichment foundations. Phase 15 adds bounded scheduled maintenance groundwork
 with explicit refresh policy gates. Phase 16 adds the first county import
 adapter boundary with one Maricopa-style CSV adapter and generic fallback. Phase
-17 adds authenticated browser upload for manual CSV imports.
+17 adds authenticated browser upload for manual CSV imports. Phase 18 adds
+import validation/readiness guidance before users rely on scores.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio surfaces.
 
@@ -35,7 +36,7 @@ Current evidence:
   tax lien data;
 - the root package describes scoring tax lien and parcel datasets;
 - the frontend lets signed-in users upload a CSV and see import/fallback
-  results;
+  results and readiness guidance;
 - the frontend review surface lets signed-in users inspect scored records,
   flags, and reasoning;
 - the watchlist surface lets signed-in users keep and compare scored records;
@@ -68,14 +69,15 @@ The intended product loop is:
 3. the system parses and validates the dataset;
 4. the system applies a deterministic county adapter when explicit headers
    match, or falls back to generic CSV handling;
-5. dataset/source rows are stored under that user's tenant boundary;
-6. the scoring engine evaluates opportunity quality and risk;
-7. the user reviews scored rows with explanations and warnings;
-8. the user adds promising items to a watchlist;
-9. the user tracks decisions over time;
-10. the user sees important scoring outcomes in an in-app alert surface;
-11. the user can deliberately refresh stale or weak scoring/enrichment state.
-12. the system can identify stale scored datasets for bounded maintenance
+5. the system reports import readiness and scoring suitability;
+6. dataset/source rows are stored under that user's tenant boundary;
+7. the scoring engine evaluates opportunity quality and risk;
+8. the user reviews scored rows with explanations and warnings;
+9. the user adds promising items to a watchlist;
+10. the user tracks decisions over time;
+11. the user sees important scoring outcomes in an in-app alert surface;
+12. the user can deliberately refresh stale or weak scoring/enrichment state.
+13. the system can identify stale scored datasets for bounded maintenance
     review without becoming an unlimited automation product.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
@@ -83,10 +85,10 @@ row storage, first-pass score APIs, browser score review, watchlist
 shortlisting, portfolio/status tracking, internal job plumbing, in-app alerts,
 worker-driven scoring execution, source-row enrichment, and controlled refresh
 exist. Bounded scheduled maintenance groundwork now exists. One
-Maricopa-style county import adapter exists. Browser CSV upload, broad county
-upload now exists. Broad county coverage, live county sync, external alert
-delivery, user-facing scheduler policy controls, broader automatic refresh, and
-richer automation remain future direction.
+Maricopa-style county import adapter exists. Browser CSV upload and import
+readiness guidance now exist. Broad county coverage, live county sync, manual
+field mapping, external alert delivery, user-facing scheduler policy controls,
+broader automatic refresh, and richer automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -166,6 +168,8 @@ Current implementation:
 
 - dataset upload endpoint and browser upload form exist for authenticated
   manual CSV metadata and validation;
+- import readiness summaries exist for field coverage, warnings, and scoring
+  recommendation guidance;
 - internal source rows are stored for scoring;
 - first-pass explainable scoring exists through API routes;
 - frontend review of scored results exists;

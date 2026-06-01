@@ -5,6 +5,9 @@ export type DatasetSourceType = "manual_csv";
 export type DatasetImportAdapterIdRecord = "generic_csv" | "maricopa_tax_lien_v1";
 export type DatasetImportSourceRecord = "generic_csv" | "county_adapter";
 export type DatasetImportConfidenceRecord = "low" | "medium" | "high";
+export type DatasetReadinessStatusRecord = "ready" | "partial" | "weak" | "blocked";
+export type DatasetReadinessIssueSeverityRecord = "info" | "warning" | "error";
+export type DatasetReadinessFieldNameRecord = "parcel_id" | "lien_amount" | "estimated_value" | "property_type" | "address";
 
 export interface DatasetValidationSummaryRecord {
   totalRows: number;
@@ -30,6 +33,31 @@ export interface DatasetImportSummaryRecord {
   warnings: string[];
 }
 
+export interface DatasetReadinessFieldCoverageRecord {
+  field: DatasetReadinessFieldNameRecord;
+  label: string;
+  presentRows: number;
+  totalRows: number;
+  coveragePercent: number;
+  importance: "required" | "important" | "helpful";
+}
+
+export interface DatasetReadinessIssueRecord {
+  code: string;
+  severity: DatasetReadinessIssueSeverityRecord;
+  message: string;
+  field?: DatasetReadinessFieldNameRecord;
+}
+
+export interface DatasetReadinessSummaryRecord {
+  status: DatasetReadinessStatusRecord;
+  score: number;
+  scoringRecommended: boolean;
+  fieldCoverage: DatasetReadinessFieldCoverageRecord[];
+  issues: DatasetReadinessIssueRecord[];
+  guidance: string[];
+}
+
 export interface DatasetRecord {
   userId: string;
   originalFilename: string;
@@ -42,6 +70,7 @@ export interface DatasetRecord {
   sourceRows: DatasetSourceRowRecord[];
   validationSummary: DatasetValidationSummaryRecord;
   importSummary?: DatasetImportSummaryRecord;
+  readinessSummary?: DatasetReadinessSummaryRecord;
   uploadedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -113,6 +142,95 @@ const datasetImportSummarySchema = new Schema<DatasetImportSummaryRecord>(
   },
 );
 
+const datasetReadinessFieldCoverageSchema = new Schema<DatasetReadinessFieldCoverageRecord>(
+  {
+    field: {
+      type: String,
+      enum: ["parcel_id", "lien_amount", "estimated_value", "property_type", "address"],
+      required: true,
+    },
+    label: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 80,
+    },
+    presentRows: { type: Number, required: true, min: 0 },
+    totalRows: { type: Number, required: true, min: 0 },
+    coveragePercent: { type: Number, required: true, min: 0, max: 100 },
+    importance: {
+      type: String,
+      enum: ["required", "important", "helpful"],
+      required: true,
+    },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
+const datasetReadinessIssueSchema = new Schema<DatasetReadinessIssueRecord>(
+  {
+    code: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 80,
+    },
+    severity: {
+      type: String,
+      enum: ["info", "warning", "error"],
+      required: true,
+    },
+    message: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 240,
+    },
+    field: {
+      type: String,
+      enum: ["parcel_id", "lien_amount", "estimated_value", "property_type", "address"],
+    },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
+const datasetReadinessSummarySchema = new Schema<DatasetReadinessSummaryRecord>(
+  {
+    status: {
+      type: String,
+      enum: ["ready", "partial", "weak", "blocked"],
+      required: true,
+    },
+    score: { type: Number, required: true, min: 0, max: 100 },
+    scoringRecommended: { type: Boolean, required: true },
+    fieldCoverage: {
+      type: [datasetReadinessFieldCoverageSchema],
+      required: true,
+      default: [],
+    },
+    issues: {
+      type: [datasetReadinessIssueSchema],
+      required: true,
+      default: [],
+    },
+    guidance: {
+      type: [String],
+      required: true,
+      default: [],
+    },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
 const datasetSchema = new Schema<DatasetRecord>(
   {
     userId: {
@@ -168,6 +286,9 @@ const datasetSchema = new Schema<DatasetRecord>(
     },
     importSummary: {
       type: datasetImportSummarySchema,
+    },
+    readinessSummary: {
+      type: datasetReadinessSummarySchema,
     },
     uploadedAt: {
       type: Date,

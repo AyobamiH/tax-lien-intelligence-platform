@@ -25,6 +25,7 @@ Current implementation:
   scoring status, maintenance status, and scored records;
 - dataset import summary visibility for generic fallback and the current
   Maricopa-style import adapter;
+- dataset readiness status, field coverage, issue, and guidance visibility;
 - scored-results table;
 - record detail surface for flags and reasoning;
 - watchlist keep/remove actions;
@@ -64,6 +65,7 @@ Current and future page direction:
 - implemented: login/register surface;
 - implemented: dataset list/review surface;
 - implemented: browser dataset upload form on the dataset surface;
+- implemented: import readiness guidance on upload/list/detail surfaces;
 - implemented: dataset detail review route;
 - implemented: scored records table;
 - implemented: record detail reasoning surface;
@@ -95,8 +97,11 @@ Implemented upload surface:
 - show server validation errors safely;
 - show safe adapter/fallback import summaries after upload when backend support
 - returns them;
+- show safe readiness status, field coverage, and issue guidance returned by
+  the backend;
 - navigate into dataset review after a successful upload;
 - prevent upload confusion;
+- make weak or blocked imports visible before the user relies on scoring;
 - never claim data was scored before backend confirms it.
 
 Implemented scored table:
@@ -183,6 +188,7 @@ Trust is created through:
 - visible validation status;
 - clear import/fallback status when a dataset was interpreted through an
   adapter;
+- clear import readiness status and missing-field warnings;
 - transparent scoring factors;
 - visible execution status for score runs;
 - consistent error states;
@@ -224,6 +230,7 @@ repo truth:
 - do not imply batch upload, external alert delivery, or automation workflows
   exist before they are wired to backend contracts;
 - do not imply one county adapter means broad county import support;
+- do not imply readiness status means a user can manually remap fields yet;
 - do not bypass shared API contracts;
 - do not change product positioning away from decision support.
 
@@ -239,6 +246,7 @@ Future frontend work must:
 - avoid storing sensitive data in local storage unless explicitly approved;
 - handle auth errors cleanly;
 - avoid rendering unescaped uploaded data;
+- avoid treating readiness summaries as client-generated scoring truth;
 - avoid leaking another user's records through cache or state reuse;
 - avoid displaying internal server stack traces.
 

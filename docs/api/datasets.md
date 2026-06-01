@@ -17,6 +17,9 @@ authenticated and tenant-scoped.
   without exposing raw row content in dataset metadata responses.
 - County-specific import handling exposes only safe adapter summary metadata,
   not raw source rows or parser internals.
+- Import readiness responses expose safe field coverage, issues, guidance, and
+  scoring recommendation metadata only. They do not expose source rows or
+  implement manual mapping.
 
 ## `POST /datasets`
 
@@ -73,6 +76,45 @@ sourceLabel=County May file
       "mappedFields": [],
       "warnings": []
     },
+    "readinessSummary": {
+      "status": "partial",
+      "score": 65,
+      "scoringRecommended": true,
+      "fieldCoverage": [
+        {
+          "field": "parcel_id",
+          "label": "Parcel identifier",
+          "presentRows": 2,
+          "totalRows": 2,
+          "coveragePercent": 100,
+          "importance": "important"
+        },
+        {
+          "field": "lien_amount",
+          "label": "Lien amount",
+          "presentRows": 2,
+          "totalRows": 2,
+          "coveragePercent": 100,
+          "importance": "required"
+        },
+        {
+          "field": "estimated_value",
+          "label": "Estimated value",
+          "presentRows": 2,
+          "totalRows": 2,
+          "coveragePercent": 100,
+          "importance": "required"
+        }
+      ],
+      "issues": [
+        {
+          "code": "generic_fallback_used",
+          "severity": "info",
+          "message": "No county-specific adapter matched; generic CSV mapping was used."
+        }
+      ],
+      "guidance": ["Scoring is possible, but review warnings before trusting rankings."]
+    },
     "uploadedAt": "2026-05-25T00:00:00.000Z",
     "createdAt": "2026-05-25T00:00:00.000Z",
     "updatedAt": "2026-05-25T00:00:00.000Z"
@@ -113,6 +155,14 @@ Lists datasets owned by the authenticated user.
         "fallbackUsed": false,
         "mappedFields": ["parcel_id", "lien_amount", "estimated_value", "property_type", "address"],
         "warnings": []
+      },
+      "readinessSummary": {
+        "status": "ready",
+        "score": 100,
+        "scoringRecommended": true,
+        "fieldCoverage": [],
+        "issues": [],
+        "guidance": ["Import quality is strong enough for scoring review."]
       },
       "uploadedAt": "2026-05-25T00:00:00.000Z",
       "createdAt": "2026-05-25T00:00:00.000Z",
@@ -158,6 +208,14 @@ user's dataset exists.
       "mappedFields": [],
       "warnings": []
     },
+    "readinessSummary": {
+      "status": "partial",
+      "score": 65,
+      "scoringRecommended": true,
+      "fieldCoverage": [],
+      "issues": [],
+      "guidance": ["Scoring is possible, but review warnings before trusting rankings."]
+    },
     "uploadedAt": "2026-05-25T00:00:00.000Z",
     "createdAt": "2026-05-25T00:00:00.000Z",
     "updatedAt": "2026-05-25T00:00:00.000Z"
@@ -187,13 +245,35 @@ Possible dataset errors:
 
 Auth errors use the Auth API error contract.
 
+## Dataset Readiness Summary
+
+Phase 18 adds a dataset-level readiness summary to upload, list, and detail
+responses.
+
+Readiness statuses:
+
+- `ready`: recognized fields are strong enough for normal scoring review.
+- `partial`: scoring can run, but the user should review warnings first.
+- `weak`: enough data exists for limited interpretation, but scoring is not
+  recommended without a cleaner import.
+- `blocked`: required lien amount or estimated value data is not recognized.
+
+Readiness is based on canonical field coverage for parcel identifier, lien
+amount, estimated value, property type, and address context, plus import adapter
+confidence and validation warnings. Parcel identifiers are important but not a
+hard blocker; missing lien amount or estimated value is blocking.
+
+This summary is advisory and safe for the browser. It does not expose stored
+source rows, parser internals, or a manual field-mapping editor.
+
 ## Current Limitation
 
 Dataset responses still expose only metadata and validation summaries. Phase 4
 adds internal source row persistence for scoring, and Phase 5 adds a frontend
 dataset review surface backed by this API. Phase 16 adds the first
 county-specific import adapter boundary with a Maricopa-style CSV adapter and
-generic fallback. Phase 17 adds browser upload using this endpoint. Broad
-county coverage, live county sync, scraping, or ML/AI import classification are
-not implemented. Phase 7 portfolio tracking is implemented separately from
-dataset responses.
+generic fallback. Phase 17 adds browser upload using this endpoint. Phase 18
+adds import validation/readiness summaries. Broad county coverage, live county
+sync, scraping, manual field mapping, or ML/AI import classification are not
+implemented. Phase 7 portfolio tracking is implemented separately from dataset
+responses.

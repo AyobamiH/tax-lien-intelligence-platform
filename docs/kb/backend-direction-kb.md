@@ -32,6 +32,8 @@ Current implementation:
 - county import adapter boundary for uploaded CSV rows;
 - first Maricopa-style tax lien CSV adapter with generic fallback;
 - safe import summary metadata on dataset responses;
+- dataset readiness summary with canonical field coverage, issues, score,
+  scoring recommendation, and guidance;
 - internal dataset source rows for scoring;
 - scored-record model;
 - internal job model;
@@ -123,6 +125,7 @@ Current backend responsibilities:
 - reject empty or malformed CSVs;
 - record validation summaries;
 - record safe import summaries;
+- record safe readiness summaries;
 - avoid persistence on unsafe parse failures;
 - associate every stored dataset with `userId`.
 
@@ -183,6 +186,33 @@ Current limitation:
 - no broad county adapter catalog;
 - no live county sync;
 - no scraping;
+- no ML/AI import classification.
+
+## Import Readiness Implementation
+
+Phase 18 adds a backend-computed readiness layer for datasets. It runs after
+CSV parsing and county adapter handling, then stores a safe readiness summary on
+the dataset.
+
+Current readiness output:
+
+- status: `ready`, `partial`, `weak`, or `blocked`;
+- 0-100 readiness score;
+- scoring recommendation boolean;
+- canonical field coverage for parcel identifier, lien amount, estimated value,
+  property type, and address context;
+- safe dataset-level issues;
+- user-facing guidance.
+
+Readiness treats lien amount and estimated value as required. Parcel identifier,
+property type, and address context improve confidence but missing parcel
+identifiers are warnings rather than hard blockers.
+
+Current limitation:
+
+- no manual field-mapping editor;
+- no spreadsheet transformation workflow;
+- no broad county adapter coverage;
 - no ML/AI import classification.
 
 ## Enrichment Implementation
@@ -418,7 +448,8 @@ Backend implementation order should stay disciplined:
     implemented in Phase 15;
 14. county import adapter foundation: implemented in Phase 16;
 15. browser upload workflow: implemented in Phase 17;
-16. later external automation.
+16. import validation and scoring-readiness workflow: implemented in Phase 18;
+17. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -452,6 +483,7 @@ Backend drift risks:
 - client-supplied `userId`;
 - unvalidated parcel/lien row ingestion;
 - treating one county adapter as broad county coverage;
+- treating readiness summaries as manual remapping or final data correctness;
 - trusting filenames or user labels as county proof;
 - scoring logic duplicated outside the scoring package;
 - inconsistent error shapes;

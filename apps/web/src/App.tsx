@@ -41,6 +41,7 @@ import {
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
   datasetImportPresentation,
+  datasetReadinessPresentation,
   datasetScoringStatusClassName,
   datasetScoringStatusLabel,
   filterScoresForReview,
@@ -59,6 +60,7 @@ import {
   sortWatchlistItemsForReview,
   type ScoreFilter,
   summarizeScores,
+  topReadinessIssues,
 } from "./review-model";
 
 const authStorageKey = "tax-lien-review-session";
@@ -939,7 +941,12 @@ function DatasetListPanel({
             <p className="mt-2 text-xs text-ink/60">
               {dataset.validationSummary.validRows} valid / {dataset.validationSummary.invalidRows} invalid
             </p>
-            <p className="mt-1 truncate text-xs text-ink/60">{datasetImportPresentation(dataset).label}</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className={`border px-2 py-1 text-xs font-semibold ${datasetReadinessPresentation(dataset).className}`}>
+                {datasetReadinessPresentation(dataset).label}
+              </span>
+              <span className="truncate text-xs text-ink/60">{datasetImportPresentation(dataset).label}</span>
+            </div>
           </button>
         ))}
       </div>
@@ -961,6 +968,7 @@ function DatasetUploadPanel({
   const [fileInputKey, setFileInputKey] = useState(0);
   const uploadedDataset = uploadState.uploadedDataset;
   const importPresentation = uploadedDataset ? datasetImportPresentation(uploadedDataset) : null;
+  const readinessPresentation = uploadedDataset ? datasetReadinessPresentation(uploadedDataset) : null;
 
   useEffect(() => {
     if (!uploadState.uploadedDataset) {
@@ -1019,6 +1027,11 @@ function DatasetUploadPanel({
           <p className="mt-1">
             {importPresentation.status}: {importPresentation.label} · {importPresentation.detail}
           </p>
+          {readinessPresentation ? (
+            <p className="mt-1">
+              Readiness: {readinessPresentation.label} · score {uploadedDataset.readinessSummary.score}/100
+            </p>
+          ) : null}
           {importPresentation.warning ? <p className="mt-1 text-amber-900">{importPresentation.warning}</p> : null}
           <button
             type="button"
@@ -1336,6 +1349,7 @@ function DatasetDetailPage({
   }
 
   const importPresentation = datasetImportPresentation(state.dataset);
+  const readinessPresentation = datasetReadinessPresentation(state.dataset);
 
   return (
     <section className="min-w-0 space-y-5">
@@ -1347,6 +1361,9 @@ function DatasetDetailPage({
             <p className="mt-1 text-sm text-ink/60">{state.dataset.originalFilename}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <span className={`border px-3 py-2 text-xs font-semibold ${readinessPresentation.className}`}>
+              Readiness: {readinessPresentation.label}
+            </span>
             {state.scoringStatus ? (
               <span className={`border px-3 py-2 text-xs font-semibold ${datasetScoringStatusClassName(state.scoringStatus.status)}`}>
                 {datasetScoringStatusLabel(state.scoringStatus.status)}
@@ -1421,6 +1438,7 @@ function DatasetDetailPage({
         {importPresentation.warning ? (
           <p className="mt-1 text-xs text-amber-800">{importPresentation.warning}</p>
         ) : null}
+        <DatasetReadinessPanel dataset={state.dataset} />
       </div>
 
       {state.scores.length === 0 ? (
@@ -1465,6 +1483,83 @@ function DatasetDetailPage({
       )}
     </section>
   );
+}
+
+function DatasetReadinessPanel({ dataset }: { dataset: DatasetResponse }) {
+  const readinessPresentation = datasetReadinessPresentation(dataset);
+  const topIssues = topReadinessIssues(dataset, 4);
+
+  return (
+    <div className="mt-4 border border-line bg-field p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">Import readiness</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className={`border px-2 py-1 text-xs font-semibold ${readinessPresentation.className}`}>
+              {readinessPresentation.label}
+            </span>
+            <span className="text-sm text-ink/70">{readinessPresentation.actionText}</span>
+          </div>
+        </div>
+        <Metric label="Readiness Score" value={`${dataset.readinessSummary.score}/100`} />
+      </div>
+
+      <div className="mt-4 grid gap-2 md:grid-cols-5">
+        {dataset.readinessSummary.fieldCoverage.map((coverage) => (
+          <div key={coverage.field} className="border border-line bg-white px-3 py-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate text-xs font-semibold">{coverage.label}</span>
+              <span className="text-xs text-ink/60">{coverage.coveragePercent}%</span>
+            </div>
+            <p className="mt-1 text-xs text-ink/60">
+              {coverage.presentRows}/{coverage.totalRows} rows · {coverage.importance}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {topIssues.length > 0 ? (
+        <div className="mt-4 grid gap-2 lg:grid-cols-2">
+          {topIssues.map((issue) => (
+            <div key={`${issue.code}-${issue.field ?? "dataset"}`} className={`border px-3 py-2 text-xs ${readinessIssueClassName(issue.severity)}`}>
+              <p className="font-semibold">{readinessIssueLabel(issue.severity)}</p>
+              <p className="mt-1 leading-5">{issue.message}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-4 text-xs text-ink/60">No readiness warnings were detected for this import.</p>
+      )}
+
+      <ul className="mt-4 grid gap-1 text-xs text-ink/70 md:grid-cols-2">
+        {dataset.readinessSummary.guidance.map((guidance) => (
+          <li key={guidance}>- {guidance}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function readinessIssueLabel(severity: DatasetResponse["readinessSummary"]["issues"][number]["severity"]): string {
+  switch (severity) {
+    case "error":
+      return "Blocking issue";
+    case "warning":
+      return "Review warning";
+    case "info":
+      return "Context note";
+  }
+}
+
+function readinessIssueClassName(severity: DatasetResponse["readinessSummary"]["issues"][number]["severity"]): string {
+  switch (severity) {
+    case "error":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "warning":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+    case "info":
+      return "border-sky-200 bg-sky-50 text-sky-900";
+  }
 }
 
 function AlertsPage({

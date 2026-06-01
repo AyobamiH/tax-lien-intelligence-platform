@@ -10,10 +10,10 @@ and implementation discussions consistent.
 A multi-tenant SaaS intended to turn tax lien and parcel datasets into structured
 investment decision support.
 
-Current status: auth, dataset upload, first-pass scoring, browser score review,
-watchlists, portfolio/status tracking, and one county import adapter boundary
-are implemented. Browser upload for single CSV imports is implemented. Broad
-county coverage and automation remain future work.
+Current status: auth, dataset upload, import readiness, first-pass scoring,
+browser score review, watchlists, portfolio/status tracking, and one county
+import adapter boundary are implemented. Browser upload for single CSV imports
+is implemented. Broad county coverage and automation remain future work.
 
 ## Multi-Tenant SaaS
 
@@ -26,7 +26,8 @@ by `userId`.
 A user-uploaded county parcel or tax lien CSV file and its associated metadata.
 Implemented as a tenant-owned dataset record with validation summary; normalized
 source rows are stored internally for scoring, but public dataset responses
-expose only metadata, validation summary, and safe import summary context.
+expose only metadata, validation summary, safe import summary context, and safe
+readiness summary context.
 
 ## County Import Adapter
 
@@ -41,6 +42,14 @@ Browser-safe metadata on dataset responses that explains whether generic CSV
 fallback or a county adapter handled the upload, which canonical fields were
 mapped, the confidence level, and safe warnings. It must not expose raw source
 rows.
+
+## Import Readiness
+
+Browser-safe metadata on dataset responses that explains whether recognized
+fields are ready, partial, weak, or blocked for scoring review. It includes
+field coverage, issue severity, guidance, and a scoring recommendation. It is
+not a manual mapping editor, row correction workflow, or final underwriting
+confidence score.
 
 ## Parcel
 

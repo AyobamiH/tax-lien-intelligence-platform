@@ -33,6 +33,8 @@ Current implementation:
 - county import adapter boundary exists with one Maricopa-style CSV adapter and
   a generic fallback;
 - browser upload exists for authenticated single CSV imports;
+- import readiness summaries exist to show weak/blocked imports before users
+  rely on scoring or future automation;
 - no portfolio automation or external monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
@@ -44,7 +46,8 @@ and scheduled maintenance groundwork with explicit policy gates. Broad product
 automation is still intentionally absent. Phase 16 adds a deterministic
 county-import boundary for one Maricopa-style CSV path, and Phase 17 exposes
 manual browser upload, but neither adds broad county sync, scraping, or
-automated ingestion.
+automated ingestion. Phase 18 adds readiness visibility for uploaded data, but
+it is still manual-first guidance, not automated field mapping.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -95,7 +98,8 @@ Manual-first sequence:
 13. controlled refresh/reprocessing;
 14. scheduled maintenance policy groundwork;
 15. county import adapter boundary;
-16. then broader automation.
+16. import readiness and scoring-suitability visibility;
+17. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -115,7 +119,7 @@ headers into canonical internal fields before scoring. All other uploads fall
 back to generic CSV handling.
 
 Broader ingestion automation should not begin before CSV upload, validation,
-and deterministic adapter behavior are solid.
+deterministic adapter behavior, and readiness visibility are solid.
 
 ## Enrichment Foundation
 
@@ -230,6 +234,8 @@ Now:
 - scheduled maintenance scans and policy-gated refresh creation.
 - one Maricopa-style county import adapter with generic CSV fallback.
 - browser upload for one CSV at a time.
+- import readiness summaries for field coverage, warnings, and scoring
+  recommendation.
 
 Later:
 

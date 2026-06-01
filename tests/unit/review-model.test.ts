@@ -13,6 +13,9 @@ import {
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
   datasetImportPresentation,
+  datasetReadinessClassName,
+  datasetReadinessLabel,
+  datasetReadinessPresentation,
   datasetScoringStatusClassName,
   datasetScoringStatusLabel,
   filterScoresForReview,
@@ -31,6 +34,7 @@ import {
   sortScoresForReview,
   sortWatchlistItemsForReview,
   summarizeScores,
+  topReadinessIssues,
 } from "../../apps/web/src/review-model.js";
 
 function scoredRecord(overrides: Partial<ScoredRecordResponse>): ScoredRecordResponse {
@@ -158,6 +162,45 @@ function datasetResponse(overrides: Partial<DatasetResponse>): DatasetResponse {
       fallbackUsed: true,
       mappedFields: [],
       warnings: [],
+    },
+    readinessSummary: {
+      status: "partial",
+      score: 65,
+      scoringRecommended: true,
+      fieldCoverage: [
+        {
+          field: "parcel_id",
+          label: "Parcel identifier",
+          presentRows: 2,
+          totalRows: 2,
+          coveragePercent: 100,
+          importance: "important",
+        },
+        {
+          field: "lien_amount",
+          label: "Lien amount",
+          presentRows: 2,
+          totalRows: 2,
+          coveragePercent: 100,
+          importance: "required",
+        },
+        {
+          field: "estimated_value",
+          label: "Estimated value",
+          presentRows: 2,
+          totalRows: 2,
+          coveragePercent: 100,
+          importance: "required",
+        },
+      ],
+      issues: [
+        {
+          code: "generic_fallback_used",
+          severity: "info",
+          message: "No county-specific adapter matched; generic CSV mapping was used.",
+        },
+      ],
+      guidance: ["Scoring is possible, but review warnings before trusting rankings."],
     },
     uploadedAt: "2026-05-25T00:00:00.000Z",
     createdAt: "2026-05-25T00:00:00.000Z",
@@ -378,5 +421,49 @@ describe("review model helpers", () => {
       detail: "5 mapped fields · high confidence",
       warning: "Maricopa-style adapter could not map property_type.",
     });
+  });
+
+  it("labels dataset readiness and orders issue previews by severity", () => {
+    const dataset = datasetResponse({
+      readinessSummary: {
+        status: "blocked",
+        score: 25,
+        scoringRecommended: false,
+        fieldCoverage: [],
+        issues: [
+          {
+            code: "generic_fallback_used",
+            severity: "info",
+            message: "No county-specific adapter matched; generic CSV mapping was used.",
+          },
+          {
+            code: "missing_estimated_value",
+            severity: "error",
+            message: "Estimated value was not recognized in any usable row.",
+            field: "estimated_value",
+          },
+          {
+            code: "missing_property_type",
+            severity: "warning",
+            message: "Property type was not recognized in any usable row.",
+            field: "property_type",
+          },
+        ],
+        guidance: ["Do not rely on scoring until required fields are recognized."],
+      },
+    });
+
+    expect(datasetReadinessLabel("ready")).toBe("Ready");
+    expect(datasetReadinessLabel("partial")).toBe("Partial");
+    expect(datasetReadinessClassName("blocked")).toContain("red");
+    expect(datasetReadinessPresentation(dataset)).toEqual({
+      label: "Blocked",
+      className: expect.stringContaining("red"),
+      actionText: "Improve the import before relying on scoring.",
+    });
+    expect(topReadinessIssues(dataset, 2).map((issue) => issue.code)).toEqual([
+      "missing_estimated_value",
+      "missing_property_type",
+    ]);
   });
 });

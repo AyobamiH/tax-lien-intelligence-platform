@@ -21,6 +21,8 @@ Implemented:
 - browser upload UI integrated with the authenticated app;
 - upload success/error/submitting states in the frontend;
 - internal source row persistence for later scoring;
+- dataset readiness summary with canonical field coverage, issues, scoring
+  recommendation, and user-facing guidance;
 - dataset integration tests for ownership and upload failures.
 
 Not implemented:
@@ -48,6 +50,7 @@ Stored concepts:
 - internal sanitized `sourceRows`;
 - `validationSummary`;
 - `importSummary`;
+- `readinessSummary`;
 - `uploadedAt`;
 - timestamps.
 
@@ -130,6 +133,30 @@ Partial county-style files may match with lower confidence and import warnings.
 Those warnings are summary metadata; scoring still applies its conservative
 missing-data flags.
 
+## Import Readiness Boundary
+
+Phase 18 adds an import validation/readiness layer after CSV parsing and county
+adapter handling.
+
+The readiness summary answers whether a dataset is usable for scoring review
+before the user spends time on results. It computes:
+
+- canonical field coverage for parcel identifier, lien amount, estimated value,
+  property type, and address context;
+- dataset-level readiness status: `ready`, `partial`, `weak`, or `blocked`;
+- a 0-100 readiness score;
+- whether scoring is recommended;
+- safe issue summaries;
+- user-facing guidance.
+
+Lien amount and estimated value are required for readiness. Parcel identifiers,
+property type, and address context are important quality signals, but missing
+parcel identifiers are warnings rather than hard blockers.
+
+Readiness does not create a manual field-mapping editor. It also does not imply
+the current adapter catalog covers broad county formats. It is a visibility and
+trust layer over the import result.
+
 ## Dependency Decision
 
 `multer` is used as the minimal multipart upload middleware for Express.
@@ -155,22 +182,27 @@ Remaining hardening:
 - raw file persistence strategy if needed later;
 - richer normalized row validation;
 - additional county adapters only after deterministic mapping tests;
+- manual field mapping only after the read-only readiness workflow proves where
+  users need intervention;
 - duplicate parcel handling after parcel identity exists;
 - audit logging;
 - antivirus/malware scanning if larger or persisted files are introduced.
 
 ## Drift Risks
 
-Do not treat Phase 3, Phase 16, or Phase 17 as full ingestion automation. The
-repo now stores dataset metadata, validation summary, import summary, and
-internal source rows, and the browser can upload one CSV at a time. One
-county-specific adapter exists; broad county-specific normalization remains a
-future layer.
+Do not treat Phase 3, Phase 16, Phase 17, or Phase 18 as full ingestion
+automation. The repo now stores dataset metadata, validation summary, import
+summary, readiness summary, and internal source rows, and the browser can upload
+one CSV at a time. One county-specific adapter exists; broad county-specific
+normalization remains a future layer.
 
 Do not add scoring into upload handlers.
 
 Do not trust uploaded headers as normalized parcel fields.
 
 Do not treat a user source label as county proof.
+
+Do not turn readiness issues into client-side authorization or fake scoring
+results. Readiness guides review; server-side scoring still owns score output.
 
 Do not add background jobs before manual upload and validation are reliable.

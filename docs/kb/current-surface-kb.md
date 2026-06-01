@@ -22,6 +22,8 @@ It shows:
 - dataset detail route using `#/datasets/:datasetId`;
 - dataset import summary visibility for generic CSV fallback or the current
   Maricopa-style county import adapter;
+- dataset readiness status, field coverage, warnings, and guidance for uploaded
+  datasets;
 - scoring action for a selected dataset;
 - controlled refresh action for a scored dataset;
 - scoring freshness/status badge and stale-record count;
@@ -103,6 +105,7 @@ Real workflows now present:
 - browser-based single CSV dataset upload through the authenticated API;
 - dataset list/detail review for authenticated users;
 - safe county import/fallback summary visibility on dataset list/detail;
+- safe import readiness visibility on dataset list/detail;
 - score triggering for a selected dataset;
 - controlled refresh/reprocessing for a selected dataset;
 - visible scoring job completion state after a scoring run;
@@ -116,6 +119,7 @@ Real workflows now present:
 - watchlist shortlist comparison.
 - portfolio tracking and status updates.
 - in-app alert review for scoring completions and failures.
+- import readiness review before relying on score output.
 
 Real workflows not present:
 
@@ -140,6 +144,7 @@ The visual system is early. It should not be treated as a complete design system
 The current frontend cannot:
 
 - batch upload multiple files;
+- manually remap CSV columns in the browser;
 - run automation.
 - configure scheduled maintenance policy.
 - run unlimited automatic recurring refresh.
@@ -155,6 +160,7 @@ The current API cannot:
 - perform broad scheduled refresh or sync;
 - expose a user-facing scheduler console;
 - provide broad county adapter coverage or scraping;
+- provide a spreadsheet transformation or manual field mapping workflow;
 - manage collaboration or auction execution.
 
 ## Where The Current Surface Could Mislead Contributors
@@ -172,6 +178,10 @@ ingestion exists. It does not.
 The presence of one Maricopa-style import adapter could make contributors think
 broad county-specific import coverage exists. It does not. The current browser
 surface only exposes safe adapter/fallback summary metadata.
+
+The presence of readiness status could make contributors think manual mapping or
+data correction exists. It does not. Readiness is a read-only quality and
+scoring-recommendation summary.
 
 ## Security Implications
 
@@ -196,6 +206,10 @@ must record both visible functionality and trust boundaries.
 Dataset import summaries are also safe display metadata. They must not grow into
 raw source-row previews, parser internals, or county identity claims based only
 on user-provided labels.
+
+Dataset readiness summaries are backend-computed safe metadata. They must not
+become raw row previews, client-side scoring, or a substitute for server-side
+ownership checks.
 
 ## Update Rules
 

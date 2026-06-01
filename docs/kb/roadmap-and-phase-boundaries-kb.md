@@ -554,6 +554,35 @@ Phase 17 does not include:
 - collaboration;
 - auction execution.
 
+## Phase 18: Import Validation And Scoring-Readiness Workflow
+
+Current status: implemented as a read-only import quality and scoring-readiness
+layer, not manual mapping or automation.
+
+Phase 18 includes:
+
+- backend-computed dataset readiness summaries;
+- readiness statuses: `ready`, `partial`, `weak`, and `blocked`;
+- canonical field coverage for parcel identifier, lien amount, estimated value,
+  property type, and address context;
+- readiness score and scoring recommendation;
+- dataset-level warning/blocking issue summaries;
+- frontend readiness badges on dataset list/upload success;
+- dataset detail readiness panel with field coverage, top issues, and guidance;
+- tests for strong, partial, weak, and blocked imports;
+- docs.
+
+Phase 18 does not include:
+
+- manual field-mapping editor;
+- spreadsheet transform tooling;
+- broad county adapter coverage;
+- live county sync;
+- scraping;
+- ML/AI import suggestions;
+- collaboration;
+- auction execution.
+
 ## Later Phases
 
 Later phases may include:
@@ -592,7 +621,8 @@ Dependency order matters:
 13. scheduled maintenance and policy-driven auto-refresh foundation;
 14. county import adapter foundation;
 15. browser upload and import workflow;
-16. broader automation.
+16. import validation and scoring-readiness workflow;
+17. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 
@@ -628,6 +658,8 @@ Before heavy automation:
 - worker execution boundary must exist;
 - deterministic import adapter behavior should exist for any county-specific
   source before automating it;
+- import readiness should make weak or blocked datasets visible before broader
+  automation depends on them;
 - job ownership and logging patterns must be designed;
 - rate limits and failure handling must exist.
 

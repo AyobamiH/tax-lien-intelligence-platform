@@ -44,6 +44,9 @@ export type DatasetSourceType = "manual_csv";
 export type DatasetImportAdapterId = "generic_csv" | "maricopa_tax_lien_v1";
 export type DatasetImportSource = "generic_csv" | "county_adapter";
 export type DatasetImportConfidence = "low" | "medium" | "high";
+export type DatasetReadinessStatus = "ready" | "partial" | "weak" | "blocked";
+export type DatasetReadinessIssueSeverity = "info" | "warning" | "error";
+export type DatasetReadinessFieldName = "parcel_id" | "lien_amount" | "estimated_value" | "property_type" | "address";
 
 export interface DatasetValidationSummary {
   totalRows: number;
@@ -64,6 +67,31 @@ export interface DatasetImportSummary {
   warnings: string[];
 }
 
+export interface DatasetReadinessFieldCoverage {
+  field: DatasetReadinessFieldName;
+  label: string;
+  presentRows: number;
+  totalRows: number;
+  coveragePercent: number;
+  importance: "required" | "important" | "helpful";
+}
+
+export interface DatasetReadinessIssue {
+  code: string;
+  severity: DatasetReadinessIssueSeverity;
+  message: string;
+  field?: DatasetReadinessFieldName;
+}
+
+export interface DatasetReadinessSummary {
+  status: DatasetReadinessStatus;
+  score: number;
+  scoringRecommended: boolean;
+  fieldCoverage: DatasetReadinessFieldCoverage[];
+  issues: DatasetReadinessIssue[];
+  guidance: string[];
+}
+
 export interface DatasetResponse {
   id: string;
   originalFilename: string;
@@ -75,6 +103,7 @@ export interface DatasetResponse {
   headers: string[];
   validationSummary: DatasetValidationSummary;
   importSummary: DatasetImportSummary;
+  readinessSummary: DatasetReadinessSummary;
   uploadedAt: string;
   createdAt: string;
   updatedAt: string;

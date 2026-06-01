@@ -3,6 +3,7 @@ import type { DatasetDetailResponse, DatasetListResponse, DatasetResponse } from
 import { ApiError } from "../errors/api-error.js";
 import { parseCsvUpload, type CsvUploadFile } from "./csv-parser.js";
 import { applyCountyImportAdapters, genericImportSummary } from "./import-adapters.js";
+import { calculateDatasetReadiness } from "./readiness.js";
 import type { DatasetStore, StoredDataset } from "./dataset-store.js";
 
 export interface CreateDatasetRequest {
@@ -21,6 +22,18 @@ export class DatasetService {
   public async createDataset(request: CreateDatasetRequest): Promise<DatasetDetailResponse> {
     const parsedCsv = parseCsvUpload(request.file);
     const importResult = applyCountyImportAdapters(parsedCsv);
+    const validationSummary = {
+      totalRows: parsedCsv.totalRows,
+      validRows: parsedCsv.validRows,
+      invalidRows: parsedCsv.invalidRows,
+      warnings: parsedCsv.warnings,
+      errors: [],
+    };
+    const readinessSummary = calculateDatasetReadiness({
+      sourceRows: importResult.sourceRows,
+      importSummary: importResult.importSummary,
+      validationSummary,
+    });
     const sourceLabel = normalizeSourceLabel(request.sourceLabel);
     const dataset = await this.store.createDataset({
       userId: request.userId,
@@ -32,14 +45,9 @@ export class DatasetService {
       columnCount: parsedCsv.columnCount,
       headers: parsedCsv.headers,
       sourceRows: importResult.sourceRows,
-      validationSummary: {
-        totalRows: parsedCsv.totalRows,
-        validRows: parsedCsv.validRows,
-        invalidRows: parsedCsv.invalidRows,
-        warnings: parsedCsv.warnings,
-        errors: [],
-      },
+      validationSummary,
       importSummary: importResult.importSummary,
+      readinessSummary,
       uploadedAt: new Date(),
     });
 
@@ -66,6 +74,13 @@ export class DatasetService {
 }
 
 export function toDatasetResponse(dataset: StoredDataset): DatasetResponse {
+  const importSummary = dataset.importSummary ?? genericImportSummary();
+  const readinessSummary = dataset.readinessSummary ?? calculateDatasetReadiness({
+    sourceRows: dataset.sourceRows,
+    importSummary,
+    validationSummary: dataset.validationSummary,
+  });
+
   return {
     id: dataset.id,
     originalFilename: dataset.originalFilename,
@@ -76,7 +91,8 @@ export function toDatasetResponse(dataset: StoredDataset): DatasetResponse {
     columnCount: dataset.columnCount,
     headers: dataset.headers,
     validationSummary: dataset.validationSummary,
-    importSummary: dataset.importSummary ?? genericImportSummary(),
+    importSummary,
+    readinessSummary,
     uploadedAt: dataset.uploadedAt.toISOString(),
     createdAt: dataset.createdAt.toISOString(),
     updatedAt: dataset.updatedAt.toISOString(),

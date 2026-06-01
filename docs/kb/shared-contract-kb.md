@@ -26,6 +26,12 @@ Current shared types in `packages/types`:
 - `DatasetImportSource`;
 - `DatasetImportConfidence`;
 - `DatasetImportSummary`;
+- `DatasetReadinessStatus`;
+- `DatasetReadinessIssueSeverity`;
+- `DatasetReadinessFieldName`;
+- `DatasetReadinessFieldCoverage`;
+- `DatasetReadinessIssue`;
+- `DatasetReadinessSummary`;
 - `DatasetValidationSummary`;
 - `DatasetResponse`;
 - `DatasetListResponse`;
@@ -169,6 +175,7 @@ Current dataset contracts include:
 - column count;
 - headers;
 - import summary;
+- readiness summary;
 - validation summary;
 - upload and created/updated timestamps.
 
@@ -200,6 +207,27 @@ The import summary is browser-safe metadata. It must not expose raw source rows,
 file contents, parser internals, county provider payloads, or client-supplied
 `userId`. A matched adapter improves deterministic mapping into stored source
 rows, but it is not proof of county identity or broad county coverage.
+
+## Dataset Readiness Summary Contract
+
+Phase 18 adds `DatasetReadinessSummary` to `DatasetResponse`.
+
+It includes:
+
+- `status`: `ready`, `partial`, `weak`, or `blocked`;
+- `score`: 0-100 import readiness score;
+- `scoringRecommended`: whether scoring is recommended for this import quality;
+- `fieldCoverage`: safe coverage for parcel identifier, lien amount, estimated
+  value, property type, and address context;
+- `issues`: safe issue codes, severities, messages, and optional field names;
+- `guidance`: safe user-facing next-step guidance.
+
+This contract is produced by the backend and displayed by the frontend. The
+frontend must not calculate trusted readiness independently, accept client
+readiness fields, or treat readiness as a manual field-mapping result.
+
+Readiness summaries must not expose raw source rows, uploaded file contents,
+parser internals, stack traces, or another tenant's data.
 
 ## Parcel Object Direction
 
@@ -436,6 +464,8 @@ possible or explicitly versioned.
   only internal source-row inference.
 - Do not let an import adapter summary imply broad county coverage or live
   county verification.
+- Do not let readiness summaries imply manual field mapping or final scoring
+  confidence.
 
 ## Security Contract Rules
 

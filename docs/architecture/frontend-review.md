@@ -12,7 +12,8 @@ Phase 15 adds compact maintenance policy status so the page can distinguish
 manual-only refresh from policy-auto-refresh eligibility without showing raw
 scheduler internals. Phase 17 adds browser dataset upload on the authenticated
 dataset surface, including import summary and county-adapter/fallback
-visibility after upload.
+visibility after upload. Phase 18 adds import readiness status, field coverage,
+issues, and guidance on the upload/list/detail surfaces.
 The frontend is no longer only a shell: it now authenticates against the API,
 uploads CSV datasets, lists the signed-in user's datasets, opens a dataset,
 triggers scoring, and renders scored records with flags and reasoning.
@@ -24,6 +25,7 @@ Implemented:
 - browser CSV upload form on the dataset surface;
 - upload submitting, success, and error states;
 - import summary visibility after upload;
+- import readiness visibility after upload;
 - county adapter match/fallback visibility after upload;
 - authenticated dataset list view;
 - hash-based dataset detail route;
@@ -31,6 +33,7 @@ Implemented:
 - controlled refresh action for an already scored dataset;
 - scoring/refresh status badge and stale-record count;
 - maintenance mode/message from `GET /datasets/:datasetId/scoring-status`;
+- dataset readiness badge and readiness panel from `DatasetResponse`;
 - scoring job completion message after a score run;
 - scored results table;
 - record detail surface with flags and reasoning;
@@ -104,8 +107,12 @@ job payloads, stack traces, or diagnostic internals.
 Dataset upload uses the existing authenticated `POST /datasets` multipart API.
 The frontend sends a CSV file and optional source label only; it does not send
 `userId`, trusted normalized fields, or score values. Upload success displays
-the returned dataset import summary so users can see whether generic fallback or
-the current county adapter handled the file.
+the returned dataset import summary and readiness summary so users can see
+whether generic fallback or the current county adapter handled the file, how
+complete recognized fields are, and whether scoring is recommended.
+
+The frontend displays readiness as user guidance only. It does not run its own
+field-mapping logic, override backend readiness, or invent score values.
 
 ## Review Table
 
@@ -124,6 +131,22 @@ dashboard presentation. It shows:
 
 The detail surface shows the full flag and reasoning arrays for the selected
 record.
+
+## Import Readiness Surface
+
+The dataset list and upload success states show compact readiness labels. The
+dataset detail page shows:
+
+- readiness status and score;
+- scoring recommendation guidance;
+- field coverage for parcel identifier, lien amount, estimated value, property
+  type, and address context;
+- top readiness issues ordered by severity;
+- safe guidance returned by the API.
+
+This surface helps users spot weak imports before relying on scores. It is not a
+manual field-mapping editor, spreadsheet transformation tool, or broad county
+adapter management interface.
 
 ## Watchlist Surface
 
@@ -187,6 +210,7 @@ Authorization remains server-side:
 - alert reads and acknowledgements still depend on backend ownership checks;
 - refresh requests still depend on backend dataset ownership checks;
 - browser upload still depends on the backend file/type/size/parse guardrails;
+- import readiness display depends on backend-computed safe summaries;
 - auth failures clear the browser session;
 - user-owned data is not mocked into the UI.
 
@@ -208,6 +232,8 @@ Do not:
 - turn refresh into a client-side automation loop.
 - treat upload import summaries as raw source row previews or broad county
   verification.
+- treat readiness warnings as browser-generated truth or as a substitute for
+  backend scoring and ownership checks.
 
 ## Update Rules
 
@@ -215,6 +241,7 @@ Update this document when:
 
 - frontend routing changes;
 - CSV upload becomes a browser workflow;
+- import readiness/validation surfaces change;
 - score table columns change;
 - auth/session behavior changes;
 - watchlist, portfolio, or alerts pages become real.

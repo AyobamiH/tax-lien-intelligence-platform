@@ -2,6 +2,14 @@
 
 ## 2026-06-01
 
+- Implemented Phase 18 import validation and scoring-readiness workflow with
+  backend-computed dataset readiness summaries, canonical field coverage,
+  ready/partial/weak/blocked guidance, frontend readiness badges/panels, and
+  tests for strong, partial, weak, and blocked import paths.
+- Updated dataset/frontend/API/KB docs to mark import readiness as current while
+  keeping manual field mapping, spreadsheet transform tooling, broad county
+  adapter coverage, live county sync, ML/AI suggestions, collaboration, and
+  auction execution out of scope.
 - Implemented Phase 17 browser upload workflow with an authenticated dataset
   upload form, multipart API client integration, upload submitting/success/error
   states, import summary visibility, county-adapter/fallback messaging, and

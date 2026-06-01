@@ -19,6 +19,8 @@ Current implementation:
 - dataset model exists for authenticated manual CSV uploads;
 - dataset import summary metadata exists for generic fallback or the current
   Maricopa-style county import adapter;
+- dataset readiness summary metadata exists for field coverage, issues, scoring
+  recommendation, and safe guidance;
 - scored-record model exists for first-pass scoring outputs;
 - enrichment metadata exists on scored records for internal source-row
   inference;
@@ -47,6 +49,8 @@ Current documentation direction:
   remains conservative.
 - one deterministic county import adapter exists, but broad county coverage and
   live county sync do not.
+- import readiness exists as read-only quality guidance, not manual field
+  mapping or corrected data.
 
 ## Core Domain Concepts
 
@@ -58,7 +62,8 @@ validation summary.
 
 Current status: implemented as a manual CSV dataset foundation. Sanitized source
 rows are stored internally for scoring, but public dataset responses expose only
-metadata, validation summaries, and safe import summaries.
+metadata, validation summaries, safe import summaries, and safe readiness
+summaries.
 
 Phase 17 exposes dataset creation through the browser app while preserving the
 same authenticated API and tenant-owned dataset model.
@@ -68,6 +73,11 @@ recognize Maricopa-style tax lien CSV headers and map selected source columns
 into canonical internal fields before scoring. Non-matching uploads use the
 generic CSV fallback. This is not broad county coverage or proof of county
 identity.
+
+Phase 18 adds import readiness summaries. They evaluate canonical field coverage
+and scoring readiness at the dataset level. They help users understand whether
+the upload is ready, partial, weak, or blocked before relying on scores. They do
+not mutate rows, remap fields manually, or replace future county-adapter work.
 
 ### Parcel
 
@@ -179,6 +189,7 @@ Tenant isolation protects:
 - uploaded files;
 - dataset metadata;
 - dataset import summaries;
+- dataset readiness summaries;
 - normalized records;
 - scores;
 - enrichment context;

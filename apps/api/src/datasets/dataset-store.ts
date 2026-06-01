@@ -1,6 +1,6 @@
 import type { DatasetDocument } from "@tax-lien/db";
 import { DatasetModel } from "@tax-lien/db";
-import type { DatasetImportSummary, DatasetValidationSummary } from "@tax-lien/types";
+import type { DatasetImportSummary, DatasetReadinessSummary, DatasetValidationSummary } from "@tax-lien/types";
 
 export interface StoredDataset {
   id: string;
@@ -15,6 +15,7 @@ export interface StoredDataset {
   sourceRows: StoredDatasetSourceRow[];
   validationSummary: DatasetValidationSummary;
   importSummary?: DatasetImportSummary;
+  readinessSummary?: DatasetReadinessSummary;
   uploadedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -37,6 +38,7 @@ export interface CreateDatasetInput {
   sourceRows: StoredDatasetSourceRow[];
   validationSummary: DatasetValidationSummary;
   importSummary?: DatasetImportSummary;
+  readinessSummary?: DatasetReadinessSummary;
   uploadedAt: Date;
 }
 
@@ -81,6 +83,30 @@ function mapDataset(document: DatasetDocument): StoredDataset {
           },
         }
       : {}),
+    ...(document.readinessSummary
+      ? {
+          readinessSummary: {
+            status: document.readinessSummary.status,
+            score: document.readinessSummary.score,
+            scoringRecommended: document.readinessSummary.scoringRecommended,
+            fieldCoverage: document.readinessSummary.fieldCoverage.map((coverage) => ({
+              field: coverage.field,
+              label: coverage.label,
+              presentRows: coverage.presentRows,
+              totalRows: coverage.totalRows,
+              coveragePercent: coverage.coveragePercent,
+              importance: coverage.importance,
+            })),
+            issues: document.readinessSummary.issues.map((issue) => ({
+              code: issue.code,
+              severity: issue.severity,
+              message: issue.message,
+              ...(issue.field ? { field: issue.field } : {}),
+            })),
+            guidance: document.readinessSummary.guidance,
+          },
+        }
+      : {}),
     uploadedAt: document.uploadedAt,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
@@ -105,6 +131,7 @@ export class MongoDatasetStore implements DatasetStore {
         errorMessages: input.validationSummary.errors,
       },
       ...(input.importSummary ? { importSummary: input.importSummary } : {}),
+      ...(input.readinessSummary ? { readinessSummary: input.readinessSummary } : {}),
     });
     return mapDataset(document);
   }

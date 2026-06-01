@@ -56,6 +56,8 @@ Current repo protections:
 - deterministic county import adapter boundary with one Maricopa-style adapter
   and generic fallback;
 - import summary responses expose safe metadata only;
+- import readiness responses expose safe coverage, issue, score,
+  recommendation, and guidance metadata only;
 - cross-user dataset detail rejection tests;
 - tenant-owned scored-record persistence;
 - authenticated scoring run and score retrieval routes;
@@ -108,6 +110,7 @@ Not yet implemented:
 - cross-user isolation tests for future parcel resources;
 - rate limiting;
 - standalone normalized parcel/lien upload validation;
+- manual field-mapping validation and audit trail;
 - audit logging;
 - production CORS restrictions;
 - final browser session architecture beyond the current session-scoped JWT;
@@ -316,6 +319,7 @@ Current dataset upload handles:
 - malformed rows;
 - safe failure without partial unsafe writes.
 - browser upload through the same authenticated API boundary.
+- read-only readiness summaries for field coverage and scoring suitability.
 
 Future parcel/lien normalization must handle:
 
@@ -429,6 +433,10 @@ return safe summary metadata, and avoid trusting filenames or user-provided
 source labels as proof of county identity. Phase 17 exposes the same upload
 boundary in the browser app; the frontend must not weaken file limits, bypass
 auth, send `userId`, or turn import summaries into raw source previews.
+Phase 18 adds import readiness summaries. Those summaries are safe browser
+metadata for field coverage, issue severity, score, recommendation, and
+guidance. They must not expose raw source rows, parser internals, or stack
+traces, and they must not become client-side authorization or scoring logic.
 
 Future row normalization and raw file persistence, if added, need additional
 controls.
@@ -592,6 +600,8 @@ Security drift risks:
 - adding county adapters without deterministic detection and false-positive
   tests;
 - treating a filename, label, or one adapter match as broad county verification;
+- treating readiness as manual remapping, final underwriting confidence, or a
+  reason to bypass server-side scoring/ownership checks;
 - turning alerts into raw diagnostic payloads;
 - treating public source data as non-sensitive after user enrichment;
 - skipping cross-user tests.

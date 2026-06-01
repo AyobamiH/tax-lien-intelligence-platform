@@ -75,6 +75,8 @@ Implemented today:
 - county import adapter boundary in `apps/api/src/datasets/import-adapters.ts`;
 - first Maricopa-style tax lien CSV adapter with generic CSV fallback;
 - safe dataset import summary metadata for matched and fallback imports;
+- dataset readiness summary with field coverage, issues, score, recommendation,
+  and guidance;
 - dataset ownership tests;
 - internal dataset source row persistence for scoring;
 - scored-record model in `packages/db`;
@@ -118,6 +120,8 @@ Implemented today:
 - frontend browser CSV upload form for authenticated dataset creation;
 - frontend upload submitting/success/error state;
 - frontend import summary visibility immediately after upload;
+- frontend import readiness status and issue visibility after upload and on
+  dataset detail;
 - authenticated dataset list/detail review UI;
 - frontend score triggering;
 - frontend controlled refresh action and scoring freshness/status display;
@@ -164,6 +168,8 @@ Placeholders today:
 - `scripts/ingestion` has only a README.
 - Broad county-specific parcel/lien normalization does not exist yet.
 - Only one county import adapter exists, and it targets Maricopa-style CSVs.
+- No manual field-mapping editor exists; Phase 18 only reports import
+  readiness and issues.
 - Broad external enrichment provider coverage does not exist yet.
 - Unlimited autonomous refresh does not exist yet.
 - User-facing scheduler configuration does not exist yet.
@@ -234,6 +240,8 @@ Current tests cover:
   suppression, manual-only decisions, policy refresh creation, and recent
   failure suppression;
 - county import adapter match, fallback, partial-file, and non-match behavior;
+- dataset readiness status, field coverage, warning/blocking issue behavior,
+  and frontend readiness presentation;
 - Maricopa-style import mapping into scoreable normalized fields;
 - scheduler task registration, due execution, and failure behavior;
 - cross-user job detail rejection;
@@ -266,7 +274,8 @@ Do not assume:
   scoring;
 - the Maricopa-style adapter means broad county support exists;
 - source labels or filenames prove county identity;
-- browser upload supports batch imports or live county sync.
+- browser upload supports batch imports or live county sync;
+- readiness summaries mean a dataset was manually remapped or corrected.
 
 ## Security Notes
 
@@ -287,6 +296,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
   uses that existing backend boundary.
 - county import adapter detection uses explicit header evidence and returns
   safe summary metadata rather than raw source rows.
+- import readiness summaries are backend-computed and expose safe coverage,
+  issue, and guidance metadata rather than raw rows or parser internals.
 - tenant-owned scored-record and watchlist item records are implemented.
 - tenant-owned portfolio item records are implemented.
 - tenant-owned parcel records are not yet implemented.
@@ -311,6 +322,8 @@ Repo drift risks:
 - describing first-pass scoring as final underwriting.
 - describing worker plumbing as full automation.
 - describing in-app alerts as external notification delivery.
+- describing import readiness as manual field mapping, broad county support, or
+  proof that scoring quality is final.
 
 ## Update Rules
 

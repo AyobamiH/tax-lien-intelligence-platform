@@ -2,6 +2,8 @@ import type {
   AlertResponse,
   AlertSeverity,
   AlertType,
+  DatasetReadinessIssue,
+  DatasetReadinessStatus,
   DatasetResponse,
   DatasetScoringStatus,
   NormalizedScoredRecordFields,
@@ -39,6 +41,12 @@ export interface DatasetImportPresentation {
   status: "County adapter matched" | "Generic CSV fallback";
   detail: string;
   warning?: string;
+}
+
+export interface DatasetReadinessPresentation {
+  label: "Ready" | "Partial" | "Weak" | "Blocked";
+  className: string;
+  actionText: string;
 }
 
 export interface ReviewRecordLike {
@@ -297,6 +305,64 @@ export function datasetImportPresentation(dataset: Pick<DatasetResponse, "import
     detail: `${mappedFieldText} · ${confidenceText}`,
     ...(dataset.importSummary.warnings[0] ? { warning: dataset.importSummary.warnings[0] } : {}),
   };
+}
+
+export function datasetReadinessPresentation(
+  dataset: Pick<DatasetResponse, "readinessSummary">,
+): DatasetReadinessPresentation {
+  return {
+    label: datasetReadinessLabel(dataset.readinessSummary.status),
+    className: datasetReadinessClassName(dataset.readinessSummary.status),
+    actionText: dataset.readinessSummary.scoringRecommended
+      ? "Scoring is available with the current import quality."
+      : "Improve the import before relying on scoring.",
+  };
+}
+
+export function datasetReadinessLabel(status: DatasetReadinessStatus): DatasetReadinessPresentation["label"] {
+  switch (status) {
+    case "ready":
+      return "Ready";
+    case "partial":
+      return "Partial";
+    case "weak":
+      return "Weak";
+    case "blocked":
+      return "Blocked";
+  }
+}
+
+export function datasetReadinessClassName(status: DatasetReadinessStatus): string {
+  switch (status) {
+    case "ready":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    case "partial":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+    case "weak":
+      return "border-orange-200 bg-orange-50 text-orange-900";
+    case "blocked":
+      return "border-red-200 bg-red-50 text-red-800";
+  }
+}
+
+export function topReadinessIssues(
+  dataset: Pick<DatasetResponse, "readinessSummary">,
+  limit = 3,
+): DatasetReadinessIssue[] {
+  return [...dataset.readinessSummary.issues]
+    .sort((left, right) => readinessSeverityRank(right.severity) - readinessSeverityRank(left.severity))
+    .slice(0, limit);
+}
+
+function readinessSeverityRank(severity: DatasetReadinessIssue["severity"]): number {
+  switch (severity) {
+    case "error":
+      return 3;
+    case "warning":
+      return 2;
+    case "info":
+      return 1;
+  }
 }
 
 export function formatPercent(value: number): string {
