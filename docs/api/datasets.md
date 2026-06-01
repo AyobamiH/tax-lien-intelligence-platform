@@ -22,6 +22,9 @@ authenticated and tenant-scoped.
 
 Uploads and validates a manual CSV dataset.
 
+The browser app now uses this same endpoint for authenticated dataset upload.
+There is no separate client-only ingestion path.
+
 ### Request
 
 Content type:
@@ -190,6 +193,7 @@ Dataset responses still expose only metadata and validation summaries. Phase 4
 adds internal source row persistence for scoring, and Phase 5 adds a frontend
 dataset review surface backed by this API. Phase 16 adds the first
 county-specific import adapter boundary with a Maricopa-style CSV adapter and
-generic fallback. There is not yet a browser CSV upload screen, broad county
-coverage, live county sync, scraping, or ML/AI import classification. Phase 7
-portfolio tracking is implemented separately from dataset responses.
+generic fallback. Phase 17 adds browser upload using this endpoint. Broad
+county coverage, live county sync, scraping, or ML/AI import classification are
+not implemented. Phase 7 portfolio tracking is implemented separately from
+dataset responses.

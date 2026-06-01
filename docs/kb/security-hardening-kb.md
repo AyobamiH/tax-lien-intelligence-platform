@@ -50,6 +50,7 @@ Current repo protections:
 - tests for common auth failure modes;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
+- browser upload flow that uses the authenticated dataset upload endpoint;
 - 1 MiB CSV upload limit;
 - CSV parser row, column, and record-size guardrails;
 - deterministic county import adapter boundary with one Maricopa-style adapter
@@ -140,7 +141,7 @@ The baseline is acceptable for Phase 1 because it establishes:
 - tests and CI.
 
 It is not sufficient for a public authenticated SaaS until rate limiting,
-production CORS decisions, browser upload/session hardening, and later resource
+production CORS decisions, browser session hardening, and later resource
 authorization boundaries are completed.
 
 ## 3. Security Principles
@@ -314,6 +315,7 @@ Current dataset upload handles:
 - empty CSV;
 - malformed rows;
 - safe failure without partial unsafe writes.
+- browser upload through the same authenticated API boundary.
 
 Future parcel/lien normalization must handle:
 
@@ -424,7 +426,9 @@ limits, safe parsing, ownership, and error handling for manual CSV dataset
 metadata. Phase 16 adds one deterministic county import adapter boundary that
 runs after parsing and before persistence. It must use explicit header evidence,
 return safe summary metadata, and avoid trusting filenames or user-provided
-source labels as proof of county identity.
+source labels as proof of county identity. Phase 17 exposes the same upload
+boundary in the browser app; the frontend must not weaken file limits, bypass
+auth, send `userId`, or turn import summaries into raw source previews.
 
 Future row normalization and raw file persistence, if added, need additional
 controls.
@@ -579,6 +583,7 @@ Security drift risks:
 - accepting client-supplied `userId`;
 - adding models without ownership;
 - building upload before validation;
+- adding client-only upload validation that disagrees with backend limits;
 - keeping permissive CORS into production;
 - logging uploaded data or tokens;
 - allowing frontend-only access control;

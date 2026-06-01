@@ -115,6 +115,9 @@ Implemented today:
 - scored-record ownership tests;
 - enrichment adapter and enrichment-aware scoring tests;
 - frontend login/register review surface;
+- frontend browser CSV upload form for authenticated dataset creation;
+- frontend upload submitting/success/error state;
+- frontend import summary visibility immediately after upload;
 - authenticated dataset list/detail review UI;
 - frontend score triggering;
 - frontend controlled refresh action and scoring freshness/status display;
@@ -148,6 +151,7 @@ Implemented today:
 - Tailwind setup;
 - shared health/error/runtime types;
 - local MongoDB docker-compose;
+- frontend upload API client tests;
 - frontend review-model unit tests;
 - Vitest unit/integration tests;
 - GitHub Actions `quality-gates`;
@@ -158,7 +162,6 @@ Implemented today:
 Placeholders today:
 
 - `scripts/ingestion` has only a README.
-- The frontend has no dataset upload UI yet even though dataset APIs exist.
 - Broad county-specific parcel/lien normalization does not exist yet.
 - Only one county import adapter exists, and it targets Maricopa-style CSVs.
 - Broad external enrichment provider coverage does not exist yet.
@@ -170,8 +173,6 @@ Placeholders today:
 Not implemented:
 
 - tenant-owned parcel model;
-- frontend dataset upload screen;
-- browser upload workflow;
 - broad county adapter coverage.
 - live county sync or scraping.
 - production deployment config.
@@ -265,7 +266,7 @@ Do not assume:
   scoring;
 - the Maricopa-style adapter means broad county support exists;
 - source labels or filenames prove county identity;
-- browser upload exists.
+- browser upload supports batch imports or live county sync.
 
 ## Security Notes
 
@@ -282,18 +283,19 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - tenant-owned dataset records are implemented.
 - tenant-owned internal job records are implemented for scoring.
 - tenant-owned alert records are implemented for safe in-app monitoring.
-- CSV upload limits and validation are implemented.
+- CSV upload limits and validation are implemented, and the browser upload flow
+  uses that existing backend boundary.
 - county import adapter detection uses explicit header evidence and returns
   safe summary metadata rather than raw source rows.
 - tenant-owned scored-record and watchlist item records are implemented.
 - tenant-owned portfolio item records are implemented.
 - tenant-owned parcel records are not yet implemented.
 
-Security cannot be considered complete until browser upload, rate limits, and
-additional cross-user resource tests for later resource types exist. The current
-worker layer is a local background execution boundary, not hardened external
-automation, distributed queueing, or delivery infrastructure. The current alert
-layer is in-app visibility only.
+Security cannot be considered complete until rate limits, production CORS
+decisions, browser session hardening, and additional cross-user resource tests
+for later resource types exist. The current worker layer is a local background
+execution boundary, not hardened external automation, distributed queueing, or
+delivery infrastructure. The current alert layer is in-app visibility only.
 
 ## Drift Risks
 

@@ -2,6 +2,13 @@
 
 ## 2026-06-01
 
+- Implemented Phase 17 browser upload workflow with an authenticated dataset
+  upload form, multipart API client integration, upload submitting/success/error
+  states, import summary visibility, county-adapter/fallback messaging, and
+  tests for upload API behavior and import presentation.
+- Updated frontend/dataset/API/KB docs to mark browser upload as current while
+  keeping batch upload, live county sync, scraping, ML/AI import
+  classification, collaboration, and auction execution out of scope.
 - Implemented Phase 16 county-specific import adapter foundation with an
   explicit county adapter interface, a Maricopa-style tax lien CSV adapter,
   safe generic fallback, dataset import summaries, frontend import context

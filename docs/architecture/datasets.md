@@ -18,6 +18,8 @@ Implemented:
 - county import adapter boundary;
 - first Maricopa-style tax lien CSV adapter;
 - safe import summary metadata;
+- browser upload UI integrated with the authenticated app;
+- upload success/error/submitting states in the frontend;
 - internal source row persistence for later scoring;
 - dataset integration tests for ownership and upload failures.
 
@@ -25,7 +27,6 @@ Not implemented:
 
 - full parcel/lien normalization;
 - scoring inside the upload handler;
-- browser dataset upload UI;
 - broad county adapter coverage;
 - live county sync;
 - background ingestion automation.
@@ -87,6 +88,11 @@ The upload boundary enforces:
 
 The API does not trust file metadata alone. It also parses and validates the CSV
 content before creating a dataset record.
+
+Phase 17 exposes this API from the browser app. The frontend upload form does
+not create a parallel ingestion path; it posts multipart form data to
+`POST /datasets` with one file and an optional source label, then shows the
+returned validation/import summary and opens the dataset review route.
 
 ## CSV Parsing Boundary
 
@@ -155,8 +161,9 @@ Remaining hardening:
 
 ## Drift Risks
 
-Do not treat Phase 3 or Phase 16 as full ingestion. The repo now stores dataset
-metadata, validation summary, import summary, and internal source rows. One
+Do not treat Phase 3, Phase 16, or Phase 17 as full ingestion automation. The
+repo now stores dataset metadata, validation summary, import summary, and
+internal source rows, and the browser can upload one CSV at a time. One
 county-specific adapter exists; broad county-specific normalization remains a
 future layer.
 

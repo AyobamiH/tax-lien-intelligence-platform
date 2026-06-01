@@ -69,6 +69,7 @@ records the current implementation state:
 - controlled dataset refresh/reprocessing exists through the scoring job path.
 - scheduled maintenance groundwork exists with manual-only default policy and
   distinguishable policy refresh jobs.
+- browser upload workflow exists for authenticated single CSV imports.
 - frontend scored-results review surface exists.
 - watchlist API and review surface exist.
 - portfolio API and status tracking surface exist.
@@ -84,9 +85,9 @@ records the current implementation state:
 - portfolio item model exists.
 - shared types exist.
 - scoring package is a real first-pass deterministic engine.
-- full parcel models, browser upload, user-facing scheduler controls, and broad
-  county coverage, live county sync, user-facing scheduler controls, and broad
-  external automation are not implemented yet.
+- full parcel models, batch upload, user-facing scheduler controls, broad
+  county coverage, live county sync, and broad external automation are not
+  implemented yet.
 
 Do not use the legacy personal mirror as product truth. The primary startup
 remote is `oneclick`.

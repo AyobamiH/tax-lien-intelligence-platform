@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
-import type { AlertResponse, PortfolioItemResponse, ScoredRecordResponse, WatchlistItemResponse } from "@tax-lien/types";
+import type {
+  AlertResponse,
+  DatasetResponse,
+  PortfolioItemResponse,
+  ScoredRecordResponse,
+  WatchlistItemResponse,
+} from "@tax-lien/types";
 import {
   alertSeverityClassName,
   alertTypeLabel,
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
+  datasetImportPresentation,
   datasetScoringStatusClassName,
   datasetScoringStatusLabel,
   filterScoresForReview,
@@ -120,6 +127,39 @@ function alertResponse(overrides: Partial<AlertResponse>): AlertResponse {
     severity: "info",
     status: "unread",
     message: "Scoring completed. 2 records are ready for review.",
+    createdAt: "2026-05-25T00:00:00.000Z",
+    updatedAt: "2026-05-25T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function datasetResponse(overrides: Partial<DatasetResponse>): DatasetResponse {
+  return {
+    id: "dataset-1",
+    originalFilename: "county.csv",
+    sourceType: "manual_csv",
+    status: "validated",
+    rowCount: 2,
+    columnCount: 4,
+    headers: ["parcel_id", "lien_amount"],
+    validationSummary: {
+      totalRows: 2,
+      validRows: 2,
+      invalidRows: 0,
+      warnings: [],
+      errors: [],
+    },
+    importSummary: {
+      adapterMatched: false,
+      adapterId: "generic_csv",
+      adapterName: "Generic CSV normalization",
+      source: "generic_csv",
+      confidence: "low",
+      fallbackUsed: true,
+      mappedFields: [],
+      warnings: [],
+    },
+    uploadedAt: "2026-05-25T00:00:00.000Z",
     createdAt: "2026-05-25T00:00:00.000Z",
     updatedAt: "2026-05-25T00:00:00.000Z",
     ...overrides,
@@ -308,5 +348,35 @@ describe("review model helpers", () => {
     expect(datasetScoringStatusClassName("stale")).toContain("amber");
     expect(datasetScoringStatusClassName("refresh_failed")).toContain("red");
     expect(datasetScoringStatusClassName("fresh")).toContain("emerald");
+  });
+
+  it("formats dataset import summaries for upload and review surfaces", () => {
+    expect(datasetImportPresentation(datasetResponse({}))).toEqual({
+      label: "Generic CSV handling",
+      status: "Generic CSV fallback",
+      detail: "0 mapped fields · low confidence",
+    });
+
+    expect(
+      datasetImportPresentation(
+        datasetResponse({
+          importSummary: {
+            adapterMatched: true,
+            adapterId: "maricopa_tax_lien_v1",
+            adapterName: "Maricopa-style tax lien CSV",
+            source: "county_adapter",
+            confidence: "high",
+            fallbackUsed: false,
+            mappedFields: ["parcel_id", "lien_amount", "estimated_value", "property_type", "address"],
+            warnings: ["Maricopa-style adapter could not map property_type."],
+          },
+        }),
+      ),
+    ).toEqual({
+      label: "Maricopa-style tax lien CSV",
+      status: "County adapter matched",
+      detail: "5 mapped fields · high confidence",
+      warning: "Maricopa-style adapter could not map property_type.",
+    });
   });
 });

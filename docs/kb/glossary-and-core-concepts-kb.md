@@ -12,8 +12,8 @@ investment decision support.
 
 Current status: auth, dataset upload, first-pass scoring, browser score review,
 watchlists, portfolio/status tracking, and one county import adapter boundary
-are implemented. Browser upload, broad county coverage, and automation remain
-future work.
+are implemented. Browser upload for single CSV imports is implemented. Broad
+county coverage and automation remain future work.
 
 ## Multi-Tenant SaaS
 

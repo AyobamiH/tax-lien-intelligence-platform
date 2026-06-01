@@ -58,7 +58,10 @@ validation summary.
 
 Current status: implemented as a manual CSV dataset foundation. Sanitized source
 rows are stored internally for scoring, but public dataset responses expose only
-metadata and validation summaries.
+metadata, validation summaries, and safe import summaries.
+
+Phase 17 exposes dataset creation through the browser app while preserving the
+same authenticated API and tenant-owned dataset model.
 
 Phase 16 adds safe import summary metadata to datasets. The current adapter can
 recognize Maricopa-style tax lien CSV headers and map selected source columns

@@ -175,6 +175,10 @@ Current dataset contracts include:
 Owner is implied by auth, not client-set. Do not let frontend contracts accept
 `userId` for creating datasets.
 
+The Phase 17 browser upload flow uses the existing `DatasetDetailResponse` from
+`POST /datasets`. The frontend sends multipart form data containing `file` and
+optional `sourceLabel`; it does not invent a browser-only dataset contract.
+
 ## Dataset Import Summary Contract
 
 Phase 16 adds a safe import summary contract for dataset responses. It includes:

@@ -18,6 +18,8 @@ Current implementation:
 - Tailwind;
 - authenticated review workspace in `apps/web/src/App.tsx`;
 - browser login/register backed by the auth API;
+- browser CSV upload form backed by `POST /datasets`;
+- upload submitting, success, and error states;
 - hash-based dataset review routes;
 - API integration for dataset list/detail, scoring runs, controlled refresh,
   scoring status, maintenance status, and scored records;
@@ -38,7 +40,7 @@ Current implementation:
 - alerts route with unread count and read/read-all actions;
 - alert entries for scoring completion/failure outcomes;
 - loading, empty, and error states;
-- no browser upload flow yet.
+- no batch upload, drag-and-drop mega uploader, or live county sync.
 
 ## Intended Frontend Role
 
@@ -61,6 +63,7 @@ Current and future page direction:
 
 - implemented: login/register surface;
 - implemented: dataset list/review surface;
+- implemented: browser dataset upload form on the dataset surface;
 - implemented: dataset detail review route;
 - implemented: scored records table;
 - implemented: record detail reasoning surface;
@@ -72,7 +75,6 @@ Current and future page direction:
 - implemented: controlled refresh action and scoring status badge;
 - implemented: maintenance policy status display on dataset detail;
 - implemented: alerts monitoring surface;
-- future: browser dataset upload page;
 - future: account/settings page.
 
 ## Page Responsibilities
@@ -85,13 +87,15 @@ Future dashboard:
 - show watchlist count and important warnings;
 - avoid fake metrics before real data exists.
 
-Future upload page:
+Implemented upload surface:
 
 - accept CSV files;
-- explain required columns;
-- show validation errors;
+- send the selected file and optional source label through the authenticated
+  dataset API;
+- show server validation errors safely;
 - show safe adapter/fallback import summaries after upload when backend support
-  exists;
+- returns them;
+- navigate into dataset review after a successful upload;
 - prevent upload confusion;
 - never claim data was scored before backend confirms it.
 
@@ -217,7 +221,7 @@ repo truth:
 
 - do not invent pages that do not have implementation priority;
 - do not add mock data as if it were real;
-- do not imply browser upload, external alert delivery, or automation workflows
+- do not imply batch upload, external alert delivery, or automation workflows
   exist before they are wired to backend contracts;
 - do not imply one county adapter means broad county import support;
 - do not bypass shared API contracts;

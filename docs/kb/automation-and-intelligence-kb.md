@@ -32,6 +32,7 @@ Current implementation:
   manual-only by default;
 - county import adapter boundary exists with one Maricopa-style CSV adapter and
   a generic fallback;
+- browser upload exists for authenticated single CSV imports;
 - no portfolio automation or external monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
@@ -41,8 +42,9 @@ minimal worker/scheduler execution boundary. It also has enrichment
 orchestration, a controlled manual refresh workflow for dataset reprocessing,
 and scheduled maintenance groundwork with explicit policy gates. Broad product
 automation is still intentionally absent. Phase 16 adds a deterministic
-county-import boundary for one Maricopa-style CSV path, but not broad county
-sync, scraping, or automated ingestion.
+county-import boundary for one Maricopa-style CSV path, and Phase 17 exposes
+manual browser upload, but neither adds broad county sync, scraping, or
+automated ingestion.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -227,10 +229,12 @@ Now:
 - controlled refresh/reprocessing for user-owned datasets.
 - scheduled maintenance scans and policy-gated refresh creation.
 - one Maricopa-style county import adapter with generic CSV fallback.
+- browser upload for one CSV at a time.
 
 Later:
 
 - scheduled ingestion;
+- batch upload if product demand justifies it;
 - additional county adapters after deterministic mapping tests;
 - user-facing refresh policy controls;
 - broader automatic recurring refresh;

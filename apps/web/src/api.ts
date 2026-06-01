@@ -30,6 +30,11 @@ export interface AuthCredentials {
   password: string;
 }
 
+export interface CreateDatasetInput {
+  file: File;
+  sourceLabel?: string;
+}
+
 export class ApiClientError extends Error {
   public readonly code: string;
   public readonly status: number;
@@ -65,6 +70,22 @@ export async function getCurrentUser(token: string): Promise<AuthMeResponse> {
 export async function listDatasets(token: string): Promise<DatasetListResponse> {
   return requestJson<DatasetListResponse>("/datasets", {
     token,
+  });
+}
+
+export async function createDataset(token: string, input: CreateDatasetInput): Promise<DatasetDetailResponse> {
+  const formData = new FormData();
+  formData.append("file", input.file);
+
+  const sourceLabel = input.sourceLabel?.trim();
+  if (sourceLabel) {
+    formData.append("sourceLabel", sourceLabel);
+  }
+
+  return requestFormData<DatasetDetailResponse>("/datasets", {
+    method: "POST",
+    token,
+    body: formData,
   });
 }
 
@@ -198,6 +219,12 @@ interface JsonRequestOptions {
   body?: string;
 }
 
+interface FormDataRequestOptions {
+  method: "POST";
+  token: string;
+  body: FormData;
+}
+
 async function requestJson<TResponse>(path: string, options: JsonRequestOptions = {}): Promise<TResponse> {
   const headers = new Headers({
     Accept: "application/json",
@@ -221,6 +248,28 @@ async function requestJson<TResponse>(path: string, options: JsonRequestOptions 
   }
 
   const response = await fetch(`${apiBaseUrl}${path}`, requestInit);
+
+  const payload = await readJson(response);
+
+  if (!response.ok) {
+    const apiError = parseApiError(payload);
+    throw new ApiClientError(response.status, apiError.code, apiError.message);
+  }
+
+  return payload as TResponse;
+}
+
+async function requestFormData<TResponse>(path: string, options: FormDataRequestOptions): Promise<TResponse> {
+  const headers = new Headers({
+    Accept: "application/json",
+    Authorization: `Bearer ${options.token}`,
+  });
+
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: options.method,
+    headers,
+    body: options.body,
+  });
 
   const payload = await readJson(response);
 

@@ -417,7 +417,8 @@ Backend implementation order should stay disciplined:
 13. scheduled maintenance and policy-driven auto-refresh foundation:
     implemented in Phase 15;
 14. county import adapter foundation: implemented in Phase 16;
-15. later external automation.
+15. browser upload workflow: implemented in Phase 17;
+16. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

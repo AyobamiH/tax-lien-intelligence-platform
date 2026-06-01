@@ -14,6 +14,7 @@ import {
   ApiClientError,
   addPortfolioItem,
   addWatchlistItem,
+  createDataset,
   getCurrentUser,
   getDataset,
   getDatasetScoringStatus,
@@ -39,6 +40,7 @@ import {
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
+  datasetImportPresentation,
   datasetScoringStatusClassName,
   datasetScoringStatusLabel,
   filterScoresForReview,
@@ -86,6 +88,12 @@ interface DatasetDetailState {
   error: string | null;
 }
 
+interface DatasetUploadState {
+  isSubmitting: boolean;
+  error: string | null;
+  uploadedDataset: DatasetResponse | null;
+}
+
 interface WatchlistState {
   items: WatchlistItemResponse[];
   isLoading: boolean;
@@ -114,6 +122,11 @@ function App() {
   const [datasets, setDatasets] = useState<DatasetResponse[]>([]);
   const [datasetsLoading, setDatasetsLoading] = useState(false);
   const [datasetsError, setDatasetsError] = useState<string | null>(null);
+  const [datasetUpload, setDatasetUpload] = useState<DatasetUploadState>({
+    isSubmitting: false,
+    error: null,
+    uploadedDataset: null,
+  });
   const [watchlist, setWatchlist] = useState<WatchlistState>({
     items: [],
     isLoading: false,
@@ -157,6 +170,11 @@ function App() {
   useEffect(() => {
     if (!authToken) {
       setDatasets([]);
+      setDatasetUpload({
+        isSubmitting: false,
+        error: null,
+        uploadedDataset: null,
+      });
       setWatchlist({
         items: [],
         isLoading: false,
@@ -214,6 +232,48 @@ function App() {
   function handleSignOut(): void {
     clearSession(setSession);
     navigate({ name: "datasets" }, setPage);
+  }
+
+  async function uploadDatasetFromBrowser(file: File | null, sourceLabel: string): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    if (!file) {
+      setDatasetUpload({
+        isSubmitting: false,
+        error: "Choose a CSV file before uploading.",
+        uploadedDataset: null,
+      });
+      return;
+    }
+
+    setDatasetUpload({
+      isSubmitting: true,
+      error: null,
+      uploadedDataset: null,
+    });
+
+    try {
+      const result = await createDataset(session.token, { file, sourceLabel });
+      setDatasets((current) => [result.dataset, ...current.filter((dataset) => dataset.id !== result.dataset.id)]);
+      setDatasetsError(null);
+      setDatasetUpload({
+        isSubmitting: false,
+        error: null,
+        uploadedDataset: result.dataset,
+      });
+      navigate({ name: "dataset", datasetId: result.dataset.id }, setPage);
+    } catch (error: unknown) {
+      setDatasetUpload({
+        isSubmitting: false,
+        error: errorMessage(error),
+        uploadedDataset: null,
+      });
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
   }
 
   async function refreshWatchlist(token: string): Promise<void> {
@@ -531,6 +591,8 @@ function App() {
           isWatchlistActive={page.name === "watchlist"}
           isPortfolioActive={page.name === "portfolio"}
           isAlertsActive={page.name === "alerts"}
+          uploadState={datasetUpload}
+          onUpload={uploadDatasetFromBrowser}
           onSelect={(datasetId) => navigate({ name: "dataset", datasetId }, setPage)}
           onWatchlistSelect={() => navigate({ name: "watchlist" }, setPage)}
           onPortfolioSelect={() => navigate({ name: "portfolio" }, setPage)}
@@ -644,8 +706,8 @@ function AuthScreen({ onSignedIn }: { onSignedIn: (session: StoredSession) => vo
             Review scored lien opportunities with visible reasoning.
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/75">
-            Uploads, scoring runs, and scored records are served by the authenticated API.
-            The browser shows only the signed-in user's datasets.
+            Upload datasets, run scoring, and review records through authenticated tenant-scoped workflows.
+            The browser shows only the signed-in user's data.
           </p>
         </div>
         <form onSubmit={(event) => void submit(event)} className="border border-line bg-white p-5 shadow-sm">
@@ -781,6 +843,8 @@ function DatasetListPanel({
   isWatchlistActive,
   isPortfolioActive,
   isAlertsActive,
+  uploadState,
+  onUpload,
   onSelect,
   onWatchlistSelect,
   onPortfolioSelect,
@@ -797,6 +861,8 @@ function DatasetListPanel({
   isWatchlistActive: boolean;
   isPortfolioActive: boolean;
   isAlertsActive: boolean;
+  uploadState: DatasetUploadState;
+  onUpload: (file: File | null, sourceLabel: string) => Promise<void>;
   onSelect: (datasetId: string) => void;
   onWatchlistSelect: () => void;
   onPortfolioSelect: () => void;
@@ -808,6 +874,7 @@ function DatasetListPanel({
       <div className="border-b border-line px-4 py-3">
         <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Datasets</h2>
       </div>
+      <DatasetUploadPanel uploadState={uploadState} onUpload={onUpload} onSelect={onSelect} />
       <button
         type="button"
         onClick={onWatchlistSelect}
@@ -850,7 +917,7 @@ function DatasetListPanel({
       {isLoading ? <PanelMessage label="Loading datasets..." /> : null}
       {error ? <PanelError message={error} onRetry={onRetry} /> : null}
       {!isLoading && !error && datasets.length === 0 ? (
-        <PanelMessage label="No datasets found. Upload a CSV through the dataset API to begin review." />
+        <PanelMessage label="No datasets found. Upload a CSV to begin review." />
       ) : null}
       <div className="divide-y divide-line">
         {datasets.map((dataset) => (
@@ -872,11 +939,104 @@ function DatasetListPanel({
             <p className="mt-2 text-xs text-ink/60">
               {dataset.validationSummary.validRows} valid / {dataset.validationSummary.invalidRows} invalid
             </p>
-            <p className="mt-1 truncate text-xs text-ink/60">{datasetImportLabel(dataset)}</p>
+            <p className="mt-1 truncate text-xs text-ink/60">{datasetImportPresentation(dataset).label}</p>
           </button>
         ))}
       </div>
     </aside>
+  );
+}
+
+function DatasetUploadPanel({
+  uploadState,
+  onUpload,
+  onSelect,
+}: {
+  uploadState: DatasetUploadState;
+  onUpload: (file: File | null, sourceLabel: string) => Promise<void>;
+  onSelect: (datasetId: string) => void;
+}) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [sourceLabel, setSourceLabel] = useState("");
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const uploadedDataset = uploadState.uploadedDataset;
+  const importPresentation = uploadedDataset ? datasetImportPresentation(uploadedDataset) : null;
+
+  useEffect(() => {
+    if (!uploadState.uploadedDataset) {
+      return;
+    }
+
+    setSelectedFile(null);
+    setSourceLabel("");
+    setFileInputKey((current) => current + 1);
+  }, [uploadState.uploadedDataset?.id]);
+
+  async function submit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    await onUpload(selectedFile, sourceLabel);
+  }
+
+  return (
+    <form onSubmit={(event) => void submit(event)} className="border-b border-line bg-field px-4 py-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold">Upload CSV</h3>
+          <p className="mt-1 text-xs text-ink/60">Manual import with adapter/fallback visibility.</p>
+        </div>
+      </div>
+      <label className="mt-4 block text-xs font-semibold uppercase text-ink/60" htmlFor="dataset-upload-file">
+        CSV file
+      </label>
+      <input
+        key={fileInputKey}
+        id="dataset-upload-file"
+        type="file"
+        accept=".csv,text/csv"
+        disabled={uploadState.isSubmitting}
+        onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+        className="mt-2 w-full border border-line bg-white px-3 py-2 text-xs file:mr-3 file:border-0 file:bg-pine file:px-3 file:py-1 file:text-xs file:font-semibold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
+      />
+      <p className="mt-2 truncate text-xs text-ink/60">{selectedFile ? selectedFile.name : "No file selected"}</p>
+      <label className="mt-3 block text-xs font-semibold uppercase text-ink/60" htmlFor="dataset-source-label">
+        Source label
+      </label>
+      <input
+        id="dataset-source-label"
+        type="text"
+        value={sourceLabel}
+        disabled={uploadState.isSubmitting}
+        onChange={(event) => setSourceLabel(event.target.value)}
+        placeholder="Optional county or sale label"
+        className="mt-2 w-full border border-line bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+      />
+      {uploadState.error ? (
+        <div className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">{uploadState.error}</div>
+      ) : null}
+      {uploadedDataset && importPresentation ? (
+        <div className="mt-3 border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+          <p className="font-semibold">Uploaded {uploadedDataset.originalFilename}</p>
+          <p className="mt-1">
+            {importPresentation.status}: {importPresentation.label} · {importPresentation.detail}
+          </p>
+          {importPresentation.warning ? <p className="mt-1 text-amber-900">{importPresentation.warning}</p> : null}
+          <button
+            type="button"
+            onClick={() => onSelect(uploadedDataset.id)}
+            className="mt-2 border border-emerald-300 bg-white px-2 py-1 font-semibold text-emerald-900"
+          >
+            Review dataset
+          </button>
+        </div>
+      ) : null}
+      <button
+        type="submit"
+        disabled={uploadState.isSubmitting}
+        className="mt-4 w-full bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {uploadState.isSubmitting ? "Uploading..." : "Upload dataset"}
+      </button>
+    </form>
   );
 }
 
@@ -911,7 +1071,7 @@ function ReviewHome({
         />
       </div>
       <div className="mt-6 border border-line bg-field p-4 text-sm text-ink/75">
-        Select a dataset to review scoring status, run scoring, and inspect record-level reasoning.
+        Upload a CSV or select a dataset to review scoring status, run scoring, and inspect record-level reasoning.
       </div>
     </section>
   );
@@ -1175,6 +1335,8 @@ function DatasetDetailPage({
     return <PanelError message={state.error ?? "Dataset could not be loaded."} />;
   }
 
+  const importPresentation = datasetImportPresentation(state.dataset);
+
   return (
     <section className="min-w-0 space-y-5">
       <div className="border border-line bg-white p-5">
@@ -1254,11 +1416,10 @@ function DatasetDetailPage({
           </p>
         ) : null}
         <p className="mt-2 text-xs text-ink/60">
-          Import: {datasetImportLabel(state.dataset)} · {state.dataset.importSummary.mappedFields.length} mapped field
-          {state.dataset.importSummary.mappedFields.length === 1 ? "" : "s"} · {state.dataset.importSummary.confidence} confidence
+          Import: {importPresentation.status} · {importPresentation.label} · {importPresentation.detail}
         </p>
-        {state.dataset.importSummary.warnings.length > 0 ? (
-          <p className="mt-1 text-xs text-amber-800">{state.dataset.importSummary.warnings[0]}</p>
+        {importPresentation.warning ? (
+          <p className="mt-1 text-xs text-amber-800">{importPresentation.warning}</p>
         ) : null}
       </div>
 
@@ -2469,12 +2630,6 @@ function defaultMaintenanceStatus(): DatasetScoringStatusResponse["maintenance"]
     eligibleForPolicyRefresh: false,
     message: "Dataset refresh is manual-only until maintenance policy is loaded.",
   };
-}
-
-function datasetImportLabel(dataset: DatasetResponse): string {
-  return dataset.importSummary.adapterMatched
-    ? `${dataset.importSummary.adapterName}`
-    : "Generic CSV handling";
 }
 
 function jobRequestKindLabel(requestKind: InternalJobResponse["requestKind"]): string {

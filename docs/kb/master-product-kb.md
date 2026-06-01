@@ -24,7 +24,8 @@ groundwork layer. Phase 11 adds internal source-row enrichment before scoring.
 Phase 14 adds controlled dataset refresh/reprocessing on top of the job and
 enrichment foundations. Phase 15 adds bounded scheduled maintenance groundwork
 with explicit refresh policy gates. Phase 16 adds the first county import
-adapter boundary with one Maricopa-style CSV adapter and generic fallback.
+adapter boundary with one Maricopa-style CSV adapter and generic fallback. Phase
+17 adds authenticated browser upload for manual CSV imports.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio surfaces.
 
@@ -33,6 +34,8 @@ Current evidence:
 - the README describes a production-grade multi-tenant SaaS for county parcel and
   tax lien data;
 - the root package describes scoring tax lien and parcel datasets;
+- the frontend lets signed-in users upload a CSV and see import/fallback
+  results;
 - the frontend review surface lets signed-in users inspect scored records,
   flags, and reasoning;
 - the watchlist surface lets signed-in users keep and compare scored records;
@@ -81,9 +84,9 @@ shortlisting, portfolio/status tracking, internal job plumbing, in-app alerts,
 worker-driven scoring execution, source-row enrichment, and controlled refresh
 exist. Bounded scheduled maintenance groundwork now exists. One
 Maricopa-style county import adapter exists. Browser CSV upload, broad county
-coverage, live county sync, external alert delivery, user-facing scheduler
-policy controls, broader automatic refresh, and richer automation remain future
-direction.
+upload now exists. Broad county coverage, live county sync, external alert
+delivery, user-facing scheduler policy controls, broader automatic refresh, and
+richer automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -161,8 +164,8 @@ Future core loop:
 
 Current implementation:
 
-- dataset upload endpoint exists for authenticated manual CSV metadata and
-  validation;
+- dataset upload endpoint and browser upload form exist for authenticated
+  manual CSV metadata and validation;
 - internal source rows are stored for scoring;
 - first-pass explainable scoring exists through API routes;
 - frontend review of scored results exists;

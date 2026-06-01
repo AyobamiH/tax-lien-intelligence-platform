@@ -197,7 +197,7 @@ Phase 5 includes:
 
 Phase 5 does not include:
 
-- browser CSV upload unless a separate upload phase is explicitly planned;
+- browser CSV upload, which is implemented later in Phase 17;
 - complex portfolio workflows;
 - automation dashboards;
 - admin tooling.
@@ -527,6 +527,33 @@ Phase 16 does not include:
 - collaboration;
 - auction execution.
 
+## Phase 17: Browser Upload And Import Workflow
+
+Current status: implemented as the first authenticated browser upload path, not
+batch ingestion or automation.
+
+Phase 17 includes:
+
+- browser CSV upload form on the dataset surface;
+- authenticated multipart upload through the existing `POST /datasets` API;
+- optional source label submission;
+- upload submitting, success, and error states;
+- import summary visibility after upload;
+- county adapter match/fallback visibility after upload;
+- navigation into dataset review after successful upload;
+- tests for upload API client behavior and import summary presentation;
+- docs.
+
+Phase 17 does not include:
+
+- multi-file batch upload;
+- drag-and-drop mega uploader;
+- live county sync;
+- scraping;
+- ML/AI import classification;
+- collaboration;
+- auction execution.
+
 ## Later Phases
 
 Later phases may include:
@@ -564,7 +591,8 @@ Dependency order matters:
 12. controlled refresh/reprocessing workflow;
 13. scheduled maintenance and policy-driven auto-refresh foundation;
 14. county import adapter foundation;
-15. broader automation.
+15. browser upload and import workflow;
+16. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

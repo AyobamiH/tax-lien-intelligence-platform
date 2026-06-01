@@ -16,6 +16,8 @@ The current web surface is a React review workspace rendered by
 It shows:
 
 - browser login/register controls backed by the auth API;
+- authenticated browser CSV upload form;
+- upload submitting, success, and error states;
 - authenticated dataset list;
 - dataset detail route using `#/datasets/:datasetId`;
 - dataset import summary visibility for generic CSV fallback or the current
@@ -44,7 +46,8 @@ It shows:
 - loading, empty, and error states.
 
 This is the first real user-facing review and decision-tracking workflow. It is
-not yet a full browser upload or automation workspace.
+now also includes a practical browser upload path. It is not a batch import,
+live county sync, or automation workspace.
 
 ## Current API Surface
 
@@ -97,6 +100,7 @@ Real workflows now present:
 
 - browser-based account registration;
 - browser-based login;
+- browser-based single CSV dataset upload through the authenticated API;
 - dataset list/detail review for authenticated users;
 - safe county import/fallback summary visibility on dataset list/detail;
 - score triggering for a selected dataset;
@@ -115,7 +119,6 @@ Real workflows now present:
 
 Real workflows not present:
 
-- browser-based dataset upload;
 - settings;
 - email/SMS alert delivery;
 - realtime alerts.
@@ -136,8 +139,7 @@ The visual system is early. It should not be treated as a complete design system
 
 The current frontend cannot:
 
-- upload datasets through the browser;
-- upload files;
+- batch upload multiple files;
 - run automation.
 - configure scheduled maintenance policy.
 - run unlimited automatic recurring refresh.
@@ -157,12 +159,12 @@ The current API cannot:
 
 ## Where The Current Surface Could Mislead Contributors
 
-The review, watchlist, and portfolio surfaces could make future contributors
-think upload and automation workflows also exist. They do not.
+The review, upload, watchlist, and portfolio surfaces could make future
+contributors think automation workflows also exist. They do not.
 
 The presence of browser auth, score review, and worker-backed scoring could make
-contributors think the whole V1 app is implemented. It is not: browser upload
-and product automation are still future work.
+contributors think the whole V1 app is implemented. It is not: batch upload,
+settings, external delivery, and product automation are still future work.
 
 The presence of a dataset model could make contributors think full parcel
 ingestion exists. It does not.
@@ -173,12 +175,13 @@ surface only exposes safe adapter/fallback summary metadata.
 
 ## Security Implications
 
-The current browser surface now handles authenticated user-owned review data.
+The current browser surface now handles authenticated user-owned upload and
+review data.
 Security risk shifts toward protecting the token boundary, API authorization,
-and tenant-owned dataset/score queries. Risk increases further when the repo
-adds:
+tenant-owned dataset/score queries, and file upload behavior. Risk increases
+further when the repo adds:
 
-- frontend upload workflows;
+- batch upload or raw file persistence workflows;
 - alert or automation workflows.
 
 The watchlist is now user-owned decision data and has its own backend ownership

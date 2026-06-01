@@ -2,6 +2,7 @@ import type {
   AlertResponse,
   AlertSeverity,
   AlertType,
+  DatasetResponse,
   DatasetScoringStatus,
   NormalizedScoredRecordFields,
   PortfolioItemResponse,
@@ -31,6 +32,13 @@ export interface ScoreStats {
 export interface ScoreBand {
   label: "Strong" | "Review" | "Weak";
   className: string;
+}
+
+export interface DatasetImportPresentation {
+  label: string;
+  status: "County adapter matched" | "Generic CSV fallback";
+  detail: string;
+  warning?: string;
 }
 
 export interface ReviewRecordLike {
@@ -276,6 +284,19 @@ export function datasetScoringStatusClassName(status: DatasetScoringStatus): str
     case "not_scored":
       return "border-line bg-field text-ink";
   }
+}
+
+export function datasetImportPresentation(dataset: Pick<DatasetResponse, "importSummary">): DatasetImportPresentation {
+  const mappedFieldCount = dataset.importSummary.mappedFields.length;
+  const mappedFieldText = `${mappedFieldCount} mapped field${mappedFieldCount === 1 ? "" : "s"}`;
+  const confidenceText = `${dataset.importSummary.confidence} confidence`;
+
+  return {
+    label: dataset.importSummary.adapterMatched ? dataset.importSummary.adapterName : "Generic CSV handling",
+    status: dataset.importSummary.adapterMatched ? "County adapter matched" : "Generic CSV fallback",
+    detail: `${mappedFieldText} · ${confidenceText}`,
+    ...(dataset.importSummary.warnings[0] ? { warning: dataset.importSummary.warnings[0] } : {}),
+  };
 }
 
 export function formatPercent(value: number): string {
