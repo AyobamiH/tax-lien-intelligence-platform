@@ -15,6 +15,7 @@ import {
   ApiClientError,
   addPortfolioItem,
   addWatchlistItem,
+  applyDatasetImportProfile,
   createDataset,
   getCurrentUser,
   getDataset,
@@ -32,6 +33,7 @@ import {
   removePortfolioItem,
   removeWatchlistItem,
   refreshDatasetScoring,
+  saveDatasetImportProfile,
   saveDatasetManualMapping,
   scoreDataset,
   updatePortfolioItemStatus,
@@ -52,6 +54,8 @@ import {
   formatMoney,
   formatPercent,
   formatRatio,
+  importProfileApplicationPresentation,
+  importProfileMappingSourceLabel,
   manualMappingByTarget,
   manualMappingTargetPresentations,
   portfolioStatusClassName,
@@ -1037,6 +1041,9 @@ function DatasetUploadPanel({
               Readiness: {readinessPresentation.label} · score {uploadedDataset.readinessSummary.score}/100
             </p>
           ) : null}
+          {uploadedDataset.importProfile.status !== "none" ? (
+            <p className="mt-1">{uploadedDataset.importProfile.message}</p>
+          ) : null}
           {importPresentation.warning ? <p className="mt-1 text-amber-900">{importPresentation.warning}</p> : null}
           <button
             type="button"
@@ -1145,6 +1152,17 @@ function DatasetDetailPage({
     error: null,
     success: null,
   });
+  const [profileState, setProfileState] = useState<{
+    isSaving: boolean;
+    isApplying: boolean;
+    error: string | null;
+    success: string | null;
+  }>({
+    isSaving: false,
+    isApplying: false,
+    error: null,
+    success: null,
+  });
 
   useEffect(() => {
     setState({
@@ -1159,6 +1177,12 @@ function DatasetDetailPage({
     });
     setMappingState({
       isSaving: false,
+      error: null,
+      success: null,
+    });
+    setProfileState({
+      isSaving: false,
+      isApplying: false,
       error: null,
       success: null,
     });
@@ -1391,6 +1415,64 @@ function DatasetDetailPage({
     }
   }
 
+  async function saveCurrentMappingAsProfile(name: string): Promise<void> {
+    setProfileState({
+      isSaving: true,
+      isApplying: false,
+      error: null,
+      success: null,
+    });
+
+    try {
+      const normalizedName = name.trim();
+      const result = await saveDatasetImportProfile(token, datasetId, normalizedName ? { name: normalizedName } : {});
+      setProfileState({
+        isSaving: false,
+        isApplying: false,
+        error: null,
+        success: `Import profile "${result.profile.name}" saved for future matching uploads.`,
+      });
+    } catch (error: unknown) {
+      setProfileState({
+        isSaving: false,
+        isApplying: false,
+        error: errorMessage(error),
+        success: null,
+      });
+    }
+  }
+
+  async function applySuggestedImportProfile(profileId: string): Promise<void> {
+    setProfileState({
+      isSaving: false,
+      isApplying: true,
+      error: null,
+      success: null,
+    });
+
+    try {
+      const result = await applyDatasetImportProfile(token, datasetId, { profileId });
+      setState((current) => ({
+        ...current,
+        dataset: result.dataset,
+        error: null,
+      }));
+      setProfileState({
+        isSaving: false,
+        isApplying: false,
+        error: null,
+        success: `Import profile "${result.appliedProfile.name}" applied. Readiness has been re-evaluated.`,
+      });
+    } catch (error: unknown) {
+      setProfileState({
+        isSaving: false,
+        isApplying: false,
+        error: errorMessage(error),
+        success: null,
+      });
+    }
+  }
+
   if (state.isLoading) {
     return <PanelMessage label="Loading dataset review..." />;
   }
@@ -1494,7 +1576,10 @@ function DatasetDetailPage({
           isSaving={mappingState.isSaving}
           error={mappingState.error}
           success={mappingState.success}
+          profileState={profileState}
           onSaveMapping={(mappings) => void saveManualMappingRepair(mappings)}
+          onSaveProfile={(name) => void saveCurrentMappingAsProfile(name)}
+          onApplyProfile={(profileId) => void applySuggestedImportProfile(profileId)}
         />
       </div>
 
@@ -1547,13 +1632,24 @@ function DatasetReadinessPanel({
   isSaving,
   error,
   success,
+  profileState,
   onSaveMapping,
+  onSaveProfile,
+  onApplyProfile,
 }: {
   dataset: DatasetResponse;
   isSaving: boolean;
   error: string | null;
   success: string | null;
+  profileState: {
+    isSaving: boolean;
+    isApplying: boolean;
+    error: string | null;
+    success: string | null;
+  };
   onSaveMapping: (mappings: Partial<Record<DatasetManualMappingTarget, string | null>>) => void;
+  onSaveProfile: (name: string) => void;
+  onApplyProfile: (profileId: string) => void;
 }) {
   const readinessPresentation = datasetReadinessPresentation(dataset);
   const topIssues = topReadinessIssues(dataset, 4);
@@ -1613,7 +1709,10 @@ function DatasetReadinessPanel({
           isSaving={isSaving}
           error={error}
           success={success}
+          profileState={profileState}
           onSave={onSaveMapping}
+          onSaveProfile={onSaveProfile}
+          onApplyProfile={onApplyProfile}
         />
       ) : null}
     </div>
@@ -1625,15 +1724,28 @@ function ManualMappingRepairForm({
   isSaving,
   error,
   success,
+  profileState,
   onSave,
+  onSaveProfile,
+  onApplyProfile,
 }: {
   dataset: DatasetResponse;
   isSaving: boolean;
   error: string | null;
   success: string | null;
+  profileState: {
+    isSaving: boolean;
+    isApplying: boolean;
+    error: string | null;
+    success: string | null;
+  };
   onSave: (mappings: Partial<Record<DatasetManualMappingTarget, string | null>>) => void;
+  onSaveProfile: (name: string) => void;
+  onApplyProfile: (profileId: string) => void;
 }) {
   const manualMappings = useMemo(() => manualMappingByTarget(dataset), [dataset.manualMapping]);
+  const profilePresentation = importProfileApplicationPresentation(dataset);
+  const [profileName, setProfileName] = useState(dataset.sourceLabel ?? dataset.originalFilename.replace(/\.csv$/i, ""));
   const [mappingValues, setMappingValues] = useState<Partial<Record<DatasetManualMappingTarget, string>>>(() =>
     Object.fromEntries(
       manualMappingTargetPresentations.flatMap((target) => {
@@ -1653,6 +1765,10 @@ function ManualMappingRepairForm({
       ),
     );
   }, [dataset.id, dataset.manualMapping.updatedAt, dataset.manualMapping.mappings.length]);
+
+  useEffect(() => {
+    setProfileName(dataset.sourceLabel ?? dataset.originalFilename.replace(/\.csv$/i, ""));
+  }, [dataset.id, dataset.sourceLabel, dataset.originalFilename]);
 
   function submit(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -1679,12 +1795,31 @@ function ManualMappingRepairForm({
         <span className="border border-line bg-field px-2 py-1 text-xs">{dataset.headers.length} source columns</span>
       </div>
 
+      <div className={`mt-4 border px-3 py-2 text-xs ${profilePresentation.className}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold">{profilePresentation.label}</p>
+            <p className="mt-1 leading-5">{profilePresentation.detail}</p>
+          </div>
+          {profilePresentation.canApplySuggestedProfile && dataset.importProfile.profileId ? (
+            <button
+              type="button"
+              disabled={profileState.isApplying}
+              onClick={() => onApplyProfile(dataset.importProfile.profileId ?? "")}
+              className="border border-amber-300 bg-white px-3 py-2 font-semibold text-amber-900 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {profileState.isApplying ? "Applying..." : "Apply profile"}
+            </button>
+          ) : null}
+        </div>
+      </div>
+
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         {manualMappingTargetPresentations.map((target) => {
           const manualMapping = manualMappings.get(target.targetField);
           const automaticallyMapped = dataset.importSummary.mappedFields.includes(target.targetField);
           const statusText = manualMapping
-            ? `Manual: ${manualMapping.sourceColumn}`
+            ? `${importProfileMappingSourceLabel(manualMapping.source)}: ${manualMapping.sourceColumn}`
             : automaticallyMapped
               ? "Automatic mapping recognized"
               : "Not recognized automatically";
@@ -1729,6 +1864,44 @@ function ManualMappingRepairForm({
       >
         {isSaving ? "Saving mapping..." : "Save mapping and re-check readiness"}
       </button>
+
+      {dataset.manualMapping.mappings.length > 0 ? (
+        <div className="mt-4 border border-line bg-field p-3">
+          <label className="block text-xs font-semibold uppercase text-ink/60" htmlFor={`profile-name-${dataset.id}`}>
+            Reusable profile name
+          </label>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+            <input
+              id={`profile-name-${dataset.id}`}
+              value={profileName}
+              disabled={profileState.isSaving}
+              maxLength={120}
+              onChange={(event) => setProfileName(event.target.value)}
+              className="min-w-0 flex-1 border border-line bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            />
+            <button
+              type="button"
+              disabled={profileState.isSaving}
+              onClick={() => onSaveProfile(profileName)}
+              className="border border-pine bg-white px-4 py-2 text-sm font-semibold text-pine disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {profileState.isSaving ? "Saving profile..." : "Save as reusable profile"}
+            </button>
+          </div>
+          <p className="mt-2 text-xs leading-5 text-ink/60">
+            Profiles are private to your account and reuse only deterministic column mappings on future matching uploads.
+          </p>
+        </div>
+      ) : null}
+
+      {profileState.error ? (
+        <div className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">{profileState.error}</div>
+      ) : null}
+      {profileState.success ? (
+        <div className="mt-3 border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+          {profileState.success}
+        </div>
+      ) : null}
     </form>
   );
 }

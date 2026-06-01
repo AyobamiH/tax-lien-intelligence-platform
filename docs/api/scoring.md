@@ -11,8 +11,9 @@ authenticated user.
 - The client cannot submit trusted score values.
 - Scored records are derived server-side from stored dataset source rows after
   normalization and enrichment.
-- If a dataset has manual mappings, the worker applies them as a derived overlay
-  before normalization. Stored source rows are not rewritten.
+- If a dataset has manual or import-profile mappings, the worker applies them
+  as a derived overlay before normalization. Stored source rows are not
+  rewritten.
 - Cross-user access returns `dataset_not_found` rather than revealing another
   user's dataset exists.
 - Scoring explanations are user-visible summaries, not raw processing internals.
@@ -298,6 +299,7 @@ a controlled user-triggered refresh path and status visibility on top of that
 readiness. Phase 15 adds scheduled maintenance groundwork that can scan for
 stale scored records and, when explicitly enabled by server policy, create
 distinguishable `policy_refresh` jobs. It is not unlimited autonomous refresh.
-Future phases may add stronger county adapters, additional providers,
-deduplication, historical redemption signals, external alert delivery, and
-broader automation.
+Phase 20 adds deterministic reusable import profiles whose applied mappings use
+the same overlay boundary before scoring. Future phases may add stronger county
+adapters, additional providers, deduplication, historical redemption signals,
+external alert delivery, and broader automation.

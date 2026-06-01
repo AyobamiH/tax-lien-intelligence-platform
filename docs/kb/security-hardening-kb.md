@@ -59,6 +59,8 @@ Current repo protections:
 - import readiness responses expose safe coverage, issue, score,
   recommendation, and guidance metadata only;
 - manual mapping responses expose safe target-to-source-column metadata only;
+- import profile responses expose tenant-owned mapping rules and safe
+  applicability metadata only;
 - cross-user dataset detail rejection tests;
 - tenant-owned scored-record persistence;
 - authenticated scoring run and score retrieval routes;
@@ -442,6 +444,9 @@ traces, and they must not become client-side authorization or scoring logic.
 Phase 19 adds focused manual mapping repair. The API must validate target fields
 and source columns, scope mappings to dataset ownership, and apply mappings as a
 derived overlay rather than rewriting stored source rows.
+Phase 20 adds reusable import profiles. The API must keep profiles tenant-owned,
+validate mappings before saving, avoid false-positive auto-application, and
+make profile reuse visible as none/suggested/auto-applied/user-applied state.
 
 Future row normalization and raw file persistence, if added, need additional
 controls.
@@ -609,6 +614,8 @@ Security drift risks:
   reason to bypass server-side scoring/ownership checks;
 - treating manual mappings as raw data mutation or allowing arbitrary column
   transforms without a separate security phase;
+- sharing import profiles across tenants or treating profile suggestions as
+  hidden ML-generated source truth;
 - turning alerts into raw diagnostic payloads;
 - treating public source data as non-sensitive after user enrichment;
 - skipping cross-user tests.

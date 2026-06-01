@@ -79,6 +79,10 @@ Implemented today:
   and guidance;
 - dataset-specific manual mapping summary for critical-field import repair;
 - authenticated manual mapping context/save endpoints;
+- tenant-owned import profile model for reusable mapping rules;
+- authenticated import profile list/save/apply endpoints;
+- deterministic import profile matching during upload with conservative
+  auto-apply/suggest behavior;
 - dataset ownership tests;
 - internal dataset source row persistence for scoring;
 - scored-record model in `packages/db`;
@@ -125,6 +129,7 @@ Implemented today:
 - frontend import readiness status and issue visibility after upload and on
   dataset detail;
 - frontend manual mapping repair panel for not-ready datasets;
+- frontend import profile save/apply visibility on dataset detail;
 - authenticated dataset list/detail review UI;
 - frontend score triggering;
 - frontend controlled refresh action and scoring freshness/status display;
@@ -173,6 +178,9 @@ Placeholders today:
 - Only one county import adapter exists, and it targets Maricopa-style CSVs.
 - Focused manual mapping exists for critical fields only; no full spreadsheet
   editor or row-by-row repair system exists.
+- Reusable import profiles exist for tenant-owned deterministic mapping reuse;
+  no global/shared profile catalog, rule-builder UI, or ML mapping suggestion
+  system exists.
 - Broad external enrichment provider coverage does not exist yet.
 - Unlimited autonomous refresh does not exist yet.
 - User-facing scheduler configuration does not exist yet.
@@ -183,6 +191,7 @@ Not implemented:
 
 - tenant-owned parcel model;
 - broad county adapter coverage.
+- broad import profile sharing or marketplace behavior.
 - live county sync or scraping.
 - production deployment config.
 - email/SMS alert delivery;
@@ -280,6 +289,7 @@ Do not assume:
 - browser upload supports batch imports or live county sync;
 - readiness summaries mean a dataset was manually remapped or corrected;
 - manual mapping means source rows were overwritten.
+- import profiles are shared across users or applied through ML.
 
 ## Security Notes
 
@@ -304,6 +314,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
   issue, and guidance metadata rather than raw rows or parser internals.
 - manual mappings are tenant-owned dataset metadata and are applied as a
   derived overlay rather than source-row mutation.
+- import profiles are tenant-owned mapping configuration and are applied only
+  through deterministic owner-scoped matching or explicit user confirmation.
 - tenant-owned scored-record and watchlist item records are implemented.
 - tenant-owned portfolio item records are implemented.
 - tenant-owned parcel records are not yet implemented.
@@ -332,6 +344,8 @@ Repo drift risks:
   proof that scoring quality is final.
 - describing focused manual mapping as a full spreadsheet editor or county
   import automation.
+- describing import profiles as a broad ETL product, shared marketplace, or
+  ML-based import classifier.
 
 ## Update Rules
 

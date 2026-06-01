@@ -1,5 +1,6 @@
 import type {
   DatasetManualMappingEntry,
+  DatasetManualMappingSource,
   DatasetManualMappingSummary,
   DatasetManualMappingTarget,
 } from "@tax-lien/types";
@@ -30,6 +31,7 @@ export function emptyManualMappingSummary(): DatasetManualMappingSummary {
 export function buildManualMappingSummary(
   mappingValues: ManualMappingValues,
   timestamp: Date,
+  source: DatasetManualMappingSource = "manual",
 ): DatasetManualMappingSummary {
   const updatedAt = timestamp.toISOString();
   const mappings = manualMappingTargets.flatMap<DatasetManualMappingEntry>((targetField) => {
@@ -42,7 +44,7 @@ export function buildManualMappingSummary(
       {
         targetField,
         sourceColumn,
-        source: "manual",
+        source,
         updatedAt,
       },
     ];

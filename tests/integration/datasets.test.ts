@@ -9,6 +9,11 @@ import type {
   DatasetStore,
   StoredDataset,
 } from "../../apps/api/src/datasets/dataset-store.js";
+import type {
+  CreateImportProfileInput,
+  ImportProfileStore,
+  StoredImportProfile,
+} from "../../apps/api/src/datasets/import-profile-store.js";
 import { maxDatasetUploadBytes } from "../../apps/api/src/datasets/csv-parser.js";
 import { createApp } from "../../apps/api/src/app.js";
 
@@ -63,6 +68,7 @@ class InMemoryDatasetStore implements DatasetStore {
       ...(input.importSummary ? { importSummary: input.importSummary } : {}),
       ...(input.readinessSummary ? { readinessSummary: input.readinessSummary } : {}),
       ...(input.manualMapping ? { manualMapping: input.manualMapping } : {}),
+      ...(input.importProfile ? { importProfile: input.importProfile } : {}),
       uploadedAt: input.uploadedAt,
       createdAt: now,
       updatedAt: now,
@@ -81,6 +87,7 @@ class InMemoryDatasetStore implements DatasetStore {
     userId: string;
     manualMapping: NonNullable<StoredDataset["manualMapping"]>;
     readinessSummary: NonNullable<StoredDataset["readinessSummary"]>;
+    importProfile?: NonNullable<StoredDataset["importProfile"]>;
   }): Promise<StoredDataset | null> {
     const dataset = this.datasetsById.get(input.datasetId);
     if (!dataset || dataset.userId !== input.userId) {
@@ -91,6 +98,7 @@ class InMemoryDatasetStore implements DatasetStore {
       ...dataset,
       manualMapping: input.manualMapping,
       readinessSummary: input.readinessSummary,
+      ...(input.importProfile ? { importProfile: input.importProfile } : {}),
       updatedAt: new Date(),
     };
 
@@ -114,19 +122,64 @@ class InMemoryDatasetStore implements DatasetStore {
   }
 }
 
-function createTestContext(): { app: ReturnType<typeof createApp>; datasetStore: InMemoryDatasetStore } {
+class InMemoryImportProfileStore implements ImportProfileStore {
+  private readonly profilesById = new Map<string, StoredImportProfile>();
+
+  public async createProfile(input: CreateImportProfileInput): Promise<StoredImportProfile> {
+    const now = new Date();
+    const profile: StoredImportProfile = {
+      id: new mongoose.Types.ObjectId().toString(),
+      userId: input.userId,
+      name: input.name,
+      ...(input.sourceLabel ? { sourceLabel: input.sourceLabel } : {}),
+      adapterId: input.adapterId,
+      adapterName: input.adapterName,
+      mappings: input.mappings,
+      applicability: input.applicability,
+      ...(input.createdFromDatasetId ? { createdFromDatasetId: input.createdFromDatasetId } : {}),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    this.profilesById.set(profile.id, profile);
+    return profile;
+  }
+
+  public async listProfiles(userId: string): Promise<StoredImportProfile[]> {
+    return [...this.profilesById.values()]
+      .filter((profile) => profile.userId === userId)
+      .sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime());
+  }
+
+  public async findProfileByIdForUser(profileId: string, userId: string): Promise<StoredImportProfile | null> {
+    const profile = this.profilesById.get(profileId);
+    if (!profile || profile.userId !== userId) {
+      return null;
+    }
+
+    return profile;
+  }
+}
+
+function createTestContext(): {
+  app: ReturnType<typeof createApp>;
+  datasetStore: InMemoryDatasetStore;
+  importProfileStore: InMemoryImportProfileStore;
+} {
   const userStore = new InMemoryUserStore();
   const datasetStore = new InMemoryDatasetStore();
+  const importProfileStore = new InMemoryImportProfileStore();
   const authService = new AuthService(userStore, {
     jwtSecret: testJwtSecret,
     jwtExpiresIn: "1h",
     passwordSaltRounds: 4,
   });
-  const datasetService = new DatasetService(datasetStore);
+  const datasetService = new DatasetService(datasetStore, importProfileStore);
 
   return {
     app: createApp({ authService, datasetService }),
     datasetStore,
+    importProfileStore,
   };
 }
 
@@ -156,6 +209,16 @@ function maricopaCsv(): Buffer {
 function repairableCsv(): Buffer {
   return Buffer.from(
     "Property Number,Tax Balance,County Value,Use Description,Site Address\nA-100,1000,12000,Single Family,100 Main St\n",
+    "utf8",
+  );
+}
+
+function repairableWideCsv(): Buffer {
+  return Buffer.from(
+    [
+      "Property Number,Tax Balance,County Value,Use Description,Site Address,Auction Batch",
+      "A-100,1000,12000,Single Family,100 Main St,June",
+    ].join("\n"),
     "utf8",
   );
 }
@@ -405,6 +468,262 @@ describe("dataset API", () => {
       .send({ mappings: { lien_amount: "Tax Balance" } })
       .expect(404);
     expect(patchResponse.body.error.code).toBe("dataset_not_found");
+  });
+
+  it("saves reusable import profiles and auto-applies exact matching future uploads", async () => {
+    const { app } = createTestContext();
+    const token = await registerUser(app, "owner@example.com");
+
+    const firstUpload = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${token}`)
+      .field("sourceLabel", "County repeat sale")
+      .attach("file", repairableCsv(), {
+        filename: "repairable.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    const firstDatasetId = firstUpload.body.dataset.id as string;
+    await request(app)
+      .patch(`/datasets/${firstDatasetId}/mapping`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        mappings: {
+          parcel_id: "Property Number",
+          lien_amount: "Tax Balance",
+          estimated_value: "County Value",
+          property_type: "Use Description",
+          address: "Site Address",
+        },
+      })
+      .expect(200);
+
+    const profileResponse = await request(app)
+      .post(`/datasets/${firstDatasetId}/import-profile`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "County repeat import" })
+      .expect(201);
+
+    expect(profileResponse.body.profile).toMatchObject({
+      name: "County repeat import",
+      sourceLabel: "County repeat sale",
+      mappings: expect.arrayContaining([
+        { targetField: "lien_amount", sourceColumn: "Tax Balance" },
+        { targetField: "estimated_value", sourceColumn: "County Value" },
+      ]),
+      applicability: {
+        sourceColumns: ["county value", "property number", "site address", "tax balance", "use description"],
+      },
+    });
+
+    const listResponse = await request(app).get("/datasets/import-profiles").set("Authorization", `Bearer ${token}`).expect(200);
+    expect(listResponse.body.profiles).toHaveLength(1);
+
+    const secondUpload = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", repairableCsv(), {
+        filename: "repeat.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    expect(secondUpload.body.dataset.importProfile).toMatchObject({
+      status: "auto_applied",
+      profileId: profileResponse.body.profile.id,
+      profileName: "County repeat import",
+      confidence: "high",
+      matchedMappings: 5,
+      totalMappings: 5,
+      appliedAt: expect.any(String),
+    });
+    expect(secondUpload.body.dataset.manualMapping.mappings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          targetField: "lien_amount",
+          sourceColumn: "Tax Balance",
+          source: "import_profile",
+        }),
+      ]),
+    );
+    expect(secondUpload.body.dataset.readinessSummary).toMatchObject({
+      status: "ready",
+      scoringRecommended: true,
+    });
+  });
+
+  it("suggests compatible profiles for changed header shapes and applies only after confirmation", async () => {
+    const { app } = createTestContext();
+    const token = await registerUser(app, "owner@example.com");
+
+    const firstUpload = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", repairableWideCsv(), {
+        filename: "wide.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    const firstDatasetId = firstUpload.body.dataset.id as string;
+    await request(app)
+      .patch(`/datasets/${firstDatasetId}/mapping`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        mappings: {
+          parcel_id: "Property Number",
+          lien_amount: "Tax Balance",
+          estimated_value: "County Value",
+          property_type: "Use Description",
+          address: "Site Address",
+        },
+      })
+      .expect(200);
+
+    const profileResponse = await request(app)
+      .post(`/datasets/${firstDatasetId}/import-profile`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Wide county import" })
+      .expect(201);
+
+    const secondUpload = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", repairableCsv(), {
+        filename: "narrow.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    const secondDatasetId = secondUpload.body.dataset.id as string;
+    expect(secondUpload.body.dataset.importProfile).toMatchObject({
+      status: "suggested",
+      profileId: profileResponse.body.profile.id,
+      confidence: "medium",
+      matchedMappings: 5,
+      totalMappings: 5,
+    });
+    expect(secondUpload.body.dataset.manualMapping.mappings).toEqual([]);
+    expect(secondUpload.body.dataset.readinessSummary.status).toBe("blocked");
+
+    const applyResponse = await request(app)
+      .post(`/datasets/${secondDatasetId}/import-profile/apply`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ profileId: profileResponse.body.profile.id })
+      .expect(200);
+
+    expect(applyResponse.body.dataset.importProfile).toMatchObject({
+      status: "user_applied",
+      profileId: profileResponse.body.profile.id,
+      confidence: "medium",
+      appliedAt: expect.any(String),
+    });
+    expect(applyResponse.body.dataset.readinessSummary.status).toBe("ready");
+  });
+
+  it("keeps import profiles tenant-owned and avoids false-positive reuse", async () => {
+    const { app } = createTestContext();
+    const ownerToken = await registerUser(app, "owner@example.com");
+    const otherToken = await registerUser(app, "other@example.com");
+
+    const uploadResponse = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .attach("file", repairableCsv(), {
+        filename: "repairable.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    const datasetId = uploadResponse.body.dataset.id as string;
+    await request(app)
+      .patch(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({
+        mappings: {
+          parcel_id: "Property Number",
+          lien_amount: "Tax Balance",
+          estimated_value: "County Value",
+        },
+      })
+      .expect(200);
+
+    const profileResponse = await request(app)
+      .post(`/datasets/${datasetId}/import-profile`)
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .send({ name: "Owner-only profile" })
+      .expect(201);
+
+    const otherProfileList = await request(app)
+      .get("/datasets/import-profiles")
+      .set("Authorization", `Bearer ${otherToken}`)
+      .expect(200);
+    expect(otherProfileList.body.profiles).toEqual([]);
+
+    const otherUpload = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${otherToken}`)
+      .attach("file", repairableCsv(), {
+        filename: "other.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    expect(otherUpload.body.dataset.importProfile.status).toBe("none");
+
+    const applyResponse = await request(app)
+      .post(`/datasets/${otherUpload.body.dataset.id as string}/import-profile/apply`)
+      .set("Authorization", `Bearer ${otherToken}`)
+      .send({ profileId: profileResponse.body.profile.id })
+      .expect(404);
+    expect(applyResponse.body.error.code).toBe("import_profile_not_found");
+
+    const falsePositiveUpload = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .attach("file", Buffer.from("Property Number,Tax Balance,Assessed Total\nA-100,1000,12000\n", "utf8"), {
+        filename: "changed-value-header.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+    expect(falsePositiveUpload.body.dataset.importProfile.status).toBe("none");
+  });
+
+  it("rejects import profile creation before a mapping is scoring-ready", async () => {
+    const { app } = createTestContext();
+    const token = await registerUser(app, "owner@example.com");
+
+    const uploadResponse = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", repairableCsv(), {
+        filename: "repairable.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    const datasetId = uploadResponse.body.dataset.id as string;
+
+    const noMappingResponse = await request(app)
+      .post(`/datasets/${datasetId}/import-profile`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Too early" })
+      .expect(400);
+    expect(noMappingResponse.body.error.code).toBe("import_profile_no_mapping");
+
+    await request(app)
+      .patch(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ mappings: { lien_amount: "Tax Balance" } })
+      .expect(200);
+
+    const notReadyResponse = await request(app)
+      .post(`/datasets/${datasetId}/import-profile`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ name: "Still blocked" })
+      .expect(400);
+    expect(notReadyResponse.body.error.code).toBe("import_profile_not_ready");
   });
 
   it("rejects dataset upload without authentication", async () => {

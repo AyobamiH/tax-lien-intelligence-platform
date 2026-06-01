@@ -36,6 +36,7 @@ Current implementation:
 - import readiness summaries exist to show weak/blocked imports before users
   rely on scoring or future automation;
 - focused manual mapping repair exists for critical source-column mapping;
+- reusable import profiles exist for deterministic tenant-owned mapping reuse;
 - no portfolio automation or external monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
@@ -49,7 +50,8 @@ county-import boundary for one Maricopa-style CSV path, and Phase 17 exposes
 manual browser upload, but neither adds broad county sync, scraping, or
 automated ingestion. Phase 18 adds readiness visibility for uploaded data, but
 it is still manual-first guidance, not automated field mapping. Phase 19 adds
-human-controlled repair mapping, but it is still not automated import tooling.
+human-controlled repair mapping. Phase 20 adds deterministic reuse of saved
+mapping profiles, but it is still not broad automated import tooling.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -102,7 +104,8 @@ Manual-first sequence:
 15. county import adapter boundary;
 16. import readiness and scoring-suitability visibility;
 17. focused manual mapping repair;
-18. then broader automation.
+18. reusable import profiles;
+19. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -241,13 +244,15 @@ Now:
 - import readiness summaries for field coverage, warnings, and scoring
   recommendation.
 - focused manual mapping repair for critical fields.
+- reusable import profiles for future uploads with matching source columns.
 
 Later:
 
 - scheduled ingestion;
 - batch upload if product demand justifies it;
 - additional county adapters after deterministic mapping tests;
-- mapping templates after manual repair behavior is proven;
+- broader mapping/profile management after current private profile reuse earns
+  it;
 - user-facing refresh policy controls;
 - broader automatic recurring refresh;
 - additional external enrichment providers;

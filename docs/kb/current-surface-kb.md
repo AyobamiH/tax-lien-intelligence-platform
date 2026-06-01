@@ -26,6 +26,8 @@ It shows:
   datasets;
 - focused manual mapping repair controls for critical fields on not-ready
   datasets;
+- reusable import profile status plus save/apply actions for repeated mapping
+  workflows;
 - scoring action for a selected dataset;
 - controlled refresh action for a scored dataset;
 - scoring freshness/status badge and stale-record count;
@@ -64,6 +66,11 @@ The current API surface is minimal:
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
+- `GET /datasets/import-profiles`
+- `GET /datasets/:datasetId/mapping`
+- `PATCH /datasets/:datasetId/mapping`
+- `POST /datasets/:datasetId/import-profile`
+- `POST /datasets/:datasetId/import-profile/apply`
 - `POST /datasets/:datasetId/score`
 - `POST /datasets/:datasetId/refresh`
 - `GET /datasets/:datasetId/scoring-status`
@@ -109,6 +116,9 @@ Real workflows now present:
 - safe county import/fallback summary visibility on dataset list/detail;
 - safe import readiness visibility on dataset list/detail;
 - manual mapping repair for key fields from dataset headers;
+- saving a repaired mapping as a private reusable import profile;
+- auto-applied/suggested import profile visibility on dataset detail;
+- explicit suggested-profile application;
 - score triggering for a selected dataset;
 - controlled refresh/reprocessing for a selected dataset;
 - visible scoring job completion state after a scoring run;
@@ -124,6 +134,7 @@ Real workflows now present:
 - in-app alert review for scoring completions and failures.
 - import readiness review before relying on score output.
 - focused import repair before rerunning readiness/scoring.
+- deterministic import profile reuse for repeated upload shapes.
 
 Real workflows not present:
 
@@ -153,7 +164,9 @@ The current frontend cannot:
 - run automation.
 - configure scheduled maintenance policy.
 - run unlimited automatic recurring refresh.
-- manage county import profiles or live county sync.
+- manage county-wide shared import profile catalogs or live county sync.
+- share import profiles globally or edit profile rules in a full management
+  console.
 
 The current API cannot:
 
@@ -188,6 +201,11 @@ The presence of readiness status could make contributors think manual mapping or
 data correction exists. Focused manual mapping now exists, but it is limited to
 target-to-column repair metadata. It is not row editing or source data mutation.
 
+The presence of import profiles could make contributors think broad import
+automation exists. It does not. Profiles are private, deterministic,
+target-to-column mapping reuse. There is no global profile catalog, ML mapping
+suggestion engine, live sync, or ETL rule builder.
+
 ## Security Implications
 
 The current browser surface now handles authenticated user-owned upload and
@@ -219,6 +237,10 @@ ownership checks.
 Dataset manual mappings are backend-validated safe metadata. They must not
 become arbitrary browser-side row transforms or a way to bypass scoring
 validation.
+
+Dataset import profiles are tenant-owned configuration. They must not leak
+mapping knowledge across users, silently rewrite source rows, or imply that a
+filename/source label proves county identity.
 
 ## Update Rules
 

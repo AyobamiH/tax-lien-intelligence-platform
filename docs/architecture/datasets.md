@@ -25,6 +25,9 @@ Implemented:
   recommendation, and user-facing guidance;
 - dataset-specific manual mapping summary for focused import repair;
 - authenticated manual mapping context/save endpoints;
+- tenant-owned reusable import profile model and matching logic;
+- authenticated import profile list/save/apply endpoints;
+- deterministic profile reuse during future uploads;
 - dataset integration tests for ownership and upload failures.
 
 Not implemented:
@@ -54,6 +57,7 @@ Stored concepts:
 - `importSummary`;
 - `readinessSummary`;
 - `manualMapping`;
+- `importProfile`;
 - `uploadedAt`;
 - timestamps.
 
@@ -184,6 +188,43 @@ the user to repair weak or blocked imports.
 Manual mapping is not a full spreadsheet editor, arbitrary row mutation,
 ML/AI field suggestion system, or broad county adapter substitute.
 
+## Import Profile Reuse Boundary
+
+Phase 20 adds reusable import profiles for repeated manual import workflows.
+
+An import profile stores tenant-owned mapping rules derived from a dataset's
+validated manual mapping. A profile records:
+
+- `userId`;
+- profile name;
+- optional source label;
+- adapter id/name context;
+- supported target-to-source-column mapping rules;
+- normalized header signature and source-column applicability metadata;
+- created-from dataset id;
+- timestamps.
+
+Profiles are private to the creating user. They are not global, shared,
+marketplace, or cross-tenant mapping knowledge.
+
+Profile matching is deterministic and conservative:
+
+- if a future upload contains the saved header signature and every mapped
+  source column is present unambiguously, the profile can be auto-applied;
+- if every mapped source column is present but the broader header shape has
+  changed, the profile is suggested and requires user confirmation;
+- if mapped source columns are missing or ambiguous after normalized header
+  comparison, no profile is applied or suggested.
+
+Profile application uses the same derived mapping overlay as manual mapping.
+Stored source rows are not rewritten. Reuse changes readiness/scoring inputs by
+making canonical field values available through the overlay, and dataset
+responses expose whether a profile was not used, suggested, auto-applied, or
+user-applied.
+
+This is not a full ETL rule builder, ML classifier, global profile catalog,
+live sync mechanism, or spreadsheet transform engine.
+
 ## Dependency Decision
 
 `multer` is used as the minimal multipart upload middleware for Express.
@@ -211,17 +252,19 @@ Remaining hardening:
 - additional county adapters only after deterministic mapping tests;
 - richer import tooling only after the focused manual mapping repair workflow
   proves where users need more control;
+- profile management beyond private deterministic mapping reuse;
 - duplicate parcel handling after parcel identity exists;
 - audit logging;
 - antivirus/malware scanning if larger or persisted files are introduced.
 
 ## Drift Risks
 
-Do not treat Phase 3, Phase 16, Phase 17, Phase 18, or Phase 19 as full
+Do not treat Phase 3, Phase 16, Phase 17, Phase 18, Phase 19, or Phase 20 as full
 ingestion automation. The repo now stores dataset metadata, validation summary,
-import summary, readiness summary, manual mapping summary, and internal source
-rows, and the browser can upload one CSV at a time. One county-specific adapter
-exists; broad county-specific normalization remains a future layer.
+import summary, readiness summary, manual mapping summary, import profile
+application metadata, and internal source rows, and the browser can upload one
+CSV at a time. One county-specific adapter exists; broad county-specific
+normalization remains a future layer.
 
 Do not add scoring into upload handlers.
 
@@ -234,5 +277,8 @@ results. Readiness guides review; server-side scoring still owns score output.
 
 Do not turn manual mapping into row-by-row data editing. It is target-to-column
 repair metadata only.
+
+Do not turn import profiles into hidden automation. Reuse must remain visible,
+tenant-owned, deterministic, and reversible through explicit mapping changes.
 
 Do not add background jobs before manual upload and validation are reliable.

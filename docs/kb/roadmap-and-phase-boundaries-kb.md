@@ -610,14 +610,44 @@ Phase 19 does not include:
 - collaboration;
 - auction execution.
 
+## Phase 20: Reusable Import Profiles And Mapping Reuse
+
+Current status: implemented as tenant-owned deterministic mapping reuse, not a
+full ETL product.
+
+Phase 20 includes:
+
+- tenant-owned import profile model;
+- authenticated profile list/save/apply endpoints;
+- saving a scoring-ready dataset mapping as a reusable profile;
+- deterministic header-signature matching during upload;
+- conservative auto-apply only for high-confidence header-shape matches;
+- suggested profile state when mapped columns match but the broader shape
+  changed;
+- explicit user confirmation path for suggested profiles;
+- frontend profile visibility and focused save/apply controls;
+- tests for profile save, reuse, false-positive avoidance, invalid profiles,
+  and cross-user isolation;
+- docs.
+
+Phase 20 does not include:
+
+- full rule-builder UI;
+- ML/AI mapping suggestions;
+- global/shared profiles;
+- marketplace/profile sharing;
+- live sync;
+- spreadsheet editing;
+- collaboration;
+- auction execution.
+
 ## Later Phases
 
 Later phases may include:
 
 - notes and decision history;
 - richer filtering;
-- import templates;
-- richer mapping templates;
+- richer import profile management;
 - additional county import adapters after deterministic mapping tests;
 - richer enrichment adapters;
 - external enrichment provider hardening;
@@ -651,7 +681,8 @@ Dependency order matters:
 15. browser upload and import workflow;
 16. import validation and scoring-readiness workflow;
 17. manual mapping and import repair workflow;
-18. broader automation.
+18. reusable import profile workflow;
+19. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 
@@ -691,6 +722,8 @@ Before heavy automation:
   automation depends on them;
 - focused manual mapping should prove critical-field repair before broad import
   tooling or automation expands;
+- reusable import profiles should remain tenant-owned and deterministic before
+  broader mapping automation expands;
 - job ownership and logging patterns must be designed;
 - rate limits and failure handling must exist.
 

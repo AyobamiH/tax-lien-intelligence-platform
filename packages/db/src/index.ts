@@ -21,6 +21,8 @@ export {
   type DatasetDocument,
   type DatasetImportAdapterIdRecord,
   type DatasetImportConfidenceRecord,
+  type DatasetImportProfileApplicationRecord,
+  type DatasetImportProfileApplicationStatusRecord,
   type DatasetImportSourceRecord,
   type DatasetImportSummaryRecord,
   type DatasetManualMappingEntryRecord,
@@ -51,6 +53,13 @@ export {
   type InternalJobTypeRecord,
   type MaintenanceDecisionRecord,
 } from "./models/internal-job.js";
+export {
+  ImportProfileModel,
+  type ImportProfileApplicabilityRecord,
+  type ImportProfileDocument,
+  type ImportProfileMappingRuleRecord,
+  type ImportProfileRecord,
+} from "./models/import-profile.js";
 export {
   PortfolioItemModel,
   type PortfolioItemDocument,

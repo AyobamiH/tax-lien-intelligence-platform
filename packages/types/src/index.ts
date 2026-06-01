@@ -48,7 +48,8 @@ export type DatasetReadinessStatus = "ready" | "partial" | "weak" | "blocked";
 export type DatasetReadinessIssueSeverity = "info" | "warning" | "error";
 export type DatasetReadinessFieldName = "parcel_id" | "lien_amount" | "estimated_value" | "property_type" | "address";
 export type DatasetManualMappingTarget = DatasetReadinessFieldName;
-export type DatasetManualMappingSource = "manual";
+export type DatasetManualMappingSource = "manual" | "import_profile";
+export type DatasetImportProfileApplicationStatus = "none" | "suggested" | "auto_applied" | "user_applied";
 
 export interface DatasetValidationSummary {
   totalRows: number;
@@ -106,6 +107,17 @@ export interface DatasetManualMappingSummary {
   updatedAt?: string;
 }
 
+export interface DatasetImportProfileApplicationSummary {
+  status: DatasetImportProfileApplicationStatus;
+  matchedMappings: number;
+  totalMappings: number;
+  message: string;
+  profileId?: string;
+  profileName?: string;
+  confidence?: DatasetImportConfidence;
+  appliedAt?: string;
+}
+
 export interface DatasetResponse {
   id: string;
   originalFilename: string;
@@ -119,6 +131,7 @@ export interface DatasetResponse {
   importSummary: DatasetImportSummary;
   readinessSummary: DatasetReadinessSummary;
   manualMapping: DatasetManualMappingSummary;
+  importProfile: DatasetImportProfileApplicationSummary;
   uploadedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -143,6 +156,52 @@ export interface DatasetManualMappingContextResponse {
 }
 
 export type SaveDatasetManualMappingResponse = DatasetManualMappingContextResponse;
+
+export interface ImportProfileMappingRule {
+  targetField: DatasetManualMappingTarget;
+  sourceColumn: string;
+}
+
+export interface ImportProfileApplicabilitySummary {
+  headerSignature: string[];
+  sourceColumns: string[];
+  adapterId: DatasetImportAdapterId;
+  columnCount: number;
+}
+
+export interface ImportProfileResponse {
+  id: string;
+  name: string;
+  sourceLabel?: string;
+  adapterId: DatasetImportAdapterId;
+  adapterName: string;
+  mappings: ImportProfileMappingRule[];
+  applicability: ImportProfileApplicabilitySummary;
+  createdFromDatasetId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ImportProfileListResponse {
+  profiles: ImportProfileResponse[];
+}
+
+export interface SaveImportProfileFromDatasetRequest {
+  name?: string;
+}
+
+export interface SaveImportProfileFromDatasetResponse {
+  profile: ImportProfileResponse;
+}
+
+export interface ApplyImportProfileToDatasetRequest {
+  profileId: string;
+}
+
+export interface ApplyImportProfileToDatasetResponse {
+  dataset: DatasetResponse;
+  appliedProfile: ImportProfileResponse;
+}
 
 export type PropertyTypeCategory = "residential" | "multifamily" | "commercial" | "land" | "unknown";
 

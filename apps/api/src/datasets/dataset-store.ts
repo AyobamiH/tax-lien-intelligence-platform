@@ -1,8 +1,11 @@
 import type { DatasetDocument } from "@tax-lien/db";
 import { DatasetModel } from "@tax-lien/db";
 import type {
+  DatasetImportConfidence,
+  DatasetImportProfileApplicationSummary,
   DatasetImportSummary,
   DatasetManualMappingSummary,
+  DatasetManualMappingSource,
   DatasetManualMappingTarget,
   DatasetReadinessSummary,
   DatasetValidationSummary,
@@ -23,6 +26,7 @@ export interface StoredDataset {
   importSummary?: DatasetImportSummary;
   readinessSummary?: DatasetReadinessSummary;
   manualMapping?: DatasetManualMappingSummary;
+  importProfile?: DatasetImportProfileApplicationSummary;
   uploadedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -47,6 +51,7 @@ export interface CreateDatasetInput {
   importSummary?: DatasetImportSummary;
   readinessSummary?: DatasetReadinessSummary;
   manualMapping?: DatasetManualMappingSummary;
+  importProfile?: DatasetImportProfileApplicationSummary;
   uploadedAt: Date;
 }
 
@@ -59,6 +64,7 @@ export interface DatasetStore {
     userId: string;
     manualMapping: DatasetManualMappingSummary;
     readinessSummary: DatasetReadinessSummary;
+    importProfile?: DatasetImportProfileApplicationSummary;
   }): Promise<StoredDataset | null>;
 }
 
@@ -136,6 +142,22 @@ function mapDataset(document: DatasetDocument): StoredDataset {
           },
         }
       : {}),
+    ...(document.importProfile
+      ? {
+          importProfile: {
+            status: document.importProfile.status,
+            matchedMappings: document.importProfile.matchedMappings,
+            totalMappings: document.importProfile.totalMappings,
+            message: document.importProfile.message,
+            ...(document.importProfile.profileId ? { profileId: document.importProfile.profileId } : {}),
+            ...(document.importProfile.profileName ? { profileName: document.importProfile.profileName } : {}),
+            ...(document.importProfile.confidence ? { confidence: document.importProfile.confidence } : {}),
+            ...(document.importProfile.appliedAt
+              ? { appliedAt: document.importProfile.appliedAt.toISOString() }
+              : {}),
+          },
+        }
+      : {}),
     uploadedAt: document.uploadedAt,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
@@ -150,7 +172,7 @@ function mapDataset(document: DatasetDocument): StoredDataset {
 
 export class MongoDatasetStore implements DatasetStore {
   public async createDataset(input: CreateDatasetInput): Promise<StoredDataset> {
-    const { importSummary, manualMapping, readinessSummary, validationSummary, ...datasetInput } = input;
+    const { importProfile, importSummary, manualMapping, readinessSummary, validationSummary, ...datasetInput } = input;
     const document = await DatasetModel.create({
       ...datasetInput,
       validationSummary: {
@@ -163,6 +185,7 @@ export class MongoDatasetStore implements DatasetStore {
       ...(importSummary ? { importSummary } : {}),
       ...(readinessSummary ? { readinessSummary } : {}),
       ...(manualMapping ? { manualMapping: toManualMappingRecord(manualMapping) } : {}),
+      ...(importProfile ? { importProfile: toImportProfileApplicationRecord(importProfile) } : {}),
     });
     return mapDataset(document);
   }
@@ -182,6 +205,7 @@ export class MongoDatasetStore implements DatasetStore {
     userId: string;
     manualMapping: DatasetManualMappingSummary;
     readinessSummary: DatasetReadinessSummary;
+    importProfile?: DatasetImportProfileApplicationSummary;
   }): Promise<StoredDataset | null> {
     const document = await DatasetModel.findOneAndUpdate(
       { _id: input.datasetId, userId: input.userId },
@@ -189,6 +213,7 @@ export class MongoDatasetStore implements DatasetStore {
         $set: {
           manualMapping: toManualMappingRecord(input.manualMapping),
           readinessSummary: input.readinessSummary,
+          ...(input.importProfile ? { importProfile: toImportProfileApplicationRecord(input.importProfile) } : {}),
         },
       },
       { new: true, runValidators: true },
@@ -210,7 +235,7 @@ function toManualMappingRecord(manualMapping: DatasetManualMappingSummary): {
   mappings: {
     targetField: DatasetManualMappingTarget;
     sourceColumn: string;
-    source: "manual";
+    source: DatasetManualMappingSource;
     updatedAt: Date;
   }[];
   updatedAt?: Date;
@@ -223,5 +248,27 @@ function toManualMappingRecord(manualMapping: DatasetManualMappingSummary): {
       updatedAt: new Date(mapping.updatedAt),
     })),
     ...(manualMapping.updatedAt ? { updatedAt: new Date(manualMapping.updatedAt) } : {}),
+  };
+}
+
+function toImportProfileApplicationRecord(importProfile: DatasetImportProfileApplicationSummary): {
+  status: DatasetImportProfileApplicationSummary["status"];
+  matchedMappings: number;
+  totalMappings: number;
+  message: string;
+  profileId?: string;
+  profileName?: string;
+  confidence?: DatasetImportConfidence;
+  appliedAt?: Date;
+} {
+  return {
+    status: importProfile.status,
+    matchedMappings: importProfile.matchedMappings,
+    totalMappings: importProfile.totalMappings,
+    message: importProfile.message,
+    ...(importProfile.profileId ? { profileId: importProfile.profileId } : {}),
+    ...(importProfile.profileName ? { profileName: importProfile.profileName } : {}),
+    ...(importProfile.confidence ? { confidence: importProfile.confidence } : {}),
+    ...(importProfile.appliedAt ? { appliedAt: new Date(importProfile.appliedAt) } : {}),
   };
 }

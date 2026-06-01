@@ -87,6 +87,7 @@ class InMemoryDatasetStore implements DatasetStore {
       ...(input.importSummary ? { importSummary: input.importSummary } : {}),
       ...(input.readinessSummary ? { readinessSummary: input.readinessSummary } : {}),
       ...(input.manualMapping ? { manualMapping: input.manualMapping } : {}),
+      ...(input.importProfile ? { importProfile: input.importProfile } : {}),
       uploadedAt: input.uploadedAt,
       createdAt: now,
       updatedAt: now,
@@ -105,6 +106,7 @@ class InMemoryDatasetStore implements DatasetStore {
     userId: string;
     manualMapping: NonNullable<StoredDataset["manualMapping"]>;
     readinessSummary: NonNullable<StoredDataset["readinessSummary"]>;
+    importProfile?: NonNullable<StoredDataset["importProfile"]>;
   }): Promise<StoredDataset | null> {
     const dataset = this.datasetsById.get(input.datasetId);
     if (!dataset || dataset.userId !== input.userId) {
@@ -115,6 +117,7 @@ class InMemoryDatasetStore implements DatasetStore {
       ...dataset,
       manualMapping: input.manualMapping,
       readinessSummary: input.readinessSummary,
+      ...(input.importProfile ? { importProfile: input.importProfile } : {}),
       updatedAt: new Date(),
     };
 

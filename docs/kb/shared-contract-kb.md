@@ -184,6 +184,7 @@ Current dataset contracts include:
 - import summary;
 - readiness summary;
 - manual mapping summary;
+- import profile application summary;
 - validation summary;
 - upload and created/updated timestamps.
 
@@ -256,6 +257,42 @@ values.
 
 Manual mappings are repair metadata. They do not represent rewritten source
 rows, row-level edits, or a broad spreadsheet transformation contract.
+
+Phase 20 extends the mapping source marker to distinguish `manual` from
+`import_profile`. Profile-derived mappings still use the same safe overlay
+contract; they do not rewrite rows.
+
+## Import Profile Contract
+
+Phase 20 adds import profile contracts:
+
+- `ImportProfileResponse`;
+- `ImportProfileListResponse`;
+- `SaveImportProfileFromDatasetRequest`;
+- `ApplyImportProfileToDatasetRequest`;
+- `DatasetImportProfileApplicationSummary`.
+
+Import profile responses include:
+
+- profile id;
+- profile name;
+- optional source label;
+- adapter id/name context;
+- target-to-source-column mapping rules;
+- normalized header signature and source-column applicability metadata;
+- created-from dataset id when available;
+- timestamps.
+
+Dataset responses include profile application state:
+
+- `none`;
+- `suggested`;
+- `auto_applied`;
+- `user_applied`.
+
+The contract intentionally exposes only mapping rules and safe matching
+metadata. It must not expose source rows, uploaded file contents, profile owner
+ids, cross-user suggestions, ML scores, or hidden parser internals.
 
 ## Parcel Object Direction
 
@@ -496,6 +533,8 @@ possible or explicitly versioned.
   confidence.
 - Do not let manual mapping contracts expand into arbitrary row mutation without
   a separate domain/security phase.
+- Do not let import profile contracts become cross-tenant shared knowledge,
+  hidden ML suggestions, or a broad ETL rule-builder without a separate phase.
 
 ## Security Contract Rules
 

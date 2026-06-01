@@ -11,10 +11,13 @@ import type {
   DatasetScoresResponse,
   DeleteWatchlistItemResponse,
   AddPortfolioItemResponse,
+  ApplyImportProfileToDatasetRequest,
+  ApplyImportProfileToDatasetResponse,
   DeletePortfolioItemResponse,
   DatasetRefreshJobResponse,
   DatasetScoringStatusResponse,
   DatasetManualMappingContextResponse,
+  ImportProfileListResponse,
   JobDetailResponse,
   MarkAllAlertsReadResponse,
   PortfolioDetailResponse,
@@ -22,6 +25,8 @@ import type {
   PortfolioStatus,
   SaveDatasetManualMappingRequest,
   SaveDatasetManualMappingResponse,
+  SaveImportProfileFromDatasetRequest,
+  SaveImportProfileFromDatasetResponse,
   UpdatePortfolioItemResponse,
   WatchlistListResponse,
 } from "@tax-lien/types";
@@ -117,6 +122,39 @@ export async function saveDatasetManualMapping(
     token,
     body: JSON.stringify(input),
   });
+}
+
+export async function listImportProfiles(token: string): Promise<ImportProfileListResponse> {
+  return requestJson<ImportProfileListResponse>("/datasets/import-profiles", {
+    token,
+  });
+}
+
+export async function saveDatasetImportProfile(
+  token: string,
+  datasetId: string,
+  input: SaveImportProfileFromDatasetRequest,
+): Promise<SaveImportProfileFromDatasetResponse> {
+  return requestJson<SaveImportProfileFromDatasetResponse>(`/datasets/${encodeURIComponent(datasetId)}/import-profile`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function applyDatasetImportProfile(
+  token: string,
+  datasetId: string,
+  input: ApplyImportProfileToDatasetRequest,
+): Promise<ApplyImportProfileToDatasetResponse> {
+  return requestJson<ApplyImportProfileToDatasetResponse>(
+    `/datasets/${encodeURIComponent(datasetId)}/import-profile/apply`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 export async function listDatasetScores(token: string, datasetId: string): Promise<DatasetScoresResponse> {

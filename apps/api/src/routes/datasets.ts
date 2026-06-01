@@ -20,6 +20,14 @@ const saveManualMappingSchema = z.object({
   mappings: z.record(z.string(), z.string().max(255).nullable()),
 });
 
+const saveImportProfileSchema = z.object({
+  name: z.string().max(120).optional(),
+});
+
+const applyImportProfileSchema = z.object({
+  profileId: z.string().min(1),
+});
+
 export function createDatasetRouter(authService: AuthService, datasetService: DatasetService): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
@@ -53,6 +61,18 @@ export function createDatasetRouter(authService: AuthService, datasetService: Da
       }
 
       response.status(200).json(await datasetService.listDatasets(request.auth.userId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/import-profiles", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      response.status(200).json(await datasetService.listImportProfiles(request.auth.userId));
     } catch (error) {
       next(error);
     }
@@ -110,6 +130,56 @@ export function createDatasetRouter(authService: AuthService, datasetService: Da
           datasetId,
           userId: request.auth.userId,
           mappings: payload.mappings,
+        }),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:datasetId/import-profile", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      const datasetId = request.params.datasetId;
+      if (typeof datasetId !== "string") {
+        throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
+      }
+
+      const payload = parseRequestBody(saveImportProfileSchema, request.body);
+
+      response.status(201).json(
+        await datasetService.saveImportProfileFromDataset({
+          datasetId,
+          userId: request.auth.userId,
+          ...(payload.name ? { name: payload.name } : {}),
+        }),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:datasetId/import-profile/apply", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      const datasetId = request.params.datasetId;
+      if (typeof datasetId !== "string") {
+        throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
+      }
+
+      const payload = parseRequestBody(applyImportProfileSchema, request.body);
+
+      response.status(200).json(
+        await datasetService.applyImportProfileToDataset({
+          datasetId,
+          userId: request.auth.userId,
+          profileId: payload.profileId,
         }),
       );
     } catch (error) {

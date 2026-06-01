@@ -24,6 +24,8 @@ import {
   formatMoney,
   formatPercent,
   formatRatio,
+  importProfileApplicationPresentation,
+  importProfileMappingSourceLabel,
   manualMappingByTarget,
   manualMappingTargetPresentations,
   primaryRecordLabel,
@@ -207,6 +209,12 @@ function datasetResponse(overrides: Partial<DatasetResponse>): DatasetResponse {
     },
     manualMapping: {
       mappings: [],
+    },
+    importProfile: {
+      status: "none",
+      matchedMappings: 0,
+      totalMappings: 0,
+      message: "No reusable import profile was applied.",
     },
     uploadedAt: "2026-05-25T00:00:00.000Z",
     createdAt: "2026-05-25T00:00:00.000Z",
@@ -506,5 +514,51 @@ describe("review model helpers", () => {
     ]);
     expect(manualMappingByTarget(dataset).get("lien_amount")?.sourceColumn).toBe("Tax Balance");
     expect(datasetNeedsImportRepair(dataset)).toBe(false);
+  });
+
+  it("summarizes import profile application state for reuse surfaces", () => {
+    const suggested = datasetResponse({
+      importProfile: {
+        status: "suggested",
+        profileId: "profile-1",
+        profileName: "County import",
+        confidence: "medium",
+        matchedMappings: 5,
+        totalMappings: 5,
+        message: "Import profile \"County import\" was suggested using 5/5 mapped column(s).",
+      },
+    });
+    const applied = datasetResponse({
+      importProfile: {
+        status: "auto_applied",
+        profileId: "profile-1",
+        profileName: "County import",
+        confidence: "high",
+        matchedMappings: 5,
+        totalMappings: 5,
+        message: "Import profile \"County import\" was applied automatically using 5/5 mapped column(s).",
+        appliedAt: "2026-06-01T00:00:00.000Z",
+      },
+      manualMapping: {
+        mappings: [
+          {
+            targetField: "lien_amount",
+            sourceColumn: "Tax Balance",
+            source: "import_profile",
+            updatedAt: "2026-06-01T00:00:00.000Z",
+          },
+        ],
+      },
+    });
+
+    expect(importProfileApplicationPresentation(suggested)).toMatchObject({
+      label: "Profile suggested",
+      canApplySuggestedProfile: true,
+    });
+    expect(importProfileApplicationPresentation(applied)).toMatchObject({
+      label: "Profile applied",
+      canApplySuggestedProfile: false,
+    });
+    expect(importProfileMappingSourceLabel(manualMappingByTarget(applied).get("lien_amount")!.source)).toBe("Profile");
   });
 });

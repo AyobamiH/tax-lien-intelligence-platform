@@ -9,7 +9,8 @@ export type DatasetReadinessStatusRecord = "ready" | "partial" | "weak" | "block
 export type DatasetReadinessIssueSeverityRecord = "info" | "warning" | "error";
 export type DatasetReadinessFieldNameRecord = "parcel_id" | "lien_amount" | "estimated_value" | "property_type" | "address";
 export type DatasetManualMappingTargetRecord = DatasetReadinessFieldNameRecord;
-export type DatasetManualMappingSourceRecord = "manual";
+export type DatasetManualMappingSourceRecord = "manual" | "import_profile";
+export type DatasetImportProfileApplicationStatusRecord = "none" | "suggested" | "auto_applied" | "user_applied";
 
 export interface DatasetValidationSummaryRecord {
   totalRows: number;
@@ -72,6 +73,17 @@ export interface DatasetManualMappingSummaryRecord {
   updatedAt?: Date;
 }
 
+export interface DatasetImportProfileApplicationRecord {
+  status: DatasetImportProfileApplicationStatusRecord;
+  matchedMappings: number;
+  totalMappings: number;
+  message: string;
+  profileId?: string;
+  profileName?: string;
+  confidence?: DatasetImportConfidenceRecord;
+  appliedAt?: Date;
+}
+
 export interface DatasetRecord {
   userId: string;
   originalFilename: string;
@@ -86,6 +98,7 @@ export interface DatasetRecord {
   importSummary?: DatasetImportSummaryRecord;
   readinessSummary?: DatasetReadinessSummaryRecord;
   manualMapping?: DatasetManualMappingSummaryRecord;
+  importProfile?: DatasetImportProfileApplicationRecord;
   uploadedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -261,7 +274,7 @@ const datasetManualMappingEntrySchema = new Schema<DatasetManualMappingEntryReco
     },
     source: {
       type: String,
-      enum: ["manual"],
+      enum: ["manual", "import_profile"],
       required: true,
     },
     updatedAt: {
@@ -283,6 +296,53 @@ const datasetManualMappingSummarySchema = new Schema<DatasetManualMappingSummary
       default: [],
     },
     updatedAt: {
+      type: Date,
+    },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
+const datasetImportProfileApplicationSchema = new Schema<DatasetImportProfileApplicationRecord>(
+  {
+    status: {
+      type: String,
+      enum: ["none", "suggested", "auto_applied", "user_applied"],
+      required: true,
+    },
+    matchedMappings: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    totalMappings: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    message: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 240,
+    },
+    profileId: {
+      type: String,
+      trim: true,
+      maxlength: 64,
+    },
+    profileName: {
+      type: String,
+      trim: true,
+      maxlength: 120,
+    },
+    confidence: {
+      type: String,
+      enum: ["low", "medium", "high"],
+    },
+    appliedAt: {
       type: Date,
     },
   },
@@ -353,6 +413,9 @@ const datasetSchema = new Schema<DatasetRecord>(
     },
     manualMapping: {
       type: datasetManualMappingSummarySchema,
+    },
+    importProfile: {
+      type: datasetImportProfileApplicationSchema,
     },
     uploadedAt: {
       type: Date,

@@ -36,6 +36,8 @@ Current implementation:
   scoring recommendation, and guidance;
 - dataset manual mapping summary and repair endpoints for focused critical
   field repair;
+- tenant-owned import profile model and reusable mapping endpoints;
+- deterministic import profile matching during upload;
 - internal dataset source rows for scoring;
 - scored-record model;
 - internal job model;
@@ -215,6 +217,7 @@ Current limitation:
 
 - no full manual field-mapping editor;
 - no spreadsheet transformation workflow;
+- no global/shared import profile catalog;
 - no broad county adapter coverage;
 - no ML/AI import classification.
 
@@ -243,6 +246,35 @@ Current limitation:
 - no row-by-row editing;
 - no spreadsheet transformation workflow;
 - no ML/AI mapping suggestions;
+- no reusable profile sharing across tenants;
+
+## Import Profile Reuse Implementation
+
+Phase 20 adds private reusable import profiles for repeated mapping workflows.
+
+Current implementation:
+
+- tenant-owned `ImportProfile` model;
+- authenticated `GET /datasets/import-profiles`;
+- authenticated `POST /datasets/:datasetId/import-profile`;
+- authenticated `POST /datasets/:datasetId/import-profile/apply`;
+- save-from-dataset requires an existing saved mapping that makes the dataset
+  scoring-ready;
+- profiles store supported target-to-source-column rules and normalized header
+  applicability metadata;
+- upload matching is deterministic and header-based;
+- high-confidence signature matches can auto-apply a profile;
+- changed-shape matches can be suggested for explicit user confirmation;
+- source rows are not rewritten; profile mappings use the same overlay boundary
+  as manual mappings.
+
+Current limitation:
+
+- no rule-builder UI;
+- no profile marketplace or cross-user sharing;
+- no ML/AI mapping suggestion;
+- no broad ETL automation;
+- no live county sync;
 - no broad county adapter expansion.
 
 ## Enrichment Implementation
@@ -480,7 +512,8 @@ Backend implementation order should stay disciplined:
 15. browser upload workflow: implemented in Phase 17;
 16. import validation and scoring-readiness workflow: implemented in Phase 18;
 17. manual mapping/import repair workflow: implemented in Phase 19;
-18. later external automation.
+18. reusable import profile workflow: implemented in Phase 20;
+19. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -516,6 +549,7 @@ Backend drift risks:
 - treating one county adapter as broad county coverage;
 - treating readiness summaries as manual remapping or final data correctness;
 - treating manual mappings as source-row mutation or arbitrary data editing;
+- treating import profiles as global/shared or AI-generated mapping knowledge;
 - trusting filenames or user labels as county proof;
 - scoring logic duplicated outside the scoring package;
 - inconsistent error shapes;

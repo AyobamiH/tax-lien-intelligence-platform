@@ -27,7 +27,9 @@ with explicit refresh policy gates. Phase 16 adds the first county import
 adapter boundary with one Maricopa-style CSV adapter and generic fallback. Phase
 17 adds authenticated browser upload for manual CSV imports. Phase 18 adds
 import validation/readiness guidance before users rely on scores. Phase 19 adds
-focused manual mapping repair for weak or blocked imports.
+focused manual mapping repair for weak or blocked imports. Phase 20 adds
+tenant-owned reusable import profiles so repeated upload shapes can reuse known
+mapping repairs deterministically.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio surfaces.
 
@@ -177,6 +179,7 @@ Current implementation:
 - import readiness summaries exist for field coverage, warnings, and scoring
   recommendation guidance;
 - focused manual mapping repair exists for critical field targets;
+- reusable import profiles exist for private deterministic mapping reuse;
 - internal source rows are stored for scoring;
 - first-pass explainable scoring exists through API routes;
 - frontend review of scored results exists;

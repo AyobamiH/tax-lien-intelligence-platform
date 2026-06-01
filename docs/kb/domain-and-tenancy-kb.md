@@ -6,7 +6,7 @@ This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
 It does not define every database schema. User, dataset, scored-record,
-internal job, alert, watchlist item, and portfolio item schemas now exist; a
+internal job, alert, import profile, watchlist item, and portfolio item schemas now exist; a
 standalone parcel schema does not.
 When schemas are added, this file must be updated to reflect actual fields and
 ownership rules.
@@ -22,6 +22,7 @@ Current implementation:
 - dataset readiness summary metadata exists for field coverage, issues, scoring
   recommendation, and safe guidance;
 - dataset manual mapping metadata exists for tenant-owned import repair;
+- import profile model exists for tenant-owned reusable mapping rules;
 - scored-record model exists for first-pass scoring outputs;
 - enrichment metadata exists on scored records for internal source-row
   inference;
@@ -54,6 +55,8 @@ Current documentation direction:
   mapping or corrected data.
 - focused manual mapping exists as target-to-source-column metadata, not row
   mutation or broad import tooling.
+- reusable import profiles exist as private deterministic mapping reuse, not
+  shared county knowledge or ML-based automation.
 
 ## Core Domain Concepts
 
@@ -85,6 +88,12 @@ not mutate rows, remap fields manually, or replace future county-adapter work.
 Phase 19 adds focused manual mapping repair. A user can map known dataset
 headers to critical canonical fields so readiness and scoring can use a derived
 overlay. Stored source rows remain the source truth.
+
+Phase 20 adds reusable import profiles. A user can save a scoring-ready mapping
+repair as a tenant-owned profile, and later uploads can reuse that mapping only
+when deterministic header matching is safe or when the user explicitly confirms
+a suggestion. Profiles do not rewrite rows, prove county identity, or cross
+tenant boundaries.
 
 ### Parcel
 
@@ -198,6 +207,7 @@ Tenant isolation protects:
 - dataset import summaries;
 - dataset readiness summaries;
 - dataset manual mappings;
+- import profiles and profile application metadata;
 - normalized records;
 - scores;
 - enrichment context;

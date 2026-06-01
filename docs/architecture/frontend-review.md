@@ -14,7 +14,9 @@ scheduler internals. Phase 17 adds browser dataset upload on the authenticated
 dataset surface, including import summary and county-adapter/fallback
 visibility after upload. Phase 18 adds import readiness status, field coverage,
 issues, and guidance on the upload/list/detail surfaces. Phase 19 adds a
-focused manual mapping repair panel for datasets that are not ready.
+focused manual mapping repair panel for datasets that are not ready. Phase 20
+adds import profile reuse visibility plus focused save/apply actions for
+reusable mapping profiles.
 The frontend is no longer only a shell: it now authenticates against the API,
 uploads CSV datasets, lists the signed-in user's datasets, opens a dataset,
 triggers scoring, and renders scored records with flags and reasoning.
@@ -36,6 +38,10 @@ Implemented:
 - maintenance mode/message from `GET /datasets/:datasetId/scoring-status`;
 - dataset readiness badge and readiness panel from `DatasetResponse`;
 - focused manual mapping controls for critical import fields;
+- import profile status visibility for not-used, suggested, auto-applied, and
+  user-applied profile reuse;
+- save-current-mapping-as-profile action;
+- apply-suggested-profile action;
 - scoring job completion message after a score run;
 - scored results table;
 - record detail surface with flags and reasoning;
@@ -84,6 +90,9 @@ The frontend calls only the existing authenticated API routes:
 - `GET /datasets/:datasetId`;
 - `GET /datasets/:datasetId/mapping`;
 - `PATCH /datasets/:datasetId/mapping`;
+- `GET /datasets/import-profiles`;
+- `POST /datasets/:datasetId/import-profile`;
+- `POST /datasets/:datasetId/import-profile/apply`;
 - `POST /datasets/:datasetId/score`;
 - `POST /datasets/:datasetId/refresh`;
 - `GET /datasets/:datasetId/scoring-status`;
@@ -171,6 +180,25 @@ scoring controls remain the way to run or refresh scoring after repair.
 
 The UI distinguishes manual mapping from automatic adapter mapping, but it does
 not provide row-by-row editing, data-grid transforms, or AI suggestions.
+
+## Import Profile Reuse Surface
+
+The dataset detail readiness panel now shows reusable profile state returned by
+the API:
+
+- no profile used;
+- profile suggested;
+- profile auto-applied;
+- profile confirmed by the user.
+
+When mappings exist, the panel can save the current repair as a private reusable
+import profile. When the backend suggests a compatible profile, the panel lets
+the user apply it explicitly. Profile-derived mappings are labelled separately
+from manual mappings so users can see whether readiness improved because of
+prior import knowledge or a fresh manual repair.
+
+The frontend does not implement a profile marketplace, rule builder, global
+profile search, ML suggestion layer, or full profile management console.
 
 ## Watchlist Surface
 

@@ -2,6 +2,15 @@
 
 ## 2026-06-01
 
+- Implemented Phase 20 reusable import profiles with tenant-owned profile
+  records, save-from-mapping/list/apply APIs, deterministic header-shape
+  matching, conservative auto-apply/suggest behavior, profile-derived mapping
+  overlays, frontend profile save/apply visibility, and tests for reuse,
+  false-positive avoidance, invalid profiles, and cross-user isolation.
+- Updated dataset/frontend/API/KB docs to mark reusable import profiles as
+  current while keeping full ETL rule builders, ML/AI mapping suggestions,
+  global/shared profiles, live sync, collaboration, spreadsheet editing, and
+  auction execution out of scope.
 - Implemented Phase 19 manual mapping/import repair workflow with dataset-owned
   manual mapping metadata, authenticated mapping context/save endpoints,
   readiness re-evaluation after repairs, scoring-path mapping overlays, a

@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiClientError, createDataset, saveDatasetManualMapping } from "../../apps/web/src/api.js";
+import {
+  ApiClientError,
+  applyDatasetImportProfile,
+  createDataset,
+  listImportProfiles,
+  saveDatasetImportProfile,
+  saveDatasetManualMapping,
+} from "../../apps/web/src/api.js";
 
 const originalFetch = globalThis.fetch;
 
@@ -64,6 +71,12 @@ describe("web API client", () => {
         },
         manualMapping: {
           mappings: [],
+        },
+        importProfile: {
+          status: "none",
+          matchedMappings: 0,
+          totalMappings: 0,
+          message: "No reusable import profile was applied.",
         },
         uploadedAt: "2026-06-01T00:00:00.000Z",
         createdAt: "2026-06-01T00:00:00.000Z",
@@ -166,6 +179,12 @@ describe("web API client", () => {
             },
           ],
         },
+        importProfile: {
+          status: "none",
+          matchedMappings: 0,
+          totalMappings: 0,
+          message: "No reusable import profile was applied.",
+        },
         uploadedAt: "2026-06-01T00:00:00.000Z",
         createdAt: "2026-06-01T00:00:00.000Z",
         updatedAt: "2026-06-01T00:00:00.000Z",
@@ -209,5 +228,118 @@ describe("web API client", () => {
         estimated_value: "County Value",
       },
     });
+  });
+
+  it("calls import profile endpoints with bearer auth", async () => {
+    const profile = {
+      id: "profile-1",
+      name: "County import",
+      adapterId: "generic_csv",
+      adapterName: "Generic CSV normalization",
+      mappings: [{ targetField: "lien_amount", sourceColumn: "Tax Balance" }],
+      applicability: {
+        headerSignature: ["county value", "tax balance"],
+        sourceColumns: ["tax balance"],
+        adapterId: "generic_csv",
+        columnCount: 2,
+      },
+      createdFromDatasetId: "dataset-1",
+      createdAt: "2026-06-01T00:00:00.000Z",
+      updatedAt: "2026-06-01T00:00:00.000Z",
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ profiles: [profile] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ profile }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            dataset: {
+              id: "dataset-1",
+              originalFilename: "county.csv",
+              sourceType: "manual_csv",
+              status: "validated",
+              rowCount: 1,
+              columnCount: 2,
+              headers: ["Tax Balance", "County Value"],
+              validationSummary: { totalRows: 1, validRows: 1, invalidRows: 0, warnings: [], errors: [] },
+              importSummary: {
+                adapterMatched: false,
+                adapterId: "generic_csv",
+                adapterName: "Generic CSV normalization",
+                source: "generic_csv",
+                confidence: "low",
+                fallbackUsed: true,
+                mappedFields: [],
+                warnings: [],
+              },
+              readinessSummary: {
+                status: "partial",
+                score: 55,
+                scoringRecommended: true,
+                fieldCoverage: [],
+                issues: [],
+                guidance: [],
+              },
+              manualMapping: {
+                mappings: [
+                  {
+                    targetField: "lien_amount",
+                    sourceColumn: "Tax Balance",
+                    source: "import_profile",
+                    updatedAt: "2026-06-01T00:00:00.000Z",
+                  },
+                ],
+              },
+              importProfile: {
+                status: "user_applied",
+                profileId: "profile-1",
+                profileName: "County import",
+                confidence: "medium",
+                matchedMappings: 1,
+                totalMappings: 1,
+                message: "Import profile was applied.",
+                appliedAt: "2026-06-01T00:00:00.000Z",
+              },
+              uploadedAt: "2026-06-01T00:00:00.000Z",
+              createdAt: "2026-06-01T00:00:00.000Z",
+              updatedAt: "2026-06-01T00:00:00.000Z",
+            },
+            appliedProfile: profile,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      );
+    globalThis.fetch = fetchMock;
+
+    await expect(listImportProfiles("test-token")).resolves.toEqual({ profiles: [profile] });
+    await expect(saveDatasetImportProfile("test-token", "dataset-1", { name: "County import" })).resolves.toEqual({
+      profile,
+    });
+    await expect(applyDatasetImportProfile("test-token", "dataset-1", { profileId: "profile-1" })).resolves.toMatchObject({
+      appliedProfile: profile,
+    });
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/datasets/import-profiles",
+      "http://localhost:4000/datasets/dataset-1/import-profile",
+      "http://localhost:4000/datasets/dataset-1/import-profile/apply",
+    ]);
+    expect(JSON.parse(fetchMock.mock.calls[1]?.[1]?.body as string)).toEqual({ name: "County import" });
+    expect(JSON.parse(fetchMock.mock.calls[2]?.[1]?.body as string)).toEqual({ profileId: "profile-1" });
+    expect((fetchMock.mock.calls[2]?.[1]?.headers as Headers).get("Authorization")).toBe("Bearer test-token");
   });
 });

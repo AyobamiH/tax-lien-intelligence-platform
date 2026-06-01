@@ -51,6 +51,13 @@ export interface DatasetReadinessPresentation {
   actionText: string;
 }
 
+export interface ImportProfileApplicationPresentation {
+  label: string;
+  detail: string;
+  className: string;
+  canApplySuggestedProfile: boolean;
+}
+
 export interface ManualMappingTargetPresentation {
   targetField: DatasetManualMappingTarget;
   label: string;
@@ -353,6 +360,52 @@ export function datasetReadinessPresentation(
       ? "Scoring is available with the current import quality."
       : "Improve the import before relying on scoring.",
   };
+}
+
+export function importProfileApplicationPresentation(
+  dataset: Pick<DatasetResponse, "importProfile">,
+): ImportProfileApplicationPresentation {
+  const importProfile = dataset.importProfile;
+
+  switch (importProfile.status) {
+    case "auto_applied":
+      return {
+        label: "Profile applied",
+        detail: importProfile.message,
+        className: "border-emerald-200 bg-emerald-50 text-emerald-900",
+        canApplySuggestedProfile: false,
+      };
+    case "user_applied":
+      return {
+        label: "Profile confirmed",
+        detail: importProfile.message,
+        className: "border-emerald-200 bg-emerald-50 text-emerald-900",
+        canApplySuggestedProfile: false,
+      };
+    case "suggested":
+      return {
+        label: "Profile suggested",
+        detail: importProfile.message,
+        className: "border-amber-200 bg-amber-50 text-amber-900",
+        canApplySuggestedProfile: Boolean(importProfile.profileId),
+      };
+    case "none":
+      return {
+        label: "No profile used",
+        detail: importProfile.message,
+        className: "border-line bg-white text-ink/70",
+        canApplySuggestedProfile: false,
+      };
+  }
+}
+
+export function importProfileMappingSourceLabel(source: DatasetManualMappingEntry["source"]): string {
+  switch (source) {
+    case "manual":
+      return "Manual";
+    case "import_profile":
+      return "Profile";
+  }
 }
 
 export function datasetReadinessLabel(status: DatasetReadinessStatus): DatasetReadinessPresentation["label"] {
