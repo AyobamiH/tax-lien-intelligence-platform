@@ -23,6 +23,9 @@ Implemented:
 - dedicated worker execution path for queued scoring jobs;
 - in-app alerts for completed/failed scoring jobs;
 - refresh job request-kind metadata and duplicate-safe active job reuse;
+- maintenance policy metadata in scoring status responses;
+- policy-created refresh jobs with `requestKind: "policy_refresh"` when server
+  maintenance policy explicitly allows it;
 - tenant ownership checks for scoring and retrieval;
 - frontend scored-results review surface;
 - score identifiers preserved across rescoring of the same source row where
@@ -169,6 +172,12 @@ occurs. Existing scored-record identifiers are preserved for the same `userId`,
 items reference scored records. Rows no longer present in the scoring run are
 removed.
 
+Phase 15 scheduled maintenance can queue refresh indirectly. Maintenance jobs
+do not score directly; they verify ownership, count stale scored records,
+evaluate duplicate and suppression gates, and only then may enqueue a
+`policy_refresh` scoring job. That keeps scheduled refresh decisions visible in
+job metadata instead of hiding them inside request handlers.
+
 ## Security Notes
 
 Scoring is tenant-owned user-data processing.
@@ -183,6 +192,7 @@ The API:
 - does not return raw CSV rows in dataset metadata responses.
 - returns an active queued/running dataset job rather than creating duplicate
   refresh work.
+- distinguishes policy-created refresh from manual refresh with `requestKind`.
 
 Remaining hardening:
 

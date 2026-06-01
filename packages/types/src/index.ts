@@ -181,15 +181,31 @@ export interface ScoredRecordResponse {
 }
 
 export type InternalJobStatus = "queued" | "running" | "completed" | "failed";
-export type InternalJobType = "dataset_scoring";
+export type InternalJobType = "dataset_scoring" | "dataset_maintenance";
 export type InternalJobTargetType = "dataset";
-export type InternalJobRequestKind = "score" | "refresh";
+export type InternalJobRequestKind = "score" | "refresh" | "policy_refresh" | "maintenance_scan";
+export type MaintenanceDecision =
+  | "not_stale"
+  | "manual_refresh_only"
+  | "policy_refresh_queued"
+  | "active_refresh_exists"
+  | "recent_refresh_suppressed"
+  | "recent_failure_suppressed";
 
 export interface InternalJobSummary {
   scoredRecordCount?: number;
   enrichedRecordCount?: number;
   enrichmentFallbackCount?: number;
   earliestReprocessAfter?: string;
+  maintenanceScannedDatasetCount?: number;
+  maintenanceStaleDatasetCount?: number;
+  maintenanceRefreshJobCount?: number;
+  maintenanceSkippedDatasetCount?: number;
+  maintenanceDecision?: MaintenanceDecision;
+  maintenanceRunAt?: string;
+  staleRecordCount?: number;
+  refreshJobId?: string;
+  policyAutoRefreshEnabled?: boolean;
 }
 
 export interface InternalJobError {
@@ -258,8 +274,18 @@ export interface DatasetScoringStatusResponse {
   staleRecordCount: number;
   latestScoredAt?: string;
   earliestReprocessAfter?: string;
+  maintenance: DatasetMaintenanceStatus;
   activeJob?: InternalJobResponse;
   latestJob?: InternalJobResponse;
+}
+
+export type DatasetMaintenanceMode = "manual_refresh_only" | "policy_auto_refresh";
+
+export interface DatasetMaintenanceStatus {
+  mode: DatasetMaintenanceMode;
+  autoRefreshEnabled: boolean;
+  eligibleForPolicyRefresh: boolean;
+  message: string;
 }
 
 export interface DatasetScoresResponse {

@@ -1,15 +1,31 @@
 import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 
 export type InternalJobStatusRecord = "queued" | "running" | "completed" | "failed";
-export type InternalJobTypeRecord = "dataset_scoring";
+export type InternalJobTypeRecord = "dataset_scoring" | "dataset_maintenance";
 export type InternalJobTargetTypeRecord = "dataset";
-export type InternalJobRequestKindRecord = "score" | "refresh";
+export type InternalJobRequestKindRecord = "score" | "refresh" | "policy_refresh" | "maintenance_scan";
+export type MaintenanceDecisionRecord =
+  | "not_stale"
+  | "manual_refresh_only"
+  | "policy_refresh_queued"
+  | "active_refresh_exists"
+  | "recent_refresh_suppressed"
+  | "recent_failure_suppressed";
 
 export interface InternalJobSummaryRecord {
   scoredRecordCount?: number;
   enrichedRecordCount?: number;
   enrichmentFallbackCount?: number;
   earliestReprocessAfter?: string;
+  maintenanceScannedDatasetCount?: number;
+  maintenanceStaleDatasetCount?: number;
+  maintenanceRefreshJobCount?: number;
+  maintenanceSkippedDatasetCount?: number;
+  maintenanceDecision?: MaintenanceDecisionRecord;
+  maintenanceRunAt?: string;
+  staleRecordCount?: number;
+  refreshJobId?: string;
+  policyAutoRefreshEnabled?: boolean;
 }
 
 export interface InternalJobErrorRecord {
@@ -42,6 +58,25 @@ const internalJobSummarySchema = new Schema<InternalJobSummaryRecord>(
     enrichedRecordCount: { type: Number, min: 0 },
     enrichmentFallbackCount: { type: Number, min: 0 },
     earliestReprocessAfter: { type: String, trim: true, maxlength: 40 },
+    maintenanceScannedDatasetCount: { type: Number, min: 0 },
+    maintenanceStaleDatasetCount: { type: Number, min: 0 },
+    maintenanceRefreshJobCount: { type: Number, min: 0 },
+    maintenanceSkippedDatasetCount: { type: Number, min: 0 },
+    maintenanceDecision: {
+      type: String,
+      enum: [
+        "not_stale",
+        "manual_refresh_only",
+        "policy_refresh_queued",
+        "active_refresh_exists",
+        "recent_refresh_suppressed",
+        "recent_failure_suppressed",
+      ],
+    },
+    maintenanceRunAt: { type: String, trim: true, maxlength: 40 },
+    staleRecordCount: { type: Number, min: 0 },
+    refreshJobId: { type: String, trim: true },
+    policyAutoRefreshEnabled: { type: Boolean },
   },
   {
     _id: false,
@@ -69,7 +104,7 @@ const internalJobSchema = new Schema<InternalJobRecord>(
     },
     type: {
       type: String,
-      enum: ["dataset_scoring"],
+      enum: ["dataset_scoring", "dataset_maintenance"],
       required: true,
       index: true,
     },
@@ -86,7 +121,7 @@ const internalJobSchema = new Schema<InternalJobRecord>(
     },
     requestKind: {
       type: String,
-      enum: ["score", "refresh"],
+      enum: ["score", "refresh", "policy_refresh", "maintenance_scan"],
       required: true,
       default: "score",
       index: true,

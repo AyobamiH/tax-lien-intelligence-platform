@@ -16,11 +16,14 @@ import type { CensusGeocoderClient } from "../../apps/api/src/enrichment/census-
 import { EnrichmentService } from "../../apps/api/src/enrichment/enrichment-service.js";
 import { SourceFieldInferenceAdapter } from "../../apps/api/src/enrichment/source-field-inference-adapter.js";
 import { InternalJobService } from "../../apps/api/src/jobs/internal-job-service.js";
+import { createMaintenancePolicy, type MaintenancePolicy } from "../../apps/api/src/maintenance/maintenance-policy.js";
+import { MaintenanceService } from "../../apps/api/src/maintenance/maintenance-service.js";
 import { ScoringService } from "../../apps/api/src/scoring/scoring-service.js";
 import { WorkerJobProcessor } from "../../apps/api/src/worker/worker-job-processor.js";
 import type {
   CreateScoredRecordInput,
   ScoredRecordStore,
+  StaleDatasetSummary,
   StoredScoredRecord,
 } from "../../apps/api/src/scoring/scored-record-store.js";
 import { InMemoryAlertStore } from "../support/in-memory-alert-store.js";
@@ -141,17 +144,52 @@ class InMemoryScoredRecordStore implements ScoredRecordStore {
     );
   }
 
+  public async listStaleDatasetSummaries(now: Date, limit: number): Promise<StaleDatasetSummary[]> {
+    const summaries = new Map<string, StaleDatasetSummary>();
+
+    for (const record of [...this.recordsByKey.values()].flat()) {
+      const reprocessAfter = record.enrichment?.freshness.reprocessAfter;
+      const reprocessTime = reprocessAfter ? Date.parse(reprocessAfter) : Number.NaN;
+      const isStale =
+        record.enrichment?.freshness.reprocessEligible ||
+        (Number.isFinite(reprocessTime) && reprocessTime <= now.getTime());
+
+      if (!isStale) {
+        continue;
+      }
+
+      const summaryKey = this.key(record.userId, record.datasetId);
+      const current = summaries.get(summaryKey);
+      summaries.set(summaryKey, {
+        userId: record.userId,
+        datasetId: record.datasetId,
+        staleRecordCount: (current?.staleRecordCount ?? 0) + 1,
+        earliestReprocessAfter:
+          current?.earliestReprocessAfter && reprocessAfter
+            ? current.earliestReprocessAfter < reprocessAfter
+              ? current.earliestReprocessAfter
+              : reprocessAfter
+            : (current?.earliestReprocessAfter ?? reprocessAfter),
+        latestScoredAt:
+          current?.latestScoredAt && current.latestScoredAt > record.scoredAt ? current.latestScoredAt : record.scoredAt,
+      });
+    }
+
+    return [...summaries.values()].slice(0, Math.max(0, limit));
+  }
+
   private key(userId: string, datasetId: string): string {
     return `${userId}:${datasetId}`;
   }
 }
 
-function createTestContext(options: { enrichmentService?: EnrichmentService } = {}): {
+function createTestContext(options: { enrichmentService?: EnrichmentService; maintenancePolicy?: MaintenancePolicy } = {}): {
   app: ReturnType<typeof createApp>;
   datasetStore: InMemoryDatasetStore;
   scoredRecordStore: InMemoryScoredRecordStore;
   internalJobStore: InMemoryInternalJobStore;
   internalJobService: InternalJobService;
+  maintenanceService: MaintenanceService;
   alertStore: InMemoryAlertStore;
   workerProcessor: WorkerJobProcessor;
 } {
@@ -168,13 +206,23 @@ function createTestContext(options: { enrichmentService?: EnrichmentService } = 
   const datasetService = new DatasetService(datasetStore);
   const alertService = new AlertService(alertStore);
   const internalJobService = new InternalJobService(internalJobStore, alertService);
+  const maintenancePolicy =
+    options.maintenancePolicy ??
+    createMaintenancePolicy({
+      autoRefreshEnabled: false,
+      maxDatasetsPerRun: 25,
+      minRefreshIntervalHours: 24,
+      failureSuppressionHours: 24,
+    });
   const scoringService = new ScoringService(
     datasetStore,
     scoredRecordStore,
     internalJobService,
     options.enrichmentService,
+    maintenancePolicy,
   );
-  const workerProcessor = new WorkerJobProcessor(internalJobService, scoringService);
+  const maintenanceService = new MaintenanceService(datasetStore, scoredRecordStore, internalJobService, maintenancePolicy);
+  const workerProcessor = new WorkerJobProcessor(internalJobService, scoringService, maintenanceService);
 
   return {
     app: createApp({ authService, datasetService, internalJobService, scoringService, alertService }),
@@ -182,6 +230,7 @@ function createTestContext(options: { enrichmentService?: EnrichmentService } = 
     scoredRecordStore,
     internalJobStore,
     internalJobService,
+    maintenanceService,
     alertStore,
     workerProcessor,
   };
@@ -795,7 +844,264 @@ describe("dataset scoring API", () => {
       scoredRecordCount: 1,
       staleRecordCount: 1,
       earliestReprocessAfter: "2026-01-02T00:00:00.000Z",
+      maintenance: {
+        mode: "manual_refresh_only",
+        autoRefreshEnabled: false,
+        eligibleForPolicyRefresh: false,
+        message: "Dataset is stale, but policy allows manual refresh only.",
+      },
     });
+  });
+
+  it("queues maintenance scan jobs for stale datasets without duplicating active maintenance work", async () => {
+    const enrichmentService = new EnrichmentService([new SourceFieldInferenceAdapter()], {
+      freshnessWindowDays: 1,
+      now: () => new Date("2026-01-01T00:00:00.000Z"),
+      sourceVersion: "source_field_inference@1",
+    });
+    const { app, internalJobStore, maintenanceService, workerProcessor } = createTestContext({ enrichmentService });
+    const owner = await registerUser(app, "maintenance-owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-M1,1000,12000,Single family residence\n",
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+
+    const firstScan = await maintenanceService.runScheduledMaintenance(new Date("2026-01-03T00:00:00.000Z"));
+    const duplicateScan = await maintenanceService.runScheduledMaintenance(new Date("2026-01-03T00:01:00.000Z"));
+
+    expect(firstScan).toEqual({
+      scannedAt: "2026-01-03T00:00:00.000Z",
+      staleDatasetCount: 1,
+      maintenanceJobsQueued: 1,
+      skippedDatasetCount: 0,
+    });
+    expect(duplicateScan).toEqual({
+      scannedAt: "2026-01-03T00:01:00.000Z",
+      staleDatasetCount: 1,
+      maintenanceJobsQueued: 0,
+      skippedDatasetCount: 1,
+    });
+    expect(internalJobStore.listJobsForUser(owner.userId)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "dataset_maintenance",
+          requestKind: "maintenance_scan",
+          targetEntityId: datasetId,
+          status: "queued",
+        }),
+      ]),
+    );
+  });
+
+  it("keeps stale maintenance manual-only when policy auto-refresh is disabled", async () => {
+    const enrichmentService = new EnrichmentService([new SourceFieldInferenceAdapter()], {
+      freshnessWindowDays: 1,
+      now: () => new Date("2026-01-01T00:00:00.000Z"),
+      sourceVersion: "source_field_inference@1",
+    });
+    const { app, internalJobStore, maintenanceService, workerProcessor } = createTestContext({ enrichmentService });
+    const owner = await registerUser(app, "manual-maintenance@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-M2,1000,12000,Single family residence\n",
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+    await maintenanceService.runScheduledMaintenance(new Date("2026-01-03T00:00:00.000Z"));
+
+    const maintenanceResult = await workerProcessor.processNextJob();
+    expect(maintenanceResult).toMatchObject({
+      status: "completed",
+      job: {
+        type: "dataset_maintenance",
+        requestKind: "maintenance_scan",
+        status: "completed",
+        summary: {
+          maintenanceDecision: "manual_refresh_only",
+          maintenanceScannedDatasetCount: 1,
+          maintenanceStaleDatasetCount: 1,
+          maintenanceRefreshJobCount: 0,
+          maintenanceSkippedDatasetCount: 1,
+          staleRecordCount: 1,
+          policyAutoRefreshEnabled: false,
+        },
+      },
+    });
+    expect(
+      internalJobStore
+        .listJobsForUser(owner.userId)
+        .filter((job) => job.type === "dataset_scoring" && job.requestKind === "policy_refresh"),
+    ).toHaveLength(0);
+  });
+
+  it("creates distinguishable policy refresh jobs when maintenance policy allows auto-refresh", async () => {
+    const enrichmentService = new EnrichmentService([new SourceFieldInferenceAdapter()], {
+      freshnessWindowDays: 1,
+      now: () => new Date("2026-01-01T00:00:00.000Z"),
+      sourceVersion: "source_field_inference@1",
+    });
+    const maintenancePolicy = createMaintenancePolicy({
+      autoRefreshEnabled: true,
+      maxDatasetsPerRun: 25,
+      minRefreshIntervalHours: 24,
+      failureSuppressionHours: 24,
+    });
+    const { app, internalJobStore, maintenanceService, workerProcessor } = createTestContext({
+      enrichmentService,
+      maintenancePolicy,
+    });
+    const owner = await registerUser(app, "policy-maintenance@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-M3,1000,12000,Single family residence\n",
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+
+    const statusResponse = await request(app)
+      .get(`/datasets/${datasetId}/scoring-status`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+    expect(statusResponse.body.maintenance).toMatchObject({
+      mode: "policy_auto_refresh",
+      autoRefreshEnabled: true,
+      eligibleForPolicyRefresh: true,
+      message: "Dataset is stale and eligible for policy-driven refresh.",
+    });
+
+    await maintenanceService.runScheduledMaintenance(new Date("2026-01-03T00:00:00.000Z"));
+    const maintenanceResult = await workerProcessor.processNextJob();
+    expect(maintenanceResult).toMatchObject({
+      status: "completed",
+      job: {
+        type: "dataset_maintenance",
+        requestKind: "maintenance_scan",
+        summary: {
+          maintenanceDecision: "policy_refresh_queued",
+          maintenanceRefreshJobCount: 1,
+          policyAutoRefreshEnabled: true,
+          refreshJobId: expect.any(String),
+        },
+      },
+    });
+
+    const policyRefresh = internalJobStore
+      .listJobsForUser(owner.userId)
+      .find((job) => job.type === "dataset_scoring" && job.requestKind === "policy_refresh");
+    expect(policyRefresh).toMatchObject({
+      targetEntityId: datasetId,
+      status: "queued",
+    });
+
+    const refreshResult = await workerProcessor.processNextJob();
+    expect(refreshResult).toMatchObject({
+      status: "completed",
+      job: {
+        id: policyRefresh?.id,
+        type: "dataset_scoring",
+        requestKind: "policy_refresh",
+        status: "completed",
+        summary: {
+          scoredRecordCount: 1,
+        },
+      },
+    });
+
+    const alertsResponse = await request(app).get("/alerts").set("Authorization", `Bearer ${owner.token}`).expect(200);
+    expect(alertsResponse.body.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "scoring_job_completed",
+          message: "Scheduled refresh completed. 1 records are ready for review.",
+          metadata: expect.objectContaining({
+            requestKind: "policy_refresh",
+            datasetId,
+          }),
+        }),
+      ]),
+    );
+  });
+
+  it("suppresses scheduled refresh creation after a recent failed policy refresh", async () => {
+    const enrichmentService = new EnrichmentService([new SourceFieldInferenceAdapter()], {
+      freshnessWindowDays: 1,
+      now: () => new Date("2026-01-01T00:00:00.000Z"),
+      sourceVersion: "source_field_inference@1",
+    });
+    const maintenancePolicy = createMaintenancePolicy({
+      autoRefreshEnabled: true,
+      maxDatasetsPerRun: 25,
+      minRefreshIntervalHours: 24,
+      failureSuppressionHours: 24,
+    });
+    const { app, internalJobService, internalJobStore, maintenanceService, workerProcessor } = createTestContext({
+      enrichmentService,
+      maintenancePolicy,
+    });
+    const owner = await registerUser(app, "failed-policy-refresh@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-M4,1000,12000,Single family residence\n",
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+
+    await internalJobService.enqueue({
+      userId: owner.userId,
+      type: "dataset_scoring",
+      targetEntityType: "dataset",
+      targetEntityId: datasetId,
+      requestKind: "policy_refresh",
+    });
+    const claimedPolicyRefresh = await internalJobService.claimNextJob();
+    expect(claimedPolicyRefresh).toMatchObject({
+      requestKind: "policy_refresh",
+      status: "running",
+    });
+    await internalJobService.failJob(claimedPolicyRefresh!, new Error("provider timeout internals"));
+
+    await maintenanceService.runScheduledMaintenance(new Date("2026-01-03T00:00:00.000Z"));
+    const maintenanceResult = await workerProcessor.processNextJob();
+
+    expect(maintenanceResult).toMatchObject({
+      status: "completed",
+      job: {
+        type: "dataset_maintenance",
+        requestKind: "maintenance_scan",
+        summary: {
+          maintenanceDecision: "recent_failure_suppressed",
+          maintenanceRefreshJobCount: 0,
+          maintenanceSkippedDatasetCount: 1,
+        },
+      },
+    });
+    expect(
+      internalJobStore
+        .listJobsForUser(owner.userId)
+        .filter((job) => job.type === "dataset_scoring" && job.requestKind === "policy_refresh"),
+    ).toHaveLength(1);
   });
 
   it("returns an active refresh job instead of duplicating queued refresh requests", async () => {

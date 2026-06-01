@@ -15,6 +15,12 @@ import { createDefaultEnrichmentService, type EnrichmentService } from "../enric
 import { ApiError } from "../errors/api-error.js";
 import type { StoredInternalJob } from "../jobs/internal-job-store.js";
 import type { InternalJobService } from "../jobs/internal-job-service.js";
+import {
+  createMaintenancePolicy,
+  type MaintenancePolicy,
+  maintenanceStatusForDataset,
+} from "../maintenance/maintenance-policy.js";
+import { apiConfig } from "../config/env.js";
 import { normalizeDatasetRow } from "./normalization.js";
 import type { CreateScoredRecordInput, ScoredRecordStore, StoredScoredRecord } from "./scored-record-store.js";
 
@@ -23,17 +29,20 @@ export class ScoringService {
   private readonly scoredRecordStore: ScoredRecordStore;
   private readonly internalJobService: InternalJobService;
   private readonly enrichmentService: EnrichmentService;
+  private readonly maintenancePolicy: MaintenancePolicy;
 
   public constructor(
     datasetStore: DatasetStore,
     scoredRecordStore: ScoredRecordStore,
     internalJobService: InternalJobService,
     enrichmentService: EnrichmentService = createDefaultEnrichmentService(),
+    maintenancePolicy: MaintenancePolicy = createMaintenancePolicy(apiConfig.maintenance),
   ) {
     this.datasetStore = datasetStore;
     this.scoredRecordStore = scoredRecordStore;
     this.internalJobService = internalJobService;
     this.enrichmentService = enrichmentService;
+    this.maintenancePolicy = maintenancePolicy;
   }
 
   public async scoreDataset(datasetId: string, userId: string): Promise<DatasetScoreJobResponse> {
@@ -105,12 +114,25 @@ export class ScoringService {
       }),
     ]);
     const scoreFreshness = summarizeScoreFreshness(scores);
+    const maintenance = maintenanceStatusForDataset({
+      policy: this.maintenancePolicy,
+      staleRecordCount: scoreFreshness.staleRecordCount,
+      hasActiveRefresh: Boolean(activeJob),
+      ...(latestJob?.requestKind === "policy_refresh" && latestJob.completedAt
+        ? { latestRefreshCompletedAt: latestJob.completedAt }
+        : {}),
+      ...(latestJob?.requestKind === "policy_refresh" && latestJob.failedAt
+        ? { latestRefreshFailedAt: latestJob.failedAt }
+        : {}),
+      now: new Date(),
+    });
 
     return {
       datasetId: dataset.id,
       status: datasetScoringStatus({ scores, activeJob, latestJob, staleRecordCount: scoreFreshness.staleRecordCount }),
       scoredRecordCount: scores.length,
       staleRecordCount: scoreFreshness.staleRecordCount,
+      maintenance,
       ...(scoreFreshness.latestScoredAt ? { latestScoredAt: scoreFreshness.latestScoredAt } : {}),
       ...(scoreFreshness.earliestReprocessAfter
         ? { earliestReprocessAfter: scoreFreshness.earliestReprocessAfter }
@@ -277,7 +299,10 @@ function datasetScoringStatus(input: {
     return "not_scored";
   }
 
-  if (input.latestJob?.requestKind === "refresh" && input.latestJob.status === "completed") {
+  if (
+    (input.latestJob?.requestKind === "refresh" || input.latestJob?.requestKind === "policy_refresh") &&
+    input.latestJob.status === "completed"
+  ) {
     return "refresh_completed";
   }
 

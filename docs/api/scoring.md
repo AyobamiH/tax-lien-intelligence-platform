@@ -27,6 +27,9 @@ state.
 
 Phase 14 keeps this route as the first-score/re-run path and adds a separate
 controlled refresh route for deliberate reprocessing of existing scored state.
+Phase 15 also allows trusted maintenance policy to create distinguishable
+`policy_refresh` scoring jobs; browser users still request deliberate refreshes
+through `POST /datasets/:datasetId/refresh`.
 
 ### Response `202`
 
@@ -120,6 +123,12 @@ Returns compact scoring/refresh status for a user-owned dataset.
   "staleRecordCount": 2,
   "latestScoredAt": "2026-06-01T00:00:00.000Z",
   "earliestReprocessAfter": "2026-07-01T00:00:00.000Z",
+  "maintenance": {
+    "mode": "policy_auto_refresh",
+    "autoRefreshEnabled": true,
+    "eligibleForPolicyRefresh": false,
+    "message": "A scoring or refresh job is already queued or running for this dataset."
+  },
   "activeJob": {
     "id": "job-id",
     "type": "dataset_scoring",
@@ -133,6 +142,12 @@ Returns compact scoring/refresh status for a user-owned dataset.
   }
 }
 ```
+
+`maintenance` is a compact Phase 15 policy status. It does not expose raw
+scheduler internals. `mode` is either `manual_refresh_only` or
+`policy_auto_refresh`. `eligibleForPolicyRefresh` only means the backend policy
+would allow a scheduled maintenance job to queue a policy refresh if no duplicate
+or suppression guard blocks it.
 
 Supported status values:
 
@@ -278,6 +293,9 @@ execution path for scoring jobs. Phase 11 adds an internal enrichment adapter
 layer. Phase 12 proves one external enrichment path through the Census Geocoder.
 Phase 13 makes enrichment operationally explicit and rerun-ready. Phase 14 adds
 a controlled user-triggered refresh path and status visibility on top of that
-readiness. Future phases may add stronger county adapters, additional
-providers, deduplication, historical redemption signals, external alert
-delivery, and external automation.
+readiness. Phase 15 adds scheduled maintenance groundwork that can scan for
+stale scored records and, when explicitly enabled by server policy, create
+distinguishable `policy_refresh` jobs. It is not unlimited autonomous refresh.
+Future phases may add stronger county adapters, additional providers,
+deduplication, historical redemption signals, external alert delivery, and
+broader automation.

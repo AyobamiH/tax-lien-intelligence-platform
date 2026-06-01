@@ -1,7 +1,11 @@
 import { connectMongo, disconnectMongo } from "@tax-lien/db";
 import { apiConfig } from "./config/env.js";
+import { createMaintenanceService } from "./maintenance/factory.js";
 import { InternalScheduler } from "./scheduler/internal-scheduler.js";
-import { createWorkerJobProcessor } from "./worker/factory.js";
+import { createAlertService } from "./alerts/factory.js";
+import { createInternalJobService } from "./jobs/factory.js";
+import { createScoringService } from "./scoring/factory.js";
+import { WorkerJobProcessor } from "./worker/worker-job-processor.js";
 
 async function main(): Promise<void> {
   await connectMongo({
@@ -9,7 +13,11 @@ async function main(): Promise<void> {
     dbName: apiConfig.mongoDbName,
   });
 
-  const processor = createWorkerJobProcessor();
+  const alertService = createAlertService();
+  const internalJobService = createInternalJobService(alertService);
+  const scoringService = createScoringService(internalJobService);
+  const maintenanceService = createMaintenanceService(internalJobService);
+  const processor = new WorkerJobProcessor(internalJobService, scoringService, maintenanceService);
   const scheduler = new InternalScheduler();
   const runOnce = process.argv.includes("--once");
 
@@ -32,7 +40,22 @@ async function main(): Promise<void> {
       }
     },
   });
-  scheduler.start(Math.min(apiConfig.schedulerTickIntervalMs, apiConfig.workerPollIntervalMs));
+  scheduler.register({
+    id: "dataset-maintenance-scan",
+    intervalMs: apiConfig.maintenance.scanIntervalMs,
+    runImmediately: true,
+    run: async ({ now }) => {
+      const result = await maintenanceService.runScheduledMaintenance(now);
+      if (result.staleDatasetCount > 0) {
+        console.log(
+          `Maintenance scan found ${result.staleDatasetCount} stale datasets and queued ${result.maintenanceJobsQueued} maintenance jobs`,
+        );
+      }
+    },
+  });
+  scheduler.start(
+    Math.min(apiConfig.schedulerTickIntervalMs, apiConfig.workerPollIntervalMs, apiConfig.maintenance.scanIntervalMs),
+  );
 
   const shutdown = async (): Promise<void> => {
     scheduler.stop();

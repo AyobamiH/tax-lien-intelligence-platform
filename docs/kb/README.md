@@ -66,6 +66,8 @@ records the current implementation state:
   Geocoder path.
 - enrichment orchestration/fallback/freshness metadata exists.
 - controlled dataset refresh/reprocessing exists through the scoring job path.
+- scheduled maintenance groundwork exists with manual-only default policy and
+  distinguishable policy refresh jobs.
 - frontend scored-results review surface exists.
 - watchlist API and review surface exist.
 - portfolio API and status tracking surface exist.
@@ -79,7 +81,8 @@ records the current implementation state:
 - portfolio item model exists.
 - shared types exist.
 - scoring package is a real first-pass deterministic engine.
-- full parcel models, browser upload, and automation are not implemented yet.
+- full parcel models, browser upload, user-facing scheduler controls, and broad
+  external automation are not implemented yet.
 
 Do not use the legacy personal mirror as product truth. The primary startup
 remote is `oneclick`.
@@ -98,8 +101,9 @@ tenant-owned dataset records, upload size limits, CSV validation, and
 authenticated score review. It now also has tenant-owned watchlist items and
 cross-user watchlist tests. It now also has tenant-owned portfolio items and
 cross-user portfolio tests. It now has tenant-owned internal job records for
-scoring, controlled refresh/reprocessing, and cross-user job tests. It does not
-yet have standalone parcel models, rate limiting, external automation, or full
+scoring, controlled refresh/reprocessing, scheduled maintenance policy gates,
+and cross-user job tests. It does not yet have standalone parcel models, rate
+limiting, user-facing scheduler controls, external automation, or full
 cross-user tests for future resource types because those workflows do not exist
 yet.
 

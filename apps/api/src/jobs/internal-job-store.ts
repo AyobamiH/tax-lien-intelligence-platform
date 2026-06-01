@@ -239,6 +239,29 @@ export function mapInternalJob(document: InternalJobDocument): StoredInternalJob
             ...(document.summary.earliestReprocessAfter
               ? { earliestReprocessAfter: document.summary.earliestReprocessAfter }
               : {}),
+            ...(document.summary.maintenanceScannedDatasetCount !== undefined
+              ? { maintenanceScannedDatasetCount: document.summary.maintenanceScannedDatasetCount }
+              : {}),
+            ...(document.summary.maintenanceStaleDatasetCount !== undefined
+              ? { maintenanceStaleDatasetCount: document.summary.maintenanceStaleDatasetCount }
+              : {}),
+            ...(document.summary.maintenanceRefreshJobCount !== undefined
+              ? { maintenanceRefreshJobCount: document.summary.maintenanceRefreshJobCount }
+              : {}),
+            ...(document.summary.maintenanceSkippedDatasetCount !== undefined
+              ? { maintenanceSkippedDatasetCount: document.summary.maintenanceSkippedDatasetCount }
+              : {}),
+            ...(document.summary.maintenanceDecision
+              ? { maintenanceDecision: document.summary.maintenanceDecision }
+              : {}),
+            ...(document.summary.maintenanceRunAt ? { maintenanceRunAt: document.summary.maintenanceRunAt } : {}),
+            ...(document.summary.staleRecordCount !== undefined
+              ? { staleRecordCount: document.summary.staleRecordCount }
+              : {}),
+            ...(document.summary.refreshJobId ? { refreshJobId: document.summary.refreshJobId } : {}),
+            ...(document.summary.policyAutoRefreshEnabled !== undefined
+              ? { policyAutoRefreshEnabled: document.summary.policyAutoRefreshEnabled }
+              : {}),
           },
         }
       : {}),

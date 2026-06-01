@@ -31,6 +31,8 @@ Current implementation:
 - frontend alerts surface exposes user-owned scoring job outcome alerts;
 - controlled refresh/reprocessing exists for owned datasets through
   tenant-owned internal jobs;
+- scheduled maintenance jobs can inspect stale owned dataset scoring state and
+  queue policy refresh only through server-side policy gates;
 - no parcel model;
 
 Current documentation direction:
@@ -86,7 +88,9 @@ provider is enabled. Phase 13 adds adapter outcomes, fallback state, freshness,
 and reprocess-after metadata. Phase 14 adds controlled user-triggered refresh
 that reruns enrichment/scoring for an owned dataset through the job boundary. It
 does not include provider sprawl, paid integrations, ML/AI, broad scheduled
-refresh, or county live integrations.
+refresh, or county live integrations. Phase 15 adds bounded stale-state
+maintenance scanning and policy-gated refresh creation, not unlimited
+autonomous refresh.
 
 ### Watchlist
 
@@ -142,6 +146,7 @@ User-owned data includes or will include:
 - portfolio records;
 - internal job records;
 - refresh/reprocessing state;
+- scheduled maintenance state;
 - alerts;
 - decision notes;
 - upload errors;
@@ -164,6 +169,7 @@ Tenant isolation protects:
 - scores;
 - enrichment context;
 - refresh status;
+- maintenance policy status;
 - reasoning;
 - watchlists;
 - decisions;

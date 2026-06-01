@@ -20,7 +20,7 @@ Current implementation:
 - browser login/register backed by the auth API;
 - hash-based dataset review routes;
 - API integration for dataset list/detail, scoring runs, controlled refresh,
-  scoring status, and scored records;
+  scoring status, maintenance status, and scored records;
 - scored-results table;
 - record detail surface for flags and reasoning;
 - watchlist keep/remove actions;
@@ -32,6 +32,7 @@ Current implementation:
 - portfolio detail surface for flags, reasoning, and status;
 - scoring job queued/running/completed/failed visibility after a score run;
 - refresh action/status visibility for scored datasets;
+- maintenance mode/message visibility for scored datasets;
 - alerts route with unread count and read/read-all actions;
 - alert entries for scoring completion/failure outcomes;
 - loading, empty, and error states;
@@ -67,6 +68,7 @@ Current and future page direction:
 - implemented: portfolio detail reasoning/status surface;
 - implemented: scoring job status visibility and polling;
 - implemented: controlled refresh action and scoring status badge;
+- implemented: maintenance policy status display on dataset detail;
 - implemented: alerts monitoring surface;
 - future: browser dataset upload page;
 - future: account/settings page.

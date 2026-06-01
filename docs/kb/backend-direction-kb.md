@@ -42,6 +42,10 @@ Current implementation:
 - alert model;
 - authenticated alert list/read/read-all routes;
 - scoring job completion/failure alert creation;
+- scheduled maintenance service for stale scored-record scans;
+- `dataset_maintenance` job type for policy-driven maintenance decisions;
+- policy-created `dataset_scoring` refresh jobs with
+  `requestKind: "policy_refresh"`;
 - scoring ownership enforcement;
 - frontend score review surface consumes the scoring API;
 - watchlist item model;
@@ -166,6 +170,8 @@ Current implementation:
 - enrichment freshness metadata with reprocess-after timing;
 - controlled refresh/reprocessing requests that rerun scoring/enrichment
   through the existing worker job path;
+- scheduled maintenance scanning that uses freshness metadata to find stale
+  datasets and apply explicit refresh policy;
 - enrichment result persisted on scored records;
 - worker scoring path applies normalization, enrichment, then scoring;
 - adapter failure handling records safe enrichment metadata and keeps scoring
@@ -188,7 +194,8 @@ Current limitation:
 - no external valuation provider;
 - no ML/AI enrichment;
 - no county-specific live integration.
-- no automatic recurring refresh or broad sync automation.
+- no unlimited autonomous refresh or broad sync automation.
+- no user-facing scheduler policy editor.
 
 ## Watchlist Implementation
 
@@ -329,10 +336,15 @@ Current job implementation:
 
 - tenant-owned internal job model;
 - `dataset_scoring` job type;
+- `dataset_maintenance` job type;
 - `dataset` target entity type;
-- request kind metadata for normal scoring vs controlled refresh;
+- request kind metadata for normal scoring, controlled refresh, maintenance
+  scans, and policy refresh;
 - queued/running/completed/failed lifecycle;
 - duplicate-safe active job lookup for refresh requests;
+- stale scored-record scanning and policy-gated maintenance jobs;
+- explicit maintenance policy with manual-only default, per-run cap, minimum
+  refresh interval, and failed-refresh suppression window;
 - authenticated `GET /jobs/:jobId`;
 - worker-side queued job claiming;
 - dedicated worker entrypoint for dataset scoring execution;
@@ -372,7 +384,9 @@ Backend implementation order should stay disciplined:
 10. background worker and scheduler groundwork: implemented in Phase 10;
 11. enrichment adapter foundation: implemented in Phase 11;
 12. controlled refresh/reprocessing workflow: implemented in Phase 14;
-13. later external automation.
+13. scheduled maintenance and policy-driven auto-refresh foundation:
+    implemented in Phase 15;
+14. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

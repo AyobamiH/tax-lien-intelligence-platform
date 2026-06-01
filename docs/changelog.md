@@ -2,6 +2,15 @@
 
 ## 2026-06-01
 
+- Implemented Phase 15 scheduled maintenance foundation with a
+  `dataset_maintenance` job type, stale scored-record scanning, explicit
+  manual-only versus policy auto-refresh gating, scheduler-driven maintenance
+  task registration, policy-created `requestKind: "policy_refresh"` scoring
+  jobs, maintenance status visibility, and duplicate/failure suppression tests.
+- Updated job/scoring/worker/API/KB docs to mark scheduled maintenance
+  groundwork as current while keeping unlimited autonomous refresh, provider
+  sprawl, external scheduler products, ML/AI, delivery channels, collaboration,
+  and auction execution out of scope.
 - Implemented Phase 14 controlled refresh workflow with authenticated
   dataset refresh requests, duplicate-safe active job reuse, scoring status
   visibility, refresh-aware job metadata, frontend refresh controls, safe

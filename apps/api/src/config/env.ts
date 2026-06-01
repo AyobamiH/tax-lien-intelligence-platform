@@ -12,6 +12,11 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32).optional(),
   WORKER_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
   SCHEDULER_TICK_INTERVAL_MS: z.coerce.number().int().positive().default(60000),
+  MAINTENANCE_SCAN_INTERVAL_MS: z.coerce.number().int().positive().default(3_600_000),
+  MAINTENANCE_AUTO_REFRESH_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
+  MAINTENANCE_MAX_DATASETS_PER_RUN: z.coerce.number().int().positive().max(250).default(25),
+  MAINTENANCE_MIN_REFRESH_INTERVAL_HOURS: z.coerce.number().int().positive().max(720).default(24),
+  MAINTENANCE_FAILURE_SUPPRESSION_HOURS: z.coerce.number().int().positive().max(720).default(24),
   CENSUS_GEOCODER_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
   CENSUS_GEOCODER_BASE_URL: z.string().url().default("https://geocoding.geo.census.gov"),
   CENSUS_GEOCODER_BENCHMARK: z.string().min(1).max(80).default("Public_AR_Current"),
@@ -41,6 +46,13 @@ export interface ApiConfig {
   jwtExpiresIn: "1h";
   workerPollIntervalMs: number;
   schedulerTickIntervalMs: number;
+  maintenance: {
+    scanIntervalMs: number;
+    autoRefreshEnabled: boolean;
+    maxDatasetsPerRun: number;
+    minRefreshIntervalHours: number;
+    failureSuppressionHours: number;
+  };
   externalEnrichment: {
     freshnessWindowDays: number;
     censusGeocoder: {
@@ -62,6 +74,13 @@ export const apiConfig: ApiConfig = {
   jwtExpiresIn: "1h",
   workerPollIntervalMs: parsedEnv.WORKER_POLL_INTERVAL_MS,
   schedulerTickIntervalMs: parsedEnv.SCHEDULER_TICK_INTERVAL_MS,
+  maintenance: {
+    scanIntervalMs: parsedEnv.MAINTENANCE_SCAN_INTERVAL_MS,
+    autoRefreshEnabled: parsedEnv.MAINTENANCE_AUTO_REFRESH_ENABLED,
+    maxDatasetsPerRun: parsedEnv.MAINTENANCE_MAX_DATASETS_PER_RUN,
+    minRefreshIntervalHours: parsedEnv.MAINTENANCE_MIN_REFRESH_INTERVAL_HOURS,
+    failureSuppressionHours: parsedEnv.MAINTENANCE_FAILURE_SUPPRESSION_HOURS,
+  },
   externalEnrichment: {
     freshnessWindowDays: parsedEnv.ENRICHMENT_FRESHNESS_WINDOW_DAYS,
     censusGeocoder: {

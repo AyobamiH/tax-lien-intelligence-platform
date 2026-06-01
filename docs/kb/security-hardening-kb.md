@@ -76,6 +76,9 @@ Current repo protections:
 - request-kind metadata for scoring vs refresh jobs;
 - duplicate-safe refresh job reuse for queued/running dataset jobs;
 - minimal scheduler module for local job polling;
+- scheduled maintenance scans with manual-only default policy;
+- policy-created refresh jobs distinguishable from manual refresh jobs;
+- duplicate and recent-failure suppression around policy refresh creation;
 - internal source-row enrichment before scoring;
 - persisted safe enrichment metadata on scored records;
 - safe job summary and error metadata;
@@ -443,6 +446,12 @@ Phase 14 adds a controlled refresh path. Refresh is authenticated,
 tenant-scoped, job-backed, and duplicate-safe while a dataset job is queued or
 running. It is not an automatic loop or broad sync mechanism.
 
+Phase 15 adds scheduled maintenance groundwork. Maintenance scans are bounded,
+worker-side, and policy-gated. The default policy is manual-only. When
+auto-refresh is explicitly enabled, maintenance jobs may create
+`policy_refresh` jobs after ownership, stale-record, duplicate, recent refresh,
+and recent failure gates pass. This is not unlimited autonomous refresh.
+
 Enrichment output must stay safe:
 
 - no raw full source rows in browser responses;
@@ -451,6 +460,7 @@ Enrichment output must stay safe:
 - no unbounded external requests;
 - no unbounded reprocessing loops;
 - no duplicate refresh storms from repeated user actions;
+- no hidden policy refresh jobs that look like manual user requests;
 - no secrets;
 - no cross-user enrichment leakage.
 

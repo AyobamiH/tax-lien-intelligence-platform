@@ -1033,9 +1033,13 @@ function DatasetDetailPage({
                 datasetId,
                 scoredRecordCount: scoresResult.scores.length,
                 staleRecordCount: 0,
+                maintenance: defaultMaintenanceStatus(),
                 status: "refresh_completed",
               }),
-              status: jobResult.job.requestKind === "refresh" ? "refresh_completed" : "fresh",
+              status:
+                jobResult.job.requestKind === "refresh" || jobResult.job.requestKind === "policy_refresh"
+                  ? "refresh_completed"
+                  : "fresh",
               scoredRecordCount: scoresResult.scores.length,
               staleRecordCount: 0,
               latestJob: jobResult.job,
@@ -1216,7 +1220,7 @@ function DatasetDetailPage({
         ) : null}
         {state.lastScoringJob ? (
           <div className={`mt-4 border px-3 py-2 text-sm ${jobStatusClassName(state.lastScoringJob.status)}`}>
-            {state.lastScoringJob.requestKind === "refresh" ? "Refresh" : "Scoring"} job{" "}
+            {jobRequestKindLabel(state.lastScoringJob.requestKind)} job{" "}
             {shortId(state.lastScoringJob.id)} is {state.lastScoringJob.status}.{" "}
             {state.lastScoringJob.status === "completed"
               ? `${state.lastScoringJob.summary?.scoredRecordCount ?? state.scores.length} records are ready for review.`
@@ -1237,6 +1241,15 @@ function DatasetDetailPage({
         {state.scoringStatus?.earliestReprocessAfter ? (
           <p className="mt-3 text-xs text-ink/60">
             Earliest refresh point: {formatDateTime(state.scoringStatus.earliestReprocessAfter)}
+          </p>
+        ) : null}
+        {state.scoringStatus ? (
+          <p className="mt-2 text-xs text-ink/60">
+            Maintenance:{" "}
+            {state.scoringStatus.maintenance.mode === "policy_auto_refresh"
+              ? "policy auto-refresh"
+              : "manual refresh only"} ·{" "}
+            {state.scoringStatus.maintenance.message}
           </p>
         ) : null}
       </div>
@@ -2439,6 +2452,28 @@ function isActiveJobStatus(status: InternalJobResponse["status"]): boolean {
 function withoutActiveJob(status: DatasetScoringStatusResponse): DatasetScoringStatusResponse {
   const { activeJob: _activeJob, ...rest } = status;
   return rest;
+}
+
+function defaultMaintenanceStatus(): DatasetScoringStatusResponse["maintenance"] {
+  return {
+    mode: "manual_refresh_only",
+    autoRefreshEnabled: false,
+    eligibleForPolicyRefresh: false,
+    message: "Dataset refresh is manual-only until maintenance policy is loaded.",
+  };
+}
+
+function jobRequestKindLabel(requestKind: InternalJobResponse["requestKind"]): string {
+  switch (requestKind) {
+    case "policy_refresh":
+      return "Scheduled refresh";
+    case "refresh":
+      return "Refresh";
+    case "maintenance_scan":
+      return "Maintenance";
+    case "score":
+      return "Scoring";
+  }
 }
 
 function jobStatusClassName(status: InternalJobResponse["status"]): string {

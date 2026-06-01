@@ -92,11 +92,18 @@ Implemented today:
 - dataset scoring routed through a persisted `dataset_scoring` job;
 - refresh requests use `requestKind: "refresh"` and reuse active queued/running
   dataset jobs instead of duplicating work;
+- scheduled maintenance uses `dataset_maintenance` jobs with
+  `requestKind: "maintenance_scan"` to inspect stale dataset scoring state;
+- policy-created refresh jobs use `requestKind: "policy_refresh"` and remain
+  distinguishable from manual refresh requests;
+- maintenance policy defaults to manual-only and only queues policy refreshes
+  when explicit server policy and duplicate/suppression guards allow it;
 - authenticated job detail endpoint at `GET /jobs/:jobId`;
 - queued/running/completed/failed job lifecycle;
 - dedicated worker entrypoint for queued internal jobs;
 - worker-side job claiming and dataset scoring execution;
-- minimal internal scheduler module for local timed task registration;
+- minimal internal scheduler module for local timed task registration and
+  bounded stale dataset maintenance scans;
 - safe job summaries and error metadata;
 - alert creation from completed/failed dataset scoring jobs;
 - authenticated alert endpoints at `GET /alerts`,
@@ -151,7 +158,8 @@ Placeholders today:
 - The frontend has no dataset upload UI yet even though dataset APIs exist.
 - Full county-specific parcel/lien normalization does not exist yet.
 - Broad external enrichment provider coverage does not exist yet.
-- Automatic recurring refresh does not exist yet.
+- Unlimited autonomous refresh does not exist yet.
+- User-facing scheduler configuration does not exist yet.
 
 ## Current Limitations
 
@@ -165,6 +173,7 @@ Not implemented:
 - realtime alert delivery;
 - external schedulers, worker fleets, or third-party queues.
 - broad cron-based refresh or external sync automation.
+- provider-sprawl refresh policies.
 
 ## Workflow Discipline
 
@@ -214,6 +223,9 @@ Current tests cover:
 - queued job claiming behavior;
 - worker-driven scoring success/failure behavior;
 - stale job target failure handling;
+- scheduled maintenance policy evaluation, stale dataset scan, duplicate
+  suppression, manual-only decisions, policy refresh creation, and recent
+  failure suppression;
 - scheduler task registration, due execution, and failure behavior;
 - cross-user job detail rejection;
 - alert retrieval/read/read-all behavior;

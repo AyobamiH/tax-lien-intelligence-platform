@@ -41,6 +41,9 @@ Current shared types in `packages/types`:
 - `InternalJobSummary`;
 - `InternalJobError`;
 - `InternalJobResponse`;
+- `MaintenanceDecision`;
+- `DatasetMaintenanceMode`;
+- `DatasetMaintenanceStatus`;
 - `JobDetailResponse`;
 - `DatasetScoreJobResponse`;
 - `DatasetScoreRunResponse` for internal execution results;
@@ -220,6 +223,10 @@ worker completes scoring.
 queued/running dataset job when refresh is already in progress. It must not
 create duplicate refresh jobs for repeated user actions.
 
+`DatasetScoringStatusResponse` includes a `maintenance` object with manual-only
+versus policy-auto-refresh mode, eligibility, and a safe user-facing message. It
+must not expose raw scheduler internals.
+
 `DatasetScoreRunResponse` remains the internal execution result shape used by
 the scoring service and tests, not the public score-trigger response.
 
@@ -262,16 +269,17 @@ Current job contracts include:
 - type;
 - target entity type;
 - target entity id;
-- request kind: `score` or `refresh`;
+- request kind: `score`, `refresh`, `policy_refresh`, or `maintenance_scan`;
 - status;
 - optional safe summary;
 - optional safe error;
 - queued/started/completed/failed timestamps;
 - created/updated timestamps.
 
-Current job type:
+Current job types:
 
 - `dataset_scoring`.
+- `dataset_maintenance`.
 
 Current target entity type:
 
@@ -285,6 +293,10 @@ but not the public job response contract.
 
 Phase 14 adds refresh request metadata and dataset scoring status states. The
 status response is a safe user-facing summary, not a raw job log.
+
+Phase 15 adds safe maintenance summary fields for scanned/stale/skipped counts,
+maintenance decision, policy mode, and optional follow-on refresh job id. Policy
+refresh jobs must remain distinguishable from manual refresh jobs.
 
 ## Alert Object Contract
 

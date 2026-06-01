@@ -457,11 +457,43 @@ Phase 14 includes:
 
 Phase 14 does not include:
 
-- automatic recurring refresh;
+- unlimited automatic recurring refresh;
 - cron-based broad dataset sync;
 - provider expansion;
 - ML/AI refresh logic;
 - email/SMS delivery;
+- collaboration;
+- auction execution.
+
+## Phase 15: Scheduled Maintenance And Policy-Driven Auto-Refresh Foundation
+
+Current status: implemented as bounded scheduled maintenance groundwork, not
+unlimited autonomous refresh.
+
+Phase 15 includes:
+
+- `dataset_maintenance` internal job type;
+- `maintenance_scan` request kind for scheduler-created maintenance jobs;
+- `policy_refresh` request kind for maintenance-policy-created scoring jobs;
+- stale dataset scanning based on scored-record freshness metadata;
+- explicit server-side maintenance policy with manual-only default;
+- per-run dataset cap;
+- duplicate guards for active maintenance and scoring work;
+- recent maintenance/refresh/failure suppression;
+- safe maintenance job summaries and decisions;
+- scoring status maintenance mode/message for the frontend;
+- tests for policy evaluation, stale scan queuing, duplicate suppression,
+  manual-only behavior, policy refresh creation, and recent failure suppression.
+
+Phase 15 does not include:
+
+- user-facing scheduler controls;
+- unlimited autonomous refresh;
+- external scheduler products;
+- external provider expansion;
+- broad county sync automation;
+- email/SMS delivery;
+- ML/AI policy engines;
 - collaboration;
 - auction execution.
 
@@ -499,7 +531,8 @@ Dependency order matters:
 10. background worker and scheduler groundwork;
 11. enrichment adapter foundation;
 12. controlled refresh/reprocessing workflow;
-13. automation.
+13. scheduled maintenance and policy-driven auto-refresh foundation;
+14. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

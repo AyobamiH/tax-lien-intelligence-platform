@@ -8,6 +8,9 @@ comparison page. Phase 7 adds a portfolio/status tracking surface for records
 promoted from scoring review or the watchlist. Phase 9 adds an in-app alerts
 surface for important scoring job outcomes. Phase 14 adds controlled refresh
 actions and scoring freshness/status visibility on the dataset detail surface.
+Phase 15 adds compact maintenance policy status so the page can distinguish
+manual-only refresh from policy-auto-refresh eligibility without showing raw
+scheduler internals.
 The frontend is no longer only a shell: it now authenticates against the API,
 lists the signed-in user's datasets, opens a dataset, triggers scoring, and
 renders scored records with flags and reasoning.
@@ -21,6 +24,7 @@ Implemented:
 - scoring action for a selected dataset;
 - controlled refresh action for an already scored dataset;
 - scoring/refresh status badge and stale-record count;
+- maintenance mode/message from `GET /datasets/:datasetId/scoring-status`;
 - scoring job completion message after a score run;
 - scored results table;
 - record detail surface with flags and reasoning;

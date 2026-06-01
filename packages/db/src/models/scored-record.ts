@@ -358,6 +358,7 @@ const scoredRecordSchema = new Schema<ScoredRecordRecord>(
 
 scoredRecordSchema.index({ userId: 1, datasetId: 1, sourceRowNumber: 1 }, { unique: true });
 scoredRecordSchema.index({ userId: 1, datasetId: 1, "score.investmentScore": -1 });
+scoredRecordSchema.index({ "enrichment.freshness.reprocessAfter": 1, userId: 1, datasetId: 1 });
 
 export const ScoredRecordModel: Model<ScoredRecordRecord> =
   mongoose.models.ScoredRecord ?? mongoose.model<ScoredRecordRecord>("ScoredRecord", scoredRecordSchema);

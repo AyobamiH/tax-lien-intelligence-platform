@@ -7,7 +7,9 @@ scoring. Phase 12 proved that boundary with one controlled external provider:
 the U.S. Census Geocoder. Phase 13 makes enrichment an explicit orchestration
 subsystem with adapter outcomes, deliberate fallback records, freshness
 metadata, and reprocessing readiness. Phase 14 adds the first controlled
-user-triggered refresh path on top of that readiness.
+user-triggered refresh path on top of that readiness. Phase 15 adds scheduled
+maintenance groundwork that can inspect freshness metadata and queue
+policy-gated refresh jobs when explicitly enabled.
 
 Implemented:
 
@@ -23,6 +25,9 @@ Implemented:
   version, and reprocess eligibility;
 - authenticated refresh/reprocessing requests that enqueue or reuse
   dataset-scoring jobs;
+- scheduled maintenance scanning of stale scored-record freshness metadata;
+- policy-gated `policy_refresh` jobs that are distinguishable from manual
+  refresh jobs;
 - persisted enrichment result embedded on scored records;
 - enrichment-aware scoring pipeline: source row -> normalization -> enrichment
   -> scoring -> scored record;
@@ -38,7 +43,8 @@ Not implemented:
 - county live integrations;
 - ML/AI enrichment;
 - enrichment scheduling;
-- automatic recurring refresh;
+- unlimited automatic recurring refresh;
+- unlimited autonomous refresh or broad sync;
 - enrichment-specific management UI or admin console.
 
 ## Boundary
@@ -144,6 +150,12 @@ a `dataset_scoring` job with `requestKind: "refresh"` or returns the already
 queued/running dataset job when one exists. The worker re-runs normalization,
 orchestration, enrichment, scoring, and persistence for the owned dataset. Job
 summaries include enrichment counts and earliest reprocess timing.
+
+Phase 15 uses `reprocessAfter` and `reprocessEligible` to find stale scored
+datasets through the worker scheduler. Scheduled maintenance queues
+`dataset_maintenance` jobs first; those jobs verify ownership and policy gates
+before creating any `policy_refresh` scoring job. The default server policy is
+manual-only.
 
 Refresh replaces the current scored-record set for the dataset by source row.
 Watchlist and portfolio records keep their denormalized decision snapshots; the

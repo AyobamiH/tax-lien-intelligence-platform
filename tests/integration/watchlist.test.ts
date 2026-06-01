@@ -14,6 +14,7 @@ import { InternalJobService } from "../../apps/api/src/jobs/internal-job-service
 import type {
   CreateScoredRecordInput,
   ScoredRecordStore,
+  StaleDatasetSummary,
   StoredScoredRecord,
 } from "../../apps/api/src/scoring/scored-record-store.js";
 import { ScoringService } from "../../apps/api/src/scoring/scoring-service.js";
@@ -144,6 +145,10 @@ class InMemoryScoredRecordStore implements ScoredRecordStore {
         .flat()
         .find((record) => record.id === scoredRecordId && record.userId === userId) ?? null
     );
+  }
+
+  public async listStaleDatasetSummaries(): Promise<StaleDatasetSummary[]> {
+    return [];
   }
 
   private key(userId: string, datasetId: string): string {

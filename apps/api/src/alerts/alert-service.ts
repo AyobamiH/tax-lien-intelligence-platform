@@ -48,7 +48,7 @@ export class AlertService implements JobAlertSink {
     }
 
     const scoredRecordCount = job.summary?.scoredRecordCount ?? 0;
-    const actionLabel = job.requestKind === "refresh" ? "Refresh" : "Scoring";
+    const actionLabel = jobActionLabel(job.requestKind);
     await this.createAlert({
       userId: job.userId,
       type: "scoring_job_completed",
@@ -74,7 +74,9 @@ export class AlertService implements JobAlertSink {
       userId: job.userId,
       type: "scoring_job_failed",
       severity: "error",
-      message: `${job.requestKind === "refresh" ? "Refresh" : "Scoring"} failed. ${job.error?.message ?? "The scoring job needs attention."}`,
+      message: `${jobActionLabel(job.requestKind)} failed. ${
+        job.error?.message ?? "The scoring job needs attention."
+      }`,
       relatedEntityType: "dataset",
       relatedEntityId: job.targetEntityId,
       metadata: {
@@ -114,6 +116,17 @@ export class AlertService implements JobAlertSink {
     return {
       updatedCount: await this.alertStore.markAllAlertsReadForUser(userId, new Date()),
     };
+  }
+}
+
+function jobActionLabel(requestKind: InternalJobRequestKind): string {
+  switch (requestKind) {
+    case "policy_refresh":
+      return "Scheduled refresh";
+    case "refresh":
+      return "Refresh";
+    default:
+      return "Scoring";
   }
 }
 

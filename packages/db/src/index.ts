@@ -35,6 +35,7 @@ export {
   type InternalJobSummaryRecord,
   type InternalJobTargetTypeRecord,
   type InternalJobTypeRecord,
+  type MaintenanceDecisionRecord,
 } from "./models/internal-job.js";
 export {
   PortfolioItemModel,

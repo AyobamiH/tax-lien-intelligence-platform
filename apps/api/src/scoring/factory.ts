@@ -3,6 +3,7 @@ import { createDefaultEnrichmentService } from "../enrichment/enrichment-service
 import { apiConfig } from "../config/env.js";
 import { createInternalJobService } from "../jobs/factory.js";
 import type { InternalJobService } from "../jobs/internal-job-service.js";
+import { createMaintenancePolicy } from "../maintenance/maintenance-policy.js";
 import { MongoScoredRecordStore } from "./scored-record-store.js";
 import { ScoringService } from "./scoring-service.js";
 
@@ -12,5 +13,6 @@ export function createScoringService(internalJobService: InternalJobService = cr
     new MongoScoredRecordStore(),
     internalJobService,
     createDefaultEnrichmentService(apiConfig.externalEnrichment),
+    createMaintenancePolicy(apiConfig.maintenance),
   );
 }

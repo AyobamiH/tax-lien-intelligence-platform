@@ -10,7 +10,7 @@ export interface AlertMetadataRecord {
   datasetId?: string;
   scoredRecordCount?: number;
   errorCode?: string;
-  requestKind?: "score" | "refresh";
+  requestKind?: "score" | "refresh" | "policy_refresh" | "maintenance_scan";
 }
 
 export interface AlertRecord {
@@ -35,7 +35,7 @@ const alertMetadataSchema = new Schema<AlertMetadataRecord>(
     datasetId: { type: String, trim: true },
     scoredRecordCount: { type: Number, min: 0 },
     errorCode: { type: String, trim: true, maxlength: 120 },
-    requestKind: { type: String, enum: ["score", "refresh"] },
+    requestKind: { type: String, enum: ["score", "refresh", "policy_refresh", "maintenance_scan"] },
   },
   {
     _id: false,

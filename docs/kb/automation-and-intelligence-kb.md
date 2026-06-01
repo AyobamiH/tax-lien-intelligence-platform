@@ -10,7 +10,7 @@ automation should support the core SaaS rather than become a separate product.
 
 Current implementation:
 
-- no automation;
+- no broad external automation;
 - no external background worker fleet;
 - no AI;
 - no ingestion pipeline;
@@ -26,15 +26,19 @@ Current implementation:
 - first internal enrichment adapter exists for uploaded source-row inference;
 - controlled user-triggered dataset refresh/reprocessing exists through the
   worker job boundary;
+- scheduled maintenance scans can create policy-gated maintenance jobs for stale
+  scored datasets;
+- policy auto-refresh exists only as an explicit server-side mode and is
+  manual-only by default;
 - no portfolio automation or external monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
 scoring foundation, manual review surface, watchlist shortlist, portfolio
 status tracking, automation-ready internal job records, in-app alerts, and a
 minimal worker/scheduler execution boundary. It also has enrichment
-orchestration and a controlled manual refresh workflow for dataset
-reprocessing. Product automation is still
-intentionally absent.
+orchestration, a controlled manual refresh workflow for dataset reprocessing,
+and scheduled maintenance groundwork with explicit policy gates. Broad product
+automation is still intentionally absent.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -83,7 +87,8 @@ Manual-first sequence:
 11. worker execution boundary;
 12. enrichment foundation;
 13. controlled refresh/reprocessing;
-14. then automation.
+14. scheduled maintenance policy groundwork;
+15. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -113,6 +118,8 @@ Current enrichment:
   re-enrichment;
 - exposes a manual refresh path that safely reruns enrichment/scoring through a
   dataset job;
+- exposes a scheduled maintenance path that can inspect stale freshness metadata
+  and queue policy refresh only when server policy allows it;
 - records safe external address/location context without raw provider payloads;
 - persists safe enrichment metadata on scored records;
 - improves scoring confidence when uploaded data is inconsistent.
@@ -205,20 +212,23 @@ Now:
 - source-row enrichment before scoring.
 - one opt-in external Census Geocoder enrichment path.
 - controlled refresh/reprocessing for user-owned datasets.
+- scheduled maintenance scans and policy-gated refresh creation.
 
 Later:
 
 - scheduled ingestion;
-- automatic recurring refresh;
+- user-facing refresh policy controls;
+- broader automatic recurring refresh;
 - additional external enrichment providers;
 - external alert delivery;
 - external worker orchestration;
 - portfolio automation;
 - AI or ML assistance.
 
-Internal jobs and the worker are not automation by themselves. They are the
-execution boundary that later automation can use safely. In-app alerts are
-visibility records, not delivery automation.
+Internal jobs, the worker, and scheduled maintenance scans are not full
+automation by themselves. They are the execution boundary and policy layer that
+later automation can use safely. In-app alerts are visibility records, not
+delivery automation.
 
 ## Security Expectations
 

@@ -3,10 +3,11 @@
 Phase 8 introduced automation-ready job plumbing. Phase 9 added in-app alerts
 from selected job outcomes. Phase 10 adds a dedicated local worker execution
 boundary and minimal scheduler foundation. Phase 14 adds controlled dataset
-refresh/reprocessing requests that reuse the same job boundary. The job layer
-still does not
-introduce product automation, external queue infrastructure, email/SMS delivery,
-external schedulers, ML/AI, or auction execution.
+refresh/reprocessing requests that reuse the same job boundary. Phase 15 adds
+scheduled maintenance job groundwork for stale dataset scanning and explicit
+policy-gated refresh creation. The job layer still does not introduce unlimited
+automation, external queue infrastructure, email/SMS delivery, external
+schedulers, ML/AI, or auction execution.
 
 The purpose is to move repeatable operations toward explicit, persisted,
 testable execution boundaries before future automation is added.
@@ -18,11 +19,16 @@ Implemented:
 - tenant-owned `InternalJob` Mongo model;
 - internal job store and service in `apps/api/src/jobs`;
 - authenticated `GET /jobs/:jobId` route;
-- `dataset_scoring` job type;
+- `dataset_scoring` and `dataset_maintenance` job types;
 - `dataset` target entity type;
-- request kind metadata: `score` or `refresh`;
+- request kind metadata: `score`, `refresh`, `policy_refresh`, or
+  `maintenance_scan`;
 - queued/running/completed/failed lifecycle;
 - duplicate-safe active job lookup for dataset refresh requests;
+- stale scored-record scanning for scheduled maintenance;
+- policy gates for manual-only refresh, active refresh suppression, recent
+  refresh suppression, and recent failure suppression;
+- safe maintenance summary metadata;
 - safe summary metadata;
 - safe error metadata;
 - dataset scoring routed through the job execution service;
@@ -30,7 +36,10 @@ Implemented:
 - worker-side job claiming for queued jobs;
 - dedicated worker entrypoint at `apps/api/src/worker.ts`;
 - minimal in-process scheduler module in `apps/api/src/scheduler`;
+- scheduler registration for `dataset-maintenance-scan`;
 - frontend polling of the score job status after a scoring request;
+- frontend visibility for manual-only versus policy auto-refresh maintenance
+  state on dataset scoring status;
 - integration and unit tests for lifecycle, success, failure, and cross-user
   job access.
 
@@ -39,6 +48,8 @@ Not implemented:
 - cron automation;
 - third-party queue infrastructure;
 - retries;
+- unlimited autonomous refresh;
+- provider-sprawl refresh policies;
 - external alert delivery;
 - additional worker job types for enrichment-only passes;
 - ML/AI;
@@ -89,6 +100,14 @@ Phase 14 refresh requests use the same job type with `requestKind: "refresh"`.
 When a dataset already has a queued/running scoring job, refresh returns the
 active job instead of creating duplicate work.
 
+Phase 15 scheduled maintenance uses `dataset_maintenance` with
+`requestKind: "maintenance_scan"`. The scheduler scans scored-record freshness
+metadata for stale datasets and queues at most one active maintenance job per
+dataset. The maintenance worker verifies the dataset still belongs to the job's
+user, checks stale record count and active scoring jobs, applies server-side
+policy, and only then may create a follow-on `dataset_scoring` job with
+`requestKind: "policy_refresh"`.
+
 The frontend keeps the review UX understandable by polling `GET /jobs/:jobId`
 and fetching scores after the worker marks the job completed.
 
@@ -101,6 +120,8 @@ The current boundary is:
 - internal job service: lifecycle persistence;
 - worker processor: claiming and executing supported queued jobs;
 - scheduler module: local timed task registration and polling loop;
+- maintenance service: stale dataset scanning and policy-gated refresh
+  decisions;
 - scoring package: pure scoring rules;
 - scored-record store: score persistence.
 
@@ -121,6 +142,9 @@ Current protections:
 - safe API errors for inaccessible jobs;
 - safe stored error metadata.
 - duplicate-safe refresh job reuse while a dataset job is queued or running.
+- scheduled maintenance jobs verify dataset ownership before making refresh
+  decisions.
+- policy-created refresh jobs are distinguishable from manual refresh jobs.
 
 Future protections needed before external automation:
 
@@ -141,6 +165,8 @@ Do not:
 - add retries without idempotency and test coverage.
 - add new worker job types without ownership and stale-reference tests.
 - create refresh loops or duplicate dataset jobs from repeated button clicks.
+- turn policy refresh into unbounded autonomous refresh without rate limits,
+  observability, and rollout controls.
 
 ## Update Rules
 

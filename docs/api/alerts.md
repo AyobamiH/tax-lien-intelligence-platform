@@ -10,6 +10,9 @@ Current alert sources:
 - dataset scoring job failed.
 - dataset refresh job completed or failed through the same scoring job alert
   types, with `requestKind: "refresh"` metadata.
+- policy-created dataset refresh job completed or failed through the same
+  scoring job alert types, with `requestKind: "policy_refresh"` metadata and a
+  "Scheduled refresh" user-facing label.
 
 ## Security Model
 
@@ -117,5 +120,6 @@ Possible alert errors:
 ## Current Limitations
 
 Alerts are currently in-app records only. There is no email delivery, SMS
-delivery, realtime websocket feed, external scheduler, delivery worker, or
-admin monitoring console.
+delivery, realtime websocket feed, external scheduler product, delivery worker,
+or admin monitoring console. Phase 15 scheduled maintenance can create
+policy-refresh scoring alerts, but it does not add external alert delivery.

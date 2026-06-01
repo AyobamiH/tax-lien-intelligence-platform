@@ -26,6 +26,14 @@ export interface CreateScoredRecordInput {
   scoredAt: Date;
 }
 
+export interface StaleDatasetSummary {
+  userId: string;
+  datasetId: string;
+  staleRecordCount: number;
+  earliestReprocessAfter: string;
+  latestScoredAt: Date;
+}
+
 export interface ScoredRecordStore {
   replaceScoresForDataset(
     userId: string,
@@ -34,6 +42,7 @@ export interface ScoredRecordStore {
   ): Promise<StoredScoredRecord[]>;
   listScoresForDataset(userId: string, datasetId: string): Promise<StoredScoredRecord[]>;
   findScoreByIdForUser(scoredRecordId: string, userId: string): Promise<StoredScoredRecord | null>;
+  listStaleDatasetSummaries(now: Date, limit: number): Promise<StaleDatasetSummary[]>;
 }
 
 export class MongoScoredRecordStore implements ScoredRecordStore {
@@ -93,6 +102,47 @@ export class MongoScoredRecordStore implements ScoredRecordStore {
   public async findScoreByIdForUser(scoredRecordId: string, userId: string): Promise<StoredScoredRecord | null> {
     const document = await ScoredRecordModel.findOne({ _id: scoredRecordId, userId }).exec();
     return document ? mapScoredRecord(document) : null;
+  }
+
+  public async listStaleDatasetSummaries(now: Date, limit: number): Promise<StaleDatasetSummary[]> {
+    const safeLimit = Math.max(1, Math.min(Math.floor(limit), 250));
+    const nowIso = now.toISOString();
+    const summaries = await ScoredRecordModel.aggregate<{
+      _id: { userId: string; datasetId: string };
+      staleRecordCount: number;
+      earliestReprocessAfter: string;
+      latestScoredAt: Date;
+    }>([
+      {
+        $match: {
+          $or: [
+            { "enrichment.freshness.reprocessEligible": true },
+            { "enrichment.freshness.reprocessAfter": { $lte: nowIso } },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: {
+            userId: "$userId",
+            datasetId: "$datasetId",
+          },
+          staleRecordCount: { $sum: 1 },
+          earliestReprocessAfter: { $min: "$enrichment.freshness.reprocessAfter" },
+          latestScoredAt: { $max: "$scoredAt" },
+        },
+      },
+      { $sort: { earliestReprocessAfter: 1, "_id.userId": 1, "_id.datasetId": 1 } },
+      { $limit: safeLimit },
+    ]).exec();
+
+    return summaries.map((summary) => ({
+      userId: summary._id.userId,
+      datasetId: summary._id.datasetId,
+      staleRecordCount: summary.staleRecordCount,
+      earliestReprocessAfter: summary.earliestReprocessAfter,
+      latestScoredAt: summary.latestScoredAt,
+    }));
   }
 }
 

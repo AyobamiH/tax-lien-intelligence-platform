@@ -21,6 +21,7 @@ It shows:
 - scoring action for a selected dataset;
 - controlled refresh action for a scored dataset;
 - scoring freshness/status badge and stale-record count;
+- maintenance mode and safe policy message for scored datasets;
 - scoring job queued/running/completed/failed status while the worker processes
   the selected dataset;
 - scored-results table;
@@ -99,6 +100,7 @@ Real workflows now present:
 - controlled refresh/reprocessing for a selected dataset;
 - visible scoring job completion state after a scoring run;
 - visible refresh requested/running/failed/completed state;
+- visible manual-only versus policy-auto-refresh maintenance state;
 - background scoring status polling after a scoring run is requested;
 - scored-record table;
 - record-level flags and reasoning review.
@@ -134,7 +136,8 @@ The current frontend cannot:
 - upload datasets through the browser;
 - upload files;
 - run automation.
-- run automatic recurring refresh.
+- configure scheduled maintenance policy.
+- run unlimited automatic recurring refresh.
 
 The current API cannot:
 
@@ -144,6 +147,7 @@ The current API cannot:
 - provide realtime worker status;
 - show external enrichment/provider verification;
 - perform broad scheduled refresh or sync;
+- expose a user-facing scheduler console;
 - manage collaboration or auction execution.
 
 ## Where The Current Surface Could Mislead Contributors

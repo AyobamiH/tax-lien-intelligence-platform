@@ -22,7 +22,8 @@ portfolio/status tracking foundation, automation-ready internal job plumbing,
 in-app alerts/monitoring foundation, and a background worker/scheduler
 groundwork layer. Phase 11 adds internal source-row enrichment before scoring.
 Phase 14 adds controlled dataset refresh/reprocessing on top of the job and
-enrichment foundations.
+enrichment foundations. Phase 15 adds bounded scheduled maintenance groundwork
+with explicit refresh policy gates.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio surfaces.
 
@@ -40,6 +41,8 @@ Current evidence:
   without adding external automation;
 - controlled refresh lets users deliberately rerun scoring/enrichment without
   creating autonomous automation;
+- scheduled maintenance can surface stale scoring state and, when explicitly
+  enabled by server policy, queue distinguishable policy refresh work;
 - internal enrichment improves uploaded-row interpretation without claiming
   external verification;
 - in-app alerts make scoring job outcomes visible without adding delivery
@@ -64,13 +67,16 @@ The intended product loop is:
 8. the user tracks decisions over time;
 9. the user sees important scoring outcomes in an in-app alert surface;
 10. the user can deliberately refresh stale or weak scoring/enrichment state.
+11. the system can identify stale scored datasets for bounded maintenance
+    review without becoming an unlimited automation product.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
 shortlisting, portfolio/status tracking, internal job plumbing, in-app alerts,
 worker-driven scoring execution, source-row enrichment, and controlled refresh
-exist. Browser CSV upload, external alert delivery, automatic recurring
-refresh, and richer automation remain future direction.
+exist. Bounded scheduled maintenance groundwork now exists. Browser CSV upload,
+external alert delivery, user-facing scheduler policy controls, broader
+automatic refresh, and richer automation remain future direction.
 
 ## What This SaaS Is Not
 

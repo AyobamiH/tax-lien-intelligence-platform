@@ -6,7 +6,9 @@ Phase 10 introduces the first background execution boundary for the platform.
 It moves dataset scoring from request-time execution to a worker-claimed job
 path while keeping automation deliberately narrow. Phase 14 adds a controlled
 refresh request path that reuses worker-claimed dataset scoring jobs rather than
-creating autonomous refresh automation.
+creating autonomous refresh automation. Phase 15 adds a scheduled maintenance
+task that can detect stale scored datasets and queue policy-gated maintenance
+jobs.
 
 This is groundwork. It is not an external automation product, distributed queue,
 cron platform, email/SMS delivery system, ML system, collaboration workflow, or
@@ -21,12 +23,19 @@ Implemented:
 - minimal scheduler in `apps/api/src/scheduler`;
 - queued-job claiming through the internal job store;
 - `dataset_scoring` execution in the worker path;
+- `dataset_maintenance` execution in the worker path;
 - safe completion/failure recording through the internal job service;
 - existing scoring completion/failure alerts preserved;
 - Phase 11/12/13 enrichment runs inside the scoring job before score generation
   and records safe enrichment summary/reprocess metadata;
 - Phase 14 refresh requests create or reuse `dataset_scoring` jobs with
   `requestKind: "refresh"`;
+- Phase 15 maintenance scans create `dataset_maintenance` jobs with
+  `requestKind: "maintenance_scan"`;
+- maintenance jobs may create `dataset_scoring` jobs with
+  `requestKind: "policy_refresh"` only when server policy allows it;
+- duplicate guards suppress active scoring/maintenance work, recent maintenance
+  runs, recent policy refreshes, and recent policy refresh failures;
 - frontend score status polling after the scoring trigger returns a queued job;
 - unit tests for job claiming and scheduler behavior;
 - integration tests for worker-driven scoring success, failure, and stale
@@ -37,6 +46,8 @@ Not implemented:
 - external scheduler or cron provider;
 - third-party queue infrastructure;
 - durable retry policy;
+- unlimited autonomous refresh;
+- user-facing scheduler configuration UI;
 - worker fleet coordination;
 - email/SMS/realtime delivery;
 - additional external enrichment providers beyond the opt-in Census Geocoder
@@ -88,6 +99,26 @@ Flow:
 8. worker marks the job completed or failed;
 9. alert service creates a safe in-app alert for the outcome.
 
+## First Scheduler-Driven Maintenance Task
+
+Phase 15 registers `dataset-maintenance-scan` in the worker scheduler. The task
+uses scored-record freshness metadata to find stale datasets up to the configured
+per-run cap. For each stale dataset, it queues a `dataset_maintenance` job only
+when there is no active maintenance job, no active scoring/refresh job, and no
+recent maintenance run inside the configured suppression windows.
+
+The maintenance job then:
+
+1. verifies the dataset still belongs to the job user;
+2. counts currently stale scored records;
+3. checks active dataset scoring jobs;
+4. checks recent policy refresh completion/failure timing;
+5. applies the server policy mode;
+6. either records a safe skip decision or queues a `policy_refresh` scoring job.
+
+This is policy-driven maintenance groundwork, not broad autonomous sync. The
+default policy is manual-only unless `MAINTENANCE_AUTO_REFRESH_ENABLED=true`.
+
 The client never sends trusted score values or job ownership fields.
 
 ## Scheduler Foundation
@@ -101,10 +132,12 @@ Phase 10 it is used to poll for queued jobs. It supports:
 - duplicate registration rejection;
 - basic in-process overlap prevention for the same task;
 - safe failed-task results.
+- a registered maintenance scan task when the worker process is running.
 
 This scheduler is not a cloud scheduler and should not be treated as durable
-automation. Future scheduled product behavior needs deployment planning,
-idempotency, visibility, and failure policy before launch.
+automation. Phase 15 uses it for bounded maintenance scans in the worker runtime.
+Future scheduled product behavior still needs deployment planning, idempotency,
+visibility, rate limits, rollout controls, and failure policy before launch.
 
 ## Security Notes
 
@@ -118,6 +151,8 @@ Rules:
 - raw CSV rows, stack traces, secrets, and another tenant's identifiers must not
   be exposed through job responses or alerts;
 - invalid or stale job targets must fail safely.
+- maintenance decisions must be safe summaries, not raw scheduler internals;
+- policy-created refresh jobs must be distinguishable from manual refresh jobs.
 
 Future deployed workers will need explicit environment and service credentials
 review. Phase 10 does not introduce separate worker credentials.
@@ -132,6 +167,7 @@ Do not:
 - add retries without idempotency tests;
 - expose raw worker logs to the browser;
 - create job types without ownership, stale-reference, and failure-path tests.
+- turn maintenance scans into unlimited refresh loops.
 
 ## Update Rules
 
