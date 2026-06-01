@@ -13,7 +13,8 @@ manual-only refresh from policy-auto-refresh eligibility without showing raw
 scheduler internals. Phase 17 adds browser dataset upload on the authenticated
 dataset surface, including import summary and county-adapter/fallback
 visibility after upload. Phase 18 adds import readiness status, field coverage,
-issues, and guidance on the upload/list/detail surfaces.
+issues, and guidance on the upload/list/detail surfaces. Phase 19 adds a
+focused manual mapping repair panel for datasets that are not ready.
 The frontend is no longer only a shell: it now authenticates against the API,
 uploads CSV datasets, lists the signed-in user's datasets, opens a dataset,
 triggers scoring, and renders scored records with flags and reasoning.
@@ -34,6 +35,7 @@ Implemented:
 - scoring/refresh status badge and stale-record count;
 - maintenance mode/message from `GET /datasets/:datasetId/scoring-status`;
 - dataset readiness badge and readiness panel from `DatasetResponse`;
+- focused manual mapping controls for critical import fields;
 - scoring job completion message after a score run;
 - scored results table;
 - record detail surface with flags and reasoning;
@@ -80,6 +82,8 @@ The frontend calls only the existing authenticated API routes:
 - `POST /datasets`;
 - `GET /datasets`;
 - `GET /datasets/:datasetId`;
+- `GET /datasets/:datasetId/mapping`;
+- `PATCH /datasets/:datasetId/mapping`;
 - `POST /datasets/:datasetId/score`;
 - `POST /datasets/:datasetId/refresh`;
 - `GET /datasets/:datasetId/scoring-status`;
@@ -148,6 +152,26 @@ This surface helps users spot weak imports before relying on scores. It is not a
 manual field-mapping editor, spreadsheet transformation tool, or broad county
 adapter management interface.
 
+## Manual Mapping Repair Surface
+
+The dataset detail readiness panel now exposes a focused repair form when the
+dataset is not ready or already has manual mappings.
+
+The form lets users map available source columns to:
+
+- parcel id;
+- lien amount;
+- estimated value;
+- property type;
+- address.
+
+Saving the form calls the authenticated dataset mapping API, receives the
+updated dataset response, and shows the re-evaluated readiness state. Existing
+scoring controls remain the way to run or refresh scoring after repair.
+
+The UI distinguishes manual mapping from automatic adapter mapping, but it does
+not provide row-by-row editing, data-grid transforms, or AI suggestions.
+
 ## Watchlist Surface
 
 The watchlist surface is comparison-oriented rather than decorative. It shows:
@@ -211,6 +235,7 @@ Authorization remains server-side:
 - refresh requests still depend on backend dataset ownership checks;
 - browser upload still depends on the backend file/type/size/parse guardrails;
 - import readiness display depends on backend-computed safe summaries;
+- manual mapping repair depends on backend validation and never sends `userId`;
 - auth failures clear the browser session;
 - user-owned data is not mocked into the UI.
 
@@ -234,6 +259,7 @@ Do not:
   verification.
 - treat readiness warnings as browser-generated truth or as a substitute for
   backend scoring and ownership checks.
+- turn manual mapping into a client-side source-row mutation system.
 
 ## Update Rules
 

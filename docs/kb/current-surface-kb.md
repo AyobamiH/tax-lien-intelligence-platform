@@ -24,6 +24,8 @@ It shows:
   Maricopa-style county import adapter;
 - dataset readiness status, field coverage, warnings, and guidance for uploaded
   datasets;
+- focused manual mapping repair controls for critical fields on not-ready
+  datasets;
 - scoring action for a selected dataset;
 - controlled refresh action for a scored dataset;
 - scoring freshness/status badge and stale-record count;
@@ -106,6 +108,7 @@ Real workflows now present:
 - dataset list/detail review for authenticated users;
 - safe county import/fallback summary visibility on dataset list/detail;
 - safe import readiness visibility on dataset list/detail;
+- manual mapping repair for key fields from dataset headers;
 - score triggering for a selected dataset;
 - controlled refresh/reprocessing for a selected dataset;
 - visible scoring job completion state after a scoring run;
@@ -120,6 +123,7 @@ Real workflows now present:
 - portfolio tracking and status updates.
 - in-app alert review for scoring completions and failures.
 - import readiness review before relying on score output.
+- focused import repair before rerunning readiness/scoring.
 
 Real workflows not present:
 
@@ -144,7 +148,8 @@ The visual system is early. It should not be treated as a complete design system
 The current frontend cannot:
 
 - batch upload multiple files;
-- manually remap CSV columns in the browser;
+- manually remap columns beyond the focused critical-field repair workflow;
+- edit individual row values or spreadsheet cells;
 - run automation.
 - configure scheduled maintenance policy.
 - run unlimited automatic recurring refresh.
@@ -160,7 +165,7 @@ The current API cannot:
 - perform broad scheduled refresh or sync;
 - expose a user-facing scheduler console;
 - provide broad county adapter coverage or scraping;
-- provide a spreadsheet transformation or manual field mapping workflow;
+- provide a full spreadsheet transformation workflow;
 - manage collaboration or auction execution.
 
 ## Where The Current Surface Could Mislead Contributors
@@ -180,8 +185,8 @@ broad county-specific import coverage exists. It does not. The current browser
 surface only exposes safe adapter/fallback summary metadata.
 
 The presence of readiness status could make contributors think manual mapping or
-data correction exists. It does not. Readiness is a read-only quality and
-scoring-recommendation summary.
+data correction exists. Focused manual mapping now exists, but it is limited to
+target-to-column repair metadata. It is not row editing or source data mutation.
 
 ## Security Implications
 
@@ -210,6 +215,10 @@ on user-provided labels.
 Dataset readiness summaries are backend-computed safe metadata. They must not
 become raw row previews, client-side scoring, or a substitute for server-side
 ownership checks.
+
+Dataset manual mappings are backend-validated safe metadata. They must not
+become arbitrary browser-side row transforms or a way to bypass scoring
+validation.
 
 ## Update Rules
 

@@ -1,6 +1,12 @@
 import type { DatasetDocument } from "@tax-lien/db";
 import { DatasetModel } from "@tax-lien/db";
-import type { DatasetImportSummary, DatasetReadinessSummary, DatasetValidationSummary } from "@tax-lien/types";
+import type {
+  DatasetImportSummary,
+  DatasetManualMappingSummary,
+  DatasetManualMappingTarget,
+  DatasetReadinessSummary,
+  DatasetValidationSummary,
+} from "@tax-lien/types";
 
 export interface StoredDataset {
   id: string;
@@ -16,6 +22,7 @@ export interface StoredDataset {
   validationSummary: DatasetValidationSummary;
   importSummary?: DatasetImportSummary;
   readinessSummary?: DatasetReadinessSummary;
+  manualMapping?: DatasetManualMappingSummary;
   uploadedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -39,6 +46,7 @@ export interface CreateDatasetInput {
   validationSummary: DatasetValidationSummary;
   importSummary?: DatasetImportSummary;
   readinessSummary?: DatasetReadinessSummary;
+  manualMapping?: DatasetManualMappingSummary;
   uploadedAt: Date;
 }
 
@@ -46,6 +54,12 @@ export interface DatasetStore {
   createDataset(input: CreateDatasetInput): Promise<StoredDataset>;
   listDatasets(userId: string): Promise<StoredDataset[]>;
   findDatasetByIdForUser(datasetId: string, userId: string): Promise<StoredDataset | null>;
+  updateManualMappingForUser(input: {
+    datasetId: string;
+    userId: string;
+    manualMapping: DatasetManualMappingSummary;
+    readinessSummary: DatasetReadinessSummary;
+  }): Promise<StoredDataset | null>;
 }
 
 function mapDataset(document: DatasetDocument): StoredDataset {
@@ -107,6 +121,21 @@ function mapDataset(document: DatasetDocument): StoredDataset {
           },
         }
       : {}),
+    ...(document.manualMapping
+      ? {
+          manualMapping: {
+            mappings: document.manualMapping.mappings.map((mapping) => ({
+              targetField: mapping.targetField,
+              sourceColumn: mapping.sourceColumn,
+              source: mapping.source,
+              updatedAt: mapping.updatedAt.toISOString(),
+            })),
+            ...(document.manualMapping.updatedAt
+              ? { updatedAt: document.manualMapping.updatedAt.toISOString() }
+              : {}),
+          },
+        }
+      : {}),
     uploadedAt: document.uploadedAt,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
@@ -121,17 +150,19 @@ function mapDataset(document: DatasetDocument): StoredDataset {
 
 export class MongoDatasetStore implements DatasetStore {
   public async createDataset(input: CreateDatasetInput): Promise<StoredDataset> {
+    const { importSummary, manualMapping, readinessSummary, validationSummary, ...datasetInput } = input;
     const document = await DatasetModel.create({
-      ...input,
+      ...datasetInput,
       validationSummary: {
-        totalRows: input.validationSummary.totalRows,
-        validRows: input.validationSummary.validRows,
-        invalidRows: input.validationSummary.invalidRows,
-        warnings: input.validationSummary.warnings,
-        errorMessages: input.validationSummary.errors,
+        totalRows: validationSummary.totalRows,
+        validRows: validationSummary.validRows,
+        invalidRows: validationSummary.invalidRows,
+        warnings: validationSummary.warnings,
+        errorMessages: validationSummary.errors,
       },
-      ...(input.importSummary ? { importSummary: input.importSummary } : {}),
-      ...(input.readinessSummary ? { readinessSummary: input.readinessSummary } : {}),
+      ...(importSummary ? { importSummary } : {}),
+      ...(readinessSummary ? { readinessSummary } : {}),
+      ...(manualMapping ? { manualMapping: toManualMappingRecord(manualMapping) } : {}),
     });
     return mapDataset(document);
   }
@@ -145,6 +176,26 @@ export class MongoDatasetStore implements DatasetStore {
     const document = await DatasetModel.findOne({ _id: datasetId, userId }).exec();
     return document ? mapDataset(document) : null;
   }
+
+  public async updateManualMappingForUser(input: {
+    datasetId: string;
+    userId: string;
+    manualMapping: DatasetManualMappingSummary;
+    readinessSummary: DatasetReadinessSummary;
+  }): Promise<StoredDataset | null> {
+    const document = await DatasetModel.findOneAndUpdate(
+      { _id: input.datasetId, userId: input.userId },
+      {
+        $set: {
+          manualMapping: toManualMappingRecord(input.manualMapping),
+          readinessSummary: input.readinessSummary,
+        },
+      },
+      { new: true, runValidators: true },
+    ).exec();
+
+    return document ? mapDataset(document) : null;
+  }
 }
 
 function normalizeStoredFields(fields: Record<string, string> | Map<string, string>): Record<string, string> {
@@ -153,4 +204,24 @@ function normalizeStoredFields(fields: Record<string, string> | Map<string, stri
   }
 
   return fields;
+}
+
+function toManualMappingRecord(manualMapping: DatasetManualMappingSummary): {
+  mappings: {
+    targetField: DatasetManualMappingTarget;
+    sourceColumn: string;
+    source: "manual";
+    updatedAt: Date;
+  }[];
+  updatedAt?: Date;
+} {
+  return {
+    mappings: manualMapping.mappings.map((mapping) => ({
+      targetField: mapping.targetField,
+      sourceColumn: mapping.sourceColumn,
+      source: mapping.source,
+      updatedAt: new Date(mapping.updatedAt),
+    })),
+    ...(manualMapping.updatedAt ? { updatedAt: new Date(manualMapping.updatedAt) } : {}),
+  };
 }

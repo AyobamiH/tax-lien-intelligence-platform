@@ -26,6 +26,7 @@ Current implementation:
 - dataset import summary visibility for generic fallback and the current
   Maricopa-style import adapter;
 - dataset readiness status, field coverage, issue, and guidance visibility;
+- manual mapping repair controls for critical not-ready import fields;
 - scored-results table;
 - record detail surface for flags and reasoning;
 - watchlist keep/remove actions;
@@ -66,6 +67,7 @@ Current and future page direction:
 - implemented: dataset list/review surface;
 - implemented: browser dataset upload form on the dataset surface;
 - implemented: import readiness guidance on upload/list/detail surfaces;
+- implemented: focused manual mapping repair panel on dataset detail;
 - implemented: dataset detail review route;
 - implemented: scored records table;
 - implemented: record detail reasoning surface;
@@ -99,6 +101,8 @@ Implemented upload surface:
 - returns them;
 - show safe readiness status, field coverage, and issue guidance returned by
   the backend;
+- allow focused target-to-column repair for critical fields when readiness is
+  weak, partial, or blocked;
 - navigate into dataset review after a successful upload;
 - prevent upload confusion;
 - make weak or blocked imports visible before the user relies on scoring;
@@ -230,7 +234,8 @@ repo truth:
 - do not imply batch upload, external alert delivery, or automation workflows
   exist before they are wired to backend contracts;
 - do not imply one county adapter means broad county import support;
-- do not imply readiness status means a user can manually remap fields yet;
+- do not imply readiness status means every field can be remapped or edited;
+- do not imply manual mapping is row-by-row editing or broad import automation;
 - do not bypass shared API contracts;
 - do not change product positioning away from decision support.
 
@@ -247,6 +252,7 @@ Future frontend work must:
 - handle auth errors cleanly;
 - avoid rendering unescaped uploaded data;
 - avoid treating readiness summaries as client-generated scoring truth;
+- avoid mutating source rows in the browser when saving manual mapping;
 - avoid leaking another user's records through cache or state reuse;
 - avoid displaying internal server stack traces.
 

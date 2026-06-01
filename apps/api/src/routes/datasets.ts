@@ -1,6 +1,8 @@
 import multer from "multer";
 import { Router } from "express";
+import { z } from "zod";
 import type { AuthService } from "../auth/auth-service.js";
+import { parseRequestBody } from "../auth/validation.js";
 import { maxDatasetUploadBytes } from "../datasets/csv-parser.js";
 import type { DatasetService } from "../datasets/dataset-service.js";
 import { ApiError } from "../errors/api-error.js";
@@ -12,6 +14,10 @@ const upload = multer({
     fileSize: maxDatasetUploadBytes,
     files: 1,
   },
+});
+
+const saveManualMappingSchema = z.object({
+  mappings: z.record(z.string(), z.string().max(255).nullable()),
 });
 
 export function createDatasetRouter(authService: AuthService, datasetService: DatasetService): Router {
@@ -64,6 +70,48 @@ export function createDatasetRouter(authService: AuthService, datasetService: Da
       }
 
       response.status(200).json(await datasetService.getDatasetForUser(datasetId, request.auth.userId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/:datasetId/mapping", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      const datasetId = request.params.datasetId;
+      if (typeof datasetId !== "string") {
+        throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
+      }
+
+      response.status(200).json(await datasetService.getManualMappingContext(datasetId, request.auth.userId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.patch("/:datasetId/mapping", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      const datasetId = request.params.datasetId;
+      if (typeof datasetId !== "string") {
+        throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
+      }
+
+      const payload = parseRequestBody(saveManualMappingSchema, request.body);
+
+      response.status(200).json(
+        await datasetService.saveManualMapping({
+          datasetId,
+          userId: request.auth.userId,
+          mappings: payload.mappings,
+        }),
+      );
     } catch (error) {
       next(error);
     }

@@ -79,6 +79,7 @@ class InMemoryDatasetStore implements DatasetStore {
       validationSummary: input.validationSummary,
       ...(input.importSummary ? { importSummary: input.importSummary } : {}),
       ...(input.readinessSummary ? { readinessSummary: input.readinessSummary } : {}),
+      ...(input.manualMapping ? { manualMapping: input.manualMapping } : {}),
       uploadedAt: input.uploadedAt,
       createdAt: now,
       updatedAt: now,
@@ -90,6 +91,28 @@ class InMemoryDatasetStore implements DatasetStore {
 
     this.datasetsById.set(dataset.id, dataset);
     return dataset;
+  }
+
+  public async updateManualMappingForUser(input: {
+    datasetId: string;
+    userId: string;
+    manualMapping: NonNullable<StoredDataset["manualMapping"]>;
+    readinessSummary: NonNullable<StoredDataset["readinessSummary"]>;
+  }): Promise<StoredDataset | null> {
+    const dataset = this.datasetsById.get(input.datasetId);
+    if (!dataset || dataset.userId !== input.userId) {
+      return null;
+    }
+
+    const updatedDataset: StoredDataset = {
+      ...dataset,
+      manualMapping: input.manualMapping,
+      readinessSummary: input.readinessSummary,
+      updatedAt: new Date(),
+    };
+
+    this.datasetsById.set(updatedDataset.id, updatedDataset);
+    return updatedDataset;
   }
 
   public async listDatasets(userId: string): Promise<StoredDataset[]> {
@@ -375,6 +398,47 @@ describe("dataset scoring API", () => {
       estimatedValue: 12000,
       propertyTypeCategory: "residential",
     });
+  });
+
+  it("uses saved manual mappings when worker scoring runs", async () => {
+    const { app, workerProcessor } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "Property Number,Tax Balance,County Value,Use Description\nA-100,1000,12000,Single-family residential\n",
+    );
+
+    await request(app)
+      .patch(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({
+        mappings: {
+          parcel_id: "Property Number",
+          lien_amount: "Tax Balance",
+          estimated_value: "County Value",
+          property_type: "Use Description",
+        },
+      })
+      .expect(200);
+
+    await request(app).post(`/datasets/${datasetId}/score`).set("Authorization", `Bearer ${owner.token}`).expect(202);
+    await workerProcessor.processNextJob();
+
+    const response = await request(app)
+      .get(`/datasets/${datasetId}/scores`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(response.body.scores).toHaveLength(1);
+    expect(response.body.scores[0].normalizedFields).toMatchObject({
+      parcelId: "A-100",
+      lienAmount: 1000,
+      estimatedValue: 12000,
+      propertyType: "Single-family residential",
+      propertyTypeCategory: "residential",
+    });
+    expect(response.body.scores[0].confidenceScore).toBeGreaterThan(70);
   });
 
   it("rejects scoring without authentication", async () => {

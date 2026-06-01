@@ -35,6 +35,7 @@ Current implementation:
 - browser upload exists for authenticated single CSV imports;
 - import readiness summaries exist to show weak/blocked imports before users
   rely on scoring or future automation;
+- focused manual mapping repair exists for critical source-column mapping;
 - no portfolio automation or external monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
@@ -47,7 +48,8 @@ automation is still intentionally absent. Phase 16 adds a deterministic
 county-import boundary for one Maricopa-style CSV path, and Phase 17 exposes
 manual browser upload, but neither adds broad county sync, scraping, or
 automated ingestion. Phase 18 adds readiness visibility for uploaded data, but
-it is still manual-first guidance, not automated field mapping.
+it is still manual-first guidance, not automated field mapping. Phase 19 adds
+human-controlled repair mapping, but it is still not automated import tooling.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -99,7 +101,8 @@ Manual-first sequence:
 14. scheduled maintenance policy groundwork;
 15. county import adapter boundary;
 16. import readiness and scoring-suitability visibility;
-17. then broader automation.
+17. focused manual mapping repair;
+18. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -119,7 +122,8 @@ headers into canonical internal fields before scoring. All other uploads fall
 back to generic CSV handling.
 
 Broader ingestion automation should not begin before CSV upload, validation,
-deterministic adapter behavior, and readiness visibility are solid.
+deterministic adapter behavior, readiness visibility, and focused repair mapping
+are solid.
 
 ## Enrichment Foundation
 
@@ -236,12 +240,14 @@ Now:
 - browser upload for one CSV at a time.
 - import readiness summaries for field coverage, warnings, and scoring
   recommendation.
+- focused manual mapping repair for critical fields.
 
 Later:
 
 - scheduled ingestion;
 - batch upload if product demand justifies it;
 - additional county adapters after deterministic mapping tests;
+- mapping templates after manual repair behavior is proven;
 - user-facing refresh policy controls;
 - broader automatic recurring refresh;
 - additional external enrichment providers;

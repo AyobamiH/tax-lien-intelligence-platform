@@ -32,6 +32,13 @@ Current shared types in `packages/types`:
 - `DatasetReadinessFieldCoverage`;
 - `DatasetReadinessIssue`;
 - `DatasetReadinessSummary`;
+- `DatasetManualMappingTarget`;
+- `DatasetManualMappingSource`;
+- `DatasetManualMappingEntry`;
+- `DatasetManualMappingSummary`;
+- `SaveDatasetManualMappingRequest`;
+- `DatasetManualMappingContextResponse`;
+- `SaveDatasetManualMappingResponse`;
 - `DatasetValidationSummary`;
 - `DatasetResponse`;
 - `DatasetListResponse`;
@@ -176,6 +183,7 @@ Current dataset contracts include:
 - headers;
 - import summary;
 - readiness summary;
+- manual mapping summary;
 - validation summary;
 - upload and created/updated timestamps.
 
@@ -228,6 +236,26 @@ readiness fields, or treat readiness as a manual field-mapping result.
 
 Readiness summaries must not expose raw source rows, uploaded file contents,
 parser internals, stack traces, or another tenant's data.
+
+## Dataset Manual Mapping Contract
+
+Phase 19 adds `DatasetManualMappingSummary` to `DatasetResponse` and mapping
+context/save responses.
+
+Manual mapping contracts include:
+
+- supported target field;
+- source column name from the dataset headers;
+- source marker: `manual`;
+- update timestamp.
+
+The save request accepts a partial record of target fields to source columns or
+`null` to clear a mapping. The backend validates target fields and source
+columns; the frontend must not send `userId`, raw row values, or trusted score
+values.
+
+Manual mappings are repair metadata. They do not represent rewritten source
+rows, row-level edits, or a broad spreadsheet transformation contract.
 
 ## Parcel Object Direction
 
@@ -466,6 +494,8 @@ possible or explicitly versioned.
   county verification.
 - Do not let readiness summaries imply manual field mapping or final scoring
   confidence.
+- Do not let manual mapping contracts expand into arbitrary row mutation without
+  a separate domain/security phase.
 
 ## Security Contract Rules
 

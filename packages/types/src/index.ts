@@ -47,6 +47,8 @@ export type DatasetImportConfidence = "low" | "medium" | "high";
 export type DatasetReadinessStatus = "ready" | "partial" | "weak" | "blocked";
 export type DatasetReadinessIssueSeverity = "info" | "warning" | "error";
 export type DatasetReadinessFieldName = "parcel_id" | "lien_amount" | "estimated_value" | "property_type" | "address";
+export type DatasetManualMappingTarget = DatasetReadinessFieldName;
+export type DatasetManualMappingSource = "manual";
 
 export interface DatasetValidationSummary {
   totalRows: number;
@@ -92,6 +94,18 @@ export interface DatasetReadinessSummary {
   guidance: string[];
 }
 
+export interface DatasetManualMappingEntry {
+  targetField: DatasetManualMappingTarget;
+  sourceColumn: string;
+  source: DatasetManualMappingSource;
+  updatedAt: string;
+}
+
+export interface DatasetManualMappingSummary {
+  mappings: DatasetManualMappingEntry[];
+  updatedAt?: string;
+}
+
 export interface DatasetResponse {
   id: string;
   originalFilename: string;
@@ -104,6 +118,7 @@ export interface DatasetResponse {
   validationSummary: DatasetValidationSummary;
   importSummary: DatasetImportSummary;
   readinessSummary: DatasetReadinessSummary;
+  manualMapping: DatasetManualMappingSummary;
   uploadedAt: string;
   createdAt: string;
   updatedAt: string;
@@ -116,6 +131,18 @@ export interface DatasetListResponse {
 export interface DatasetDetailResponse {
   dataset: DatasetResponse;
 }
+
+export type SaveDatasetManualMappingRequest = {
+  mappings: Partial<Record<DatasetManualMappingTarget, string | null>>;
+};
+
+export interface DatasetManualMappingContextResponse {
+  dataset: DatasetResponse;
+  availableColumns: string[];
+  manualMapping: DatasetManualMappingSummary;
+}
+
+export type SaveDatasetManualMappingResponse = DatasetManualMappingContextResponse;
 
 export type PropertyTypeCategory = "residential" | "multifamily" | "commercial" | "land" | "unknown";
 

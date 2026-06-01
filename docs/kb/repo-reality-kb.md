@@ -77,6 +77,8 @@ Implemented today:
 - safe dataset import summary metadata for matched and fallback imports;
 - dataset readiness summary with field coverage, issues, score, recommendation,
   and guidance;
+- dataset-specific manual mapping summary for critical-field import repair;
+- authenticated manual mapping context/save endpoints;
 - dataset ownership tests;
 - internal dataset source row persistence for scoring;
 - scored-record model in `packages/db`;
@@ -122,6 +124,7 @@ Implemented today:
 - frontend import summary visibility immediately after upload;
 - frontend import readiness status and issue visibility after upload and on
   dataset detail;
+- frontend manual mapping repair panel for not-ready datasets;
 - authenticated dataset list/detail review UI;
 - frontend score triggering;
 - frontend controlled refresh action and scoring freshness/status display;
@@ -168,8 +171,8 @@ Placeholders today:
 - `scripts/ingestion` has only a README.
 - Broad county-specific parcel/lien normalization does not exist yet.
 - Only one county import adapter exists, and it targets Maricopa-style CSVs.
-- No manual field-mapping editor exists; Phase 18 only reports import
-  readiness and issues.
+- Focused manual mapping exists for critical fields only; no full spreadsheet
+  editor or row-by-row repair system exists.
 - Broad external enrichment provider coverage does not exist yet.
 - Unlimited autonomous refresh does not exist yet.
 - User-facing scheduler configuration does not exist yet.
@@ -275,7 +278,8 @@ Do not assume:
 - the Maricopa-style adapter means broad county support exists;
 - source labels or filenames prove county identity;
 - browser upload supports batch imports or live county sync;
-- readiness summaries mean a dataset was manually remapped or corrected.
+- readiness summaries mean a dataset was manually remapped or corrected;
+- manual mapping means source rows were overwritten.
 
 ## Security Notes
 
@@ -298,6 +302,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
   safe summary metadata rather than raw source rows.
 - import readiness summaries are backend-computed and expose safe coverage,
   issue, and guidance metadata rather than raw rows or parser internals.
+- manual mappings are tenant-owned dataset metadata and are applied as a
+  derived overlay rather than source-row mutation.
 - tenant-owned scored-record and watchlist item records are implemented.
 - tenant-owned portfolio item records are implemented.
 - tenant-owned parcel records are not yet implemented.
@@ -324,6 +330,8 @@ Repo drift risks:
 - describing in-app alerts as external notification delivery.
 - describing import readiness as manual field mapping, broad county support, or
   proof that scoring quality is final.
+- describing focused manual mapping as a full spreadsheet editor or county
+  import automation.
 
 ## Update Rules
 

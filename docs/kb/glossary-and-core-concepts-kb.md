@@ -10,10 +10,11 @@ and implementation discussions consistent.
 A multi-tenant SaaS intended to turn tax lien and parcel datasets into structured
 investment decision support.
 
-Current status: auth, dataset upload, import readiness, first-pass scoring,
-browser score review, watchlists, portfolio/status tracking, and one county
-import adapter boundary are implemented. Browser upload for single CSV imports
-is implemented. Broad county coverage and automation remain future work.
+Current status: auth, dataset upload, import readiness, focused manual mapping
+repair, first-pass scoring, browser score review, watchlists,
+portfolio/status tracking, and one county import adapter boundary are
+implemented. Browser upload for single CSV imports is implemented. Broad county
+coverage and automation remain future work.
 
 ## Multi-Tenant SaaS
 
@@ -50,6 +51,13 @@ fields are ready, partial, weak, or blocked for scoring review. It includes
 field coverage, issue severity, guidance, and a scoring recommendation. It is
 not a manual mapping editor, row correction workflow, or final underwriting
 confidence score.
+
+## Manual Mapping
+
+Dataset-owned repair metadata that maps a supported canonical target field to a
+source column from the uploaded CSV headers. Current manual mapping is limited
+to parcel id, lien amount, estimated value, property type, and address. It does
+not rewrite source rows or edit individual cells.
 
 ## Parcel
 

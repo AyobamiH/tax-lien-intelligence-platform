@@ -8,6 +8,8 @@ export type DatasetImportConfidenceRecord = "low" | "medium" | "high";
 export type DatasetReadinessStatusRecord = "ready" | "partial" | "weak" | "blocked";
 export type DatasetReadinessIssueSeverityRecord = "info" | "warning" | "error";
 export type DatasetReadinessFieldNameRecord = "parcel_id" | "lien_amount" | "estimated_value" | "property_type" | "address";
+export type DatasetManualMappingTargetRecord = DatasetReadinessFieldNameRecord;
+export type DatasetManualMappingSourceRecord = "manual";
 
 export interface DatasetValidationSummaryRecord {
   totalRows: number;
@@ -58,6 +60,18 @@ export interface DatasetReadinessSummaryRecord {
   guidance: string[];
 }
 
+export interface DatasetManualMappingEntryRecord {
+  targetField: DatasetManualMappingTargetRecord;
+  sourceColumn: string;
+  source: DatasetManualMappingSourceRecord;
+  updatedAt: Date;
+}
+
+export interface DatasetManualMappingSummaryRecord {
+  mappings: DatasetManualMappingEntryRecord[];
+  updatedAt?: Date;
+}
+
 export interface DatasetRecord {
   userId: string;
   originalFilename: string;
@@ -71,6 +85,7 @@ export interface DatasetRecord {
   validationSummary: DatasetValidationSummaryRecord;
   importSummary?: DatasetImportSummaryRecord;
   readinessSummary?: DatasetReadinessSummaryRecord;
+  manualMapping?: DatasetManualMappingSummaryRecord;
   uploadedAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -231,6 +246,52 @@ const datasetReadinessSummarySchema = new Schema<DatasetReadinessSummaryRecord>(
   },
 );
 
+const datasetManualMappingEntrySchema = new Schema<DatasetManualMappingEntryRecord>(
+  {
+    targetField: {
+      type: String,
+      enum: ["parcel_id", "lien_amount", "estimated_value", "property_type", "address"],
+      required: true,
+    },
+    sourceColumn: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 255,
+    },
+    source: {
+      type: String,
+      enum: ["manual"],
+      required: true,
+    },
+    updatedAt: {
+      type: Date,
+      required: true,
+    },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
+const datasetManualMappingSummarySchema = new Schema<DatasetManualMappingSummaryRecord>(
+  {
+    mappings: {
+      type: [datasetManualMappingEntrySchema],
+      required: true,
+      default: [],
+    },
+    updatedAt: {
+      type: Date,
+    },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
 const datasetSchema = new Schema<DatasetRecord>(
   {
     userId: {
@@ -289,6 +350,9 @@ const datasetSchema = new Schema<DatasetRecord>(
     },
     readinessSummary: {
       type: datasetReadinessSummarySchema,
+    },
+    manualMapping: {
+      type: datasetManualMappingSummarySchema,
     },
     uploadedAt: {
       type: Date,

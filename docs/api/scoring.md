@@ -11,6 +11,8 @@ authenticated user.
 - The client cannot submit trusted score values.
 - Scored records are derived server-side from stored dataset source rows after
   normalization and enrichment.
+- If a dataset has manual mappings, the worker applies them as a derived overlay
+  before normalization. Stored source rows are not rewritten.
 - Cross-user access returns `dataset_not_found` rather than revealing another
   user's dataset exists.
 - Scoring explanations are user-visible summaries, not raw processing internals.

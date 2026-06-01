@@ -583,6 +583,33 @@ Phase 18 does not include:
 - collaboration;
 - auction execution.
 
+## Phase 19: Manual Mapping And Import Repair Workflow
+
+Current status: implemented as focused critical-field repair, not spreadsheet
+editing.
+
+Phase 19 includes:
+
+- dataset-owned manual mapping metadata;
+- authenticated mapping context and save endpoints;
+- validation for supported target fields and existing source columns;
+- readiness re-evaluation after mapping changes;
+- scoring path support for manual mapping overlays;
+- frontend repair panel for not-ready datasets;
+- tests for valid mappings, invalid targets, invalid columns, cross-user
+  rejection, and scoring with repaired mappings;
+- docs.
+
+Phase 19 does not include:
+
+- full spreadsheet editor;
+- row-by-row editing;
+- ML/AI mapping suggestions;
+- broad county adapter expansion;
+- live county sync;
+- collaboration;
+- auction execution.
+
 ## Later Phases
 
 Later phases may include:
@@ -590,6 +617,7 @@ Later phases may include:
 - notes and decision history;
 - richer filtering;
 - import templates;
+- richer mapping templates;
 - additional county import adapters after deterministic mapping tests;
 - richer enrichment adapters;
 - external enrichment provider hardening;
@@ -622,7 +650,8 @@ Dependency order matters:
 14. county import adapter foundation;
 15. browser upload and import workflow;
 16. import validation and scoring-readiness workflow;
-17. broader automation.
+17. manual mapping and import repair workflow;
+18. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 
@@ -660,6 +689,8 @@ Before heavy automation:
   source before automating it;
 - import readiness should make weak or blocked datasets visible before broader
   automation depends on them;
+- focused manual mapping should prove critical-field repair before broad import
+  tooling or automation expands;
 - job ownership and logging patterns must be designed;
 - rate limits and failure handling must exist.
 

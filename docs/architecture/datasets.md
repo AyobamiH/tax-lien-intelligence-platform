@@ -23,6 +23,8 @@ Implemented:
 - internal source row persistence for later scoring;
 - dataset readiness summary with canonical field coverage, issues, scoring
   recommendation, and user-facing guidance;
+- dataset-specific manual mapping summary for focused import repair;
+- authenticated manual mapping context/save endpoints;
 - dataset integration tests for ownership and upload failures.
 
 Not implemented:
@@ -51,6 +53,7 @@ Stored concepts:
 - `validationSummary`;
 - `importSummary`;
 - `readinessSummary`;
+- `manualMapping`;
 - `uploadedAt`;
 - timestamps.
 
@@ -157,6 +160,30 @@ Readiness does not create a manual field-mapping editor. It also does not imply
 the current adapter catalog covers broad county formats. It is a visibility and
 trust layer over the import result.
 
+## Manual Mapping Repair Boundary
+
+Phase 19 adds a focused import repair workflow for critical scoring fields.
+
+The backend stores dataset-specific manual mappings that connect known source
+columns to canonical internal targets:
+
+- `parcel_id`;
+- `lien_amount`;
+- `estimated_value`;
+- `property_type`;
+- `address`.
+
+Mappings are tenant-owned through the dataset. The API validates that target
+fields are supported, that source columns exist in the dataset headers, and that
+one source column is not mapped to multiple target fields in a single request.
+
+Manual mappings are applied as a derived overlay when readiness and scoring run.
+Stored source rows are not rewritten. This preserves source truth while allowing
+the user to repair weak or blocked imports.
+
+Manual mapping is not a full spreadsheet editor, arbitrary row mutation,
+ML/AI field suggestion system, or broad county adapter substitute.
+
 ## Dependency Decision
 
 `multer` is used as the minimal multipart upload middleware for Express.
@@ -182,19 +209,19 @@ Remaining hardening:
 - raw file persistence strategy if needed later;
 - richer normalized row validation;
 - additional county adapters only after deterministic mapping tests;
-- manual field mapping only after the read-only readiness workflow proves where
-  users need intervention;
+- richer import tooling only after the focused manual mapping repair workflow
+  proves where users need more control;
 - duplicate parcel handling after parcel identity exists;
 - audit logging;
 - antivirus/malware scanning if larger or persisted files are introduced.
 
 ## Drift Risks
 
-Do not treat Phase 3, Phase 16, Phase 17, or Phase 18 as full ingestion
-automation. The repo now stores dataset metadata, validation summary, import
-summary, readiness summary, and internal source rows, and the browser can upload
-one CSV at a time. One county-specific adapter exists; broad county-specific
-normalization remains a future layer.
+Do not treat Phase 3, Phase 16, Phase 17, Phase 18, or Phase 19 as full
+ingestion automation. The repo now stores dataset metadata, validation summary,
+import summary, readiness summary, manual mapping summary, and internal source
+rows, and the browser can upload one CSV at a time. One county-specific adapter
+exists; broad county-specific normalization remains a future layer.
 
 Do not add scoring into upload handlers.
 
@@ -204,5 +231,8 @@ Do not treat a user source label as county proof.
 
 Do not turn readiness issues into client-side authorization or fake scoring
 results. Readiness guides review; server-side scoring still owns score output.
+
+Do not turn manual mapping into row-by-row data editing. It is target-to-column
+repair metadata only.
 
 Do not add background jobs before manual upload and validation are reliable.

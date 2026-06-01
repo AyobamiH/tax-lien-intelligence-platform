@@ -13,6 +13,7 @@ import {
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
   datasetImportPresentation,
+  datasetNeedsImportRepair,
   datasetReadinessClassName,
   datasetReadinessLabel,
   datasetReadinessPresentation,
@@ -23,6 +24,8 @@ import {
   formatMoney,
   formatPercent,
   formatRatio,
+  manualMappingByTarget,
+  manualMappingTargetPresentations,
   primaryRecordLabel,
   portfolioStatusClassName,
   portfolioStatusLabel,
@@ -201,6 +204,9 @@ function datasetResponse(overrides: Partial<DatasetResponse>): DatasetResponse {
         },
       ],
       guidance: ["Scoring is possible, but review warnings before trusting rankings."],
+    },
+    manualMapping: {
+      mappings: [],
     },
     uploadedAt: "2026-05-25T00:00:00.000Z",
     createdAt: "2026-05-25T00:00:00.000Z",
@@ -465,5 +471,40 @@ describe("review model helpers", () => {
       "missing_estimated_value",
       "missing_property_type",
     ]);
+    expect(datasetNeedsImportRepair(dataset)).toBe(true);
+  });
+
+  it("summarizes manual mapping state for repair surfaces", () => {
+    const dataset = datasetResponse({
+      readinessSummary: {
+        status: "ready",
+        score: 95,
+        scoringRecommended: true,
+        fieldCoverage: [],
+        issues: [],
+        guidance: ["Import quality is strong enough for scoring review."],
+      },
+      manualMapping: {
+        updatedAt: "2026-06-01T00:00:00.000Z",
+        mappings: [
+          {
+            targetField: "lien_amount",
+            sourceColumn: "Tax Balance",
+            source: "manual",
+            updatedAt: "2026-06-01T00:00:00.000Z",
+          },
+        ],
+      },
+    });
+
+    expect(manualMappingTargetPresentations.map((target) => target.targetField)).toEqual([
+      "parcel_id",
+      "lien_amount",
+      "estimated_value",
+      "property_type",
+      "address",
+    ]);
+    expect(manualMappingByTarget(dataset).get("lien_amount")?.sourceColumn).toBe("Tax Balance");
+    expect(datasetNeedsImportRepair(dataset)).toBe(false);
   });
 });

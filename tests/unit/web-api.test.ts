@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiClientError, createDataset } from "../../apps/web/src/api.js";
+import { ApiClientError, createDataset, saveDatasetManualMapping } from "../../apps/web/src/api.js";
 
 const originalFetch = globalThis.fetch;
 
@@ -62,6 +62,9 @@ describe("web API client", () => {
           issues: [],
           guidance: ["Import quality is strong enough for scoring review."],
         },
+        manualMapping: {
+          mappings: [],
+        },
         uploadedAt: "2026-06-01T00:00:00.000Z",
         createdAt: "2026-06-01T00:00:00.000Z",
         updatedAt: "2026-06-01T00:00:00.000Z",
@@ -114,6 +117,97 @@ describe("web API client", () => {
       status: 400,
       code: "dataset_upload_too_large",
       message: "CSV upload cannot exceed 1 MiB.",
+    });
+  });
+
+  it("saves manual dataset mappings with bearer auth", async () => {
+    const responsePayload = {
+      dataset: {
+        id: "dataset-1",
+        originalFilename: "county.csv",
+        sourceType: "manual_csv",
+        status: "validated",
+        rowCount: 1,
+        columnCount: 2,
+        headers: ["Tax Balance", "County Value"],
+        validationSummary: {
+          totalRows: 1,
+          validRows: 1,
+          invalidRows: 0,
+          warnings: [],
+          errors: [],
+        },
+        importSummary: {
+          adapterMatched: false,
+          adapterId: "generic_csv",
+          adapterName: "Generic CSV normalization",
+          source: "generic_csv",
+          confidence: "low",
+          fallbackUsed: true,
+          mappedFields: [],
+          warnings: [],
+        },
+        readinessSummary: {
+          status: "partial",
+          score: 55,
+          scoringRecommended: true,
+          fieldCoverage: [],
+          issues: [],
+          guidance: [],
+        },
+        manualMapping: {
+          updatedAt: "2026-06-01T00:00:00.000Z",
+          mappings: [
+            {
+              targetField: "lien_amount",
+              sourceColumn: "Tax Balance",
+              source: "manual",
+              updatedAt: "2026-06-01T00:00:00.000Z",
+            },
+          ],
+        },
+        uploadedAt: "2026-06-01T00:00:00.000Z",
+        createdAt: "2026-06-01T00:00:00.000Z",
+        updatedAt: "2026-06-01T00:00:00.000Z",
+      },
+      availableColumns: ["Tax Balance", "County Value"],
+      manualMapping: {
+        updatedAt: "2026-06-01T00:00:00.000Z",
+        mappings: [
+          {
+            targetField: "lien_amount",
+            sourceColumn: "Tax Balance",
+            source: "manual",
+            updatedAt: "2026-06-01T00:00:00.000Z",
+          },
+        ],
+      },
+    };
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(responsePayload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+
+    const result = await saveDatasetManualMapping("test-token", "dataset-1", {
+      mappings: {
+        lien_amount: "Tax Balance",
+        estimated_value: "County Value",
+      },
+    });
+
+    expect(result).toEqual(responsePayload);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("http://localhost:4000/datasets/dataset-1/mapping");
+    expect(init.method).toBe("PATCH");
+    expect((init.headers as Headers).get("Authorization")).toBe("Bearer test-token");
+    expect(JSON.parse(init.body as string)).toEqual({
+      mappings: {
+        lien_amount: "Tax Balance",
+        estimated_value: "County Value",
+      },
     });
   });
 });

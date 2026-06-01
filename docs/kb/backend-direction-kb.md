@@ -34,6 +34,8 @@ Current implementation:
 - safe import summary metadata on dataset responses;
 - dataset readiness summary with canonical field coverage, issues, score,
   scoring recommendation, and guidance;
+- dataset manual mapping summary and repair endpoints for focused critical
+  field repair;
 - internal dataset source rows for scoring;
 - scored-record model;
 - internal job model;
@@ -126,6 +128,7 @@ Current backend responsibilities:
 - record validation summaries;
 - record safe import summaries;
 - record safe readiness summaries;
+- validate and record safe manual mapping summaries;
 - avoid persistence on unsafe parse failures;
 - associate every stored dataset with `userId`.
 
@@ -210,10 +213,37 @@ identifiers are warnings rather than hard blockers.
 
 Current limitation:
 
-- no manual field-mapping editor;
+- no full manual field-mapping editor;
 - no spreadsheet transformation workflow;
 - no broad county adapter coverage;
 - no ML/AI import classification.
+
+## Manual Mapping Repair Implementation
+
+Phase 19 adds focused manual mapping for datasets that need import repair.
+
+Current implementation:
+
+- authenticated `GET /datasets/:datasetId/mapping`;
+- authenticated `PATCH /datasets/:datasetId/mapping`;
+- tenant ownership enforced through dataset lookup;
+- supported targets limited to parcel id, lien amount, estimated value,
+  property type, and address;
+- source columns must already exist in dataset headers;
+- one source column cannot map to multiple targets in one request;
+- readiness is re-evaluated after mapping changes;
+- scoring applies manual mappings as a derived overlay before normalization.
+
+Manual mappings do not rewrite stored source rows. They are dataset-owned repair
+metadata that makes weak or blocked imports usable when the user knows which
+source columns correspond to critical fields.
+
+Current limitation:
+
+- no row-by-row editing;
+- no spreadsheet transformation workflow;
+- no ML/AI mapping suggestions;
+- no broad county adapter expansion.
 
 ## Enrichment Implementation
 
@@ -449,7 +479,8 @@ Backend implementation order should stay disciplined:
 14. county import adapter foundation: implemented in Phase 16;
 15. browser upload workflow: implemented in Phase 17;
 16. import validation and scoring-readiness workflow: implemented in Phase 18;
-17. later external automation.
+17. manual mapping/import repair workflow: implemented in Phase 19;
+18. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -484,6 +515,7 @@ Backend drift risks:
 - unvalidated parcel/lien row ingestion;
 - treating one county adapter as broad county coverage;
 - treating readiness summaries as manual remapping or final data correctness;
+- treating manual mappings as source-row mutation or arbitrary data editing;
 - trusting filenames or user labels as county proof;
 - scoring logic duplicated outside the scoring package;
 - inconsistent error shapes;

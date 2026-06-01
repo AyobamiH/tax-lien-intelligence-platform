@@ -2,6 +2,8 @@ import type {
   AlertResponse,
   AlertSeverity,
   AlertType,
+  DatasetManualMappingEntry,
+  DatasetManualMappingTarget,
   DatasetReadinessIssue,
   DatasetReadinessStatus,
   DatasetResponse,
@@ -48,6 +50,40 @@ export interface DatasetReadinessPresentation {
   className: string;
   actionText: string;
 }
+
+export interface ManualMappingTargetPresentation {
+  targetField: DatasetManualMappingTarget;
+  label: string;
+  description: string;
+}
+
+export const manualMappingTargetPresentations: ManualMappingTargetPresentation[] = [
+  {
+    targetField: "parcel_id",
+    label: "Parcel ID",
+    description: "Parcel, APN, account, or property identifier.",
+  },
+  {
+    targetField: "lien_amount",
+    label: "Lien amount",
+    description: "Tax due, delinquent amount, minimum bid, or lien balance.",
+  },
+  {
+    targetField: "estimated_value",
+    label: "Estimated value",
+    description: "Assessed, market, full cash, or property value.",
+  },
+  {
+    targetField: "property_type",
+    label: "Property type",
+    description: "Use, class, land use, or property description.",
+  },
+  {
+    targetField: "address",
+    label: "Address",
+    description: "Situs, site, or property address context.",
+  },
+];
 
 export interface ReviewRecordLike {
   sourceRowNumber: number;
@@ -352,6 +388,16 @@ export function topReadinessIssues(
   return [...dataset.readinessSummary.issues]
     .sort((left, right) => readinessSeverityRank(right.severity) - readinessSeverityRank(left.severity))
     .slice(0, limit);
+}
+
+export function datasetNeedsImportRepair(dataset: Pick<DatasetResponse, "readinessSummary">): boolean {
+  return dataset.readinessSummary.status !== "ready";
+}
+
+export function manualMappingByTarget(
+  dataset: Pick<DatasetResponse, "manualMapping">,
+): Map<DatasetManualMappingTarget, DatasetManualMappingEntry> {
+  return new Map(dataset.manualMapping.mappings.map((mapping) => [mapping.targetField, mapping]));
 }
 
 function readinessSeverityRank(severity: DatasetReadinessIssue["severity"]): number {

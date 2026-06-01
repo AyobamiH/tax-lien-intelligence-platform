@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type {
   AlertResponse,
   AuthUserResponse,
+  DatasetManualMappingTarget,
   DatasetResponse,
   DatasetScoringStatusResponse,
   InternalJobResponse,
@@ -31,6 +32,7 @@ import {
   removePortfolioItem,
   removeWatchlistItem,
   refreshDatasetScoring,
+  saveDatasetManualMapping,
   scoreDataset,
   updatePortfolioItemStatus,
 } from "./api";
@@ -41,6 +43,7 @@ import {
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
   datasetImportPresentation,
+  datasetNeedsImportRepair,
   datasetReadinessPresentation,
   datasetScoringStatusClassName,
   datasetScoringStatusLabel,
@@ -49,6 +52,8 @@ import {
   formatMoney,
   formatPercent,
   formatRatio,
+  manualMappingByTarget,
+  manualMappingTargetPresentations,
   portfolioStatusClassName,
   portfolioStatusLabel,
   portfolioStatusOptions,
@@ -1131,6 +1136,15 @@ function DatasetDetailPage({
   });
   const [filter, setFilter] = useState<ScoreFilter>("all");
   const [query, setQuery] = useState("");
+  const [mappingState, setMappingState] = useState<{
+    isSaving: boolean;
+    error: string | null;
+    success: string | null;
+  }>({
+    isSaving: false,
+    error: null,
+    success: null,
+  });
 
   useEffect(() => {
     setState({
@@ -1142,6 +1156,11 @@ function DatasetDetailPage({
       isLoading: true,
       isScoring: false,
       error: null,
+    });
+    setMappingState({
+      isSaving: false,
+      error: null,
+      success: null,
     });
 
     Promise.all([getDataset(token, datasetId), listDatasetScores(token, datasetId), getDatasetScoringStatus(token, datasetId)])
@@ -1340,6 +1359,38 @@ function DatasetDetailPage({
     }
   }
 
+  async function saveManualMappingRepair(
+    mappings: Partial<Record<DatasetManualMappingTarget, string | null>>,
+  ): Promise<void> {
+    setMappingState({
+      isSaving: true,
+      error: null,
+      success: null,
+    });
+
+    try {
+      const result = await saveDatasetManualMapping(token, datasetId, { mappings });
+      setState((current) => ({
+        ...current,
+        dataset: result.dataset,
+        error: null,
+      }));
+      setMappingState({
+        isSaving: false,
+        error: null,
+        success: result.dataset.readinessSummary.scoringRecommended
+          ? "Mapping saved. Readiness has been re-evaluated; run scoring to refresh records."
+          : "Mapping saved. Readiness was re-evaluated, but this dataset still needs repair before scoring is reliable.",
+      });
+    } catch (error: unknown) {
+      setMappingState({
+        isSaving: false,
+        error: errorMessage(error),
+        success: null,
+      });
+    }
+  }
+
   if (state.isLoading) {
     return <PanelMessage label="Loading dataset review..." />;
   }
@@ -1438,7 +1489,13 @@ function DatasetDetailPage({
         {importPresentation.warning ? (
           <p className="mt-1 text-xs text-amber-800">{importPresentation.warning}</p>
         ) : null}
-        <DatasetReadinessPanel dataset={state.dataset} />
+        <DatasetReadinessPanel
+          dataset={state.dataset}
+          isSaving={mappingState.isSaving}
+          error={mappingState.error}
+          success={mappingState.success}
+          onSaveMapping={(mappings) => void saveManualMappingRepair(mappings)}
+        />
       </div>
 
       {state.scores.length === 0 ? (
@@ -1485,9 +1542,22 @@ function DatasetDetailPage({
   );
 }
 
-function DatasetReadinessPanel({ dataset }: { dataset: DatasetResponse }) {
+function DatasetReadinessPanel({
+  dataset,
+  isSaving,
+  error,
+  success,
+  onSaveMapping,
+}: {
+  dataset: DatasetResponse;
+  isSaving: boolean;
+  error: string | null;
+  success: string | null;
+  onSaveMapping: (mappings: Partial<Record<DatasetManualMappingTarget, string | null>>) => void;
+}) {
   const readinessPresentation = datasetReadinessPresentation(dataset);
   const topIssues = topReadinessIssues(dataset, 4);
+  const showRepair = datasetNeedsImportRepair(dataset) || dataset.manualMapping.mappings.length > 0;
 
   return (
     <div className="mt-4 border border-line bg-field p-4">
@@ -1536,7 +1606,130 @@ function DatasetReadinessPanel({ dataset }: { dataset: DatasetResponse }) {
           <li key={guidance}>- {guidance}</li>
         ))}
       </ul>
+
+      {showRepair ? (
+        <ManualMappingRepairForm
+          dataset={dataset}
+          isSaving={isSaving}
+          error={error}
+          success={success}
+          onSave={onSaveMapping}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function ManualMappingRepairForm({
+  dataset,
+  isSaving,
+  error,
+  success,
+  onSave,
+}: {
+  dataset: DatasetResponse;
+  isSaving: boolean;
+  error: string | null;
+  success: string | null;
+  onSave: (mappings: Partial<Record<DatasetManualMappingTarget, string | null>>) => void;
+}) {
+  const manualMappings = useMemo(() => manualMappingByTarget(dataset), [dataset.manualMapping]);
+  const [mappingValues, setMappingValues] = useState<Partial<Record<DatasetManualMappingTarget, string>>>(() =>
+    Object.fromEntries(
+      manualMappingTargetPresentations.flatMap((target) => {
+        const sourceColumn = manualMappings.get(target.targetField)?.sourceColumn;
+        return sourceColumn ? [[target.targetField, sourceColumn]] : [];
+      }),
+    ),
+  );
+
+  useEffect(() => {
+    setMappingValues(
+      Object.fromEntries(
+        manualMappingTargetPresentations.flatMap((target) => {
+          const sourceColumn = manualMappings.get(target.targetField)?.sourceColumn;
+          return sourceColumn ? [[target.targetField, sourceColumn]] : [];
+        }),
+      ),
+    );
+  }, [dataset.id, dataset.manualMapping.updatedAt, dataset.manualMapping.mappings.length]);
+
+  function submit(event: React.FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    onSave(
+      Object.fromEntries(
+        manualMappingTargetPresentations.map((target) => [
+          target.targetField,
+          mappingValues[target.targetField]?.trim() || null,
+        ]),
+      ),
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-4 border border-line bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold">Repair field mapping</h3>
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-ink/60">
+            Map source columns to the scoring fields that matter most. This creates a dataset-specific repair
+            configuration; stored source rows are not rewritten.
+          </p>
+        </div>
+        <span className="border border-line bg-field px-2 py-1 text-xs">{dataset.headers.length} source columns</span>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        {manualMappingTargetPresentations.map((target) => {
+          const manualMapping = manualMappings.get(target.targetField);
+          const automaticallyMapped = dataset.importSummary.mappedFields.includes(target.targetField);
+          const statusText = manualMapping
+            ? `Manual: ${manualMapping.sourceColumn}`
+            : automaticallyMapped
+              ? "Automatic mapping recognized"
+              : "Not recognized automatically";
+
+          return (
+            <label key={target.targetField} className="block border border-line bg-field p-3">
+              <span className="text-xs font-semibold uppercase text-ink/60">{target.label}</span>
+              <span className="mt-1 block text-xs leading-5 text-ink/60">{target.description}</span>
+              <select
+                value={mappingValues[target.targetField] ?? ""}
+                disabled={isSaving}
+                onChange={(event) =>
+                  setMappingValues((current) => ({
+                    ...current,
+                    [target.targetField]: event.target.value,
+                  }))
+                }
+                className="mt-2 w-full border border-line bg-white px-2 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <option value="">No manual mapping</option>
+                {dataset.headers.map((header) => (
+                  <option key={`${target.targetField}-${header}`} value={header}>
+                    {header}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-2 block text-xs text-ink/60">{statusText}</span>
+            </label>
+          );
+        })}
+      </div>
+
+      {error ? <div className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">{error}</div> : null}
+      {success ? (
+        <div className="mt-3 border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">{success}</div>
+      ) : null}
+
+      <button
+        type="submit"
+        disabled={isSaving}
+        className="mt-4 bg-pine px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSaving ? "Saving mapping..." : "Save mapping and re-check readiness"}
+      </button>
+    </form>
   );
 }
 

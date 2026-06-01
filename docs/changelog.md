@@ -2,6 +2,15 @@
 
 ## 2026-06-01
 
+- Implemented Phase 19 manual mapping/import repair workflow with dataset-owned
+  manual mapping metadata, authenticated mapping context/save endpoints,
+  readiness re-evaluation after repairs, scoring-path mapping overlays, a
+  focused frontend repair panel, and tests for valid mappings, invalid targets,
+  invalid columns, cross-user access, and mapped scoring.
+- Updated dataset/frontend/API/KB docs to mark focused manual mapping repair as
+  current while keeping full spreadsheet editing, row-by-row mutation, ML/AI
+  mapping suggestions, broad county coverage, live sync, collaboration, and
+  auction execution out of scope.
 - Implemented Phase 18 import validation and scoring-readiness workflow with
   backend-computed dataset readiness summaries, canonical field coverage,
   ready/partial/weak/blocked guidance, frontend readiness badges/panels, and

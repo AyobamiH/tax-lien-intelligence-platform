@@ -21,6 +21,7 @@ Current implementation:
   Maricopa-style county import adapter;
 - dataset readiness summary metadata exists for field coverage, issues, scoring
   recommendation, and safe guidance;
+- dataset manual mapping metadata exists for tenant-owned import repair;
 - scored-record model exists for first-pass scoring outputs;
 - enrichment metadata exists on scored records for internal source-row
   inference;
@@ -51,6 +52,8 @@ Current documentation direction:
   live county sync do not.
 - import readiness exists as read-only quality guidance, not manual field
   mapping or corrected data.
+- focused manual mapping exists as target-to-source-column metadata, not row
+  mutation or broad import tooling.
 
 ## Core Domain Concepts
 
@@ -78,6 +81,10 @@ Phase 18 adds import readiness summaries. They evaluate canonical field coverage
 and scoring readiness at the dataset level. They help users understand whether
 the upload is ready, partial, weak, or blocked before relying on scores. They do
 not mutate rows, remap fields manually, or replace future county-adapter work.
+
+Phase 19 adds focused manual mapping repair. A user can map known dataset
+headers to critical canonical fields so readiness and scoring can use a derived
+overlay. Stored source rows remain the source truth.
 
 ### Parcel
 
@@ -190,6 +197,7 @@ Tenant isolation protects:
 - dataset metadata;
 - dataset import summaries;
 - dataset readiness summaries;
+- dataset manual mappings;
 - normalized records;
 - scores;
 - enrichment context;

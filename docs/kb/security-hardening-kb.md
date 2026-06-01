@@ -58,6 +58,7 @@ Current repo protections:
 - import summary responses expose safe metadata only;
 - import readiness responses expose safe coverage, issue, score,
   recommendation, and guidance metadata only;
+- manual mapping responses expose safe target-to-source-column metadata only;
 - cross-user dataset detail rejection tests;
 - tenant-owned scored-record persistence;
 - authenticated scoring run and score retrieval routes;
@@ -110,7 +111,7 @@ Not yet implemented:
 - cross-user isolation tests for future parcel resources;
 - rate limiting;
 - standalone normalized parcel/lien upload validation;
-- manual field-mapping validation and audit trail;
+- richer manual field-mapping validation and audit trail;
 - audit logging;
 - production CORS restrictions;
 - final browser session architecture beyond the current session-scoped JWT;
@@ -320,6 +321,7 @@ Current dataset upload handles:
 - safe failure without partial unsafe writes.
 - browser upload through the same authenticated API boundary.
 - read-only readiness summaries for field coverage and scoring suitability.
+- backend-validated manual mapping metadata for critical-field repair.
 
 Future parcel/lien normalization must handle:
 
@@ -437,6 +439,9 @@ Phase 18 adds import readiness summaries. Those summaries are safe browser
 metadata for field coverage, issue severity, score, recommendation, and
 guidance. They must not expose raw source rows, parser internals, or stack
 traces, and they must not become client-side authorization or scoring logic.
+Phase 19 adds focused manual mapping repair. The API must validate target fields
+and source columns, scope mappings to dataset ownership, and apply mappings as a
+derived overlay rather than rewriting stored source rows.
 
 Future row normalization and raw file persistence, if added, need additional
 controls.
@@ -602,6 +607,8 @@ Security drift risks:
 - treating a filename, label, or one adapter match as broad county verification;
 - treating readiness as manual remapping, final underwriting confidence, or a
   reason to bypass server-side scoring/ownership checks;
+- treating manual mappings as raw data mutation or allowing arbitrary column
+  transforms without a separate security phase;
 - turning alerts into raw diagnostic payloads;
 - treating public source data as non-sensitive after user enrichment;
 - skipping cross-user tests.

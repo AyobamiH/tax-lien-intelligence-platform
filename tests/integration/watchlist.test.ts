@@ -78,6 +78,7 @@ class InMemoryDatasetStore implements DatasetStore {
       validationSummary: input.validationSummary,
       ...(input.importSummary ? { importSummary: input.importSummary } : {}),
       ...(input.readinessSummary ? { readinessSummary: input.readinessSummary } : {}),
+      ...(input.manualMapping ? { manualMapping: input.manualMapping } : {}),
       uploadedAt: input.uploadedAt,
       createdAt: now,
       updatedAt: now,
@@ -89,6 +90,28 @@ class InMemoryDatasetStore implements DatasetStore {
 
     this.datasetsById.set(dataset.id, dataset);
     return dataset;
+  }
+
+  public async updateManualMappingForUser(input: {
+    datasetId: string;
+    userId: string;
+    manualMapping: NonNullable<StoredDataset["manualMapping"]>;
+    readinessSummary: NonNullable<StoredDataset["readinessSummary"]>;
+  }): Promise<StoredDataset | null> {
+    const dataset = this.datasetsById.get(input.datasetId);
+    if (!dataset || dataset.userId !== input.userId) {
+      return null;
+    }
+
+    const updatedDataset: StoredDataset = {
+      ...dataset,
+      manualMapping: input.manualMapping,
+      readinessSummary: input.readinessSummary,
+      updatedAt: new Date(),
+    };
+
+    this.datasetsById.set(updatedDataset.id, updatedDataset);
+    return updatedDataset;
   }
 
   public async listDatasets(userId: string): Promise<StoredDataset[]> {

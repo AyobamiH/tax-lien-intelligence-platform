@@ -14,11 +14,14 @@ import type {
   DeletePortfolioItemResponse,
   DatasetRefreshJobResponse,
   DatasetScoringStatusResponse,
+  DatasetManualMappingContextResponse,
   JobDetailResponse,
   MarkAllAlertsReadResponse,
   PortfolioDetailResponse,
   PortfolioListResponse,
   PortfolioStatus,
+  SaveDatasetManualMappingRequest,
+  SaveDatasetManualMappingResponse,
   UpdatePortfolioItemResponse,
   WatchlistListResponse,
 } from "@tax-lien/types";
@@ -92,6 +95,27 @@ export async function createDataset(token: string, input: CreateDatasetInput): P
 export async function getDataset(token: string, datasetId: string): Promise<DatasetDetailResponse> {
   return requestJson<DatasetDetailResponse>(`/datasets/${encodeURIComponent(datasetId)}`, {
     token,
+  });
+}
+
+export async function getDatasetManualMappingContext(
+  token: string,
+  datasetId: string,
+): Promise<DatasetManualMappingContextResponse> {
+  return requestJson<DatasetManualMappingContextResponse>(`/datasets/${encodeURIComponent(datasetId)}/mapping`, {
+    token,
+  });
+}
+
+export async function saveDatasetManualMapping(
+  token: string,
+  datasetId: string,
+  input: SaveDatasetManualMappingRequest,
+): Promise<SaveDatasetManualMappingResponse> {
+  return requestJson<SaveDatasetManualMappingResponse>(`/datasets/${encodeURIComponent(datasetId)}/mapping`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(input),
   });
 }
 

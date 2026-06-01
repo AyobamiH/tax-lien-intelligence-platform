@@ -11,6 +11,7 @@ import type {
   ScoredRecordResponse,
 } from "@tax-lien/types";
 import type { DatasetStore, StoredDatasetSourceRow } from "../datasets/dataset-store.js";
+import { applyManualMappingsToRows } from "../datasets/manual-mapping.js";
 import { createDefaultEnrichmentService, type EnrichmentService } from "../enrichment/enrichment-service.js";
 import { ApiError } from "../errors/api-error.js";
 import type { StoredInternalJob } from "../jobs/internal-job-store.js";
@@ -158,7 +159,11 @@ export class ScoringService {
     }
 
     const dataset = await this.getDatasetForScoring(job.targetEntityId, job.userId);
-    const result = await this.executeDatasetScoring(dataset.id, job.userId, dataset.sourceRows);
+    const result = await this.executeDatasetScoring(
+      dataset.id,
+      job.userId,
+      applyManualMappingsToRows(dataset.sourceRows, dataset.manualMapping),
+    );
     const summary: InternalJobSummary = {
       scoredRecordCount: result.scoredRecordCount,
       ...(result.enrichedRecordCount !== undefined ? { enrichedRecordCount: result.enrichedRecordCount } : {}),

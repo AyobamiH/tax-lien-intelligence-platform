@@ -62,6 +62,7 @@ class InMemoryDatasetStore implements DatasetStore {
       validationSummary: input.validationSummary,
       ...(input.importSummary ? { importSummary: input.importSummary } : {}),
       ...(input.readinessSummary ? { readinessSummary: input.readinessSummary } : {}),
+      ...(input.manualMapping ? { manualMapping: input.manualMapping } : {}),
       uploadedAt: input.uploadedAt,
       createdAt: now,
       updatedAt: now,
@@ -73,6 +74,28 @@ class InMemoryDatasetStore implements DatasetStore {
 
     this.datasetsById.set(dataset.id, dataset);
     return dataset;
+  }
+
+  public async updateManualMappingForUser(input: {
+    datasetId: string;
+    userId: string;
+    manualMapping: NonNullable<StoredDataset["manualMapping"]>;
+    readinessSummary: NonNullable<StoredDataset["readinessSummary"]>;
+  }): Promise<StoredDataset | null> {
+    const dataset = this.datasetsById.get(input.datasetId);
+    if (!dataset || dataset.userId !== input.userId) {
+      return null;
+    }
+
+    const updatedDataset: StoredDataset = {
+      ...dataset,
+      manualMapping: input.manualMapping,
+      readinessSummary: input.readinessSummary,
+      updatedAt: new Date(),
+    };
+
+    this.datasetsById.set(updatedDataset.id, updatedDataset);
+    return updatedDataset;
   }
 
   public async listDatasets(userId: string): Promise<StoredDataset[]> {
@@ -126,6 +149,13 @@ function maricopaCsv(): Buffer {
       "APN,Total Due,Full Cash Value,Property Use Description,Situs Street,Situs City,Situs State,Situs Zip",
       "123-45-678,$1250,$85000,Single Family Residence,100 Main St,Phoenix,AZ,85001",
     ].join("\n"),
+    "utf8",
+  );
+}
+
+function repairableCsv(): Buffer {
+  return Buffer.from(
+    "Property Number,Tax Balance,County Value,Use Description,Site Address\nA-100,1000,12000,Single Family,100 Main St\n",
     "utf8",
   );
 }
@@ -240,6 +270,141 @@ describe("dataset API", () => {
         }),
       ]),
     });
+  });
+
+  it("saves manual mappings and re-evaluates readiness without exposing source row values", async () => {
+    const { app } = createTestContext();
+    const token = await registerUser(app, "owner@example.com");
+
+    const uploadResponse = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", repairableCsv(), {
+        filename: "repairable.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    const datasetId = uploadResponse.body.dataset.id as string;
+    expect(uploadResponse.body.dataset.readinessSummary.status).toBe("blocked");
+
+    const contextResponse = await request(app)
+      .get(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200);
+
+    expect(contextResponse.body.availableColumns).toEqual([
+      "Property Number",
+      "Tax Balance",
+      "County Value",
+      "Use Description",
+      "Site Address",
+    ]);
+    expect(contextResponse.body.manualMapping).toEqual({ mappings: [] });
+
+    const saveResponse = await request(app)
+      .patch(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        mappings: {
+          parcel_id: "Property Number",
+          lien_amount: "Tax Balance",
+          estimated_value: "County Value",
+          property_type: "Use Description",
+          address: "Site Address",
+        },
+      })
+      .expect(200);
+
+    expect(saveResponse.body.dataset.readinessSummary).toMatchObject({
+      status: "ready",
+      scoringRecommended: true,
+    });
+    expect(saveResponse.body.manualMapping.mappings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          targetField: "lien_amount",
+          sourceColumn: "Tax Balance",
+          source: "manual",
+          updatedAt: expect.any(String),
+        }),
+        expect.objectContaining({
+          targetField: "estimated_value",
+          sourceColumn: "County Value",
+          source: "manual",
+          updatedAt: expect.any(String),
+        }),
+      ]),
+    );
+    expect(JSON.stringify(saveResponse.body)).not.toContain("100 Main St");
+    expect(JSON.stringify(saveResponse.body)).not.toContain("Single Family");
+  });
+
+  it("rejects unsafe manual mapping payloads", async () => {
+    const { app } = createTestContext();
+    const token = await registerUser(app, "owner@example.com");
+
+    const uploadResponse = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${token}`)
+      .attach("file", repairableCsv(), {
+        filename: "repairable.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    const datasetId = uploadResponse.body.dataset.id as string;
+
+    const invalidTargetResponse = await request(app)
+      .patch(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ mappings: { fake_field: "Tax Balance" } })
+      .expect(400);
+    expect(invalidTargetResponse.body.error.code).toBe("manual_mapping_invalid_target");
+
+    const invalidColumnResponse = await request(app)
+      .patch(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ mappings: { lien_amount: "Missing Column" } })
+      .expect(400);
+    expect(invalidColumnResponse.body.error.code).toBe("manual_mapping_invalid_source_column");
+
+    const duplicateColumnResponse = await request(app)
+      .patch(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ mappings: { lien_amount: "Tax Balance", estimated_value: "Tax Balance" } })
+      .expect(400);
+    expect(duplicateColumnResponse.body.error.code).toBe("manual_mapping_duplicate_source_column");
+  });
+
+  it("keeps manual mappings scoped to the dataset owner", async () => {
+    const { app } = createTestContext();
+    const ownerToken = await registerUser(app, "owner@example.com");
+    const otherToken = await registerUser(app, "other@example.com");
+
+    const uploadResponse = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${ownerToken}`)
+      .attach("file", repairableCsv(), {
+        filename: "repairable.csv",
+        contentType: "text/csv",
+      })
+      .expect(201);
+
+    const datasetId = uploadResponse.body.dataset.id as string;
+
+    const getResponse = await request(app)
+      .get(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${otherToken}`)
+      .expect(404);
+    expect(getResponse.body.error.code).toBe("dataset_not_found");
+
+    const patchResponse = await request(app)
+      .patch(`/datasets/${datasetId}/mapping`)
+      .set("Authorization", `Bearer ${otherToken}`)
+      .send({ mappings: { lien_amount: "Tax Balance" } })
+      .expect(404);
+    expect(patchResponse.body.error.code).toBe("dataset_not_found");
   });
 
   it("rejects dataset upload without authentication", async () => {
