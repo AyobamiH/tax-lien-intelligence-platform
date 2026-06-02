@@ -24,6 +24,14 @@ export {
   type ComparisonSourceTypeRecord,
 } from "./models/comparison-item.js";
 export {
+  DecisionHistoryModel,
+  type DecisionHistoryDocument,
+  type DecisionHistoryEventTypeRecord,
+  type DecisionHistoryMetadataRecord,
+  type DecisionHistoryRecord,
+  type DecisionHistoryRelatedEntityTypeRecord,
+} from "./models/decision-history.js";
+export {
   DatasetModel,
   type DatasetDocument,
   type DatasetImportAdapterIdRecord,

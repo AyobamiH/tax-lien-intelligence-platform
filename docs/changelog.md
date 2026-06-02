@@ -2,6 +2,14 @@
 
 ## 2026-06-01
 
+- Implemented Phase 22 decision history with tenant-owned comparison history
+  records, decision/note change capture, authenticated history retrieval,
+  selected comparison item history visibility, and tests for owner-scoped
+  history, stale item handling, and frontend API/presentation helpers.
+- Added decision history API/architecture documentation and updated the KB pack
+  to mark lightweight decision history as current while keeping legal-grade
+  audit logging, collaboration activity feeds, rich diffs, task management,
+  auction execution, and ML/AI decision assistance out of scope.
 - Implemented Phase 21 comparison workspace with tenant-owned comparison
   items, source resolution from owned scored/watchlist/portfolio records,
   duplicate-safe adds, explicit review decisions, bounded lightweight notes,

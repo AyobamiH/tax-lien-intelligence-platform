@@ -155,18 +155,25 @@ Implemented today:
 - dedicated portfolio status tracking page;
 - portfolio detail surface with flags, reasoning, and status controls;
 - tenant-owned comparison item model in `packages/db`;
+- tenant-owned decision history model in `packages/db`;
 - authenticated comparison endpoints at `POST /comparison`, `GET /comparison`,
   `PATCH /comparison/:comparisonItemId`, and
   `DELETE /comparison/:comparisonItemId`;
+- authenticated comparison history endpoint at
+  `GET /comparison/:comparisonItemId/history`;
 - comparison creation from owned scored records, watchlist items, or portfolio
   items;
 - duplicate-safe comparison adds;
 - bounded lightweight decision notes;
+- server-recorded decision/note change history with bounded note snapshots and
+  safe derived metadata;
 - comparison ownership tests;
+- decision history ownership/stale-item tests;
 - compare actions from scored review, watchlist, and portfolio surfaces;
 - dedicated side-by-side comparison workspace;
 - comparison detail surface with decision state, note editing, flags, and
   reasoning;
+- comparison detail history surface for recent decision/note changes;
 - frontend score job status polling after a scoring trigger;
 - frontend alerts route with unread count and read/read-all actions;
 - structured JSON 404 for unknown API routes;
@@ -282,7 +289,7 @@ Current tests cover:
 - cross-user portfolio source/read/update/delete rejection.
 - comparison add/list/update/delete behavior;
 - duplicate comparison handling;
-- cross-user comparison source/update/delete rejection.
+- cross-user comparison source/update/delete/history rejection.
 
 Tests do not yet cover:
 

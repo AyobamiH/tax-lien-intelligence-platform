@@ -59,6 +59,23 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
     }
   });
 
+  router.get("/:comparisonItemId/history", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      const comparisonItemId = request.params.comparisonItemId;
+      if (typeof comparisonItemId !== "string") {
+        throw new ApiError(400, "comparison_invalid_item_id", "Comparison item id is invalid.");
+      }
+
+      response.status(200).json(await comparisonService.listHistory(request.auth.userId, comparisonItemId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.patch("/:comparisonItemId", requireAuthenticatedUser, async (request, response, next) => {
     try {
       if (!request.auth) {

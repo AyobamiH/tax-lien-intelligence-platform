@@ -3,6 +3,8 @@ import type {
   AlertSeverity,
   AlertType,
   ComparisonDecision,
+  DecisionHistoryEventResponse,
+  DecisionHistoryEventType,
   ComparisonItemResponse,
   DatasetManualMappingEntry,
   DatasetManualMappingTarget,
@@ -191,6 +193,10 @@ export function sortAlertsForReview(alerts: AlertResponse[]): AlertResponse[] {
   });
 }
 
+export function sortDecisionHistoryForReview(events: DecisionHistoryEventResponse[]): DecisionHistoryEventResponse[] {
+  return [...events].sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+}
+
 export function buildPortfolioByScoreId(items: PortfolioItemResponse[]): Map<string, PortfolioItemResponse> {
   return new Map(items.map((item) => [item.scoredRecordId, item]));
 }
@@ -342,6 +348,14 @@ export function comparisonDecisionLabel(decision: ComparisonDecision): string {
     case "rejected":
       return "Rejected";
   }
+}
+
+export function decisionHistoryEventLabel(eventType: DecisionHistoryEventType): string {
+  if (eventType === "comparison_decision_changed") {
+    return "Decision changed";
+  }
+
+  return "Note changed";
 }
 
 export function comparisonDecisionClassName(decision: ComparisonDecision): string {

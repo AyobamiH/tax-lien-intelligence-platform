@@ -83,7 +83,9 @@ Current repo protections:
   portfolio items;
 - duplicate-safe comparison adds;
 - bounded note validation;
-- cross-user comparison rejection tests;
+- server-created lightweight decision history;
+- owner-scoped comparison history retrieval;
+- cross-user comparison/history rejection tests;
 - tenant-owned internal job persistence;
 - authenticated job detail route;
 - job ownership enforcement;
@@ -553,11 +555,13 @@ opportunities a user is actively evaluating and why.
 
 Comparison records now verify ownership of the referenced scored record,
 watchlist item, or portfolio item before adding to comparison. Comparison list,
-decision/note updates, and deletes are scoped to the authenticated user. Notes
-are plain text, bounded, and validated; they are not rich text, comments, audit
+decision/note updates, deletes, and history reads are scoped to the
+authenticated user. Notes are plain text, bounded, and validated. Decision
+history is created server-side only and stores bounded note snapshots plus safe
+derived metadata. These records are not rich text, comments, legal-grade audit
 events, or task records. Future expansion such as multiple workspaces,
-collaboration, note history, or downstream side effects must add validation,
-authorization, docs, and cross-user tests before release.
+collaboration, richer history, broad activity feeds, or downstream side effects
+must add validation, authorization, docs, and cross-user tests before release.
 
 ### Automation Jobs And Workers
 

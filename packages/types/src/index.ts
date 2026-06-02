@@ -618,3 +618,31 @@ export interface DeleteComparisonItemResponse {
   deleted: true;
   id: string;
 }
+
+export type DecisionHistoryRelatedEntityType = "comparison_item";
+export type DecisionHistoryEventType = "comparison_decision_changed" | "comparison_note_changed";
+
+export interface DecisionHistoryMetadata {
+  workspaceId?: "default";
+  datasetId?: string;
+  scoredRecordId?: string;
+  sourceType?: ComparisonSourceType;
+}
+
+export interface DecisionHistoryEventResponse {
+  id: string;
+  relatedEntityType: DecisionHistoryRelatedEntityType;
+  relatedEntityId: string;
+  eventType: DecisionHistoryEventType;
+  previousDecision?: ComparisonDecision;
+  newDecision?: ComparisonDecision;
+  previousNoteSnapshot?: string;
+  noteSnapshot?: string;
+  metadata?: DecisionHistoryMetadata;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DecisionHistoryListResponse {
+  events: DecisionHistoryEventResponse[];
+}

@@ -13,6 +13,11 @@ import type {
   UpdateComparisonItemInput,
 } from "../../apps/api/src/comparison/comparison-store.js";
 import type {
+  CreateDecisionHistoryEventInput,
+  DecisionHistoryStore,
+  StoredDecisionHistoryEvent,
+} from "../../apps/api/src/decision-history/decision-history-store.js";
+import type {
   CreatePortfolioItemInput,
   CreatePortfolioItemResult,
   PortfolioStore,
@@ -319,6 +324,45 @@ class InMemoryComparisonStore implements ComparisonStore {
   }
 }
 
+class InMemoryDecisionHistoryStore implements DecisionHistoryStore {
+  private readonly eventsById = new Map<string, StoredDecisionHistoryEvent>();
+
+  public async createEvent(input: CreateDecisionHistoryEventInput): Promise<StoredDecisionHistoryEvent> {
+    const now = new Date();
+    const event: StoredDecisionHistoryEvent = {
+      id: new mongoose.Types.ObjectId().toString(),
+      userId: input.userId,
+      relatedEntityType: input.relatedEntityType,
+      relatedEntityId: input.relatedEntityId,
+      eventType: input.eventType,
+      ...(input.previousDecision ? { previousDecision: input.previousDecision } : {}),
+      ...(input.newDecision ? { newDecision: input.newDecision } : {}),
+      ...(input.previousNoteSnapshot ? { previousNoteSnapshot: input.previousNoteSnapshot } : {}),
+      ...(input.noteSnapshot ? { noteSnapshot: input.noteSnapshot } : {}),
+      ...(input.metadata ? { metadata: input.metadata } : {}),
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.eventsById.set(event.id, event);
+    return event;
+  }
+
+  public async listEventsForEntity(
+    userId: string,
+    relatedEntityType: StoredDecisionHistoryEvent["relatedEntityType"],
+    relatedEntityId: string,
+  ): Promise<StoredDecisionHistoryEvent[]> {
+    return [...this.eventsById.values()]
+      .filter(
+        (event) =>
+          event.userId === userId &&
+          event.relatedEntityType === relatedEntityType &&
+          event.relatedEntityId === relatedEntityId,
+      )
+      .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime());
+  }
+}
+
 function createTestContext(): {
   app: ReturnType<typeof createApp>;
   scoredRecordStore: InMemoryScoredRecordStore;
@@ -330,6 +374,7 @@ function createTestContext(): {
   const watchlistStore = new InMemoryWatchlistStore();
   const portfolioStore = new InMemoryPortfolioStore();
   const comparisonStore = new InMemoryComparisonStore();
+  const decisionHistoryStore = new InMemoryDecisionHistoryStore();
   const authService = new AuthService(userStore, {
     jwtSecret: testJwtSecret,
     jwtExpiresIn: "1h",
@@ -340,6 +385,7 @@ function createTestContext(): {
     scoredRecordStore,
     watchlistStore,
     portfolioStore,
+    decisionHistoryStore,
   );
 
   return {
@@ -476,11 +522,77 @@ describe("comparison API", () => {
     });
   });
 
+  it("records owner-scoped decision history for comparison decision and note changes", async () => {
+    const { app, scoredRecordStore } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const record = scoredRecordStore.seed(owner.userId);
+
+    const add = await request(app)
+      .post("/comparison")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ scoredRecordId: record.id })
+      .expect(201);
+    const comparisonItemId = add.body.item.id as string;
+
+    await request(app)
+      .patch(`/comparison/${comparisonItemId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ decision: "move_forward", note: "Confirm county sale terms before bid." })
+      .expect(200);
+    await request(app)
+      .patch(`/comparison/${comparisonItemId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ note: "Reviewed county sale terms." })
+      .expect(200);
+
+    const history = await request(app)
+      .get(`/comparison/${comparisonItemId}/history`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(history.body.events).toHaveLength(2);
+    expect(history.body.events[0]).toMatchObject({
+      relatedEntityType: "comparison_item",
+      relatedEntityId: comparisonItemId,
+      eventType: "comparison_note_changed",
+      previousDecision: "move_forward",
+      newDecision: "move_forward",
+      previousNoteSnapshot: "Confirm county sale terms before bid.",
+      noteSnapshot: "Reviewed county sale terms.",
+      metadata: {
+        workspaceId: "default",
+        datasetId: record.datasetId,
+        scoredRecordId: record.id,
+        sourceType: "score",
+      },
+    });
+    expect(history.body.events[1]).toMatchObject({
+      relatedEntityType: "comparison_item",
+      relatedEntityId: comparisonItemId,
+      eventType: "comparison_decision_changed",
+      previousDecision: "undecided",
+      newDecision: "move_forward",
+      noteSnapshot: "Confirm county sale terms before bid.",
+    });
+
+    await request(app)
+      .delete(`/comparison/${comparisonItemId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+    const staleHistory = await request(app)
+      .get(`/comparison/${comparisonItemId}/history`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(404);
+
+    expect(staleHistory.body.error.code).toBe("comparison_item_not_found");
+  });
+
   it("rejects unauthenticated comparison access", async () => {
     const { app } = createTestContext();
     const id = new mongoose.Types.ObjectId().toString();
 
     await request(app).get("/comparison").expect(401);
+    await request(app).get(`/comparison/${id}/history`).expect(401);
     await request(app).post("/comparison").send({ scoredRecordId: id }).expect(401);
     await request(app).patch(`/comparison/${id}`).send({ decision: "rejected" }).expect(401);
     await request(app).delete(`/comparison/${id}`).expect(401);
@@ -507,6 +619,10 @@ describe("comparison API", () => {
       .set("Authorization", `Bearer ${other.token}`)
       .send({ decision: "rejected" })
       .expect(404);
+    const crossHistory = await request(app)
+      .get(`/comparison/${add.body.item.id as string}/history`)
+      .set("Authorization", `Bearer ${other.token}`)
+      .expect(404);
     const crossDelete = await request(app)
       .delete(`/comparison/${add.body.item.id as string}`)
       .set("Authorization", `Bearer ${other.token}`)
@@ -515,6 +631,7 @@ describe("comparison API", () => {
 
     expect(crossAdd.body.error.code).toBe("comparison_scored_record_not_found");
     expect(crossUpdate.body.error.code).toBe("comparison_item_not_found");
+    expect(crossHistory.body.error.code).toBe("comparison_item_not_found");
     expect(crossDelete.body.error.code).toBe("comparison_item_not_found");
     expect(otherList.body.items).toEqual([]);
   });

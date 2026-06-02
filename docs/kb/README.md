@@ -74,6 +74,7 @@ records the current implementation state:
 - watchlist API and review surface exist.
 - portfolio API and status tracking surface exist.
 - comparison API, side-by-side workspace, and lightweight decision notes exist.
+- lightweight comparison decision history exists.
 - Mongo connection package exists.
 - user model exists.
 - dataset model exists.
@@ -108,7 +109,8 @@ tenant-owned dataset records, upload size limits, CSV validation, and
 safe import summary metadata. It now also has tenant-owned watchlist items and
 cross-user watchlist tests. It now also has tenant-owned portfolio items and
 cross-user portfolio tests. It now also has tenant-owned comparison items,
-bounded decision notes, and cross-user comparison tests. It now has tenant-owned internal job records for
+bounded decision notes, lightweight decision history, and cross-user comparison
+tests. It now has tenant-owned internal job records for
 scoring, controlled refresh/reprocessing, scheduled maintenance policy gates,
 and cross-user job tests. It does not yet have standalone parcel models, rate
 limiting, user-facing scheduler controls, collaboration, auction execution,

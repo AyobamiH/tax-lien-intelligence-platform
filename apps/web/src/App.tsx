@@ -3,6 +3,7 @@ import type {
   AlertResponse,
   AuthUserResponse,
   ComparisonDecision,
+  DecisionHistoryEventResponse,
   ComparisonItemResponse,
   DatasetManualMappingTarget,
   DatasetResponse,
@@ -26,6 +27,7 @@ import {
   getJob,
   listAlerts,
   listComparison,
+  listComparisonHistory,
   listDatasets,
   listDatasetScores,
   listPortfolio,
@@ -56,6 +58,7 @@ import {
   comparisonDecisionClassName,
   comparisonDecisionLabel,
   comparisonDecisionOptions,
+  decisionHistoryEventLabel,
   datasetImportPresentation,
   datasetNeedsImportRepair,
   datasetReadinessPresentation,
@@ -78,6 +81,7 @@ import {
   scoreBand,
   sortAlertsForReview,
   sortComparisonItemsForReview,
+  sortDecisionHistoryForReview,
   sortPortfolioItemsForReview,
   sortWatchlistItemsForReview,
   type ScoreFilter,
@@ -852,12 +856,13 @@ function App() {
           />
         ) : page.name === "comparison" ? (
           <ComparisonPage
+            token={session.token}
             items={comparison.items}
             isLoading={comparison.isLoading}
             error={comparison.error}
             actionId={comparison.actionId}
             onRetry={() => void refreshComparison(session.token)}
-            onUpdate={(comparisonItemId, input) => void updateComparisonDecisionNote(comparisonItemId, input)}
+            onUpdate={updateComparisonDecisionNote}
             onRemove={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
           />
         ) : page.name === "alerts" ? (
@@ -2319,6 +2324,7 @@ function AlertsPage({
 }
 
 function ComparisonPage({
+  token,
   items,
   isLoading,
   error,
@@ -2327,12 +2333,13 @@ function ComparisonPage({
   onUpdate,
   onRemove,
 }: {
+  token: string;
   items: ComparisonItemResponse[];
   isLoading: boolean;
   error: string | null;
   actionId: string | null;
   onRetry: () => void;
-  onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => void;
+  onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => Promise<void>;
   onRemove: (comparisonItemId: string) => void;
 }) {
   const sortedItems = useMemo(() => sortComparisonItemsForReview(items), [items]);
@@ -2395,7 +2402,13 @@ function ComparisonPage({
             onSelect={setSelectedItemId}
             onRemove={onRemove}
           />
-          <ComparisonDetail item={selectedItem} actionId={actionId} onUpdate={onUpdate} onRemove={onRemove} />
+          <ComparisonDetail
+            token={token}
+            item={selectedItem}
+            actionId={actionId}
+            onUpdate={onUpdate}
+            onRemove={onRemove}
+          />
         </div>
       )}
     </section>
@@ -2531,23 +2544,61 @@ function ComparisonMatrixRow({
 }
 
 function ComparisonDetail({
+  token,
   item,
   actionId,
   onUpdate,
   onRemove,
 }: {
+  token: string;
   item: ComparisonItemResponse | null;
   actionId: string | null;
-  onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => void;
+  onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => Promise<void>;
   onRemove: (comparisonItemId: string) => void;
 }) {
   const [draftDecision, setDraftDecision] = useState<ComparisonDecision>("undecided");
   const [draftNote, setDraftNote] = useState("");
+  const [historyEvents, setHistoryEvents] = useState<DecisionHistoryEventResponse[]>([]);
+  const [historyIsLoading, setHistoryIsLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   useEffect(() => {
     setDraftDecision(item?.decision ?? "undecided");
     setDraftNote(item?.note ?? "");
   }, [item?.id, item?.decision, item?.note]);
+
+  useEffect(() => {
+    if (!item) {
+      setHistoryEvents([]);
+      setHistoryError(null);
+      setHistoryIsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setHistoryIsLoading(true);
+    setHistoryError(null);
+    void listComparisonHistory(token, item.id)
+      .then((result) => {
+        if (!cancelled) {
+          setHistoryEvents(sortDecisionHistoryForReview(result.events));
+        }
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setHistoryError(errorMessage(error));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setHistoryIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [item, token]);
 
   if (!item) {
     return (
@@ -2558,6 +2609,19 @@ function ComparisonDetail({
   }
 
   const isSaving = actionId === item.id;
+  const sortedHistoryEvents = sortDecisionHistoryForReview(historyEvents);
+  const selectedItem = item;
+
+  async function saveDecision(): Promise<void> {
+    try {
+      await onUpdate(selectedItem.id, { decision: draftDecision, note: draftNote.trim() ? draftNote : null });
+      const result = await listComparisonHistory(token, selectedItem.id);
+      setHistoryEvents(sortDecisionHistoryForReview(result.events));
+      setHistoryError(null);
+    } catch (error: unknown) {
+      setHistoryError(errorMessage(error));
+    }
+  }
 
   return (
     <aside className="border border-line bg-white p-4 xl:sticky xl:top-4 xl:self-start">
@@ -2614,7 +2678,7 @@ function ComparisonDetail({
       <button
         type="button"
         disabled={isSaving}
-        onClick={() => onUpdate(item.id, { decision: draftDecision, note: draftNote.trim() ? draftNote : null })}
+        onClick={() => void saveDecision()}
         className="mt-4 w-full bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSaving ? "Saving..." : "Save decision"}
@@ -2648,6 +2712,37 @@ function ComparisonDetail({
             ))}
           </ul>
         )}
+      </section>
+      <section className="mt-5">
+        <div className="flex items-center justify-between gap-3">
+          <h4 className="text-sm font-semibold">History</h4>
+          {historyIsLoading ? <span className="text-xs text-ink/55">Loading</span> : null}
+        </div>
+        {historyError ? <p className="mt-2 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{historyError}</p> : null}
+        {!historyIsLoading && !historyError && sortedHistoryEvents.length === 0 ? (
+          <p className="mt-2 text-sm text-ink/65">No decision history yet.</p>
+        ) : null}
+        {sortedHistoryEvents.length > 0 ? (
+          <ol className="mt-2 space-y-2">
+            {sortedHistoryEvents.map((event) => (
+              <li key={event.id} className="border border-line bg-white px-3 py-2 text-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="font-semibold">{decisionHistoryEventLabel(event.eventType)}</span>
+                  <span className="shrink-0 text-xs text-ink/55">{formatDateTime(event.createdAt)}</span>
+                </div>
+                {event.previousDecision && event.newDecision ? (
+                  <p className="mt-1 text-xs text-ink/65">
+                    {comparisonDecisionLabel(event.previousDecision)} → {comparisonDecisionLabel(event.newDecision)}
+                  </p>
+                ) : null}
+                {event.noteSnapshot ? <p className="mt-2 text-sm leading-6 text-ink/75">{event.noteSnapshot}</p> : null}
+                {!event.noteSnapshot && event.previousNoteSnapshot ? (
+                  <p className="mt-2 text-sm leading-6 text-ink/60">Note cleared.</p>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        ) : null}
       </section>
     </aside>
   );

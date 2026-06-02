@@ -33,13 +33,14 @@ Implemented scope:
 - compare actions from scored review, watchlist, and portfolio surfaces;
 - side-by-side comparison matrix;
 - selected-item note/reasoning/flag detail panel;
+- selected-item lightweight decision history visibility;
 - integration and frontend model/API tests.
 
 Not implemented:
 
 - saved multiple workspaces;
 - collaboration or team comments;
-- audit trails;
+- legal-grade audit trails;
 - rich text notes;
 - task/project management;
 - spreadsheet builders;
@@ -102,9 +103,9 @@ These states are lightweight review markers. They do not trigger side effects.
 send an alert, or execute an auction action.
 
 Notes are intentionally plain text. They are trimmed, capped at 500 characters,
-and validated for unsupported control characters. This avoids introducing rich
-text sanitization, collaboration semantics, or audit-history complexity before
-the product needs it.
+and validated for unsupported control characters. Phase 22 records lightweight
+decision/note change history using bounded note snapshots, but the notes are not
+rich text, collaboration comments, legal approvals, or task records.
 
 ## Frontend Surface
 
@@ -115,7 +116,7 @@ The frontend integrates comparison into the existing review loop:
 - portfolio rows and detail panels can add/remove comparison items;
 - `#/comparison` shows a side-by-side matrix;
 - selected item detail exposes decision state, lightweight note editing,
-  reasoning, and flags.
+  reasoning, flags, and lightweight decision history.
 
 The comparison page is dense and operational. It should remain a decision tool,
 not a decorative card gallery or spreadsheet replacement.
@@ -149,6 +150,7 @@ Security requirements:
 - bounded note input;
 - safe error responses;
 - no raw internal processing details in notes or comparison metadata.
+- server-derived history events for decision/note changes only.
 
 Comparison data is private tenant data because it reveals investment intent and
 decision reasoning.
@@ -160,7 +162,9 @@ Future contributors should avoid:
 - turning comparison notes into team comments without collaboration boundaries;
 - using `move_forward` as an implicit auction or portfolio action;
 - accepting client-submitted score/context fields;
-- adding broad note history before audit requirements are designed;
+- treating lightweight history as legal-grade audit logging;
+- exposing broad history feeds before authorization and product requirements are
+  designed;
 - making comparison a spreadsheet builder;
 - merging comparison, watchlist, and portfolio semantics casually.
 
@@ -172,6 +176,7 @@ Update this document when:
 - multiple workspaces become real;
 - decision states change;
 - notes gain history, formatting, or collaboration behavior;
+- decision history event fields change;
 - comparison begins creating downstream portfolio, alert, or auction side
   effects;
 - comparison API response contracts change.

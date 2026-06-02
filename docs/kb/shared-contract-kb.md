@@ -539,7 +539,23 @@ Current decision values are `undecided`, `keep_reviewing`, `move_forward`, and
 
 Notes are plain text, trimmed, capped at 500 characters, and validated for
 unsupported control characters. They are decision notes, not rich text,
-comments, audit trails, or task records.
+comments, legal-grade audit trails, or task records.
+
+Current decision history contracts include:
+
+- history event id;
+- related entity type, currently `comparison_item`;
+- related comparison item id;
+- event type: `comparison_decision_changed` or `comparison_note_changed`;
+- optional previous/new decision values;
+- optional previous/current bounded note snapshots;
+- optional safe metadata: workspace id, dataset id, scored record id, and
+  source type;
+- created/updated timestamps.
+
+Decision history retrieval is `GET /comparison/:comparisonItemId/history` and
+is scoped through ownership of the comparison item. The frontend must not submit
+history events, source metadata, raw rows, raw note diffs, or ownership fields.
 
 Future comparison contracts may add multiple workspaces, note history, or
 collaboration only with validation, API docs, tenancy tests, and an explicit

@@ -5,11 +5,14 @@ import type {
   ComparisonItemResponse,
   ComparisonListResponse,
   ComparisonSourceType,
+  DecisionHistoryEventResponse,
+  DecisionHistoryListResponse,
   DeleteComparisonItemResponse,
   NormalizedScoredRecordFields,
   UpdateComparisonItemResponse,
 } from "@tax-lien/types";
 import type { ScoringResult } from "@tax-lien/scoring";
+import type { DecisionHistoryStore, StoredDecisionHistoryEvent } from "../decision-history/decision-history-store.js";
 import { ApiError } from "../errors/api-error.js";
 import type { StoredPortfolioItem, PortfolioStore } from "../portfolio/portfolio-store.js";
 import type { ScoredRecordStore, StoredScoredRecord } from "../scoring/scored-record-store.js";
@@ -50,17 +53,20 @@ export class ComparisonService {
   private readonly scoredRecordStore: ScoredRecordStore;
   private readonly watchlistStore: WatchlistStore;
   private readonly portfolioStore: PortfolioStore;
+  private readonly decisionHistoryStore: DecisionHistoryStore;
 
   public constructor(
     comparisonStore: ComparisonStore,
     scoredRecordStore: ScoredRecordStore,
     watchlistStore: WatchlistStore,
     portfolioStore: PortfolioStore,
+    decisionHistoryStore: DecisionHistoryStore,
   ) {
     this.comparisonStore = comparisonStore;
     this.scoredRecordStore = scoredRecordStore;
     this.watchlistStore = watchlistStore;
     this.portfolioStore = portfolioStore;
+    this.decisionHistoryStore = decisionHistoryStore;
   }
 
   public async addItem(userId: string, input: AddComparisonItemInput): Promise<AddComparisonItemResponse> {
@@ -105,13 +111,34 @@ export class ComparisonService {
     assertObjectId(comparisonItemId, "comparison_invalid_item_id", "Comparison item id is invalid.");
 
     const update = buildComparisonUpdate(input);
+    const previousItem = await this.comparisonStore.findItemByIdForUser(comparisonItemId, userId);
+    if (!previousItem) {
+      throw new ApiError(404, "comparison_item_not_found", "Comparison item was not found.");
+    }
+
     const item = await this.comparisonStore.updateItemForUser(comparisonItemId, userId, update);
     if (!item) {
       throw new ApiError(404, "comparison_item_not_found", "Comparison item was not found.");
     }
 
+    await this.recordDecisionHistory(previousItem, item, update);
+
     return {
       item: toComparisonItemResponse(item),
+    };
+  }
+
+  public async listHistory(userId: string, comparisonItemId: string): Promise<DecisionHistoryListResponse> {
+    assertObjectId(comparisonItemId, "comparison_invalid_item_id", "Comparison item id is invalid.");
+
+    const item = await this.comparisonStore.findItemByIdForUser(comparisonItemId, userId);
+    if (!item) {
+      throw new ApiError(404, "comparison_item_not_found", "Comparison item was not found.");
+    }
+
+    const events = await this.decisionHistoryStore.listEventsForEntity(userId, "comparison_item", item.id);
+    return {
+      events: events.map(toDecisionHistoryEventResponse),
     };
   }
 
@@ -174,6 +201,37 @@ export class ComparisonService {
 
     return snapshotFromScoredRecord(scoredRecord);
   }
+
+  private async recordDecisionHistory(
+    previousItem: StoredComparisonItem,
+    item: StoredComparisonItem,
+    update: ReturnType<typeof buildComparisonUpdate>,
+  ): Promise<void> {
+    const decisionChanged = update.decision !== undefined && previousItem.decision !== item.decision;
+    const noteWasUpdated = update.note !== undefined || update.clearNote === true;
+    const noteChanged = noteWasUpdated && (previousItem.note ?? null) !== (item.note ?? null);
+
+    if (!decisionChanged && !noteChanged) {
+      return;
+    }
+
+    await this.decisionHistoryStore.createEvent({
+      userId: item.userId,
+      relatedEntityType: "comparison_item",
+      relatedEntityId: item.id,
+      eventType: decisionChanged ? "comparison_decision_changed" : "comparison_note_changed",
+      previousDecision: previousItem.decision,
+      newDecision: item.decision,
+      ...(previousItem.note ? { previousNoteSnapshot: previousItem.note } : {}),
+      ...(item.note ? { noteSnapshot: item.note } : {}),
+      metadata: {
+        workspaceId: item.workspaceId,
+        datasetId: item.datasetId,
+        scoredRecordId: item.scoredRecordId,
+        sourceType: item.sourceType,
+      },
+    });
+  }
 }
 
 export function toComparisonItemResponse(item: StoredComparisonItem): ComparisonItemResponse {
@@ -203,6 +261,22 @@ export function toComparisonItemResponse(item: StoredComparisonItem): Comparison
     addedAt: item.addedAt.toISOString(),
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
+  };
+}
+
+export function toDecisionHistoryEventResponse(event: StoredDecisionHistoryEvent): DecisionHistoryEventResponse {
+  return {
+    id: event.id,
+    relatedEntityType: event.relatedEntityType,
+    relatedEntityId: event.relatedEntityId,
+    eventType: event.eventType,
+    ...(event.previousDecision ? { previousDecision: event.previousDecision } : {}),
+    ...(event.newDecision ? { newDecision: event.newDecision } : {}),
+    ...(event.previousNoteSnapshot ? { previousNoteSnapshot: event.previousNoteSnapshot } : {}),
+    ...(event.noteSnapshot ? { noteSnapshot: event.noteSnapshot } : {}),
+    ...(event.metadata ? { metadata: event.metadata } : {}),
+    createdAt: event.createdAt.toISOString(),
+    updatedAt: event.updatedAt.toISOString(),
   };
 }
 

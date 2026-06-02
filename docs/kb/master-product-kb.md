@@ -30,7 +30,8 @@ import validation/readiness guidance before users rely on scores. Phase 19 adds
 focused manual mapping repair for weak or blocked imports. Phase 20 adds
 tenant-owned reusable import profiles so repeated upload shapes can reuse known
 mapping repairs deterministically. Phase 21 adds a side-by-side comparison
-workspace with lightweight decision notes.
+workspace with lightweight decision notes. Phase 22 adds lightweight decision
+history for comparison decision/note changes.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -49,7 +50,8 @@ Current evidence:
 - the portfolio surface lets signed-in users track active decisions with
   simple status;
 - the comparison surface lets signed-in users compare selected records side by
-  side, mark lightweight decisions, and save bounded notes;
+  side, mark lightweight decisions, save bounded notes, and inspect recent
+  decision/note history;
 - internal job records and the worker path make scoring execution explicit
   without adding external automation;
 - controlled refresh lets users deliberately rerun scoring/enrichment without
@@ -192,7 +194,8 @@ Current implementation:
 - frontend review of scored results exists;
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
-- side-by-side comparison with lightweight decision notes exists;
+- side-by-side comparison with lightweight decision notes and decision history
+  exists;
 - scoring execution is recorded through internal jobs and processed by the
   worker path;
 - scoring now uses internal source-row enrichment before final score generation;

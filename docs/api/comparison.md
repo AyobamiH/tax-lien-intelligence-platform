@@ -6,7 +6,8 @@ scored records, watchlist items, and portfolio items.
 
 The comparison API does not execute auctions, create portfolio positions, send
 notifications, or make investment recommendations. It stores the user's selected
-comparison candidates, a small decision state, and an optional bounded note.
+comparison candidates, a small decision state, an optional bounded note, and a
+lightweight history of decision/note changes.
 
 ## Security Model
 
@@ -18,6 +19,8 @@ comparison candidates, a small decision state, and an optional bounded note.
 - The browser cannot submit score values, ownership fields, source snapshots, or
   workspace ownership.
 - List, update, and delete operations are scoped to the authenticated user.
+- History retrieval is scoped to an owned comparison item. Deleted or stale
+  comparison item ids return `comparison_item_not_found`.
 
 ## Decision States
 
@@ -130,6 +133,48 @@ Response:
 The real response uses the same full comparison item shape returned by
 `POST /comparison`.
 
+When the decision or note actually changes, the server records a bounded
+history event. No history event is created for no-op updates.
+
+## `GET /comparison/:comparisonItemId/history`
+
+Returns lightweight decision history for one owned comparison item.
+
+Response:
+
+```json
+{
+  "events": [
+    {
+      "id": "history-event-id",
+      "relatedEntityType": "comparison_item",
+      "relatedEntityId": "comparison-item-id",
+      "eventType": "comparison_decision_changed",
+      "previousDecision": "undecided",
+      "newDecision": "move_forward",
+      "noteSnapshot": "Confirm sale terms before bid.",
+      "metadata": {
+        "workspaceId": "default",
+        "datasetId": "dataset-id",
+        "scoredRecordId": "scored-record-id",
+        "sourceType": "watchlist"
+      },
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+Supported history event types:
+
+- `comparison_decision_changed`
+- `comparison_note_changed`
+
+History events intentionally store bounded note snapshots and safe source
+metadata only. They do not expose raw dataset rows, internal processing details,
+or rich diffs.
+
 ## `DELETE /comparison/:comparisonItemId`
 
 Removes one comparison item owned by the authenticated user.
@@ -166,5 +211,5 @@ Possible comparison errors:
 ## Out Of Scope
 
 The comparison API intentionally does not include collaboration, team comments,
-rich text, audit trails, task management, auction execution, spreadsheet-style
-comparison builders, or ML/AI decision suggestions.
+rich text, legal-grade audit trails, task management, auction execution,
+spreadsheet-style comparison builders, or ML/AI decision suggestions.

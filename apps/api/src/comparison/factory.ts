@@ -1,6 +1,7 @@
 import { MongoPortfolioStore } from "../portfolio/portfolio-store.js";
 import { MongoScoredRecordStore } from "../scoring/scored-record-store.js";
 import { MongoWatchlistStore } from "../watchlist/watchlist-store.js";
+import { MongoDecisionHistoryStore } from "../decision-history/decision-history-store.js";
 import { ComparisonService } from "./comparison-service.js";
 import { MongoComparisonStore } from "./comparison-store.js";
 
@@ -10,5 +11,6 @@ export function createComparisonService(): ComparisonService {
     new MongoScoredRecordStore(),
     new MongoWatchlistStore(),
     new MongoPortfolioStore(),
+    new MongoDecisionHistoryStore(),
   );
 }

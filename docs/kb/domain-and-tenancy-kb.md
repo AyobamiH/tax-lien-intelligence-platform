@@ -164,8 +164,9 @@ Current status: implemented as a tenant-owned comparison item model and
 add/list/update/delete API. Comparison items can be created from an owned scored
 record, owned watchlist item, or owned portfolio item. They preserve score
 context, flags, reasoning, a small decision state, and a bounded plain-text
-note. They do not create collaboration history, tasks, auction actions, or
-portfolio status changes by themselves.
+note. Phase 22 adds lightweight tenant-owned decision history for comparison
+decision/note changes. Comparison records do not create collaboration history,
+tasks, auction actions, or portfolio status changes by themselves.
 
 ### Alert
 
@@ -205,6 +206,7 @@ User-owned data includes or will include:
 - scheduled maintenance state;
 - alerts;
 - decision notes;
+- decision history;
 - upload errors;
 - audit events;
 - automation job records.
@@ -255,9 +257,9 @@ product. Phase 2 establishes authenticated user identity. Phase 3 uses that
 identity for tenant-owned dataset records. Phase 4 uses it for scored records.
 Phase 6 uses it for watchlist items. Phase 7 uses it for portfolio items. Phase
 8 uses it for internal jobs. Phase 9 uses it for alerts. Phase 21 uses it for
-comparison records and lightweight decision notes. Future standalone parcel
-models must build on the same ownership pattern rather than inventing a parallel
-boundary.
+comparison records and lightweight decision notes. Phase 22 uses it for
+comparison decision history. Future standalone parcel models must build on the
+same ownership pattern rather than inventing a parallel boundary.
 
 Recommended pattern:
 

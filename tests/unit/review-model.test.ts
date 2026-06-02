@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type {
   AlertResponse,
   ComparisonItemResponse,
+  DecisionHistoryEventResponse,
   DatasetResponse,
   PortfolioItemResponse,
   ScoredRecordResponse,
@@ -36,6 +37,7 @@ import {
   comparisonDecisionClassName,
   comparisonDecisionLabel,
   comparisonDecisionOptions,
+  decisionHistoryEventLabel,
   portfolioStatusClassName,
   portfolioStatusLabel,
   portfolioStatusOptions,
@@ -43,6 +45,7 @@ import {
   scoreBand,
   sortAlertsForReview,
   sortComparisonItemsForReview,
+  sortDecisionHistoryForReview,
   sortPortfolioItemsForReview,
   sortScoresForReview,
   sortWatchlistItemsForReview,
@@ -177,6 +180,21 @@ function alertResponse(overrides: Partial<AlertResponse>): AlertResponse {
     severity: "info",
     status: "unread",
     message: "Scoring completed. 2 records are ready for review.",
+    createdAt: "2026-05-25T00:00:00.000Z",
+    updatedAt: "2026-05-25T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function decisionHistoryEvent(overrides: Partial<DecisionHistoryEventResponse>): DecisionHistoryEventResponse {
+  return {
+    id: "history-1",
+    relatedEntityType: "comparison_item",
+    relatedEntityId: "comparison-1",
+    eventType: "comparison_decision_changed",
+    previousDecision: "undecided",
+    newDecision: "move_forward",
+    noteSnapshot: "Confirm county sale terms.",
     createdAt: "2026-05-25T00:00:00.000Z",
     updatedAt: "2026-05-25T00:00:00.000Z",
     ...overrides,
@@ -453,6 +471,27 @@ describe("review model helpers", () => {
     expect(byPortfolioId.get("portfolio-move-forward")?.id).toBe("move-forward");
     expect(comparisonDecisionLabel("move_forward")).toBe("Move forward");
     expect(comparisonDecisionClassName("rejected")).toContain("red");
+  });
+
+  it("sorts and labels comparison decision history for review", () => {
+    const olderDecisionChange = decisionHistoryEvent({
+      id: "older-decision",
+      eventType: "comparison_decision_changed",
+      createdAt: "2026-05-25T01:00:00.000Z",
+    });
+    const newerNoteChange = decisionHistoryEvent({
+      id: "newer-note",
+      eventType: "comparison_note_changed",
+      previousNoteSnapshot: "Initial county review.",
+      noteSnapshot: "Confirmed sale terms.",
+      createdAt: "2026-05-25T02:00:00.000Z",
+    });
+
+    const sorted = sortDecisionHistoryForReview([olderDecisionChange, newerNoteChange]);
+
+    expect(sorted.map((event) => event.id)).toEqual(["newer-note", "older-decision"]);
+    expect(decisionHistoryEventLabel("comparison_decision_changed")).toBe("Decision changed");
+    expect(decisionHistoryEventLabel("comparison_note_changed")).toBe("Note changed");
   });
 
   it("sorts and labels alerts for the monitoring surface", () => {

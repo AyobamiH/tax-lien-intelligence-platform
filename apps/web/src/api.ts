@@ -12,6 +12,7 @@ import type {
   DatasetScoresResponse,
   DeleteWatchlistItemResponse,
   ComparisonDecision,
+  DecisionHistoryListResponse,
   ComparisonListResponse,
   AddPortfolioItemResponse,
   ApplyImportProfileToDatasetRequest,
@@ -306,6 +307,15 @@ export async function updateComparisonItem(
     method: "PATCH",
     token,
     body: JSON.stringify(input),
+  });
+}
+
+export async function listComparisonHistory(
+  token: string,
+  comparisonItemId: string,
+): Promise<DecisionHistoryListResponse> {
+  return requestJson<DecisionHistoryListResponse>(`/comparison/${encodeURIComponent(comparisonItemId)}/history`, {
+    token,
   });
 }
 

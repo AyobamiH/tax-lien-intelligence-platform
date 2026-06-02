@@ -4,6 +4,7 @@ import {
   addComparisonItem,
   applyDatasetImportProfile,
   createDataset,
+  listComparisonHistory,
   listComparison,
   listImportProfiles,
   removeComparisonItem,
@@ -407,6 +408,29 @@ describe("web API client", () => {
         ),
       )
       .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            events: [
+              {
+                id: "history-1",
+                relatedEntityType: "comparison_item",
+                relatedEntityId: "comparison-1",
+                eventType: "comparison_decision_changed",
+                previousDecision: "undecided",
+                newDecision: "move_forward",
+                noteSnapshot: "Verify before bid.",
+                createdAt: "2026-06-01T01:00:00.000Z",
+                updatedAt: "2026-06-01T01:00:00.000Z",
+              },
+            ],
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
         new Response(JSON.stringify({ deleted: true, id: "comparison-1" }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
@@ -424,6 +448,9 @@ describe("web API client", () => {
         note: "Verify before bid.",
       }),
     ).resolves.toMatchObject({ item: { decision: "move_forward", note: "Verify before bid." } });
+    await expect(listComparisonHistory("test-token", "comparison-1")).resolves.toMatchObject({
+      events: [{ eventType: "comparison_decision_changed", noteSnapshot: "Verify before bid." }],
+    });
     await expect(removeComparisonItem("test-token", "comparison-1")).resolves.toEqual({
       deleted: true,
       id: "comparison-1",
@@ -433,9 +460,11 @@ describe("web API client", () => {
       "http://localhost:4000/comparison",
       "http://localhost:4000/comparison",
       "http://localhost:4000/comparison/comparison-1",
+      "http://localhost:4000/comparison/comparison-1/history",
       "http://localhost:4000/comparison/comparison-1",
     ]);
     expect(fetchMock.mock.calls.map(([, init]) => (init?.headers as Headers).get("Authorization"))).toEqual([
+      "Bearer test-token",
       "Bearer test-token",
       "Bearer test-token",
       "Bearer test-token",
@@ -446,6 +475,6 @@ describe("web API client", () => {
       decision: "move_forward",
       note: "Verify before bid.",
     });
-    expect(fetchMock.mock.calls[3]?.[1]?.method).toBe("DELETE");
+    expect(fetchMock.mock.calls[4]?.[1]?.method).toBe("DELETE");
   });
 });

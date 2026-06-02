@@ -664,18 +664,51 @@ Phase 21 does not include:
 
 - multiple saved workspaces;
 - collaboration/team comments;
-- audit trails;
+- legal-grade audit trails;
 - task/project management;
 - rich text notes;
 - spreadsheet comparison builders;
 - auction execution;
 - ML/AI decision suggestions.
 
+## Phase 22: Decision History And Lightweight Audit Trail
+
+Current status: implemented.
+
+Phase 22 includes:
+
+- tenant-owned decision history model;
+- server-created comparison decision/note change events;
+- previous/new decision capture;
+- bounded note snapshot capture;
+- safe derived comparison/source metadata;
+- authenticated `GET /comparison/:comparisonItemId/history` API;
+- selected comparison item history visibility;
+- owner-scoped retrieval and stale/deleted item handling tests.
+
+Phase 22 does not include:
+
+- full compliance or legal-grade audit logging;
+- immutable audit infrastructure guarantees;
+- collaboration/team activity feeds;
+- approval workflows;
+- rich diff viewers;
+- task/project management;
+- auction execution;
+- ML/AI decision assistance.
+
+Future expansion may include:
+
+- broader activity history for watchlist or portfolio changes;
+- richer audit retention and immutability requirements;
+- admin audit surfaces after authorization boundaries are designed;
+- collaboration-safe activity streams.
+
 ## Later Phases
 
 Later phases may include:
 
-- richer decision history;
+- richer decision history beyond the current comparison-item timeline;
 - richer filtering;
 - richer import profile management;
 - additional county import adapters after deterministic mapping tests;
@@ -713,7 +746,8 @@ Dependency order matters:
 17. manual mapping and import repair workflow;
 18. reusable import profile workflow;
 19. comparison workspace and decision notes;
-20. broader automation.
+20. lightweight decision history;
+21. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

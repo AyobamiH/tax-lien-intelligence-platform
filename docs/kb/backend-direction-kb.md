@@ -72,6 +72,9 @@ Current implementation:
   portfolio items;
 - duplicate-safe comparison adds;
 - bounded lightweight notes;
+- decision history model;
+- authenticated comparison history retrieval route;
+- server-side comparison decision/note history capture;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
@@ -91,8 +94,9 @@ The backend should become the trusted boundary for:
 - watchlist persistence;
 - portfolio tracking persistence;
 - comparison workspace persistence;
+- decision history persistence;
 - in-app alert persistence;
-- audit events;
+- future audit events;
 - security enforcement.
 
 The backend must not rely on frontend behavior for authorization.
@@ -387,6 +391,7 @@ Current comparison API:
 - `POST /comparison`;
 - `GET /comparison`;
 - `PATCH /comparison/:comparisonItemId`;
+- `GET /comparison/:comparisonItemId/history`;
 - `DELETE /comparison/:comparisonItemId`.
 
 Comparison endpoints:
@@ -397,13 +402,15 @@ Comparison endpoints:
 - support add/list/update/delete;
 - preserve score context, flags, reasoning, a small decision state, and a
   bounded note;
+- record lightweight decision/note history from server-side updates;
+- retrieve history only through an owned comparison item;
 - do not create downstream portfolio, alert, auction, or task side effects.
 
 Current limitation:
 
-- no multiple workspaces, collaboration, audit trail, task management, rich
-  text notes, spreadsheet builders, auction execution, or ML/AI decision
-  suggestions.
+- no multiple workspaces, collaboration, legal-grade audit trail, task
+  management, rich text notes, spreadsheet builders, auction execution, or
+  ML/AI decision suggestions.
 
 ## Alerts Implementation
 
@@ -550,7 +557,8 @@ Backend implementation order should stay disciplined:
 17. manual mapping/import repair workflow: implemented in Phase 19;
 18. reusable import profile workflow: implemented in Phase 20;
 19. comparison workspace and decision notes: implemented in Phase 21;
-20. later external automation.
+20. lightweight decision history: implemented in Phase 22;
+21. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

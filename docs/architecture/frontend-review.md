@@ -55,6 +55,7 @@ Implemented:
 - compare actions from scored records, watchlist rows, and portfolio rows;
 - dedicated comparison route with side-by-side matrix;
 - comparison decision selector and bounded note editor;
+- selected comparison item decision history timeline;
 - dedicated alerts route with unread/read state;
 - alert links back to related datasets when available;
 - loading, empty, and error states;
@@ -253,10 +254,12 @@ spreadsheet builder. It shows:
 - lien/value/type context;
 - compact flags and reasoning;
 - note preview;
-- selected-item detail with full flags, reasoning, and bounded note editing.
+- selected-item detail with full flags, reasoning, bounded note editing, and
+  lightweight decision/note history.
 
-It is a lightweight decision workspace. It is not team comments, audit history,
-rich text, task management, auction execution, or ML/AI recommendation.
+It is a lightweight decision workspace. It is not team comments, legal-grade
+audit history, rich text, task management, auction execution, or ML/AI
+recommendation.
 
 ## Alerts Surface
 

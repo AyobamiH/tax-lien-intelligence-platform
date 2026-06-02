@@ -42,6 +42,7 @@ Current implementation:
 - dedicated comparison workspace;
 - side-by-side comparison matrix;
 - lightweight decision note editor;
+- selected-item decision history timeline;
 - scoring job queued/running/completed/failed visibility after a score run;
 - refresh action/status visibility for scored datasets;
 - maintenance mode/message visibility for scored datasets;
@@ -82,7 +83,8 @@ Current and future page direction:
 - implemented: watchlist detail reasoning surface;
 - implemented: portfolio status tracking surface;
 - implemented: portfolio detail reasoning/status surface;
-- implemented: comparison workspace with decision notes;
+- implemented: comparison workspace with decision notes and lightweight
+  decision history;
 - implemented: scoring job status visibility and polling;
 - implemented: controlled refresh action and scoring status badge;
 - implemented: maintenance policy status display on dataset detail;
@@ -161,13 +163,15 @@ Implemented comparison:
 - allow a small decision state: undecided, keep reviewing, move forward, or
   rejected;
 - allow bounded plain-text notes.
+- show recent selected-item decision/note history in a compact, timestamped
+  timeline.
 
 Future comparison expansion:
 
 - multiple named workspaces;
-- richer decision history;
+- richer decision history beyond the current lightweight timeline;
 - collaboration;
-- audit trails;
+- legal-grade audit trails;
 - task/project management;
 - spreadsheet-style custom comparison builders.
 
