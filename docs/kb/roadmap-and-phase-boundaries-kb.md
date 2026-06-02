@@ -704,11 +704,46 @@ Future expansion may include:
 - admin audit surfaces after authorization boundaries are designed;
 - collaboration-safe activity streams.
 
+## Phase 23: Action Transitions And Decision Handoff
+
+Current status: implemented.
+
+Phase 23 includes:
+
+- explicit comparison-to-watchlist handoff action;
+- explicit comparison-to-portfolio handoff action;
+- duplicate-safe destination creation/reuse;
+- safe target linkage in decision history;
+- preservation of current decision state and bounded note snapshot in handoff
+  events;
+- focused comparison detail handoff UI;
+- destination result visibility and navigation;
+- tests for success, duplicate behavior, stale references, cross-user
+  rejection, and API client behavior.
+
+Phase 23 does not include:
+
+- broad workflow engines;
+- collaboration/team handoffs;
+- approval pipelines;
+- task/project management;
+- automation rules;
+- auction execution;
+- ML/AI decision recommendations.
+
+Future expansion may include:
+
+- richer destination-specific context display;
+- portfolio/watchlist history views;
+- approval or collaboration flows after authorization design;
+- automation hooks after manual handoff behavior is proven.
+
 ## Later Phases
 
 Later phases may include:
 
 - richer decision history beyond the current comparison-item timeline;
+- richer decision handoff surfaces beyond the current comparison bridge;
 - richer filtering;
 - richer import profile management;
 - additional county import adapters after deterministic mapping tests;
@@ -747,7 +782,8 @@ Dependency order matters:
 18. reusable import profile workflow;
 19. comparison workspace and decision notes;
 20. lightweight decision history;
-21. broader automation.
+21. explicit decision handoff;
+22. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

@@ -620,13 +620,24 @@ export interface DeleteComparisonItemResponse {
 }
 
 export type DecisionHistoryRelatedEntityType = "comparison_item";
-export type DecisionHistoryEventType = "comparison_decision_changed" | "comparison_note_changed";
+export type DecisionHistoryEventType =
+  | "comparison_decision_changed"
+  | "comparison_note_changed"
+  | "comparison_handoff_to_watchlist"
+  | "comparison_handoff_to_portfolio";
+
+export type DecisionHistoryTargetEntityType = "watchlist_item" | "portfolio_item";
+export type ComparisonHandoffResult = "created" | "already_exists";
 
 export interface DecisionHistoryMetadata {
   workspaceId?: "default";
   datasetId?: string;
   scoredRecordId?: string;
   sourceType?: ComparisonSourceType;
+  targetEntityType?: DecisionHistoryTargetEntityType;
+  targetEntityId?: string;
+  handoffResult?: ComparisonHandoffResult;
+  portfolioStatus?: PortfolioStatus;
 }
 
 export interface DecisionHistoryEventResponse {
@@ -645,4 +656,18 @@ export interface DecisionHistoryEventResponse {
 
 export interface DecisionHistoryListResponse {
   events: DecisionHistoryEventResponse[];
+}
+
+export interface ComparisonHandoffToWatchlistResponse {
+  destination: "watchlist";
+  item: WatchlistItemResponse;
+  alreadyExists: boolean;
+  historyEvent: DecisionHistoryEventResponse;
+}
+
+export interface ComparisonHandoffToPortfolioResponse {
+  destination: "portfolio";
+  item: PortfolioItemResponse;
+  alreadyExists: boolean;
+  historyEvent: DecisionHistoryEventResponse;
 }

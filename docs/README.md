@@ -28,6 +28,7 @@ before writing specs, prompts, or implementation plans.
 - [Portfolio Tracking Architecture](architecture/portfolio.md)
 - [Comparison Workspace Architecture](architecture/comparison.md)
 - [Decision History Architecture](architecture/decision-history.md)
+- [Decision Handoff Architecture](architecture/decision-handoff.md)
 - [Internal Job Architecture](architecture/internal-jobs.md)
 - [Alerts And Monitoring Architecture](architecture/alerts.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)

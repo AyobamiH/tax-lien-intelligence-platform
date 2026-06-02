@@ -587,12 +587,154 @@ describe("comparison API", () => {
     expect(staleHistory.body.error.code).toBe("comparison_item_not_found");
   });
 
+  it("hands comparison decisions into watchlist duplicate-safely with rationale history", async () => {
+    const { app, scoredRecordStore, watchlistStore } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const record = scoredRecordStore.seed(owner.userId);
+
+    const add = await request(app)
+      .post("/comparison")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ scoredRecordId: record.id })
+      .expect(201);
+    const comparisonItemId = add.body.item.id as string;
+
+    await request(app)
+      .patch(`/comparison/${comparisonItemId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ decision: "keep_reviewing", note: "Keep reviewing county file quality." })
+      .expect(200);
+
+    const firstHandoff = await request(app)
+      .post(`/comparison/${comparisonItemId}/handoff/watchlist`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(201);
+    const duplicateHandoff = await request(app)
+      .post(`/comparison/${comparisonItemId}/handoff/watchlist`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+    const watchlistItems = await watchlistStore.listItemsForUser(owner.userId);
+    const history = await request(app)
+      .get(`/comparison/${comparisonItemId}/history`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(firstHandoff.body).toMatchObject({
+      destination: "watchlist",
+      alreadyExists: false,
+      item: {
+        scoredRecordId: record.id,
+        datasetId: record.datasetId,
+      },
+      historyEvent: {
+        eventType: "comparison_handoff_to_watchlist",
+        previousDecision: "keep_reviewing",
+        newDecision: "keep_reviewing",
+        noteSnapshot: "Keep reviewing county file quality.",
+        metadata: {
+          targetEntityType: "watchlist_item",
+          handoffResult: "created",
+        },
+      },
+    });
+    expect(duplicateHandoff.body).toMatchObject({
+      destination: "watchlist",
+      alreadyExists: true,
+      item: {
+        id: firstHandoff.body.item.id,
+      },
+      historyEvent: {
+        eventType: "comparison_handoff_to_watchlist",
+        metadata: {
+          targetEntityId: firstHandoff.body.item.id,
+          handoffResult: "already_exists",
+        },
+      },
+    });
+    expect(watchlistItems).toHaveLength(1);
+    expect(history.body.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          eventType: "comparison_handoff_to_watchlist",
+          metadata: expect.objectContaining({
+            targetEntityId: firstHandoff.body.item.id,
+            handoffResult: "created",
+          }),
+        }),
+        expect.objectContaining({
+          eventType: "comparison_handoff_to_watchlist",
+          metadata: expect.objectContaining({
+            targetEntityId: firstHandoff.body.item.id,
+            handoffResult: "already_exists",
+          }),
+        }),
+      ]),
+    );
+  });
+
+  it("hands comparison decisions into portfolio with status and source linkage", async () => {
+    const { app, scoredRecordStore, watchlistStore, portfolioStore } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const record = scoredRecordStore.seed(owner.userId);
+    const watchlistItem = await seedWatchlistItem(watchlistStore, record);
+
+    const add = await request(app)
+      .post("/comparison")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ watchlistItemId: watchlistItem.id })
+      .expect(201);
+    const comparisonItemId = add.body.item.id as string;
+
+    await request(app)
+      .patch(`/comparison/${comparisonItemId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ decision: "move_forward", note: "Ready for tracked diligence." })
+      .expect(200);
+
+    const handoff = await request(app)
+      .post(`/comparison/${comparisonItemId}/handoff/portfolio`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ status: "reviewing" })
+      .expect(201);
+    const portfolioItems = await portfolioStore.listItemsForUser(owner.userId);
+
+    expect(handoff.body).toMatchObject({
+      destination: "portfolio",
+      alreadyExists: false,
+      item: {
+        scoredRecordId: record.id,
+        sourceWatchlistItemId: watchlistItem.id,
+        status: "reviewing",
+      },
+      historyEvent: {
+        eventType: "comparison_handoff_to_portfolio",
+        previousDecision: "move_forward",
+        newDecision: "move_forward",
+        noteSnapshot: "Ready for tracked diligence.",
+        metadata: {
+          targetEntityType: "portfolio_item",
+          targetEntityId: handoff.body.item.id,
+          handoffResult: "created",
+          portfolioStatus: "reviewing",
+        },
+      },
+    });
+    expect(portfolioItems).toHaveLength(1);
+    expect(portfolioItems[0]).toMatchObject({
+      id: handoff.body.item.id,
+      sourceWatchlistItemId: watchlistItem.id,
+      status: "reviewing",
+    });
+  });
+
   it("rejects unauthenticated comparison access", async () => {
     const { app } = createTestContext();
     const id = new mongoose.Types.ObjectId().toString();
 
     await request(app).get("/comparison").expect(401);
     await request(app).get(`/comparison/${id}/history`).expect(401);
+    await request(app).post(`/comparison/${id}/handoff/watchlist`).expect(401);
+    await request(app).post(`/comparison/${id}/handoff/portfolio`).expect(401);
     await request(app).post("/comparison").send({ scoredRecordId: id }).expect(401);
     await request(app).patch(`/comparison/${id}`).send({ decision: "rejected" }).expect(401);
     await request(app).delete(`/comparison/${id}`).expect(401);
@@ -623,6 +765,14 @@ describe("comparison API", () => {
       .get(`/comparison/${add.body.item.id as string}/history`)
       .set("Authorization", `Bearer ${other.token}`)
       .expect(404);
+    const crossWatchlistHandoff = await request(app)
+      .post(`/comparison/${add.body.item.id as string}/handoff/watchlist`)
+      .set("Authorization", `Bearer ${other.token}`)
+      .expect(404);
+    const crossPortfolioHandoff = await request(app)
+      .post(`/comparison/${add.body.item.id as string}/handoff/portfolio`)
+      .set("Authorization", `Bearer ${other.token}`)
+      .expect(404);
     const crossDelete = await request(app)
       .delete(`/comparison/${add.body.item.id as string}`)
       .set("Authorization", `Bearer ${other.token}`)
@@ -632,6 +782,8 @@ describe("comparison API", () => {
     expect(crossAdd.body.error.code).toBe("comparison_scored_record_not_found");
     expect(crossUpdate.body.error.code).toBe("comparison_item_not_found");
     expect(crossHistory.body.error.code).toBe("comparison_item_not_found");
+    expect(crossWatchlistHandoff.body.error.code).toBe("comparison_item_not_found");
+    expect(crossPortfolioHandoff.body.error.code).toBe("comparison_item_not_found");
     expect(crossDelete.body.error.code).toBe("comparison_item_not_found");
     expect(otherList.body.items).toEqual([]);
   });
@@ -666,10 +818,25 @@ describe("comparison API", () => {
       .set("Authorization", `Bearer ${owner.token}`)
       .send({ note: "x".repeat(501) })
       .expect(400);
+    const invalidPortfolioStatus = await request(app)
+      .post(`/comparison/${add.body.item.id as string}/handoff/portfolio`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ status: "auction_now" })
+      .expect(400);
+    await request(app)
+      .delete(`/comparison/${add.body.item.id as string}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+    const staleHandoff = await request(app)
+      .post(`/comparison/${add.body.item.id as string}/handoff/watchlist`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(404);
 
     expect(invalidSource.body.error.code).toBe("comparison_invalid_source");
     expect(invalidId.body.error.code).toBe("comparison_invalid_scored_record_id");
     expect(invalidDecision.body.error.code).toBe("validation_failed");
     expect(longNote.body.error.code).toBe("validation_failed");
+    expect(invalidPortfolioStatus.body.error.code).toBe("validation_failed");
+    expect(staleHandoff.body.error.code).toBe("comparison_item_not_found");
   });
 });

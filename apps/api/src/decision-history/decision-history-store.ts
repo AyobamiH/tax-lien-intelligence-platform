@@ -3,9 +3,12 @@ import { DecisionHistoryModel } from "@tax-lien/db";
 import type {
   ComparisonDecision,
   ComparisonSourceType,
+  ComparisonHandoffResult,
   DecisionHistoryEventType,
   DecisionHistoryMetadata,
   DecisionHistoryRelatedEntityType,
+  DecisionHistoryTargetEntityType,
+  PortfolioStatus,
 } from "@tax-lien/types";
 
 export interface StoredDecisionHistoryEvent {
@@ -90,11 +93,19 @@ function mapMetadata(metadata: {
   datasetId?: string;
   scoredRecordId?: string;
   sourceType?: ComparisonSourceType;
+  targetEntityType?: DecisionHistoryTargetEntityType;
+  targetEntityId?: string;
+  handoffResult?: ComparisonHandoffResult;
+  portfolioStatus?: PortfolioStatus;
 }): DecisionHistoryMetadata {
   return {
     ...(metadata.workspaceId ? { workspaceId: metadata.workspaceId } : {}),
     ...(metadata.datasetId ? { datasetId: metadata.datasetId } : {}),
     ...(metadata.scoredRecordId ? { scoredRecordId: metadata.scoredRecordId } : {}),
     ...(metadata.sourceType ? { sourceType: metadata.sourceType } : {}),
+    ...(metadata.targetEntityType ? { targetEntityType: metadata.targetEntityType } : {}),
+    ...(metadata.targetEntityId ? { targetEntityId: metadata.targetEntityId } : {}),
+    ...(metadata.handoffResult ? { handoffResult: metadata.handoffResult } : {}),
+    ...(metadata.portfolioStatus ? { portfolioStatus: metadata.portfolioStatus } : {}),
   };
 }

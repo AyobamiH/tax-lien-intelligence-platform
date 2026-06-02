@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import type {
   AddComparisonItemResponse,
   ComparisonDecision,
+  ComparisonHandoffToPortfolioResponse,
+  ComparisonHandoffToWatchlistResponse,
   ComparisonItemResponse,
   ComparisonListResponse,
   ComparisonSourceType,
@@ -9,14 +11,17 @@ import type {
   DecisionHistoryListResponse,
   DeleteComparisonItemResponse,
   NormalizedScoredRecordFields,
+  PortfolioStatus,
   UpdateComparisonItemResponse,
 } from "@tax-lien/types";
 import type { ScoringResult } from "@tax-lien/scoring";
 import type { DecisionHistoryStore, StoredDecisionHistoryEvent } from "../decision-history/decision-history-store.js";
 import { ApiError } from "../errors/api-error.js";
 import type { StoredPortfolioItem, PortfolioStore } from "../portfolio/portfolio-store.js";
+import { portfolioStatuses, toPortfolioItemResponse } from "../portfolio/portfolio-service.js";
 import type { ScoredRecordStore, StoredScoredRecord } from "../scoring/scored-record-store.js";
 import type { StoredWatchlistItem, WatchlistStore } from "../watchlist/watchlist-store.js";
+import { toWatchlistItemResponse } from "../watchlist/watchlist-service.js";
 import type { ComparisonStore, StoredComparisonItem } from "./comparison-store.js";
 
 export const comparisonDecisions = ["undecided", "keep_reviewing", "move_forward", "rejected"] as const;
@@ -34,6 +39,10 @@ export interface AddComparisonItemInput {
 export interface UpdateComparisonItemInput {
   decision?: ComparisonDecision;
   note?: string | null;
+}
+
+export interface HandoffComparisonToPortfolioInput {
+  status?: PortfolioStatus;
 }
 
 interface ComparisonSourceSnapshot {
@@ -142,6 +151,81 @@ export class ComparisonService {
     };
   }
 
+  public async handoffToWatchlist(
+    userId: string,
+    comparisonItemId: string,
+  ): Promise<ComparisonHandoffToWatchlistResponse> {
+    const item = await this.findOwnedComparisonItem(userId, comparisonItemId);
+    const now = new Date();
+    const result = await this.watchlistStore.createItem({
+      userId,
+      datasetId: item.datasetId,
+      scoredRecordId: item.scoredRecordId,
+      sourceRowNumber: item.sourceRowNumber,
+      normalizedFields: item.normalizedFields,
+      score: item.score,
+      scoredAt: item.scoredAt,
+      addedAt: now,
+    });
+    const historyEvent = await this.recordHandoffHistory(
+      item,
+      "comparison_handoff_to_watchlist",
+      {
+        targetEntityType: "watchlist_item",
+        targetEntityId: result.item.id,
+        handoffResult: result.alreadyExists ? "already_exists" : "created",
+      },
+    );
+
+    return {
+      destination: "watchlist",
+      item: toWatchlistItemResponse(result.item),
+      alreadyExists: result.alreadyExists,
+      historyEvent: toDecisionHistoryEventResponse(historyEvent),
+    };
+  }
+
+  public async handoffToPortfolio(
+    userId: string,
+    comparisonItemId: string,
+    input: HandoffComparisonToPortfolioInput,
+  ): Promise<ComparisonHandoffToPortfolioResponse> {
+    const item = await this.findOwnedComparisonItem(userId, comparisonItemId);
+    const status = input.status ?? "tracked";
+    assertPortfolioStatus(status);
+    const now = new Date();
+    const result = await this.portfolioStore.createItem({
+      userId,
+      datasetId: item.datasetId,
+      scoredRecordId: item.scoredRecordId,
+      ...(item.sourceWatchlistItemId ? { sourceWatchlistItemId: item.sourceWatchlistItemId } : {}),
+      status,
+      statusUpdatedAt: now,
+      sourceRowNumber: item.sourceRowNumber,
+      normalizedFields: item.normalizedFields,
+      score: item.score,
+      scoredAt: item.scoredAt,
+      trackedAt: now,
+    });
+    const historyEvent = await this.recordHandoffHistory(
+      item,
+      "comparison_handoff_to_portfolio",
+      {
+        targetEntityType: "portfolio_item",
+        targetEntityId: result.item.id,
+        handoffResult: result.alreadyExists ? "already_exists" : "created",
+        portfolioStatus: result.item.status,
+      },
+    );
+
+    return {
+      destination: "portfolio",
+      item: toPortfolioItemResponse(result.item),
+      alreadyExists: result.alreadyExists,
+      historyEvent: toDecisionHistoryEventResponse(historyEvent),
+    };
+  }
+
   public async deleteItem(userId: string, comparisonItemId: string): Promise<DeleteComparisonItemResponse> {
     assertObjectId(comparisonItemId, "comparison_invalid_item_id", "Comparison item id is invalid.");
     const deleted = await this.comparisonStore.deleteItemForUser(comparisonItemId, userId);
@@ -229,6 +313,44 @@ export class ComparisonService {
         datasetId: item.datasetId,
         scoredRecordId: item.scoredRecordId,
         sourceType: item.sourceType,
+      },
+    });
+  }
+
+  private async findOwnedComparisonItem(userId: string, comparisonItemId: string): Promise<StoredComparisonItem> {
+    assertObjectId(comparisonItemId, "comparison_invalid_item_id", "Comparison item id is invalid.");
+    const item = await this.comparisonStore.findItemByIdForUser(comparisonItemId, userId);
+    if (!item) {
+      throw new ApiError(404, "comparison_item_not_found", "Comparison item was not found.");
+    }
+
+    return item;
+  }
+
+  private async recordHandoffHistory(
+    item: StoredComparisonItem,
+    eventType: "comparison_handoff_to_watchlist" | "comparison_handoff_to_portfolio",
+    metadata: {
+      targetEntityType: "watchlist_item" | "portfolio_item";
+      targetEntityId: string;
+      handoffResult: "created" | "already_exists";
+      portfolioStatus?: PortfolioStatus;
+    },
+  ): Promise<StoredDecisionHistoryEvent> {
+    return this.decisionHistoryStore.createEvent({
+      userId: item.userId,
+      relatedEntityType: "comparison_item",
+      relatedEntityId: item.id,
+      eventType,
+      previousDecision: item.decision,
+      newDecision: item.decision,
+      ...(item.note ? { noteSnapshot: item.note } : {}),
+      metadata: {
+        workspaceId: item.workspaceId,
+        datasetId: item.datasetId,
+        scoredRecordId: item.scoredRecordId,
+        sourceType: item.sourceType,
+        ...metadata,
       },
     });
   }
@@ -383,6 +505,12 @@ function normalizeDecisionNote(note: string | null | undefined): string | null {
 function assertComparisonDecision(decision: string): asserts decision is ComparisonDecision {
   if (!(comparisonDecisions as readonly string[]).includes(decision)) {
     throw new ApiError(400, "comparison_invalid_decision", "Comparison decision is invalid.");
+  }
+}
+
+function assertPortfolioStatus(status: string): asserts status is PortfolioStatus {
+  if (!(portfolioStatuses as readonly string[]).includes(status)) {
+    throw new ApiError(400, "portfolio_invalid_status", "Portfolio status is invalid.");
   }
 }
 

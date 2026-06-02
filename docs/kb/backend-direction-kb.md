@@ -75,6 +75,8 @@ Current implementation:
 - decision history model;
 - authenticated comparison history retrieval route;
 - server-side comparison decision/note history capture;
+- explicit comparison handoff routes for watchlist and portfolio;
+- server-side handoff history capture with destination linkage metadata;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
@@ -95,6 +97,7 @@ The backend should become the trusted boundary for:
 - portfolio tracking persistence;
 - comparison workspace persistence;
 - decision history persistence;
+- decision handoff orchestration;
 - in-app alert persistence;
 - future audit events;
 - security enforcement.
@@ -392,6 +395,8 @@ Current comparison API:
 - `GET /comparison`;
 - `PATCH /comparison/:comparisonItemId`;
 - `GET /comparison/:comparisonItemId/history`;
+- `POST /comparison/:comparisonItemId/handoff/watchlist`;
+- `POST /comparison/:comparisonItemId/handoff/portfolio`;
 - `DELETE /comparison/:comparisonItemId`.
 
 Comparison endpoints:
@@ -404,13 +409,16 @@ Comparison endpoints:
   bounded note;
 - record lightweight decision/note history from server-side updates;
 - retrieve history only through an owned comparison item;
-- do not create downstream portfolio, alert, auction, or task side effects.
+- create/reuse watchlist or portfolio records only through explicit user
+  handoff actions;
+- record safe handoff target linkage in decision history;
+- do not create alerts, auction, automation, approval, or task side effects.
 
 Current limitation:
 
 - no multiple workspaces, collaboration, legal-grade audit trail, task
-  management, rich text notes, spreadsheet builders, auction execution, or
-  ML/AI decision suggestions.
+  management, rich text notes, spreadsheet builders, workflow engines,
+  approval pipelines, auction execution, or ML/AI decision suggestions.
 
 ## Alerts Implementation
 
@@ -558,7 +566,8 @@ Backend implementation order should stay disciplined:
 18. reusable import profile workflow: implemented in Phase 20;
 19. comparison workspace and decision notes: implemented in Phase 21;
 20. lightweight decision history: implemented in Phase 22;
-21. later external automation.
+21. explicit decision handoff: implemented in Phase 23;
+22. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

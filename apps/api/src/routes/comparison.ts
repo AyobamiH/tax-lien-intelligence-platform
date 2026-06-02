@@ -5,8 +5,10 @@ import { comparisonDecisions, type ComparisonService } from "../comparison/compa
 import { ApiError } from "../errors/api-error.js";
 import { toValidationError } from "../errors/error-handler.js";
 import { requireAuth } from "../middleware/auth.js";
+import { portfolioStatuses } from "../portfolio/portfolio-service.js";
 
 const comparisonDecisionSchema = z.enum(comparisonDecisions);
+const portfolioStatusSchema = z.enum(portfolioStatuses);
 
 const addComparisonItemSchema = z.object({
   scoredRecordId: z.string().min(1).max(128).optional(),
@@ -20,6 +22,10 @@ const updateComparisonItemSchema = z
     note: z.string().max(500).nullable().optional(),
   })
   .refine((value) => value.decision !== undefined || Object.prototype.hasOwnProperty.call(value, "note"));
+
+const handoffToPortfolioSchema = z.object({
+  status: portfolioStatusSchema.optional(),
+});
 
 export function createComparisonRouter(authService: AuthService, comparisonService: ComparisonService): Router {
   const router = Router();
@@ -71,6 +77,49 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
       }
 
       response.status(200).json(await comparisonService.listHistory(request.auth.userId, comparisonItemId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:comparisonItemId/handoff/watchlist", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      const comparisonItemId = request.params.comparisonItemId;
+      if (typeof comparisonItemId !== "string") {
+        throw new ApiError(400, "comparison_invalid_item_id", "Comparison item id is invalid.");
+      }
+
+      const result = await comparisonService.handoffToWatchlist(request.auth.userId, comparisonItemId);
+      response.status(result.alreadyExists ? 200 : 201).json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:comparisonItemId/handoff/portfolio", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      const comparisonItemId = request.params.comparisonItemId;
+      if (typeof comparisonItemId !== "string") {
+        throw new ApiError(400, "comparison_invalid_item_id", "Comparison item id is invalid.");
+      }
+
+      const parsed = handoffToPortfolioSchema.safeParse(request.body ?? {});
+      if (!parsed.success) {
+        throw toValidationError();
+      }
+
+      const result = await comparisonService.handoffToPortfolio(request.auth.userId, comparisonItemId, {
+        ...(parsed.data.status ? { status: parsed.data.status } : {}),
+      });
+      response.status(result.alreadyExists ? 200 : 201).json(result);
     } catch (error) {
       next(error);
     }

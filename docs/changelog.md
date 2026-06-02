@@ -2,6 +2,15 @@
 
 ## 2026-06-01
 
+- Implemented Phase 23 decision handoff with explicit comparison-to-watchlist
+  and comparison-to-portfolio actions, duplicate-safe target creation/reuse,
+  server-recorded handoff history with target linkage and rationale snapshots,
+  focused frontend handoff controls, and tests for tenant-safe transitions,
+  stale references, duplicates, and API client behavior.
+- Added decision handoff API/architecture documentation and updated the KB pack
+  to mark explicit user-driven handoff as current while keeping workflow
+  engines, collaboration approvals, task management, auction execution, and
+  ML/AI recommendations out of scope.
 - Implemented Phase 22 decision history with tenant-owned comparison history
   records, decision/note change capture, authenticated history retrieval,
   selected comparison item history visibility, and tests for owner-scoped

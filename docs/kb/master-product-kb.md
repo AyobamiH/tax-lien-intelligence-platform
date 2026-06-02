@@ -31,7 +31,8 @@ focused manual mapping repair for weak or blocked imports. Phase 20 adds
 tenant-owned reusable import profiles so repeated upload shapes can reuse known
 mapping repairs deterministically. Phase 21 adds a side-by-side comparison
 workspace with lightweight decision notes. Phase 22 adds lightweight decision
-history for comparison decision/note changes.
+history for comparison decision/note changes. Phase 23 adds explicit decision
+handoff from comparison into watchlist and portfolio.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -52,6 +53,8 @@ Current evidence:
 - the comparison surface lets signed-in users compare selected records side by
   side, mark lightweight decisions, save bounded notes, and inspect recent
   decision/note history;
+- decision handoff lets signed-in users deliberately send compared records into
+  watchlist or portfolio while preserving saved rationale in history;
 - internal job records and the worker path make scoring execution explicit
   without adding external automation;
 - controlled refresh lets users deliberately rerun scoring/enrichment without
@@ -196,6 +199,7 @@ Current implementation:
 - portfolio/status tracking exists;
 - side-by-side comparison with lightweight decision notes and decision history
   exists;
+- explicit comparison-to-watchlist/portfolio handoff exists;
 - scoring execution is recorded through internal jobs and processed by the
   worker path;
 - scoring now uses internal source-row enrichment before final score generation;

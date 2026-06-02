@@ -3,6 +3,8 @@ import type {
   AlertResponse,
   AuthUserResponse,
   ComparisonDecision,
+  ComparisonHandoffToPortfolioResponse,
+  ComparisonHandoffToWatchlistResponse,
   DecisionHistoryEventResponse,
   ComparisonItemResponse,
   DatasetManualMappingTarget,
@@ -25,6 +27,8 @@ import {
   getDataset,
   getDatasetScoringStatus,
   getJob,
+  handoffComparisonToPortfolio,
+  handoffComparisonToWatchlist,
   listAlerts,
   listComparison,
   listComparisonHistory,
@@ -495,15 +499,7 @@ function App() {
 
     try {
       const result = await addWatchlistItem(session.token, scoredRecordId);
-      setWatchlist((current) => {
-        const withoutDuplicate = current.items.filter((item) => item.id !== result.item.id);
-        return {
-          ...current,
-          items: sortWatchlistItemsForReview([result.item, ...withoutDuplicate]),
-          actionId: null,
-          error: null,
-        };
-      });
+      setWatchlist((current) => upsertWatchlistItem(current, result.item));
     } catch (error: unknown) {
       setWatchlist((current) => ({
         ...current,
@@ -727,6 +723,60 @@ function App() {
     }
   }
 
+  async function handoffComparisonItemToWatchlist(
+    comparisonItemId: string,
+  ): Promise<ComparisonHandoffToWatchlistResponse> {
+    if (!session) {
+      throw new ApiClientError(401, "auth_missing_token", "Authentication token is required.");
+    }
+
+    setComparison((current) => ({ ...current, actionId: comparisonItemId, error: null }));
+
+    try {
+      const result = await handoffComparisonToWatchlist(session.token, comparisonItemId);
+      setWatchlist((current) => upsertWatchlistItem(current, result.item));
+      setComparison((current) => ({ ...current, actionId: null, error: null }));
+      return result;
+    } catch (error: unknown) {
+      setComparison((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+      throw error;
+    }
+  }
+
+  async function handoffComparisonItemToPortfolio(
+    comparisonItemId: string,
+  ): Promise<ComparisonHandoffToPortfolioResponse> {
+    if (!session) {
+      throw new ApiClientError(401, "auth_missing_token", "Authentication token is required.");
+    }
+
+    setComparison((current) => ({ ...current, actionId: comparisonItemId, error: null }));
+
+    try {
+      const result = await handoffComparisonToPortfolio(session.token, comparisonItemId, { status: "tracked" });
+      setPortfolio((current) => upsertPortfolioItem(current, result.item));
+      setComparison((current) => ({ ...current, actionId: null, error: null }));
+      return result;
+    } catch (error: unknown) {
+      setComparison((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+      throw error;
+    }
+  }
+
   async function removeFromComparison(comparisonItemId: string): Promise<void> {
     if (!session) {
       return;
@@ -863,6 +913,10 @@ function App() {
             actionId={comparison.actionId}
             onRetry={() => void refreshComparison(session.token)}
             onUpdate={updateComparisonDecisionNote}
+            onHandoffToWatchlist={handoffComparisonItemToWatchlist}
+            onHandoffToPortfolio={handoffComparisonItemToPortfolio}
+            onOpenWatchlist={() => navigate({ name: "watchlist" }, setPage)}
+            onOpenPortfolio={() => navigate({ name: "portfolio" }, setPage)}
             onRemove={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
           />
         ) : page.name === "alerts" ? (
@@ -2331,6 +2385,10 @@ function ComparisonPage({
   actionId,
   onRetry,
   onUpdate,
+  onHandoffToWatchlist,
+  onHandoffToPortfolio,
+  onOpenWatchlist,
+  onOpenPortfolio,
   onRemove,
 }: {
   token: string;
@@ -2340,6 +2398,10 @@ function ComparisonPage({
   actionId: string | null;
   onRetry: () => void;
   onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => Promise<void>;
+  onHandoffToWatchlist: (comparisonItemId: string) => Promise<ComparisonHandoffToWatchlistResponse>;
+  onHandoffToPortfolio: (comparisonItemId: string) => Promise<ComparisonHandoffToPortfolioResponse>;
+  onOpenWatchlist: () => void;
+  onOpenPortfolio: () => void;
   onRemove: (comparisonItemId: string) => void;
 }) {
   const sortedItems = useMemo(() => sortComparisonItemsForReview(items), [items]);
@@ -2407,6 +2469,10 @@ function ComparisonPage({
             item={selectedItem}
             actionId={actionId}
             onUpdate={onUpdate}
+            onHandoffToWatchlist={onHandoffToWatchlist}
+            onHandoffToPortfolio={onHandoffToPortfolio}
+            onOpenWatchlist={onOpenWatchlist}
+            onOpenPortfolio={onOpenPortfolio}
             onRemove={onRemove}
           />
         </div>
@@ -2548,12 +2614,20 @@ function ComparisonDetail({
   item,
   actionId,
   onUpdate,
+  onHandoffToWatchlist,
+  onHandoffToPortfolio,
+  onOpenWatchlist,
+  onOpenPortfolio,
   onRemove,
 }: {
   token: string;
   item: ComparisonItemResponse | null;
   actionId: string | null;
   onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => Promise<void>;
+  onHandoffToWatchlist: (comparisonItemId: string) => Promise<ComparisonHandoffToWatchlistResponse>;
+  onHandoffToPortfolio: (comparisonItemId: string) => Promise<ComparisonHandoffToPortfolioResponse>;
+  onOpenWatchlist: () => void;
+  onOpenPortfolio: () => void;
   onRemove: (comparisonItemId: string) => void;
 }) {
   const [draftDecision, setDraftDecision] = useState<ComparisonDecision>("undecided");
@@ -2561,10 +2635,16 @@ function ComparisonDetail({
   const [historyEvents, setHistoryEvents] = useState<DecisionHistoryEventResponse[]>([]);
   const [historyIsLoading, setHistoryIsLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [handoffResult, setHandoffResult] = useState<
+    ComparisonHandoffToWatchlistResponse | ComparisonHandoffToPortfolioResponse | null
+  >(null);
+  const [handoffError, setHandoffError] = useState<string | null>(null);
 
   useEffect(() => {
     setDraftDecision(item?.decision ?? "undecided");
     setDraftNote(item?.note ?? "");
+    setHandoffResult(null);
+    setHandoffError(null);
   }, [item?.id, item?.decision, item?.note]);
 
   useEffect(() => {
@@ -2620,6 +2700,34 @@ function ComparisonDetail({
       setHistoryError(null);
     } catch (error: unknown) {
       setHistoryError(errorMessage(error));
+    }
+  }
+
+  async function refreshHistoryForSelectedItem(): Promise<void> {
+    const result = await listComparisonHistory(token, selectedItem.id);
+    setHistoryEvents(sortDecisionHistoryForReview(result.events));
+    setHistoryError(null);
+  }
+
+  async function handoffToWatchlist(): Promise<void> {
+    try {
+      const result = await onHandoffToWatchlist(selectedItem.id);
+      setHandoffResult(result);
+      setHandoffError(null);
+      await refreshHistoryForSelectedItem();
+    } catch (error: unknown) {
+      setHandoffError(errorMessage(error));
+    }
+  }
+
+  async function handoffToPortfolio(): Promise<void> {
+    try {
+      const result = await onHandoffToPortfolio(selectedItem.id);
+      setHandoffResult(result);
+      setHandoffError(null);
+      await refreshHistoryForSelectedItem();
+    } catch (error: unknown) {
+      setHandoffError(errorMessage(error));
     }
   }
 
@@ -2683,6 +2791,48 @@ function ComparisonDetail({
       >
         {isSaving ? "Saving..." : "Save decision"}
       </button>
+      <section className="mt-5 border border-line bg-field p-3">
+        <h4 className="text-sm font-semibold">Decision Handoff</h4>
+        <div className="mt-3 grid gap-2">
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void handoffToWatchlist()}
+            className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSaving ? "Working..." : "Send to watchlist"}
+          </button>
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void handoffToPortfolio()}
+            className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSaving ? "Working..." : "Track in portfolio"}
+          </button>
+        </div>
+        {handoffError ? (
+          <p className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{handoffError}</p>
+        ) : null}
+        {handoffResult ? (
+          <div className="mt-3 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+            <p className="font-semibold">
+              {handoffResult.destination === "watchlist" ? "Watchlist" : "Portfolio"}{" "}
+              {handoffResult.alreadyExists ? "already had this record" : "received this record"}.
+            </p>
+            <p className="mt-1 text-xs">
+              Linked as {shortId(handoffResult.item.id)} with saved decision context in history.
+            </p>
+            <button
+              type="button"
+              onClick={handoffResult.destination === "watchlist" ? onOpenWatchlist : onOpenPortfolio}
+              className="mt-2 border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-900"
+            >
+              Open {handoffResult.destination === "watchlist" ? "watchlist" : "portfolio"}
+            </button>
+          </div>
+        ) : null}
+      </section>
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
         <DetailTerm label="Lien" value={formatMoney(item.normalizedFields.lienAmount)} />
         <DetailTerm label="Value" value={formatMoney(item.normalizedFields.estimatedValue)} />
@@ -2738,6 +2888,12 @@ function ComparisonDetail({
                 {event.noteSnapshot ? <p className="mt-2 text-sm leading-6 text-ink/75">{event.noteSnapshot}</p> : null}
                 {!event.noteSnapshot && event.previousNoteSnapshot ? (
                   <p className="mt-2 text-sm leading-6 text-ink/60">Note cleared.</p>
+                ) : null}
+                {event.metadata?.targetEntityId ? (
+                  <p className="mt-2 text-xs text-ink/60">
+                    Target {shortId(event.metadata.targetEntityId)}
+                    {event.metadata.handoffResult ? ` · ${handoffResultLabel(event.metadata.handoffResult)}` : ""}
+                  </p>
                 ) : null}
               </li>
             ))}
@@ -3999,6 +4155,10 @@ function jobRequestKindLabel(requestKind: InternalJobResponse["requestKind"]): s
   }
 }
 
+function handoffResultLabel(result: "created" | "already_exists"): string {
+  return result === "already_exists" ? "Already existed" : "Created";
+}
+
 function jobStatusClassName(status: InternalJobResponse["status"]): string {
   switch (status) {
     case "completed":
@@ -4013,6 +4173,19 @@ function jobStatusClassName(status: InternalJobResponse["status"]): string {
 
 function shortId(id: string): string {
   return id.length > 8 ? id.slice(-8) : id;
+}
+
+function upsertWatchlistItem(current: WatchlistState, item: WatchlistItemResponse): WatchlistState {
+  const withoutDuplicate = current.items.filter(
+    (existing) => existing.id !== item.id && existing.scoredRecordId !== item.scoredRecordId,
+  );
+
+  return {
+    ...current,
+    items: sortWatchlistItemsForReview([item, ...withoutDuplicate]),
+    actionId: null,
+    error: null,
+  };
 }
 
 function upsertPortfolioItem(current: PortfolioState, item: PortfolioItemResponse): PortfolioState {

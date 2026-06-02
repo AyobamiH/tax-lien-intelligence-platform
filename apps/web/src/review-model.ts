@@ -351,11 +351,16 @@ export function comparisonDecisionLabel(decision: ComparisonDecision): string {
 }
 
 export function decisionHistoryEventLabel(eventType: DecisionHistoryEventType): string {
-  if (eventType === "comparison_decision_changed") {
-    return "Decision changed";
+  switch (eventType) {
+    case "comparison_decision_changed":
+      return "Decision changed";
+    case "comparison_note_changed":
+      return "Note changed";
+    case "comparison_handoff_to_watchlist":
+      return "Sent to watchlist";
+    case "comparison_handoff_to_portfolio":
+      return "Tracked in portfolio";
   }
-
-  return "Note changed";
 }
 
 export function comparisonDecisionClassName(decision: ComparisonDecision): string {

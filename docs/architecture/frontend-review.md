@@ -56,6 +56,7 @@ Implemented:
 - dedicated comparison route with side-by-side matrix;
 - comparison decision selector and bounded note editor;
 - selected comparison item decision history timeline;
+- selected comparison item handoff actions to watchlist and portfolio;
 - dedicated alerts route with unread/read state;
 - alert links back to related datasets when available;
 - loading, empty, and error states;
@@ -116,6 +117,9 @@ The frontend calls only the existing authenticated API routes:
 - `POST /comparison`;
 - `GET /comparison`;
 - `PATCH /comparison/:comparisonItemId`;
+- `GET /comparison/:comparisonItemId/history`;
+- `POST /comparison/:comparisonItemId/handoff/watchlist`;
+- `POST /comparison/:comparisonItemId/handoff/portfolio`;
 - `DELETE /comparison/:comparisonItemId`;
 - `GET /alerts`;
 - `PATCH /alerts/:alertId/read`;
@@ -255,11 +259,13 @@ spreadsheet builder. It shows:
 - compact flags and reasoning;
 - note preview;
 - selected-item detail with full flags, reasoning, bounded note editing, and
-  lightweight decision/note history.
+  lightweight decision/note history;
+- explicit handoff controls with duplicate/result visibility and destination
+  navigation.
 
 It is a lightweight decision workspace. It is not team comments, legal-grade
-audit history, rich text, task management, auction execution, or ML/AI
-recommendation.
+audit history, rich text, task management, workflow automation, auction
+execution, or ML/AI recommendation.
 
 ## Alerts Surface
 

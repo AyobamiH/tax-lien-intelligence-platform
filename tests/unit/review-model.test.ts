@@ -492,6 +492,8 @@ describe("review model helpers", () => {
     expect(sorted.map((event) => event.id)).toEqual(["newer-note", "older-decision"]);
     expect(decisionHistoryEventLabel("comparison_decision_changed")).toBe("Decision changed");
     expect(decisionHistoryEventLabel("comparison_note_changed")).toBe("Note changed");
+    expect(decisionHistoryEventLabel("comparison_handoff_to_watchlist")).toBe("Sent to watchlist");
+    expect(decisionHistoryEventLabel("comparison_handoff_to_portfolio")).toBe("Tracked in portfolio");
   });
 
   it("sorts and labels alerts for the monitoring surface", () => {

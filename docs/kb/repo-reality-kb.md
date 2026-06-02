@@ -161,19 +161,27 @@ Implemented today:
   `DELETE /comparison/:comparisonItemId`;
 - authenticated comparison history endpoint at
   `GET /comparison/:comparisonItemId/history`;
+- authenticated comparison handoff endpoints at
+  `POST /comparison/:comparisonItemId/handoff/watchlist` and
+  `POST /comparison/:comparisonItemId/handoff/portfolio`;
 - comparison creation from owned scored records, watchlist items, or portfolio
   items;
 - duplicate-safe comparison adds;
 - bounded lightweight decision notes;
 - server-recorded decision/note change history with bounded note snapshots and
   safe derived metadata;
+- explicit duplicate-safe comparison-to-watchlist and comparison-to-portfolio
+  handoff actions;
+- server-recorded handoff history with safe target linkage metadata;
 - comparison ownership tests;
 - decision history ownership/stale-item tests;
+- decision handoff ownership/duplicate/stale-reference tests;
 - compare actions from scored review, watchlist, and portfolio surfaces;
 - dedicated side-by-side comparison workspace;
 - comparison detail surface with decision state, note editing, flags, and
   reasoning;
 - comparison detail history surface for recent decision/note changes;
+- comparison detail handoff actions with destination result visibility;
 - frontend score job status polling after a scoring trigger;
 - frontend alerts route with unread count and read/read-all actions;
 - structured JSON 404 for unknown API routes;
@@ -289,7 +297,7 @@ Current tests cover:
 - cross-user portfolio source/read/update/delete rejection.
 - comparison add/list/update/delete behavior;
 - duplicate comparison handling;
-- cross-user comparison source/update/delete/history rejection.
+- cross-user comparison source/update/delete/history/handoff rejection.
 
 Tests do not yet cover:
 

@@ -51,6 +51,7 @@ It shows:
 - dedicated comparison route using `#/comparison`;
 - side-by-side comparison matrix with decision state and lightweight notes;
 - selected comparison item history for recent decision/note changes;
+- selected comparison item handoff actions into watchlist and portfolio;
 - dedicated alerts route using `#/alerts`;
 - unread alert count and alert read/read-all actions;
 - loading, empty, and error states.
@@ -95,6 +96,8 @@ The current API surface is minimal:
 - `GET /comparison`
 - `PATCH /comparison/:comparisonItemId`
 - `GET /comparison/:comparisonItemId/history`
+- `POST /comparison/:comparisonItemId/handoff/watchlist`
+- `POST /comparison/:comparisonItemId/handoff/portfolio`
 - `DELETE /comparison/:comparisonItemId`
 - structured JSON 404 for unknown routes
 
@@ -230,8 +233,9 @@ further when the repo adds:
 
 The watchlist is now user-owned decision data and has its own backend ownership
 checks. Portfolio tracking is also user-owned decision data and has backend
-ownership checks. Comparison items, decision notes, and lightweight decision
-history are also user-owned decision data and have backend ownership checks.
+ownership checks. Comparison items, decision notes, lightweight decision
+history, and decision handoff events are also user-owned decision data and have
+backend ownership checks.
 Internal jobs are user-owned
 operational metadata and have backend ownership checks. Future changes must
 preserve these boundaries.

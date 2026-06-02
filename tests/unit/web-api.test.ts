@@ -4,6 +4,8 @@ import {
   addComparisonItem,
   applyDatasetImportProfile,
   createDataset,
+  handoffComparisonToPortfolio,
+  handoffComparisonToWatchlist,
   listComparisonHistory,
   listComparison,
   listImportProfiles,
@@ -378,6 +380,47 @@ describe("web API client", () => {
       createdAt: "2026-06-01T00:00:00.000Z",
       updatedAt: "2026-06-01T00:00:00.000Z",
     };
+    const watchlistItem = {
+      id: "watch-1",
+      datasetId: "dataset-1",
+      scoredRecordId: "score-1",
+      sourceRowNumber: 2,
+      normalizedFields: comparisonItem.normalizedFields,
+      investmentScore: 82,
+      riskScore: 18,
+      liquidityScore: 70,
+      redemptionProbability: 0.8,
+      confidenceScore: 88,
+      valueCoverageRatio: 12,
+      flags: [],
+      reasoning: ["Strong value coverage."],
+      scoredAt: "2026-06-01T00:00:00.000Z",
+      addedAt: "2026-06-01T02:00:00.000Z",
+      createdAt: "2026-06-01T02:00:00.000Z",
+      updatedAt: "2026-06-01T02:00:00.000Z",
+    };
+    const portfolioItem = {
+      id: "portfolio-1",
+      datasetId: "dataset-1",
+      scoredRecordId: "score-1",
+      sourceWatchlistItemId: "watch-1",
+      status: "tracked",
+      statusUpdatedAt: "2026-06-01T03:00:00.000Z",
+      sourceRowNumber: 2,
+      normalizedFields: comparisonItem.normalizedFields,
+      investmentScore: 82,
+      riskScore: 18,
+      liquidityScore: 70,
+      redemptionProbability: 0.8,
+      confidenceScore: 88,
+      valueCoverageRatio: 12,
+      flags: [],
+      reasoning: ["Strong value coverage."],
+      scoredAt: "2026-06-01T00:00:00.000Z",
+      trackedAt: "2026-06-01T03:00:00.000Z",
+      createdAt: "2026-06-01T03:00:00.000Z",
+      updatedAt: "2026-06-01T03:00:00.000Z",
+    };
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(
@@ -431,6 +474,65 @@ describe("web API client", () => {
         ),
       )
       .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            destination: "watchlist",
+            item: watchlistItem,
+            alreadyExists: false,
+            historyEvent: {
+              id: "history-2",
+              relatedEntityType: "comparison_item",
+              relatedEntityId: "comparison-1",
+              eventType: "comparison_handoff_to_watchlist",
+              previousDecision: "move_forward",
+              newDecision: "move_forward",
+              noteSnapshot: "Verify before bid.",
+              metadata: {
+                targetEntityType: "watchlist_item",
+                targetEntityId: "watch-1",
+                handoffResult: "created",
+              },
+              createdAt: "2026-06-01T02:00:00.000Z",
+              updatedAt: "2026-06-01T02:00:00.000Z",
+            },
+          }),
+          {
+            status: 201,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            destination: "portfolio",
+            item: portfolioItem,
+            alreadyExists: false,
+            historyEvent: {
+              id: "history-3",
+              relatedEntityType: "comparison_item",
+              relatedEntityId: "comparison-1",
+              eventType: "comparison_handoff_to_portfolio",
+              previousDecision: "move_forward",
+              newDecision: "move_forward",
+              noteSnapshot: "Verify before bid.",
+              metadata: {
+                targetEntityType: "portfolio_item",
+                targetEntityId: "portfolio-1",
+                handoffResult: "created",
+                portfolioStatus: "tracked",
+              },
+              createdAt: "2026-06-01T03:00:00.000Z",
+              updatedAt: "2026-06-01T03:00:00.000Z",
+            },
+          }),
+          {
+            status: 201,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
         new Response(JSON.stringify({ deleted: true, id: "comparison-1" }), {
           status: 200,
           headers: { "Content-Type": "application/json" },
@@ -451,6 +553,16 @@ describe("web API client", () => {
     await expect(listComparisonHistory("test-token", "comparison-1")).resolves.toMatchObject({
       events: [{ eventType: "comparison_decision_changed", noteSnapshot: "Verify before bid." }],
     });
+    await expect(handoffComparisonToWatchlist("test-token", "comparison-1")).resolves.toMatchObject({
+      destination: "watchlist",
+      item: { id: "watch-1" },
+      historyEvent: { eventType: "comparison_handoff_to_watchlist" },
+    });
+    await expect(handoffComparisonToPortfolio("test-token", "comparison-1", { status: "tracked" })).resolves.toMatchObject({
+      destination: "portfolio",
+      item: { id: "portfolio-1" },
+      historyEvent: { eventType: "comparison_handoff_to_portfolio" },
+    });
     await expect(removeComparisonItem("test-token", "comparison-1")).resolves.toEqual({
       deleted: true,
       id: "comparison-1",
@@ -461,9 +573,13 @@ describe("web API client", () => {
       "http://localhost:4000/comparison",
       "http://localhost:4000/comparison/comparison-1",
       "http://localhost:4000/comparison/comparison-1/history",
+      "http://localhost:4000/comparison/comparison-1/handoff/watchlist",
+      "http://localhost:4000/comparison/comparison-1/handoff/portfolio",
       "http://localhost:4000/comparison/comparison-1",
     ]);
     expect(fetchMock.mock.calls.map(([, init]) => (init?.headers as Headers).get("Authorization"))).toEqual([
+      "Bearer test-token",
+      "Bearer test-token",
       "Bearer test-token",
       "Bearer test-token",
       "Bearer test-token",
@@ -475,6 +591,9 @@ describe("web API client", () => {
       decision: "move_forward",
       note: "Verify before bid.",
     });
-    expect(fetchMock.mock.calls[4]?.[1]?.method).toBe("DELETE");
+    expect(fetchMock.mock.calls[4]?.[1]?.method).toBe("POST");
+    expect(fetchMock.mock.calls[5]?.[1]?.method).toBe("POST");
+    expect(JSON.parse(fetchMock.mock.calls[5]?.[1]?.body as string)).toEqual({ status: "tracked" });
+    expect(fetchMock.mock.calls[6]?.[1]?.method).toBe("DELETE");
   });
 });

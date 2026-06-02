@@ -12,6 +12,8 @@ import type {
   DatasetScoresResponse,
   DeleteWatchlistItemResponse,
   ComparisonDecision,
+  ComparisonHandoffToPortfolioResponse,
+  ComparisonHandoffToWatchlistResponse,
   DecisionHistoryListResponse,
   ComparisonListResponse,
   AddPortfolioItemResponse,
@@ -317,6 +319,34 @@ export async function listComparisonHistory(
   return requestJson<DecisionHistoryListResponse>(`/comparison/${encodeURIComponent(comparisonItemId)}/history`, {
     token,
   });
+}
+
+export async function handoffComparisonToWatchlist(
+  token: string,
+  comparisonItemId: string,
+): Promise<ComparisonHandoffToWatchlistResponse> {
+  return requestJson<ComparisonHandoffToWatchlistResponse>(
+    `/comparison/${encodeURIComponent(comparisonItemId)}/handoff/watchlist`,
+    {
+      method: "POST",
+      token,
+    },
+  );
+}
+
+export async function handoffComparisonToPortfolio(
+  token: string,
+  comparisonItemId: string,
+  input: { status?: PortfolioStatus } = {},
+): Promise<ComparisonHandoffToPortfolioResponse> {
+  return requestJson<ComparisonHandoffToPortfolioResponse>(
+    `/comparison/${encodeURIComponent(comparisonItemId)}/handoff/portfolio`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify(input),
+    },
+  );
 }
 
 export async function removeComparisonItem(

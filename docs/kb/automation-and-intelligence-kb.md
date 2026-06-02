@@ -24,6 +24,7 @@ Current implementation:
 - portfolio/status tracking exists;
 - comparison workspace and lightweight decision notes exist;
 - lightweight comparison decision history exists;
+- explicit user-driven comparison handoff exists;
 - in-app alert records exist for scoring job completion/failure;
 - first internal enrichment adapter exists for uploaded source-row inference;
 - controlled user-triggered dataset refresh/reprocessing exists through the
@@ -236,6 +237,7 @@ Now:
 - portfolio/status tracking.
 - comparison workspace and decision notes.
 - lightweight comparison decision history.
+- explicit user-driven decision handoff.
 - internal job plumbing for scoring.
 - in-app alerts for scoring job outcomes.
 - worker-driven execution for queued scoring jobs.

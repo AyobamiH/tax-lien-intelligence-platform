@@ -25,11 +25,13 @@ export {
 } from "./models/comparison-item.js";
 export {
   DecisionHistoryModel,
+  type ComparisonHandoffResultRecord,
   type DecisionHistoryDocument,
   type DecisionHistoryEventTypeRecord,
   type DecisionHistoryMetadataRecord,
   type DecisionHistoryRecord,
   type DecisionHistoryRelatedEntityTypeRecord,
+  type DecisionHistoryTargetEntityTypeRecord,
 } from "./models/decision-history.js";
 export {
   DatasetModel,

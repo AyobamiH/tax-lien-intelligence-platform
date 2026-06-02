@@ -50,10 +50,11 @@ Decision history records currently store:
 - `relatedEntityType`, currently `comparison_item`;
 - `relatedEntityId`;
 - `eventType`, currently `comparison_decision_changed` or
-  `comparison_note_changed`;
+  `comparison_note_changed`, plus handoff events for watchlist/portfolio;
 - optional previous/new decision values;
 - optional previous/current note snapshots capped by the comparison note limit;
 - optional safe source metadata;
+- optional safe handoff target metadata;
 - created/updated timestamps.
 
 The history record is intentionally tied to the user and the comparison item.
@@ -73,6 +74,14 @@ History events are created by `ComparisonService` after:
 
 No event is created for a no-op update. A decision update that also includes a
 note change is recorded as a decision-change event with note context.
+
+Phase 23 adds handoff events:
+
+- `comparison_handoff_to_watchlist`;
+- `comparison_handoff_to_portfolio`.
+
+These events include target entity id/result metadata and the current bounded
+note snapshot when present. They do not create a general workflow graph.
 
 ## Retrieval
 
@@ -141,4 +150,5 @@ Update this document when:
 - history is exposed outside the comparison detail panel;
 - event retention, immutability, or compliance guarantees change;
 - history metadata fields change;
+- handoff event metadata fields change;
 - collaboration, approval, or audit semantics are introduced.

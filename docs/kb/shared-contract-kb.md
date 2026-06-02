@@ -551,11 +551,26 @@ Current decision history contracts include:
 - optional previous/current bounded note snapshots;
 - optional safe metadata: workspace id, dataset id, scored record id, and
   source type;
+- optional handoff metadata: target entity type/id, `created` versus
+  `already_exists`, and portfolio status when relevant;
 - created/updated timestamps.
 
 Decision history retrieval is `GET /comparison/:comparisonItemId/history` and
 is scoped through ownership of the comparison item. The frontend must not submit
 history events, source metadata, raw rows, raw note diffs, or ownership fields.
+
+Current comparison handoff contracts include:
+
+- `POST /comparison/:comparisonItemId/handoff/watchlist`;
+- `POST /comparison/:comparisonItemId/handoff/portfolio`;
+- destination value: `watchlist` or `portfolio`;
+- destination item response using the existing watchlist/portfolio item shapes;
+- `alreadyExists` duplicate result;
+- server-created history event with target linkage.
+
+Portfolio handoff may accept an optional portfolio `status` and defaults to
+`tracked`. Handoff requests must not include user ids, target ids, score
+snapshots, source snapshots, or history metadata.
 
 Future comparison contracts may add multiple workspaces, note history, or
 collaboration only with validation, API docs, tenancy tests, and an explicit

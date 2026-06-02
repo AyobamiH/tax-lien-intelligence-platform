@@ -23,7 +23,10 @@ Implemented scope:
 - tenant-owned comparison item model in `packages/db`;
 - comparison service/store boundaries in `apps/api/src/comparison`;
 - authenticated `POST /comparison`, `GET /comparison`,
-  `PATCH /comparison/:comparisonItemId`, and
+  `PATCH /comparison/:comparisonItemId`,
+  `GET /comparison/:comparisonItemId/history`,
+  `POST /comparison/:comparisonItemId/handoff/watchlist`,
+  `POST /comparison/:comparisonItemId/handoff/portfolio`, and
   `DELETE /comparison/:comparisonItemId` routes;
 - ability to compare an owned scored record, watchlist item, or portfolio item;
 - duplicate-safe comparison adds keyed by user/workspace/scored record;
@@ -34,6 +37,7 @@ Implemented scope:
 - side-by-side comparison matrix;
 - selected-item note/reasoning/flag detail panel;
 - selected-item lightweight decision history visibility;
+- explicit handoff actions into watchlist and portfolio;
 - integration and frontend model/API tests.
 
 Not implemented:
@@ -41,6 +45,7 @@ Not implemented:
 - saved multiple workspaces;
 - collaboration or team comments;
 - legal-grade audit trails;
+- workflow engines or approval pipelines;
 - rich text notes;
 - task/project management;
 - spreadsheet builders;
@@ -100,7 +105,9 @@ Decision states:
 
 These states are lightweight review markers. They do not trigger side effects.
 `move_forward` does not automatically create a portfolio item, schedule a task,
-send an alert, or execute an auction action.
+send an alert, or execute an auction action. Phase 23 adds explicit handoff
+buttons so the user can deliberately send a comparison item to watchlist or
+portfolio.
 
 Notes are intentionally plain text. They are trimmed, capped at 500 characters,
 and validated for unsupported control characters. Phase 22 records lightweight
@@ -117,6 +124,8 @@ The frontend integrates comparison into the existing review loop:
 - `#/comparison` shows a side-by-side matrix;
 - selected item detail exposes decision state, lightweight note editing,
   reasoning, flags, and lightweight decision history.
+- selected item detail exposes explicit watchlist/portfolio handoff actions and
+  result visibility.
 
 The comparison page is dense and operational. It should remain a decision tool,
 not a decorative card gallery or spreadsheet replacement.
@@ -135,6 +144,10 @@ The comparison workspace answers:
 
 > Which records do I need to evaluate side by side right now?
 
+Decision handoff answers:
+
+> Where did I deliberately send this comparison candidate next?
+
 These layers overlap by source record but have different jobs. Do not collapse
 them into one generic saved item model unless a future architecture decision
 proves that the distinction is harmful.
@@ -150,7 +163,9 @@ Security requirements:
 - bounded note input;
 - safe error responses;
 - no raw internal processing details in notes or comparison metadata.
-- server-derived history events for decision/note changes only.
+- server-derived history events for decision/note changes and explicit
+  handoffs only.
+- server-derived handoff history events with safe target linkage only.
 
 Comparison data is private tenant data because it reveals investment intent and
 decision reasoning.
@@ -161,6 +176,7 @@ Future contributors should avoid:
 
 - turning comparison notes into team comments without collaboration boundaries;
 - using `move_forward` as an implicit auction or portfolio action;
+- making handoff implicit when a decision state changes;
 - accepting client-submitted score/context fields;
 - treating lightweight history as legal-grade audit logging;
 - exposing broad history feeds before authorization and product requirements are
@@ -177,6 +193,7 @@ Update this document when:
 - decision states change;
 - notes gain history, formatting, or collaboration behavior;
 - decision history event fields change;
+- handoff destinations or metadata change;
 - comparison begins creating downstream portfolio, alert, or auction side
   effects;
 - comparison API response contracts change.

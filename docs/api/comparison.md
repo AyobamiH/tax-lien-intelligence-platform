@@ -4,10 +4,12 @@ Phase 21 adds a tenant-owned comparison workspace for lightweight decision
 review. The comparison workspace is an authenticated, user-private layer above
 scored records, watchlist items, and portfolio items.
 
-The comparison API does not execute auctions, create portfolio positions, send
-notifications, or make investment recommendations. It stores the user's selected
-comparison candidates, a small decision state, an optional bounded note, and a
-lightweight history of decision/note changes.
+The comparison API does not execute auctions, send notifications, or make
+investment recommendations. It stores the user's selected comparison candidates,
+a small decision state, an optional bounded note, lightweight history of
+decision/note changes, and explicit user-triggered handoffs into watchlist or
+portfolio. Handoffs create or reuse destination records only when the user calls
+the handoff endpoint.
 
 ## Security Model
 
@@ -21,6 +23,8 @@ lightweight history of decision/note changes.
 - List, update, and delete operations are scoped to the authenticated user.
 - History retrieval is scoped to an owned comparison item. Deleted or stale
   comparison item ids return `comparison_item_not_found`.
+- Handoff actions are scoped to an owned comparison item and create or reuse the
+  destination watchlist/portfolio record for the same authenticated user.
 
 ## Decision States
 
@@ -170,10 +174,102 @@ Supported history event types:
 
 - `comparison_decision_changed`
 - `comparison_note_changed`
+- `comparison_handoff_to_watchlist`
+- `comparison_handoff_to_portfolio`
 
 History events intentionally store bounded note snapshots and safe source
-metadata only. They do not expose raw dataset rows, internal processing details,
-or rich diffs.
+metadata only. Handoff events also include safe target linkage metadata such as
+target entity type/id, whether the destination was created or already existed,
+and portfolio status when relevant. They do not expose raw dataset rows,
+internal processing details, or rich diffs.
+
+## `POST /comparison/:comparisonItemId/handoff/watchlist`
+
+Explicitly sends one owned comparison item into the authenticated user's
+watchlist. The destination is duplicate-safe by scored record.
+
+Response:
+
+```json
+{
+  "destination": "watchlist",
+  "item": {
+    "id": "watchlist-item-id",
+    "datasetId": "dataset-id",
+    "scoredRecordId": "scored-record-id"
+  },
+  "alreadyExists": false,
+  "historyEvent": {
+    "id": "history-event-id",
+    "relatedEntityType": "comparison_item",
+    "relatedEntityId": "comparison-item-id",
+    "eventType": "comparison_handoff_to_watchlist",
+    "previousDecision": "keep_reviewing",
+    "newDecision": "keep_reviewing",
+    "noteSnapshot": "Keep reviewing county file quality.",
+    "metadata": {
+      "targetEntityType": "watchlist_item",
+      "targetEntityId": "watchlist-item-id",
+      "handoffResult": "created"
+    },
+    "createdAt": "2026-06-01T00:00:00.000Z",
+    "updatedAt": "2026-06-01T00:00:00.000Z"
+  }
+}
+```
+
+The real `item` uses the full watchlist item response shape documented in
+`docs/api/watchlist.md`.
+
+## `POST /comparison/:comparisonItemId/handoff/portfolio`
+
+Explicitly sends one owned comparison item into the authenticated user's
+portfolio tracking surface. The destination is duplicate-safe by scored record.
+
+Optional request body:
+
+```json
+{
+  "status": "tracked"
+}
+```
+
+If omitted, status defaults to `tracked`.
+
+Response:
+
+```json
+{
+  "destination": "portfolio",
+  "item": {
+    "id": "portfolio-item-id",
+    "datasetId": "dataset-id",
+    "scoredRecordId": "scored-record-id",
+    "status": "tracked"
+  },
+  "alreadyExists": false,
+  "historyEvent": {
+    "id": "history-event-id",
+    "relatedEntityType": "comparison_item",
+    "relatedEntityId": "comparison-item-id",
+    "eventType": "comparison_handoff_to_portfolio",
+    "previousDecision": "move_forward",
+    "newDecision": "move_forward",
+    "noteSnapshot": "Ready for tracked diligence.",
+    "metadata": {
+      "targetEntityType": "portfolio_item",
+      "targetEntityId": "portfolio-item-id",
+      "handoffResult": "created",
+      "portfolioStatus": "tracked"
+    },
+    "createdAt": "2026-06-01T00:00:00.000Z",
+    "updatedAt": "2026-06-01T00:00:00.000Z"
+  }
+}
+```
+
+The real `item` uses the full portfolio item response shape documented in
+`docs/api/portfolio.md`.
 
 ## `DELETE /comparison/:comparisonItemId`
 
@@ -212,4 +308,5 @@ Possible comparison errors:
 
 The comparison API intentionally does not include collaboration, team comments,
 rich text, legal-grade audit trails, task management, auction execution,
-spreadsheet-style comparison builders, or ML/AI decision suggestions.
+spreadsheet-style comparison builders, workflow engines, approval pipelines, or
+ML/AI decision suggestions.
