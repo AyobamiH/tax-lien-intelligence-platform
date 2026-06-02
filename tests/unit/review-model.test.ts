@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type {
   AlertResponse,
+  ComparisonItemResponse,
   DatasetResponse,
   PortfolioItemResponse,
   ScoredRecordResponse,
@@ -9,6 +10,9 @@ import type {
 import {
   alertSeverityClassName,
   alertTypeLabel,
+  buildComparisonByPortfolioId,
+  buildComparisonByScoreId,
+  buildComparisonByWatchlistId,
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
@@ -29,12 +33,16 @@ import {
   manualMappingByTarget,
   manualMappingTargetPresentations,
   primaryRecordLabel,
+  comparisonDecisionClassName,
+  comparisonDecisionLabel,
+  comparisonDecisionOptions,
   portfolioStatusClassName,
   portfolioStatusLabel,
   portfolioStatusOptions,
   reasoningPreview,
   scoreBand,
   sortAlertsForReview,
+  sortComparisonItemsForReview,
   sortPortfolioItemsForReview,
   sortScoresForReview,
   sortWatchlistItemsForReview,
@@ -123,6 +131,39 @@ function portfolioItem(overrides: Partial<PortfolioItemResponse>): PortfolioItem
     reasoning: ["Strong value coverage."],
     scoredAt: "2026-05-25T00:00:00.000Z",
     trackedAt: "2026-05-25T00:00:00.000Z",
+    createdAt: "2026-05-25T00:00:00.000Z",
+    updatedAt: "2026-05-25T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function comparisonItem(overrides: Partial<ComparisonItemResponse>): ComparisonItemResponse {
+  return {
+    id: "comparison-1",
+    workspaceId: "default",
+    datasetId: "dataset-1",
+    scoredRecordId: "score-1",
+    sourceType: "score",
+    decision: "undecided",
+    decisionUpdatedAt: "2026-05-25T00:00:00.000Z",
+    sourceRowNumber: 2,
+    normalizedFields: {
+      parcelId: "A-100",
+      lienAmount: 1000,
+      estimatedValue: 12000,
+      propertyType: "Single-family residential",
+      propertyTypeCategory: "residential",
+    },
+    investmentScore: 80,
+    riskScore: 20,
+    liquidityScore: 75,
+    redemptionProbability: 0.82,
+    confidenceScore: 90,
+    valueCoverageRatio: 12,
+    flags: [],
+    reasoning: ["Strong value coverage."],
+    scoredAt: "2026-05-25T00:00:00.000Z",
+    addedAt: "2026-05-25T00:00:00.000Z",
     createdAt: "2026-05-25T00:00:00.000Z",
     updatedAt: "2026-05-25T00:00:00.000Z",
     ...overrides,
@@ -370,6 +411,48 @@ describe("review model helpers", () => {
     expect(byWatchlistId.has("watch-reviewing")).toBe(false);
     expect(portfolioStatusLabel("ready")).toBe("Ready");
     expect(portfolioStatusClassName("discarded")).toContain("red");
+  });
+
+  it("builds comparison state, labels decisions, and sorts decision records", () => {
+    const undecided = comparisonItem({
+      id: "undecided",
+      scoredRecordId: "score-undecided",
+      sourceType: "score",
+      decision: "undecided",
+      investmentScore: 75,
+      riskScore: 20,
+    });
+    const moveForward = comparisonItem({
+      id: "move-forward",
+      scoredRecordId: "score-move-forward",
+      sourceType: "portfolio",
+      sourcePortfolioItemId: "portfolio-move-forward",
+      decision: "move_forward",
+      investmentScore: 96,
+      riskScore: 5,
+    });
+    const keepReviewing = comparisonItem({
+      id: "keep-reviewing",
+      scoredRecordId: "score-keep-reviewing",
+      sourceType: "watchlist",
+      sourceWatchlistItemId: "watch-keep-reviewing",
+      decision: "keep_reviewing",
+      investmentScore: 88,
+      riskScore: 12,
+    });
+
+    const sorted = sortComparisonItemsForReview([moveForward, keepReviewing, undecided]);
+    const byScoreId = buildComparisonByScoreId(sorted);
+    const byWatchlistId = buildComparisonByWatchlistId(sorted);
+    const byPortfolioId = buildComparisonByPortfolioId(sorted);
+
+    expect(comparisonDecisionOptions).toEqual(["undecided", "keep_reviewing", "move_forward", "rejected"]);
+    expect(sorted.map((item) => item.id)).toEqual(["undecided", "keep-reviewing", "move-forward"]);
+    expect(byScoreId.get("score-move-forward")?.id).toBe("move-forward");
+    expect(byWatchlistId.get("watch-keep-reviewing")?.id).toBe("keep-reviewing");
+    expect(byPortfolioId.get("portfolio-move-forward")?.id).toBe("move-forward");
+    expect(comparisonDecisionLabel("move_forward")).toBe("Move forward");
+    expect(comparisonDecisionClassName("rejected")).toContain("red");
   });
 
   it("sorts and labels alerts for the monitoring surface", () => {

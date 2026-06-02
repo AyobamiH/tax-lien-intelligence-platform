@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import type {
   AlertResponse,
   AuthUserResponse,
+  ComparisonDecision,
+  ComparisonItemResponse,
   DatasetManualMappingTarget,
   DatasetResponse,
   DatasetScoringStatusResponse,
@@ -13,6 +15,7 @@ import type {
 } from "@tax-lien/types";
 import {
   ApiClientError,
+  addComparisonItem,
   addPortfolioItem,
   addWatchlistItem,
   applyDatasetImportProfile,
@@ -22,6 +25,7 @@ import {
   getDatasetScoringStatus,
   getJob,
   listAlerts,
+  listComparison,
   listDatasets,
   listDatasetScores,
   listPortfolio,
@@ -30,20 +34,28 @@ import {
   markAlertRead,
   markAllAlertsRead,
   register,
+  removeComparisonItem,
   removePortfolioItem,
   removeWatchlistItem,
   refreshDatasetScoring,
   saveDatasetImportProfile,
   saveDatasetManualMapping,
   scoreDataset,
+  updateComparisonItem,
   updatePortfolioItemStatus,
 } from "./api";
 import {
   alertSeverityClassName,
   alertTypeLabel,
+  buildComparisonByPortfolioId,
+  buildComparisonByScoreId,
+  buildComparisonByWatchlistId,
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
+  comparisonDecisionClassName,
+  comparisonDecisionLabel,
+  comparisonDecisionOptions,
   datasetImportPresentation,
   datasetNeedsImportRepair,
   datasetReadinessPresentation,
@@ -65,6 +77,7 @@ import {
   reasoningPreview,
   scoreBand,
   sortAlertsForReview,
+  sortComparisonItemsForReview,
   sortPortfolioItemsForReview,
   sortWatchlistItemsForReview,
   type ScoreFilter,
@@ -79,6 +92,7 @@ type PageState =
   | { name: "dataset"; datasetId: string }
   | { name: "watchlist" }
   | { name: "portfolio" }
+  | { name: "comparison" }
   | { name: "alerts" };
 
 type AuthMode = "login" | "register";
@@ -119,6 +133,13 @@ interface PortfolioState {
   actionId: string | null;
 }
 
+interface ComparisonState {
+  items: ComparisonItemResponse[];
+  isLoading: boolean;
+  error: string | null;
+  actionId: string | null;
+}
+
 interface AlertsState {
   alerts: AlertResponse[];
   unreadCount: number;
@@ -145,6 +166,12 @@ function App() {
     actionId: null,
   });
   const [portfolio, setPortfolio] = useState<PortfolioState>({
+    items: [],
+    isLoading: false,
+    error: null,
+    actionId: null,
+  });
+  const [comparison, setComparison] = useState<ComparisonState>({
     items: [],
     isLoading: false,
     error: null,
@@ -198,6 +225,12 @@ function App() {
         error: null,
         actionId: null,
       });
+      setComparison({
+        items: [],
+        isLoading: false,
+        error: null,
+        actionId: null,
+      });
       setAlerts({
         alerts: [],
         unreadCount: 0,
@@ -231,6 +264,7 @@ function App() {
 
     void refreshWatchlist(authToken);
     void refreshPortfolio(authToken);
+    void refreshComparison(authToken);
     void refreshAlerts(authToken);
   }, [authToken]);
 
@@ -323,6 +357,29 @@ function App() {
       }));
     } catch (error: unknown) {
       setPortfolio((current) => ({
+        ...current,
+        isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function refreshComparison(token: string): Promise<void> {
+    setComparison((current) => ({ ...current, isLoading: true, error: null }));
+
+    try {
+      const result = await listComparison(token);
+      setComparison((current) => ({
+        ...current,
+        items: sortComparisonItemsForReview(result.items),
+        isLoading: false,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setComparison((current) => ({
         ...current,
         isLoading: false,
         error: errorMessage(error),
@@ -575,6 +632,124 @@ function App() {
     }
   }
 
+  async function addScoreToComparison(scoredRecordId: string): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setComparison((current) => ({ ...current, actionId: scoredRecordId, error: null }));
+
+    try {
+      const result = await addComparisonItem(session.token, { scoredRecordId });
+      setComparison((current) => upsertComparisonItem(current, result.item));
+    } catch (error: unknown) {
+      setComparison((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function addWatchlistToComparison(watchlistItemId: string): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setComparison((current) => ({ ...current, actionId: watchlistItemId, error: null }));
+
+    try {
+      const result = await addComparisonItem(session.token, { watchlistItemId });
+      setComparison((current) => upsertComparisonItem(current, result.item));
+    } catch (error: unknown) {
+      setComparison((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function addPortfolioToComparison(portfolioItemId: string): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setComparison((current) => ({ ...current, actionId: portfolioItemId, error: null }));
+
+    try {
+      const result = await addComparisonItem(session.token, { portfolioItemId });
+      setComparison((current) => upsertComparisonItem(current, result.item));
+    } catch (error: unknown) {
+      setComparison((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function updateComparisonDecisionNote(
+    comparisonItemId: string,
+    input: { decision?: ComparisonDecision; note?: string | null },
+  ): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setComparison((current) => ({ ...current, actionId: comparisonItemId, error: null }));
+
+    try {
+      const result = await updateComparisonItem(session.token, comparisonItemId, input);
+      setComparison((current) => upsertComparisonItem(current, result.item));
+    } catch (error: unknown) {
+      setComparison((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function removeFromComparison(comparisonItemId: string): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setComparison((current) => ({ ...current, actionId: comparisonItemId, error: null }));
+
+    try {
+      await removeComparisonItem(session.token, comparisonItemId);
+      setComparison((current) => ({
+        ...current,
+        items: current.items.filter((item) => item.id !== comparisonItemId),
+        actionId: null,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setComparison((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
   if (!session) {
     return <AuthScreen onSignedIn={handleSignedIn} />;
   }
@@ -586,6 +761,7 @@ function App() {
         page={page}
         watchlistCount={watchlist.items.length}
         portfolioCount={portfolio.items.length}
+        comparisonCount={comparison.items.length}
         unreadAlertCount={alerts.unreadCount}
         onNavigate={(nextPage) => navigate(nextPage, setPage)}
         onSignOut={handleSignOut}
@@ -598,15 +774,18 @@ function App() {
           activeDatasetId={page.name === "dataset" ? page.datasetId : null}
           watchlistCount={watchlist.items.length}
           portfolioCount={portfolio.items.length}
+          comparisonCount={comparison.items.length}
           unreadAlertCount={alerts.unreadCount}
           isWatchlistActive={page.name === "watchlist"}
           isPortfolioActive={page.name === "portfolio"}
+          isComparisonActive={page.name === "comparison"}
           isAlertsActive={page.name === "alerts"}
           uploadState={datasetUpload}
           onUpload={uploadDatasetFromBrowser}
           onSelect={(datasetId) => navigate({ name: "dataset", datasetId }, setPage)}
           onWatchlistSelect={() => navigate({ name: "watchlist" }, setPage)}
           onPortfolioSelect={() => navigate({ name: "portfolio" }, setPage)}
+          onComparisonSelect={() => navigate({ name: "comparison" }, setPage)}
           onAlertsSelect={() => navigate({ name: "alerts" }, setPage)}
           onRetry={() => {
             setDatasetsLoading(true);
@@ -627,10 +806,15 @@ function App() {
             portfolioItems={portfolio.items}
             portfolioActionId={portfolio.actionId}
             portfolioError={portfolio.error}
+            comparisonItems={comparison.items}
+            comparisonActionId={comparison.actionId}
+            comparisonError={comparison.error}
             onAddToWatchlist={(scoredRecordId) => void addScoreToWatchlist(scoredRecordId)}
             onRemoveFromWatchlist={(watchlistItemId) => void removeFromWatchlist(watchlistItemId)}
             onAddScoreToPortfolio={(scoredRecordId) => void addScoreToPortfolio(scoredRecordId)}
             onRemoveFromPortfolio={(portfolioItemId) => void removeFromPortfolio(portfolioItemId)}
+            onAddScoreToComparison={(scoredRecordId) => void addScoreToComparison(scoredRecordId)}
+            onRemoveFromComparison={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
             onScoringJobUpdated={() => void refreshAlerts(session.token)}
           />
         ) : page.name === "watchlist" ? (
@@ -642,9 +826,14 @@ function App() {
             portfolioItems={portfolio.items}
             portfolioActionId={portfolio.actionId}
             portfolioError={portfolio.error}
+            comparisonItems={comparison.items}
+            comparisonActionId={comparison.actionId}
+            comparisonError={comparison.error}
             onRetry={() => void refreshWatchlist(session.token)}
             onRemove={(watchlistItemId) => void removeFromWatchlist(watchlistItemId)}
             onTrack={(watchlistItemId) => void addWatchlistToPortfolio(watchlistItemId)}
+            onCompare={(watchlistItemId) => void addWatchlistToComparison(watchlistItemId)}
+            onRemoveFromComparison={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
           />
         ) : page.name === "portfolio" ? (
           <PortfolioPage
@@ -652,9 +841,24 @@ function App() {
             isLoading={portfolio.isLoading}
             error={portfolio.error}
             actionId={portfolio.actionId}
+            comparisonItems={comparison.items}
+            comparisonActionId={comparison.actionId}
+            comparisonError={comparison.error}
             onRetry={() => void refreshPortfolio(session.token)}
             onStatusChange={(portfolioItemId, status) => void updatePortfolioStatus(portfolioItemId, status)}
             onRemove={(portfolioItemId) => void removeFromPortfolio(portfolioItemId)}
+            onCompare={(portfolioItemId) => void addPortfolioToComparison(portfolioItemId)}
+            onRemoveFromComparison={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
+          />
+        ) : page.name === "comparison" ? (
+          <ComparisonPage
+            items={comparison.items}
+            isLoading={comparison.isLoading}
+            error={comparison.error}
+            actionId={comparison.actionId}
+            onRetry={() => void refreshComparison(session.token)}
+            onUpdate={(comparisonItemId, input) => void updateComparisonDecisionNote(comparisonItemId, input)}
+            onRemove={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
           />
         ) : page.name === "alerts" ? (
           <AlertsPage
@@ -673,6 +877,7 @@ function App() {
             datasets={datasets}
             watchlistCount={watchlist.items.length}
             portfolioCount={portfolio.items.length}
+            comparisonCount={comparison.items.length}
             unreadAlertCount={alerts.unreadCount}
             isLoading={datasetsLoading}
           />
@@ -781,6 +986,7 @@ function AppHeader({
   page,
   watchlistCount,
   portfolioCount,
+  comparisonCount,
   unreadAlertCount,
   onNavigate,
   onSignOut,
@@ -789,6 +995,7 @@ function AppHeader({
   page: PageState;
   watchlistCount: number;
   portfolioCount: number;
+  comparisonCount: number;
   unreadAlertCount: number;
   onNavigate: (page: PageState) => void;
   onSignOut: () => void;
@@ -826,6 +1033,13 @@ function AppHeader({
           </button>
           <button
             type="button"
+            onClick={() => onNavigate({ name: "comparison" })}
+            className={`border border-line px-3 py-2 font-medium ${page.name === "comparison" ? "bg-field" : "bg-white"}`}
+          >
+            Compare ({comparisonCount})
+          </button>
+          <button
+            type="button"
             onClick={() => onNavigate({ name: "alerts" })}
             className={`border border-line px-3 py-2 font-medium ${page.name === "alerts" ? "bg-field" : "bg-white"}`}
           >
@@ -850,15 +1064,18 @@ function DatasetListPanel({
   activeDatasetId,
   watchlistCount,
   portfolioCount,
+  comparisonCount,
   unreadAlertCount,
   isWatchlistActive,
   isPortfolioActive,
+  isComparisonActive,
   isAlertsActive,
   uploadState,
   onUpload,
   onSelect,
   onWatchlistSelect,
   onPortfolioSelect,
+  onComparisonSelect,
   onAlertsSelect,
   onRetry,
 }: {
@@ -868,15 +1085,18 @@ function DatasetListPanel({
   activeDatasetId: string | null;
   watchlistCount: number;
   portfolioCount: number;
+  comparisonCount: number;
   unreadAlertCount: number;
   isWatchlistActive: boolean;
   isPortfolioActive: boolean;
+  isComparisonActive: boolean;
   isAlertsActive: boolean;
   uploadState: DatasetUploadState;
   onUpload: (file: File | null, sourceLabel: string) => Promise<void>;
   onSelect: (datasetId: string) => void;
   onWatchlistSelect: () => void;
   onPortfolioSelect: () => void;
+  onComparisonSelect: () => void;
   onAlertsSelect: () => void;
   onRetry: () => void;
 }) {
@@ -911,6 +1131,19 @@ function DatasetListPanel({
           <span className="border border-line px-2 py-1 text-xs">{portfolioCount} tracked</span>
         </div>
         <p className="mt-1 text-xs text-ink/60">Track active decisions and status.</p>
+      </button>
+      <button
+        type="button"
+        onClick={onComparisonSelect}
+        className={`block w-full border-b border-line px-4 py-3 text-left hover:bg-field ${
+          isComparisonActive ? "bg-field" : "bg-white"
+        }`}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-semibold">Compare</span>
+          <span className="border border-line px-2 py-1 text-xs">{comparisonCount} records</span>
+        </div>
+        <p className="mt-1 text-xs text-ink/60">Review candidates side by side with notes.</p>
       </button>
       <button
         type="button"
@@ -1069,22 +1302,25 @@ function ReviewHome({
   datasets,
   watchlistCount,
   portfolioCount,
+  comparisonCount,
   unreadAlertCount,
   isLoading,
 }: {
   datasets: DatasetResponse[];
   watchlistCount: number;
   portfolioCount: number;
+  comparisonCount: number;
   unreadAlertCount: number;
   isLoading: boolean;
 }) {
   return (
     <section className="border border-line bg-white p-6">
       <h2 className="text-2xl font-semibold">Scored Results Review</h2>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
         <Metric label="Datasets" value={isLoading ? "..." : String(datasets.length)} />
         <Metric label="Watchlist" value={String(watchlistCount)} />
         <Metric label="Portfolio" value={String(portfolioCount)} />
+        <Metric label="Compare" value={String(comparisonCount)} />
         <Metric label="Unread Alerts" value={String(unreadAlertCount)} />
         <Metric
           label="Rows Uploaded"
@@ -1111,10 +1347,15 @@ function DatasetDetailPage({
   portfolioItems,
   portfolioActionId,
   portfolioError,
+  comparisonItems,
+  comparisonActionId,
+  comparisonError,
   onAddToWatchlist,
   onRemoveFromWatchlist,
   onAddScoreToPortfolio,
   onRemoveFromPortfolio,
+  onAddScoreToComparison,
+  onRemoveFromComparison,
   onScoringJobUpdated,
 }: {
   token: string;
@@ -1125,10 +1366,15 @@ function DatasetDetailPage({
   portfolioItems: PortfolioItemResponse[];
   portfolioActionId: string | null;
   portfolioError: string | null;
+  comparisonItems: ComparisonItemResponse[];
+  comparisonActionId: string | null;
+  comparisonError: string | null;
   onAddToWatchlist: (scoredRecordId: string) => void;
   onRemoveFromWatchlist: (watchlistItemId: string) => void;
   onAddScoreToPortfolio: (scoredRecordId: string) => void;
   onRemoveFromPortfolio: (portfolioItemId: string) => void;
+  onAddScoreToComparison: (scoredRecordId: string) => void;
+  onRemoveFromComparison: (comparisonItemId: string) => void;
   onScoringJobUpdated: () => void;
 }) {
   const [state, setState] = useState<DatasetDetailState>({
@@ -1216,8 +1462,10 @@ function DatasetDetailPage({
   const stats = useMemo(() => summarizeScores(state.scores), [state.scores]);
   const watchlistByScoreId = useMemo(() => buildWatchlistByScoreId(watchlistItems), [watchlistItems]);
   const portfolioByScoreId = useMemo(() => buildPortfolioByScoreId(portfolioItems), [portfolioItems]);
+  const comparisonByScoreId = useMemo(() => buildComparisonByScoreId(comparisonItems), [comparisonItems]);
   const datasetWatchlistCount = state.scores.filter((score) => watchlistByScoreId.has(score.id)).length;
   const datasetPortfolioCount = state.scores.filter((score) => portfolioByScoreId.has(score.id)).length;
+  const datasetComparisonCount = state.scores.filter((score) => comparisonByScoreId.has(score.id)).length;
   const selectedScore = state.scores.find((score) => score.id === state.selectedScoreId) ?? visibleScores[0] ?? null;
 
   useEffect(() => {
@@ -1531,6 +1779,9 @@ function DatasetDetailPage({
         {portfolioError ? (
           <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{portfolioError}</div>
         ) : null}
+        {comparisonError ? (
+          <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{comparisonError}</div>
+        ) : null}
         {state.lastScoringJob ? (
           <div className={`mt-4 border px-3 py-2 text-sm ${jobStatusClassName(state.lastScoringJob.status)}`}>
             {jobRequestKindLabel(state.lastScoringJob.requestKind)} job{" "}
@@ -1542,7 +1793,7 @@ function DatasetDetailPage({
                 : "The background worker will update this view when processing finishes."}
           </div>
         ) : null}
-        <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-7">
+        <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-8">
           <Metric label="Rows" value={String(state.dataset.rowCount)} />
           <Metric label="Scores" value={String(stats.count)} />
           <Metric label="Avg Investment" value={stats.count > 0 ? String(stats.averageInvestmentScore) : "-"} />
@@ -1550,6 +1801,7 @@ function DatasetDetailPage({
           <Metric label="Stale" value={state.scoringStatus ? String(state.scoringStatus.staleRecordCount) : "-"} />
           <Metric label="Kept" value={String(datasetWatchlistCount)} />
           <Metric label="Tracked" value={String(datasetPortfolioCount)} />
+          <Metric label="Compare" value={String(datasetComparisonCount)} />
         </div>
         {state.scoringStatus?.earliestReprocessAfter ? (
           <p className="mt-3 text-xs text-ink/60">
@@ -1609,6 +1861,10 @@ function DatasetDetailPage({
             portfolioActionId={portfolioActionId}
             onAddToPortfolio={onAddScoreToPortfolio}
             onRemoveFromPortfolio={onRemoveFromPortfolio}
+            comparisonByScoreId={comparisonByScoreId}
+            comparisonActionId={comparisonActionId}
+            onAddToComparison={onAddScoreToComparison}
+            onRemoveFromComparison={onRemoveFromComparison}
           />
           <ScoreDetail
             score={selectedScore}
@@ -1620,6 +1876,10 @@ function DatasetDetailPage({
             portfolioActionId={portfolioActionId}
             onAddToPortfolio={onAddScoreToPortfolio}
             onRemoveFromPortfolio={onRemoveFromPortfolio}
+            comparisonItem={selectedScore ? comparisonByScoreId.get(selectedScore.id) ?? null : null}
+            comparisonActionId={comparisonActionId}
+            onAddToComparison={onAddScoreToComparison}
+            onRemoveFromComparison={onRemoveFromComparison}
           />
         </div>
       )}
@@ -2058,6 +2318,341 @@ function AlertsPage({
   );
 }
 
+function ComparisonPage({
+  items,
+  isLoading,
+  error,
+  actionId,
+  onRetry,
+  onUpdate,
+  onRemove,
+}: {
+  items: ComparisonItemResponse[];
+  isLoading: boolean;
+  error: string | null;
+  actionId: string | null;
+  onRetry: () => void;
+  onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => void;
+  onRemove: (comparisonItemId: string) => void;
+}) {
+  const sortedItems = useMemo(() => sortComparisonItemsForReview(items), [items]);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const selectedItem = sortedItems.find((item) => item.id === selectedItemId) ?? sortedItems[0] ?? null;
+  const moveForwardCount = sortedItems.filter((item) => item.decision === "move_forward").length;
+  const rejectedCount = sortedItems.filter((item) => item.decision === "rejected").length;
+  const notedCount = sortedItems.filter((item) => Boolean(item.note)).length;
+
+  useEffect(() => {
+    if (selectedItemId && sortedItems.some((item) => item.id === selectedItemId)) {
+      return;
+    }
+
+    setSelectedItemId(sortedItems[0]?.id ?? null);
+  }, [selectedItemId, sortedItems]);
+
+  if (isLoading && sortedItems.length === 0) {
+    return <PanelMessage label="Loading comparison workspace..." />;
+  }
+
+  return (
+    <section className="min-w-0 space-y-5">
+      <div className="border border-line bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-pine">Decision Workspace</p>
+            <h2 className="mt-1 text-2xl font-semibold">Comparison</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/70">
+              Compare candidates side by side, capture lightweight notes, and mark what should move forward or be rejected.
+            </p>
+          </div>
+          <button type="button" onClick={onRetry} className="border border-line px-3 py-2 text-sm font-semibold">
+            Refresh
+          </button>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-4">
+          <Metric label="Compared" value={String(sortedItems.length)} />
+          <Metric label="Move Forward" value={String(moveForwardCount)} />
+          <Metric label="Rejected" value={String(rejectedCount)} />
+          <Metric label="Notes" value={String(notedCount)} />
+        </div>
+        {error ? <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div> : null}
+      </div>
+
+      {sortedItems.length === 0 && !isLoading ? (
+        <div className="border border-line bg-white p-5">
+          <h3 className="text-lg font-semibold">No comparison records yet</h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+            Add records from scored review, watchlist, or portfolio to compare candidates before making a decision.
+          </p>
+          {error ? <PanelError message={error} onRetry={onRetry} /> : null}
+        </div>
+      ) : (
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+          <ComparisonMatrix
+            items={sortedItems}
+            selectedItemId={selectedItem?.id ?? null}
+            actionId={actionId}
+            onSelect={setSelectedItemId}
+            onRemove={onRemove}
+          />
+          <ComparisonDetail item={selectedItem} actionId={actionId} onUpdate={onUpdate} onRemove={onRemove} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ComparisonMatrix({
+  items,
+  selectedItemId,
+  actionId,
+  onSelect,
+  onRemove,
+}: {
+  items: ComparisonItemResponse[];
+  selectedItemId: string | null;
+  actionId: string | null;
+  onSelect: (comparisonItemId: string) => void;
+  onRemove: (comparisonItemId: string) => void;
+}) {
+  return (
+    <div className="min-w-0 border border-line bg-white">
+      <div className="border-b border-line px-4 py-3">
+        <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">
+          Side-by-side Review ({items.length})
+        </h3>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-[960px] w-full border-collapse text-sm">
+          <thead className="bg-field text-left text-xs uppercase tracking-[0.08em] text-ink/60">
+            <tr>
+              <th className="sticky left-0 z-10 w-40 border-b border-line bg-field px-3 py-2">Signal</th>
+              {items.map((item) => (
+                <th key={item.id} className="min-w-[230px] border-b border-line px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(item.id)}
+                    className={`w-full border px-3 py-2 text-left normal-case tracking-normal ${
+                      selectedItemId === item.id ? "border-pine bg-white" : "border-line bg-white"
+                    }`}
+                  >
+                    <span className="block font-semibold text-ink">{primaryRecordLabel(item)}</span>
+                    <span className="mt-1 block text-xs text-ink/60">
+                      {comparisonSourceLabel(item.sourceType)} · Dataset {shortId(item.datasetId)}
+                    </span>
+                  </button>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <ComparisonMatrixRow
+              label="Decision"
+              items={items}
+              render={(item) => (
+                <span className={`inline-flex border px-2 py-1 text-xs font-semibold ${comparisonDecisionClassName(item.decision)}`}>
+                  {comparisonDecisionLabel(item.decision)}
+                </span>
+              )}
+            />
+            <ComparisonMatrixRow
+              label="Investment"
+              items={items}
+              render={(item) => {
+                const band = scoreBand(item.investmentScore);
+                return (
+                  <span className={`inline-flex border px-2 py-1 text-xs font-semibold ${band.className}`}>
+                    {item.investmentScore} {band.label}
+                  </span>
+                );
+              }}
+            />
+            <ComparisonMatrixRow label="Risk" items={items} render={(item) => String(item.riskScore)} />
+            <ComparisonMatrixRow label="Confidence" items={items} render={(item) => String(item.confidenceScore)} />
+            <ComparisonMatrixRow label="Liquidity" items={items} render={(item) => String(item.liquidityScore)} />
+            <ComparisonMatrixRow label="Redemption" items={items} render={(item) => formatPercent(item.redemptionProbability)} />
+            <ComparisonMatrixRow label="Coverage" items={items} render={(item) => formatRatio(item.valueCoverageRatio)} />
+            <ComparisonMatrixRow label="Lien" items={items} render={(item) => formatMoney(item.normalizedFields.lienAmount)} />
+            <ComparisonMatrixRow label="Value" items={items} render={(item) => formatMoney(item.normalizedFields.estimatedValue)} />
+            <ComparisonMatrixRow
+              label="Type"
+              items={items}
+              render={(item) => item.normalizedFields.propertyTypeCategory}
+            />
+            <ComparisonMatrixRow label="Flags" items={items} render={(item) => flagPreview(item)} />
+            <ComparisonMatrixRow label="Reason" items={items} render={(item) => reasoningPreview(item)} />
+            <ComparisonMatrixRow
+              label="Note"
+              items={items}
+              render={(item) => item.note ?? "No note"}
+            />
+            <ComparisonMatrixRow
+              label="Remove"
+              items={items}
+              render={(item) => (
+                <button
+                  type="button"
+                  disabled={actionId === item.id}
+                  onClick={() => onRemove(item.id)}
+                  className="border border-line bg-white px-2 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {actionId === item.id ? "Removing" : "Remove"}
+                </button>
+              )}
+            />
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function ComparisonMatrixRow({
+  label,
+  items,
+  render,
+}: {
+  label: string;
+  items: ComparisonItemResponse[];
+  render: (item: ComparisonItemResponse) => React.ReactNode;
+}) {
+  return (
+    <tr className="align-top">
+      <th className="sticky left-0 z-10 border-b border-line bg-white px-3 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-ink/55">
+        {label}
+      </th>
+      {items.map((item) => (
+        <td key={`${label}-${item.id}`} className="max-w-[260px] border-b border-line px-3 py-3 text-sm leading-6 text-ink/80">
+          {render(item)}
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+function ComparisonDetail({
+  item,
+  actionId,
+  onUpdate,
+  onRemove,
+}: {
+  item: ComparisonItemResponse | null;
+  actionId: string | null;
+  onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => void;
+  onRemove: (comparisonItemId: string) => void;
+}) {
+  const [draftDecision, setDraftDecision] = useState<ComparisonDecision>("undecided");
+  const [draftNote, setDraftNote] = useState("");
+
+  useEffect(() => {
+    setDraftDecision(item?.decision ?? "undecided");
+    setDraftNote(item?.note ?? "");
+  }, [item?.id, item?.decision, item?.note]);
+
+  if (!item) {
+    return (
+      <aside className="border border-line bg-white p-4">
+        <p className="text-sm text-ink/70">No comparison item selected.</p>
+      </aside>
+    );
+  }
+
+  const isSaving = actionId === item.id;
+
+  return (
+    <aside className="border border-line bg-white p-4 xl:sticky xl:top-4 xl:self-start">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Decision Notes</p>
+      <div className="mt-2 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-xl font-semibold">{primaryRecordLabel(item)}</h3>
+          <p className="mt-1 text-xs text-ink/60">
+            {comparisonSourceLabel(item.sourceType)} · Dataset {shortId(item.datasetId)}
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={isSaving}
+          onClick={() => onRemove(item.id)}
+          className="shrink-0 border border-line px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSaving ? "Working" : "Remove"}
+        </button>
+      </div>
+      <label className="mt-4 block text-sm font-semibold" htmlFor="comparison-decision">
+        Decision
+      </label>
+      <select
+        id="comparison-decision"
+        value={draftDecision}
+        disabled={isSaving}
+        onChange={(event) => setDraftDecision(event.target.value as ComparisonDecision)}
+        className="mt-2 w-full border border-line bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {comparisonDecisionOptions.map((decision) => (
+          <option key={decision} value={decision}>
+            {comparisonDecisionLabel(decision)}
+          </option>
+        ))}
+      </select>
+      <label className="mt-4 block text-sm font-semibold" htmlFor="comparison-note">
+        Note
+      </label>
+      <textarea
+        id="comparison-note"
+        value={draftNote}
+        maxLength={500}
+        disabled={isSaving}
+        onChange={(event) => setDraftNote(event.target.value)}
+        rows={5}
+        className="mt-2 w-full resize-y border border-line bg-white px-3 py-2 text-sm leading-6 disabled:cursor-not-allowed disabled:opacity-60"
+        placeholder="Short decision note"
+      />
+      <div className="mt-2 flex items-center justify-between gap-3 text-xs text-ink/60">
+        <span>{draftNote.length}/500</span>
+        {item.noteUpdatedAt ? <span>Updated {formatDateTime(item.noteUpdatedAt)}</span> : null}
+      </div>
+      <button
+        type="button"
+        disabled={isSaving}
+        onClick={() => onUpdate(item.id, { decision: draftDecision, note: draftNote.trim() ? draftNote : null })}
+        className="mt-4 w-full bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSaving ? "Saving..." : "Save decision"}
+      </button>
+      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <DetailTerm label="Lien" value={formatMoney(item.normalizedFields.lienAmount)} />
+        <DetailTerm label="Value" value={formatMoney(item.normalizedFields.estimatedValue)} />
+        <DetailTerm label="Coverage" value={formatRatio(item.valueCoverageRatio)} />
+        <DetailTerm label="Decision" value={comparisonDecisionLabel(item.decision)} />
+      </dl>
+      <section className="mt-5">
+        <h4 className="text-sm font-semibold">Reasoning</h4>
+        <ol className="mt-2 space-y-2">
+          {item.reasoning.map((reason) => (
+            <li key={reason} className="border border-line bg-field px-3 py-2 text-sm leading-6 text-ink/80">
+              {reason}
+            </li>
+          ))}
+        </ol>
+      </section>
+      <section className="mt-5">
+        <h4 className="text-sm font-semibold">Flags</h4>
+        {item.flags.length === 0 ? (
+          <p className="mt-2 text-sm text-ink/65">No flags returned.</p>
+        ) : (
+          <ul className="mt-2 space-y-2">
+            {item.flags.map((flag) => (
+              <li key={flag} className="border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                {flag}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </aside>
+  );
+}
+
 function WatchlistPage({
   items,
   isLoading,
@@ -2066,9 +2661,14 @@ function WatchlistPage({
   portfolioItems,
   portfolioActionId,
   portfolioError,
+  comparisonItems,
+  comparisonActionId,
+  comparisonError,
   onRetry,
   onRemove,
   onTrack,
+  onCompare,
+  onRemoveFromComparison,
 }: {
   items: WatchlistItemResponse[];
   isLoading: boolean;
@@ -2077,17 +2677,27 @@ function WatchlistPage({
   portfolioItems: PortfolioItemResponse[];
   portfolioActionId: string | null;
   portfolioError: string | null;
+  comparisonItems: ComparisonItemResponse[];
+  comparisonActionId: string | null;
+  comparisonError: string | null;
   onRetry: () => void;
   onRemove: (watchlistItemId: string) => void;
   onTrack: (watchlistItemId: string) => void;
+  onCompare: (watchlistItemId: string) => void;
+  onRemoveFromComparison: (comparisonItemId: string) => void;
 }) {
   const sortedItems = useMemo(() => sortWatchlistItemsForReview(items), [items]);
   const portfolioByScoreId = useMemo(() => buildPortfolioByScoreId(portfolioItems), [portfolioItems]);
   const portfolioByWatchlistId = useMemo(() => buildPortfolioByWatchlistId(portfolioItems), [portfolioItems]);
+  const comparisonByScoreId = useMemo(() => buildComparisonByScoreId(comparisonItems), [comparisonItems]);
+  const comparisonByWatchlistId = useMemo(() => buildComparisonByWatchlistId(comparisonItems), [comparisonItems]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const selectedItem = sortedItems.find((item) => item.id === selectedItemId) ?? sortedItems[0] ?? null;
   const selectedPortfolioItem = selectedItem
     ? portfolioByWatchlistId.get(selectedItem.id) ?? portfolioByScoreId.get(selectedItem.scoredRecordId) ?? null
+    : null;
+  const selectedComparisonItem = selectedItem
+    ? comparisonByWatchlistId.get(selectedItem.id) ?? comparisonByScoreId.get(selectedItem.scoredRecordId) ?? null
     : null;
 
   useEffect(() => {
@@ -2119,6 +2729,9 @@ function WatchlistPage({
         {portfolioError ? (
           <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{portfolioError}</div>
         ) : null}
+        {comparisonError ? (
+          <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{comparisonError}</div>
+        ) : null}
       </div>
 
       {sortedItems.length === 0 && !isLoading ? (
@@ -2141,11 +2754,12 @@ function WatchlistPage({
               </button>
             </div>
             <div className="overflow-x-auto">
-              <table className="min-w-[1080px] w-full border-collapse text-sm">
+              <table className="min-w-[1160px] w-full border-collapse text-sm">
                 <thead className="bg-field text-left text-xs uppercase tracking-[0.08em] text-ink/60">
                   <tr>
                     <th className="border-b border-line px-3 py-2">Record</th>
                     <th className="border-b border-line px-3 py-2">Portfolio</th>
+                    <th className="border-b border-line px-3 py-2">Compare</th>
                     <th className="border-b border-line px-3 py-2">Invest</th>
                     <th className="border-b border-line px-3 py-2">Risk</th>
                     <th className="border-b border-line px-3 py-2">Confidence</th>
@@ -2161,8 +2775,12 @@ function WatchlistPage({
                     const band = scoreBand(item.investmentScore);
                     const portfolioItem =
                       portfolioByWatchlistId.get(item.id) ?? portfolioByScoreId.get(item.scoredRecordId) ?? null;
+                    const comparisonItem =
+                      comparisonByWatchlistId.get(item.id) ?? comparisonByScoreId.get(item.scoredRecordId) ?? null;
                     const isPortfolioActionPending =
                       portfolioActionId === item.id || (portfolioItem ? portfolioActionId === portfolioItem.id : false);
+                    const isComparisonActionPending =
+                      comparisonActionId === item.id || (comparisonItem ? comparisonActionId === comparisonItem.id : false);
                     return (
                       <tr
                         key={item.id}
@@ -2181,6 +2799,25 @@ function WatchlistPage({
                         <td className="border-b border-line px-3 py-3">
                           <div className="font-semibold">{primaryRecordLabel(item)}</div>
                           <div className="mt-1 text-xs text-ink/60">Dataset {shortId(item.datasetId)}</div>
+                        </td>
+                        <td className="border-b border-line px-3 py-3">
+                          <button
+                            type="button"
+                            disabled={isComparisonActionPending}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (comparisonItem) {
+                                onRemoveFromComparison(comparisonItem.id);
+                              } else {
+                                onCompare(item.id);
+                              }
+                            }}
+                            className={`border px-2 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+                              comparisonItem ? "border-pine bg-pine text-white" : "border-line bg-white text-ink"
+                            }`}
+                          >
+                            {isComparisonActionPending ? "Working" : comparisonItem ? "Added" : "Compare"}
+                          </button>
                         </td>
                         <td className="border-b border-line px-3 py-3">
                           {portfolioItem ? (
@@ -2243,8 +2880,12 @@ function WatchlistPage({
             actionId={actionId}
             portfolioItem={selectedPortfolioItem}
             portfolioActionId={portfolioActionId}
+            comparisonItem={selectedComparisonItem}
+            comparisonActionId={comparisonActionId}
             onRemove={onRemove}
             onTrack={onTrack}
+            onCompare={onCompare}
+            onRemoveFromComparison={onRemoveFromComparison}
           />
         </div>
       )}
@@ -2257,21 +2898,36 @@ function PortfolioPage({
   isLoading,
   error,
   actionId,
+  comparisonItems,
+  comparisonActionId,
+  comparisonError,
   onRetry,
   onStatusChange,
   onRemove,
+  onCompare,
+  onRemoveFromComparison,
 }: {
   items: PortfolioItemResponse[];
   isLoading: boolean;
   error: string | null;
   actionId: string | null;
+  comparisonItems: ComparisonItemResponse[];
+  comparisonActionId: string | null;
+  comparisonError: string | null;
   onRetry: () => void;
   onStatusChange: (portfolioItemId: string, status: PortfolioStatus) => void;
   onRemove: (portfolioItemId: string) => void;
+  onCompare: (portfolioItemId: string) => void;
+  onRemoveFromComparison: (comparisonItemId: string) => void;
 }) {
   const sortedItems = useMemo(() => sortPortfolioItemsForReview(items), [items]);
+  const comparisonByScoreId = useMemo(() => buildComparisonByScoreId(comparisonItems), [comparisonItems]);
+  const comparisonByPortfolioId = useMemo(() => buildComparisonByPortfolioId(comparisonItems), [comparisonItems]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const selectedItem = sortedItems.find((item) => item.id === selectedItemId) ?? sortedItems[0] ?? null;
+  const selectedComparisonItem = selectedItem
+    ? comparisonByPortfolioId.get(selectedItem.id) ?? comparisonByScoreId.get(selectedItem.scoredRecordId) ?? null
+    : null;
   const readyCount = sortedItems.filter((item) => item.status === "ready").length;
   const activeCount = sortedItems.filter((item) => item.status !== "closed" && item.status !== "discarded").length;
   const acquiredCount = sortedItems.filter((item) => item.status === "acquired").length;
@@ -2310,6 +2966,9 @@ function PortfolioPage({
           <Metric label="Acquired" value={String(acquiredCount)} />
         </div>
         {error ? <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div> : null}
+        {comparisonError ? (
+          <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{comparisonError}</div>
+        ) : null}
       </div>
 
       {sortedItems.length === 0 && !isLoading ? (
@@ -2334,6 +2993,7 @@ function PortfolioPage({
                   <tr>
                     <th className="border-b border-line px-3 py-2">Record</th>
                     <th className="border-b border-line px-3 py-2">Status</th>
+                    <th className="border-b border-line px-3 py-2">Compare</th>
                     <th className="border-b border-line px-3 py-2">Invest</th>
                     <th className="border-b border-line px-3 py-2">Risk</th>
                     <th className="border-b border-line px-3 py-2">Confidence</th>
@@ -2346,6 +3006,10 @@ function PortfolioPage({
                 <tbody>
                   {sortedItems.map((item) => {
                     const band = scoreBand(item.investmentScore);
+                    const comparisonItem =
+                      comparisonByPortfolioId.get(item.id) ?? comparisonByScoreId.get(item.scoredRecordId) ?? null;
+                    const isComparisonActionPending =
+                      comparisonActionId === item.id || (comparisonItem ? comparisonActionId === comparisonItem.id : false);
                     return (
                       <tr
                         key={item.id}
@@ -2374,6 +3038,25 @@ function PortfolioPage({
                           <span className={`inline-flex border px-2 py-1 text-xs font-semibold ${portfolioStatusClassName(item.status)}`}>
                             {portfolioStatusLabel(item.status)}
                           </span>
+                        </td>
+                        <td className="border-b border-line px-3 py-3">
+                          <button
+                            type="button"
+                            disabled={isComparisonActionPending}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              if (comparisonItem) {
+                                onRemoveFromComparison(comparisonItem.id);
+                              } else {
+                                onCompare(item.id);
+                              }
+                            }}
+                            className={`border px-2 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+                              comparisonItem ? "border-pine bg-pine text-white" : "border-line bg-white text-ink"
+                            }`}
+                          >
+                            {isComparisonActionPending ? "Working" : comparisonItem ? "Added" : "Compare"}
+                          </button>
                         </td>
                         <td className="border-b border-line px-3 py-3">
                           <span className={`inline-flex border px-2 py-1 text-xs font-semibold ${band.className}`}>
@@ -2410,8 +3093,12 @@ function PortfolioPage({
           <PortfolioDetail
             item={selectedItem}
             actionId={actionId}
+            comparisonItem={selectedComparisonItem}
+            comparisonActionId={comparisonActionId}
             onStatusChange={onStatusChange}
             onRemove={onRemove}
+            onCompare={onCompare}
+            onRemoveFromComparison={onRemoveFromComparison}
           />
         </div>
       )}
@@ -2422,13 +3109,21 @@ function PortfolioPage({
 function PortfolioDetail({
   item,
   actionId,
+  comparisonItem,
+  comparisonActionId,
   onStatusChange,
   onRemove,
+  onCompare,
+  onRemoveFromComparison,
 }: {
   item: PortfolioItemResponse | null;
   actionId: string | null;
+  comparisonItem: ComparisonItemResponse | null;
+  comparisonActionId: string | null;
   onStatusChange: (portfolioItemId: string, status: PortfolioStatus) => void;
   onRemove: (portfolioItemId: string) => void;
+  onCompare: (portfolioItemId: string) => void;
+  onRemoveFromComparison: (comparisonItemId: string) => void;
 }) {
   if (!item) {
     return (
@@ -2443,14 +3138,32 @@ function PortfolioDetail({
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Portfolio Detail</p>
       <div className="mt-2 flex items-start justify-between gap-3">
         <h3 className="min-w-0 text-xl font-semibold">{primaryRecordLabel(item)}</h3>
-        <button
-          type="button"
-          disabled={actionId === item.id}
-          onClick={() => onRemove(item.id)}
-          className="shrink-0 border border-line px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {actionId === item.id ? "Removing" : "Remove"}
-        </button>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            disabled={comparisonActionId === item.id || (comparisonItem ? comparisonActionId === comparisonItem.id : false)}
+            onClick={() => {
+              if (comparisonItem) {
+                onRemoveFromComparison(comparisonItem.id);
+              } else {
+                onCompare(item.id);
+              }
+            }}
+            className={`border px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+              comparisonItem ? "border-pine bg-pine text-white" : "border-line bg-white text-ink"
+            }`}
+          >
+            {comparisonItem ? "In compare" : "Compare"}
+          </button>
+          <button
+            type="button"
+            disabled={actionId === item.id}
+            onClick={() => onRemove(item.id)}
+            className="border border-line px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {actionId === item.id ? "Removing" : "Remove"}
+          </button>
+        </div>
       </div>
       <label className="mt-4 block text-sm font-semibold" htmlFor="portfolio-status">
         Status
@@ -2521,6 +3234,10 @@ function ScoreTable({
   portfolioActionId,
   onAddToPortfolio,
   onRemoveFromPortfolio,
+  comparisonByScoreId,
+  comparisonActionId,
+  onAddToComparison,
+  onRemoveFromComparison,
 }: {
   scores: ScoredRecordResponse[];
   totalCount: number;
@@ -2538,6 +3255,10 @@ function ScoreTable({
   portfolioActionId: string | null;
   onAddToPortfolio: (scoredRecordId: string) => void;
   onRemoveFromPortfolio: (portfolioItemId: string) => void;
+  comparisonByScoreId: Map<string, ComparisonItemResponse>;
+  comparisonActionId: string | null;
+  onAddToComparison: (scoredRecordId: string) => void;
+  onRemoveFromComparison: (comparisonItemId: string) => void;
 }) {
   return (
     <div className="min-w-0 border border-line bg-white">
@@ -2569,12 +3290,13 @@ function ScoreTable({
         <PanelMessage label="No records match the current filter." />
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-[1140px] w-full border-collapse text-sm">
+          <table className="min-w-[1220px] w-full border-collapse text-sm">
             <thead className="bg-field text-left text-xs uppercase tracking-[0.08em] text-ink/60">
               <tr>
                 <th className="border-b border-line px-3 py-2">Record</th>
                 <th className="border-b border-line px-3 py-2">Keep</th>
                 <th className="border-b border-line px-3 py-2">Track</th>
+                <th className="border-b border-line px-3 py-2">Compare</th>
                 <th className="border-b border-line px-3 py-2">Invest</th>
                 <th className="border-b border-line px-3 py-2">Risk</th>
                 <th className="border-b border-line px-3 py-2">Confidence</th>
@@ -2590,10 +3312,13 @@ function ScoreTable({
                 const band = scoreBand(score.investmentScore);
                 const watchlistItem = watchlistByScoreId.get(score.id) ?? null;
                 const portfolioItem = portfolioByScoreId.get(score.id) ?? null;
+                const comparisonItem = comparisonByScoreId.get(score.id) ?? null;
                 const isWatchlistActionPending =
                   watchlistActionId === score.id || (watchlistItem ? watchlistActionId === watchlistItem.id : false);
                 const isPortfolioActionPending =
                   portfolioActionId === score.id || (portfolioItem ? portfolioActionId === portfolioItem.id : false);
+                const isComparisonActionPending =
+                  comparisonActionId === score.id || (comparisonItem ? comparisonActionId === comparisonItem.id : false);
                 return (
                   <tr
                     key={score.id}
@@ -2637,6 +3362,25 @@ function ScoreTable({
                         }`}
                       >
                         {isWatchlistActionPending ? "Working" : watchlistItem ? "Kept" : "Keep"}
+                      </button>
+                    </td>
+                    <td className="border-b border-line px-3 py-3">
+                      <button
+                        type="button"
+                        disabled={isComparisonActionPending}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          if (comparisonItem) {
+                            onRemoveFromComparison(comparisonItem.id);
+                          } else {
+                            onAddToComparison(score.id);
+                          }
+                        }}
+                        className={`border px-2 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+                          comparisonItem ? "border-pine bg-pine text-white" : "border-line bg-white text-ink"
+                        }`}
+                      >
+                        {isComparisonActionPending ? "Working" : comparisonItem ? "Added" : "Compare"}
                       </button>
                     </td>
                     <td className="border-b border-line px-3 py-3">
@@ -2697,6 +3441,10 @@ function ScoreDetail({
   portfolioActionId,
   onAddToPortfolio,
   onRemoveFromPortfolio,
+  comparisonItem,
+  comparisonActionId,
+  onAddToComparison,
+  onRemoveFromComparison,
 }: {
   score: ScoredRecordResponse | null;
   watchlistItem: WatchlistItemResponse | null;
@@ -2707,6 +3455,10 @@ function ScoreDetail({
   portfolioActionId: string | null;
   onAddToPortfolio: (scoredRecordId: string) => void;
   onRemoveFromPortfolio: (portfolioItemId: string) => void;
+  comparisonItem: ComparisonItemResponse | null;
+  comparisonActionId: string | null;
+  onAddToComparison: (scoredRecordId: string) => void;
+  onRemoveFromComparison: (comparisonItemId: string) => void;
 }) {
   if (!score) {
     return (
@@ -2753,6 +3505,22 @@ function ScoreDetail({
             }`}
           >
             {portfolioItem ? portfolioStatusLabel(portfolioItem.status) : "Track"}
+          </button>
+          <button
+            type="button"
+            disabled={comparisonActionId === score.id || (comparisonItem ? comparisonActionId === comparisonItem.id : false)}
+            onClick={() => {
+              if (comparisonItem) {
+                onRemoveFromComparison(comparisonItem.id);
+              } else {
+                onAddToComparison(score.id);
+              }
+            }}
+            className={`border px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+              comparisonItem ? "border-pine bg-pine text-white" : "border-line bg-white text-ink"
+            }`}
+          >
+            {comparisonItem ? "In compare" : "Compare"}
           </button>
         </div>
       </div>
@@ -2866,15 +3634,23 @@ function WatchlistDetail({
   actionId,
   portfolioItem,
   portfolioActionId,
+  comparisonItem,
+  comparisonActionId,
   onRemove,
   onTrack,
+  onCompare,
+  onRemoveFromComparison,
 }: {
   item: WatchlistItemResponse | null;
   actionId: string | null;
   portfolioItem: PortfolioItemResponse | null;
   portfolioActionId: string | null;
+  comparisonItem: ComparisonItemResponse | null;
+  comparisonActionId: string | null;
   onRemove: (watchlistItemId: string) => void;
   onTrack: (watchlistItemId: string) => void;
+  onCompare: (watchlistItemId: string) => void;
+  onRemoveFromComparison: (comparisonItemId: string) => void;
 }) {
   if (!item) {
     return (
@@ -2908,6 +3684,22 @@ function WatchlistDetail({
               {portfolioActionId === item.id ? "Tracking" : "Track"}
             </button>
           )}
+          <button
+            type="button"
+            disabled={comparisonActionId === item.id || (comparisonItem ? comparisonActionId === comparisonItem.id : false)}
+            onClick={() => {
+              if (comparisonItem) {
+                onRemoveFromComparison(comparisonItem.id);
+              } else {
+                onCompare(item.id);
+              }
+            }}
+            className={`border px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+              comparisonItem ? "border-pine bg-pine text-white" : "border-line bg-white text-ink"
+            }`}
+          >
+            {comparisonItem ? "In compare" : "Compare"}
+          </button>
           <button
             type="button"
             disabled={actionId === item.id}
@@ -2993,8 +3785,10 @@ function navigate(page: PageState, setPage: (page: PageState) => void): void {
       ? "#/datasets"
       : page.name === "watchlist"
         ? "#/watchlist"
-        : page.name === "portfolio"
-          ? "#/portfolio"
+      : page.name === "portfolio"
+        ? "#/portfolio"
+        : page.name === "comparison"
+          ? "#/comparison"
           : page.name === "alerts"
             ? "#/alerts"
             : `#/datasets/${page.datasetId}`;
@@ -3009,6 +3803,10 @@ function readRoute(): PageState {
 
   if (window.location.hash === "#/portfolio") {
     return { name: "portfolio" };
+  }
+
+  if (window.location.hash === "#/comparison") {
+    return { name: "comparison" };
   }
 
   if (window.location.hash === "#/alerts") {
@@ -3133,6 +3931,30 @@ function upsertPortfolioItem(current: PortfolioState, item: PortfolioItemRespons
     actionId: null,
     error: null,
   };
+}
+
+function upsertComparisonItem(current: ComparisonState, item: ComparisonItemResponse): ComparisonState {
+  const withoutDuplicate = current.items.filter(
+    (existing) => existing.id !== item.id && existing.scoredRecordId !== item.scoredRecordId,
+  );
+
+  return {
+    ...current,
+    items: sortComparisonItemsForReview([item, ...withoutDuplicate]),
+    actionId: null,
+    error: null,
+  };
+}
+
+function comparisonSourceLabel(sourceType: ComparisonItemResponse["sourceType"]): string {
+  switch (sourceType) {
+    case "score":
+      return "Score review";
+    case "watchlist":
+      return "Watchlist";
+    case "portfolio":
+      return "Portfolio";
+  }
 }
 
 function formatDateTime(value: string): string {

@@ -2,6 +2,15 @@
 
 ## 2026-06-01
 
+- Implemented Phase 21 comparison workspace with tenant-owned comparison
+  items, source resolution from owned scored/watchlist/portfolio records,
+  duplicate-safe adds, explicit review decisions, bounded lightweight notes,
+  authenticated comparison APIs, a side-by-side frontend comparison matrix, and
+  tests for source ownership, updates, and cross-user isolation.
+- Added comparison API and architecture documentation and updated the KB pack to
+  mark comparison/decision notes as current while keeping collaboration, audit
+  trails, task management, rich text notes, spreadsheet builders, auction
+  execution, and ML/AI decision suggestions out of scope.
 - Implemented Phase 20 reusable import profiles with tenant-owned profile
   records, save-from-mapping/list/apply APIs, deterministic header-shape
   matching, conservative auto-apply/suggest behavior, profile-derived mapping

@@ -66,6 +66,12 @@ Current implementation:
 - portfolio ownership enforcement against scored records and watchlist items;
 - duplicate-safe portfolio adds;
 - simple portfolio status model;
+- comparison item model;
+- authenticated comparison add/list/update/delete routes;
+- comparison ownership enforcement against scored records, watchlist items, and
+  portfolio items;
+- duplicate-safe comparison adds;
+- bounded lightweight notes;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
@@ -84,6 +90,7 @@ The backend should become the trusted boundary for:
 - internal job orchestration;
 - watchlist persistence;
 - portfolio tracking persistence;
+- comparison workspace persistence;
 - in-app alert persistence;
 - audit events;
 - security enforcement.
@@ -340,7 +347,8 @@ Watchlist endpoints:
 
 Current limitation:
 
-- no notes, tags, alerts, collaboration, or auction execution.
+- no tags, collaboration, audit trails, task management, auction execution, or
+  rich decision history.
 
 ## Portfolio Implementation
 
@@ -368,6 +376,34 @@ Current limitation:
 
 - no notes, tags, alerts, collaboration, auction execution, accounting, or
   realized-return tracking.
+
+## Comparison Implementation
+
+The comparison foundation now exists. Comparison items belong to one user and
+reference an owned scored record, owned watchlist item, or owned portfolio item.
+
+Current comparison API:
+
+- `POST /comparison`;
+- `GET /comparison`;
+- `PATCH /comparison/:comparisonItemId`;
+- `DELETE /comparison/:comparisonItemId`.
+
+Comparison endpoints:
+
+- require auth;
+- verify ownership of the scored/watchlist/portfolio source;
+- prevent cross-user references;
+- support add/list/update/delete;
+- preserve score context, flags, reasoning, a small decision state, and a
+  bounded note;
+- do not create downstream portfolio, alert, auction, or task side effects.
+
+Current limitation:
+
+- no multiple workspaces, collaboration, audit trail, task management, rich
+  text notes, spreadsheet builders, auction execution, or ML/AI decision
+  suggestions.
 
 ## Alerts Implementation
 
@@ -513,7 +549,8 @@ Backend implementation order should stay disciplined:
 16. import validation and scoring-readiness workflow: implemented in Phase 18;
 17. manual mapping/import repair workflow: implemented in Phase 19;
 18. reusable import profile workflow: implemented in Phase 20;
-19. later external automation.
+19. comparison workspace and decision notes: implemented in Phase 21;
+20. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

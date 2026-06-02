@@ -29,9 +29,10 @@ adapter boundary with one Maricopa-style CSV adapter and generic fallback. Phase
 import validation/readiness guidance before users rely on scores. Phase 19 adds
 focused manual mapping repair for weak or blocked imports. Phase 20 adds
 tenant-owned reusable import profiles so repeated upload shapes can reuse known
-mapping repairs deterministically.
+mapping repairs deterministically. Phase 21 adds a side-by-side comparison
+workspace with lightweight decision notes.
 The product identity is visible through the README, package description,
-architecture docs, and frontend review/watchlist/portfolio surfaces.
+architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
 Current evidence:
 
@@ -47,6 +48,8 @@ Current evidence:
 - the watchlist surface lets signed-in users keep and compare scored records;
 - the portfolio surface lets signed-in users track active decisions with
   simple status;
+- the comparison surface lets signed-in users compare selected records side by
+  side, mark lightweight decisions, and save bounded notes;
 - internal job records and the worker path make scoring execution explicit
   without adding external automation;
 - controlled refresh lets users deliberately rerun scoring/enrichment without
@@ -82,9 +85,11 @@ The intended product loop is:
 9. the user reviews scored rows with explanations and warnings;
 10. the user adds promising items to a watchlist;
 11. the user tracks decisions over time;
-12. the user sees important scoring outcomes in an in-app alert surface;
-13. the user can deliberately refresh stale or weak scoring/enrichment state.
-14. the system can identify stale scored datasets for bounded maintenance
+12. the user compares selected candidates side by side and records a short
+    decision note;
+13. the user sees important scoring outcomes in an in-app alert surface;
+14. the user can deliberately refresh stale or weak scoring/enrichment state.
+15. the system can identify stale scored datasets for bounded maintenance
     review without becoming an unlimited automation product.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
@@ -94,9 +99,11 @@ worker-driven scoring execution, source-row enrichment, and controlled refresh
 exist. Bounded scheduled maintenance groundwork now exists. One
 Maricopa-style county import adapter exists. Browser CSV upload and import
 readiness guidance now exist. Focused manual field mapping repair now exists.
-Broad county coverage, live county sync, full spreadsheet editing, ML mapping
-suggestions, external alert delivery, user-facing scheduler policy controls,
-broader automatic refresh, and richer automation remain future direction.
+Reusable import profiles and the comparison workspace now exist. Broad county
+coverage, live county sync, full spreadsheet editing, collaboration, rich
+decision history, ML mapping suggestions, external alert delivery, user-facing
+scheduler policy controls, broader automatic refresh, and richer automation
+remain future direction.
 
 ## What This SaaS Is Not
 
@@ -185,6 +192,7 @@ Current implementation:
 - frontend review of scored results exists;
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
+- side-by-side comparison with lightweight decision notes exists;
 - scoring execution is recorded through internal jobs and processed by the
   worker path;
 - scoring now uses internal source-row enrichment before final score generation;
@@ -197,7 +205,7 @@ Current implementation:
   mapping of common county headers;
 - scoring job outcomes create in-app alerts;
 - no standalone parcel/lien schema;
-- no final investment decision, auction, or accounting workflow.
+- no collaboration, final investment decision, auction, or accounting workflow.
 
 ## Trust Philosophy
 

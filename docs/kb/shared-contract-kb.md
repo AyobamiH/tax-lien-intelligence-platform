@@ -505,6 +505,46 @@ and `discarded`.
 Future portfolio contracts may add notes, tags, alerts, or richer decision
 history, but only with validation, API docs, and tenancy tests.
 
+## Comparison Object Contract
+
+Current comparison contracts include:
+
+- comparison item id;
+- default workspace id;
+- source dataset id;
+- source scored record id;
+- source type: `score`, `watchlist`, or `portfolio`;
+- optional source watchlist item id;
+- optional source portfolio item id;
+- decision state;
+- decision update timestamp;
+- optional bounded plain-text note;
+- note update timestamp when present;
+- source row number;
+- normalized field snapshot;
+- score summary;
+- flags;
+- reasoning;
+- scored timestamp;
+- added timestamp;
+- created/updated timestamps.
+
+Comparison creation accepts exactly one owned `scoredRecordId`, one owned
+`watchlistItemId`, or one owned `portfolioItemId`. The backend verifies
+ownership and creates the score snapshot. The frontend must not submit score
+values, `userId`, workspace ownership, normalized fields, or source snapshots.
+
+Current decision values are `undecided`, `keep_reviewing`, `move_forward`, and
+`rejected`.
+
+Notes are plain text, trimmed, capped at 500 characters, and validated for
+unsupported control characters. They are decision notes, not rich text,
+comments, audit trails, or task records.
+
+Future comparison contracts may add multiple workspaces, note history, or
+collaboration only with validation, API docs, tenancy tests, and an explicit
+architecture decision.
+
 ## Compatibility And Versioning Guidance
 
 Because this is early, contract churn is acceptable only when paired with:

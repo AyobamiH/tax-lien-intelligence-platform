@@ -16,10 +16,12 @@ visibility after upload. Phase 18 adds import readiness status, field coverage,
 issues, and guidance on the upload/list/detail surfaces. Phase 19 adds a
 focused manual mapping repair panel for datasets that are not ready. Phase 20
 adds import profile reuse visibility plus focused save/apply actions for
-reusable mapping profiles.
+reusable mapping profiles. Phase 21 adds compare actions plus a dedicated
+side-by-side comparison workspace with lightweight decision notes.
 The frontend is no longer only a shell: it now authenticates against the API,
 uploads CSV datasets, lists the signed-in user's datasets, opens a dataset,
-triggers scoring, and renders scored records with flags and reasoning.
+triggers scoring, renders scored records with flags and reasoning, and supports
+watchlist, portfolio, alerts, and comparison review surfaces.
 
 Implemented:
 
@@ -50,6 +52,9 @@ Implemented:
 - portfolio track/untrack actions on scored records;
 - watchlist-to-portfolio promotion action;
 - dedicated portfolio route and status tracking surface;
+- compare actions from scored records, watchlist rows, and portfolio rows;
+- dedicated comparison route with side-by-side matrix;
+- comparison decision selector and bounded note editor;
 - dedicated alerts route with unread/read state;
 - alert links back to related datasets when available;
 - loading, empty, and error states;
@@ -72,6 +77,7 @@ Implemented hash routes:
 - `#/datasets/:datasetId`
 - `#/watchlist`
 - `#/portfolio`
+- `#/comparison`
 - `#/alerts`
 
 This avoids adding a router before the app needs nested navigation. If future
@@ -106,6 +112,10 @@ The frontend calls only the existing authenticated API routes:
 - `GET /portfolio/:portfolioItemId`;
 - `PATCH /portfolio/:portfolioItemId`;
 - `DELETE /portfolio/:portfolioItemId`;
+- `POST /comparison`;
+- `GET /comparison`;
+- `PATCH /comparison/:comparisonItemId`;
+- `DELETE /comparison/:comparisonItemId`;
 - `GET /alerts`;
 - `PATCH /alerts/:alertId/read`;
 - `PATCH /alerts/read-all`.
@@ -231,6 +241,22 @@ The portfolio surface is operational rather than decorative. It shows:
 
 It is a decision/status foundation. It is not P&L tracking, accounting, live
 auction execution, alerts, or collaboration.
+
+## Comparison Surface
+
+The comparison surface is side-by-side decision support rather than a
+spreadsheet builder. It shows:
+
+- compared record label and source layer;
+- decision state;
+- investment, risk, confidence, liquidity, redemption, and coverage values;
+- lien/value/type context;
+- compact flags and reasoning;
+- note preview;
+- selected-item detail with full flags, reasoning, and bounded note editing.
+
+It is a lightweight decision workspace. It is not team comments, audit history,
+rich text, task management, auction execution, or ML/AI recommendation.
 
 ## Alerts Surface
 

@@ -6,7 +6,7 @@ This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
 It does not define every database schema. User, dataset, scored-record,
-internal job, alert, import profile, watchlist item, and portfolio item schemas now exist; a
+internal job, alert, import profile, watchlist item, portfolio item, and comparison item schemas now exist; a
 standalone parcel schema does not.
 When schemas are added, this file must be updated to reflect actual fields and
 ownership rules.
@@ -30,10 +30,14 @@ Current implementation:
 - alert model exists for user-owned workflow monitoring events;
 - watchlist item model exists for user-owned scored-record shortlists;
 - portfolio item model exists for user-owned tracked decisions/status;
+- comparison item model exists for user-owned side-by-side review and
+  lightweight decision notes;
 - frontend review surface exposes user-owned datasets and scored records through
   authenticated API calls;
 - frontend watchlist surface exposes user-owned shortlisted scored records;
 - frontend portfolio surface exposes user-owned tracked records and status;
+- frontend comparison surface exposes user-owned comparison candidates,
+  decision state, notes, flags, and reasoning;
 - frontend alerts surface exposes user-owned scoring job outcome alerts;
 - controlled refresh/reprocessing exists for owned datasets through
   tenant-owned internal jobs;
@@ -151,6 +155,18 @@ add/list/detail/status/delete API. Portfolio items can be created from an owned
 scored record or an owned watchlist item. They preserve score context, flags,
 reasoning, and a simple status history timestamp.
 
+### Comparison
+
+Comparison means selecting scored, watchlist, or portfolio-linked records for
+side-by-side review before a decision is finalized.
+
+Current status: implemented as a tenant-owned comparison item model and
+add/list/update/delete API. Comparison items can be created from an owned scored
+record, owned watchlist item, or owned portfolio item. They preserve score
+context, flags, reasoning, a small decision state, and a bounded plain-text
+note. They do not create collaboration history, tasks, auction actions, or
+portfolio status changes by themselves.
+
 ### Alert
 
 An alert is a user-owned monitoring record that tells the user an important
@@ -183,6 +199,7 @@ User-owned data includes or will include:
 - enrichment metadata;
 - watchlist entries;
 - portfolio records;
+- comparison records;
 - internal job records;
 - refresh/reprocessing state;
 - scheduled maintenance state;
@@ -237,9 +254,10 @@ The tenancy boundary is one of the most important security boundaries in the
 product. Phase 2 establishes authenticated user identity. Phase 3 uses that
 identity for tenant-owned dataset records. Phase 4 uses it for scored records.
 Phase 6 uses it for watchlist items. Phase 7 uses it for portfolio items. Phase
-8 uses it for internal jobs. Phase 9 uses it for alerts. Future standalone
-parcel models must build on the same ownership pattern rather than inventing a
-parallel boundary.
+8 uses it for internal jobs. Phase 9 uses it for alerts. Phase 21 uses it for
+comparison records and lightweight decision notes. Future standalone parcel
+models must build on the same ownership pattern rather than inventing a parallel
+boundary.
 
 Recommended pattern:
 
@@ -277,6 +295,8 @@ Domain and tenancy drift risks:
   record;
 - storing portfolio items without verifying ownership of the underlying scored
   record or watchlist item;
+- storing comparison items without verifying ownership of the underlying scored
+  record, watchlist item, or portfolio item;
 - exposing alerts across tenants or filling alert metadata with raw internals;
 - creating admin-like endpoints before user boundaries exist.
 

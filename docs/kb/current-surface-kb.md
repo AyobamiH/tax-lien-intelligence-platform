@@ -47,6 +47,9 @@ It shows:
 - watchlist-to-portfolio promotion actions;
 - dedicated portfolio route using `#/portfolio`;
 - portfolio status tracking surface with flags and reasoning;
+- compare actions from scored review, watchlist, and portfolio surfaces;
+- dedicated comparison route using `#/comparison`;
+- side-by-side comparison matrix with decision state and lightweight notes;
 - dedicated alerts route using `#/alerts`;
 - unread alert count and alert read/read-all actions;
 - loading, empty, and error states.
@@ -87,6 +90,10 @@ The current API surface is minimal:
 - `GET /portfolio/:portfolioItemId`
 - `PATCH /portfolio/:portfolioItemId`
 - `DELETE /portfolio/:portfolioItemId`
+- `POST /comparison`
+- `GET /comparison`
+- `PATCH /comparison/:comparisonItemId`
+- `DELETE /comparison/:comparisonItemId`
 - structured JSON 404 for unknown routes
 
 Documented in:
@@ -99,6 +106,7 @@ Documented in:
 - `docs/api/alerts.md`
 - `docs/api/watchlist.md`
 - `docs/api/portfolio.md`
+- `docs/api/comparison.md`
 
 There is no standalone parcel API yet.
 
@@ -131,6 +139,7 @@ Real workflows now present:
 - add/remove watchlist actions;
 - watchlist shortlist comparison.
 - portfolio tracking and status updates.
+- comparison workspace, decision state, and lightweight notes.
 - in-app alert review for scoring completions and failures.
 - import readiness review before relying on score output.
 - focused import repair before rerunning readiness/scoring.
@@ -219,8 +228,10 @@ further when the repo adds:
 
 The watchlist is now user-owned decision data and has its own backend ownership
 checks. Portfolio tracking is also user-owned decision data and has backend
-ownership checks. Internal jobs are user-owned operational metadata and have
-backend ownership checks. Future changes must preserve these boundaries.
+ownership checks. Comparison items and decision notes are also user-owned
+decision data and have backend ownership checks. Internal jobs are user-owned
+operational metadata and have backend ownership checks. Future changes must
+preserve these boundaries.
 
 Alerts are now user-owned monitoring records. They expose safe summaries only and
 must not become raw logs or stack-trace displays. Future current-surface updates

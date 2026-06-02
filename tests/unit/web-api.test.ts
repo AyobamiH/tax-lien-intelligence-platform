@@ -1,11 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ApiClientError,
+  addComparisonItem,
   applyDatasetImportProfile,
   createDataset,
+  listComparison,
   listImportProfiles,
+  removeComparisonItem,
   saveDatasetImportProfile,
   saveDatasetManualMapping,
+  updateComparisonItem,
 } from "../../apps/web/src/api.js";
 
 const originalFetch = globalThis.fetch;
@@ -341,5 +345,107 @@ describe("web API client", () => {
     expect(JSON.parse(fetchMock.mock.calls[1]?.[1]?.body as string)).toEqual({ name: "County import" });
     expect(JSON.parse(fetchMock.mock.calls[2]?.[1]?.body as string)).toEqual({ profileId: "profile-1" });
     expect((fetchMock.mock.calls[2]?.[1]?.headers as Headers).get("Authorization")).toBe("Bearer test-token");
+  });
+
+  it("calls comparison endpoints with bearer auth and structured payloads", async () => {
+    const comparisonItem = {
+      id: "comparison-1",
+      workspaceId: "default",
+      datasetId: "dataset-1",
+      scoredRecordId: "score-1",
+      sourceType: "watchlist",
+      sourceWatchlistItemId: "watch-1",
+      decision: "undecided",
+      decisionUpdatedAt: "2026-06-01T00:00:00.000Z",
+      sourceRowNumber: 2,
+      normalizedFields: {
+        parcelId: "A-100",
+        lienAmount: 1000,
+        estimatedValue: 12000,
+        propertyTypeCategory: "residential",
+      },
+      investmentScore: 82,
+      riskScore: 18,
+      liquidityScore: 70,
+      redemptionProbability: 0.8,
+      confidenceScore: 88,
+      valueCoverageRatio: 12,
+      flags: [],
+      reasoning: ["Strong value coverage."],
+      scoredAt: "2026-06-01T00:00:00.000Z",
+      addedAt: "2026-06-01T00:00:00.000Z",
+      createdAt: "2026-06-01T00:00:00.000Z",
+      updatedAt: "2026-06-01T00:00:00.000Z",
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ items: [comparisonItem] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ item: comparisonItem, alreadyExists: false }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            item: {
+              ...comparisonItem,
+              decision: "move_forward",
+              note: "Verify before bid.",
+            },
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ deleted: true, id: "comparison-1" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    globalThis.fetch = fetchMock;
+
+    await expect(listComparison("test-token")).resolves.toEqual({ items: [comparisonItem] });
+    await expect(addComparisonItem("test-token", { watchlistItemId: "watch-1" })).resolves.toMatchObject({
+      alreadyExists: false,
+    });
+    await expect(
+      updateComparisonItem("test-token", "comparison-1", {
+        decision: "move_forward",
+        note: "Verify before bid.",
+      }),
+    ).resolves.toMatchObject({ item: { decision: "move_forward", note: "Verify before bid." } });
+    await expect(removeComparisonItem("test-token", "comparison-1")).resolves.toEqual({
+      deleted: true,
+      id: "comparison-1",
+    });
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/comparison",
+      "http://localhost:4000/comparison",
+      "http://localhost:4000/comparison/comparison-1",
+      "http://localhost:4000/comparison/comparison-1",
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => (init?.headers as Headers).get("Authorization"))).toEqual([
+      "Bearer test-token",
+      "Bearer test-token",
+      "Bearer test-token",
+      "Bearer test-token",
+    ]);
+    expect(JSON.parse(fetchMock.mock.calls[1]?.[1]?.body as string)).toEqual({ watchlistItemId: "watch-1" });
+    expect(JSON.parse(fetchMock.mock.calls[2]?.[1]?.body as string)).toEqual({
+      decision: "move_forward",
+      note: "Verify before bid.",
+    });
+    expect(fetchMock.mock.calls[3]?.[1]?.method).toBe("DELETE");
   });
 });

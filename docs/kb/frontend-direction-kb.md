@@ -38,6 +38,10 @@ Current implementation:
 - watchlist-to-portfolio promotion actions;
 - dedicated portfolio status tracking page;
 - portfolio detail surface for flags, reasoning, and status;
+- compare actions from scored review, watchlist, and portfolio;
+- dedicated comparison workspace;
+- side-by-side comparison matrix;
+- lightweight decision note editor;
 - scoring job queued/running/completed/failed visibility after a score run;
 - refresh action/status visibility for scored datasets;
 - maintenance mode/message visibility for scored datasets;
@@ -78,6 +82,7 @@ Current and future page direction:
 - implemented: watchlist detail reasoning surface;
 - implemented: portfolio status tracking surface;
 - implemented: portfolio detail reasoning/status surface;
+- implemented: comparison workspace with decision notes;
 - implemented: scoring job status visibility and polling;
 - implemented: controlled refresh action and scoring status badge;
 - implemented: maintenance policy status display on dataset detail;
@@ -147,6 +152,24 @@ Future portfolio expansion:
 - alerts;
 - decision history beyond status timestamps;
 - accounting or realized-return fields only after a separate domain phase.
+
+Implemented comparison:
+
+- show selected scored/watchlist/portfolio-linked candidates side by side;
+- expose score, risk, liquidity, redemption, coverage, flags, reasoning, and
+  note context in a dense matrix;
+- allow a small decision state: undecided, keep reviewing, move forward, or
+  rejected;
+- allow bounded plain-text notes.
+
+Future comparison expansion:
+
+- multiple named workspaces;
+- richer decision history;
+- collaboration;
+- audit trails;
+- task/project management;
+- spreadsheet-style custom comparison builders.
 
 Implemented alerts:
 

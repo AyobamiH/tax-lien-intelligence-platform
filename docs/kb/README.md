@@ -73,6 +73,7 @@ records the current implementation state:
 - frontend scored-results review surface exists.
 - watchlist API and review surface exist.
 - portfolio API and status tracking surface exist.
+- comparison API, side-by-side workspace, and lightweight decision notes exist.
 - Mongo connection package exists.
 - user model exists.
 - dataset model exists.
@@ -83,6 +84,7 @@ records the current implementation state:
 - internal job model exists.
 - watchlist item model exists.
 - portfolio item model exists.
+- comparison item model exists.
 - shared types exist.
 - scoring package is a real first-pass deterministic engine.
 - full parcel models, batch upload, user-facing scheduler controls, broad
@@ -105,10 +107,12 @@ password hashing, JWT auth, auth middleware, safe auth error handling,
 tenant-owned dataset records, upload size limits, CSV validation, and
 safe import summary metadata. It now also has tenant-owned watchlist items and
 cross-user watchlist tests. It now also has tenant-owned portfolio items and
-cross-user portfolio tests. It now has tenant-owned internal job records for
+cross-user portfolio tests. It now also has tenant-owned comparison items,
+bounded decision notes, and cross-user comparison tests. It now has tenant-owned internal job records for
 scoring, controlled refresh/reprocessing, scheduled maintenance policy gates,
 and cross-user job tests. It does not yet have standalone parcel models, rate
-limiting, user-facing scheduler controls, external automation, or full
+limiting, user-facing scheduler controls, collaboration, auction execution,
+external automation, or full
 cross-user tests for future resource types because those workflows do not exist
 yet.
 

@@ -4,12 +4,15 @@ import type {
   AuthSuccessResponse,
   AlertDetailResponse,
   AlertListResponse,
+  AddComparisonItemResponse,
   AddWatchlistItemResponse,
   DatasetDetailResponse,
   DatasetListResponse,
   DatasetScoreJobResponse,
   DatasetScoresResponse,
   DeleteWatchlistItemResponse,
+  ComparisonDecision,
+  ComparisonListResponse,
   AddPortfolioItemResponse,
   ApplyImportProfileToDatasetRequest,
   ApplyImportProfileToDatasetResponse,
@@ -17,6 +20,7 @@ import type {
   DatasetRefreshJobResponse,
   DatasetScoringStatusResponse,
   DatasetManualMappingContextResponse,
+  DeleteComparisonItemResponse,
   ImportProfileListResponse,
   JobDetailResponse,
   MarkAllAlertsReadResponse,
@@ -27,6 +31,7 @@ import type {
   SaveDatasetManualMappingResponse,
   SaveImportProfileFromDatasetRequest,
   SaveImportProfileFromDatasetResponse,
+  UpdateComparisonItemResponse,
   UpdatePortfolioItemResponse,
   WatchlistListResponse,
 } from "@tax-lien/types";
@@ -270,6 +275,45 @@ export async function updatePortfolioItemStatus(
 
 export async function removePortfolioItem(token: string, portfolioItemId: string): Promise<DeletePortfolioItemResponse> {
   return requestJson<DeletePortfolioItemResponse>(`/portfolio/${encodeURIComponent(portfolioItemId)}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
+export async function listComparison(token: string): Promise<ComparisonListResponse> {
+  return requestJson<ComparisonListResponse>("/comparison", {
+    token,
+  });
+}
+
+export async function addComparisonItem(
+  token: string,
+  input: { scoredRecordId?: string; watchlistItemId?: string; portfolioItemId?: string },
+): Promise<AddComparisonItemResponse> {
+  return requestJson<AddComparisonItemResponse>("/comparison", {
+    method: "POST",
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function updateComparisonItem(
+  token: string,
+  comparisonItemId: string,
+  input: { decision?: ComparisonDecision; note?: string | null },
+): Promise<UpdateComparisonItemResponse> {
+  return requestJson<UpdateComparisonItemResponse>(`/comparison/${encodeURIComponent(comparisonItemId)}`, {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function removeComparisonItem(
+  token: string,
+  comparisonItemId: string,
+): Promise<DeleteComparisonItemResponse> {
+  return requestJson<DeleteComparisonItemResponse>(`/comparison/${encodeURIComponent(comparisonItemId)}`, {
     method: "DELETE",
     token,
   });

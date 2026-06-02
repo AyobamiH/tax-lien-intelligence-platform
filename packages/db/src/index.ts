@@ -17,6 +17,13 @@ export {
   type AlertTypeRecord,
 } from "./models/alert.js";
 export {
+  ComparisonItemModel,
+  type ComparisonDecisionRecord,
+  type ComparisonItemDocument,
+  type ComparisonItemRecord,
+  type ComparisonSourceTypeRecord,
+} from "./models/comparison-item.js";
+export {
   DatasetModel,
   type DatasetDocument,
   type DatasetImportAdapterIdRecord,

@@ -557,3 +557,64 @@ export interface DeletePortfolioItemResponse {
   deleted: true;
   id: string;
 }
+
+export type ComparisonSourceType = "score" | "watchlist" | "portfolio";
+
+export type ComparisonDecision = "undecided" | "keep_reviewing" | "move_forward" | "rejected";
+
+export interface AddComparisonItemRequest {
+  scoredRecordId?: string;
+  watchlistItemId?: string;
+  portfolioItemId?: string;
+}
+
+export interface UpdateComparisonItemRequest {
+  decision?: ComparisonDecision;
+  note?: string | null;
+}
+
+export interface ComparisonItemResponse {
+  id: string;
+  workspaceId: "default";
+  datasetId: string;
+  scoredRecordId: string;
+  sourceType: ComparisonSourceType;
+  sourceWatchlistItemId?: string;
+  sourcePortfolioItemId?: string;
+  decision: ComparisonDecision;
+  decisionUpdatedAt: string;
+  note?: string;
+  noteUpdatedAt?: string;
+  sourceRowNumber: number;
+  normalizedFields: NormalizedScoredRecordFields;
+  investmentScore: number;
+  riskScore: number;
+  liquidityScore: number;
+  redemptionProbability: number;
+  confidenceScore: number;
+  valueCoverageRatio?: number;
+  flags: string[];
+  reasoning: string[];
+  scoredAt: string;
+  addedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AddComparisonItemResponse {
+  item: ComparisonItemResponse;
+  alreadyExists: boolean;
+}
+
+export interface ComparisonListResponse {
+  items: ComparisonItemResponse[];
+}
+
+export interface UpdateComparisonItemResponse {
+  item: ComparisonItemResponse;
+}
+
+export interface DeleteComparisonItemResponse {
+  deleted: true;
+  id: string;
+}

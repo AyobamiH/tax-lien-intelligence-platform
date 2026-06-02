@@ -2,6 +2,8 @@ import type {
   AlertResponse,
   AlertSeverity,
   AlertType,
+  ComparisonDecision,
+  ComparisonItemResponse,
   DatasetManualMappingEntry,
   DatasetManualMappingTarget,
   DatasetReadinessIssue,
@@ -24,6 +26,13 @@ export const portfolioStatusOptions: PortfolioStatus[] = [
   "acquired",
   "closed",
   "discarded",
+];
+
+export const comparisonDecisionOptions: ComparisonDecision[] = [
+  "undecided",
+  "keep_reviewing",
+  "move_forward",
+  "rejected",
 ];
 
 export interface ScoreStats {
@@ -153,6 +162,25 @@ export function sortPortfolioItemsForReview(items: PortfolioItemResponse[]): Por
   });
 }
 
+export function sortComparisonItemsForReview(items: ComparisonItemResponse[]): ComparisonItemResponse[] {
+  return [...items].sort((left, right) => {
+    const decisionDelta = comparisonDecisionOptions.indexOf(left.decision) - comparisonDecisionOptions.indexOf(right.decision);
+    if (decisionDelta !== 0) {
+      return decisionDelta;
+    }
+
+    if (right.investmentScore !== left.investmentScore) {
+      return right.investmentScore - left.investmentScore;
+    }
+
+    if (left.riskScore !== right.riskScore) {
+      return left.riskScore - right.riskScore;
+    }
+
+    return new Date(right.addedAt).getTime() - new Date(left.addedAt).getTime();
+  });
+}
+
 export function sortAlertsForReview(alerts: AlertResponse[]): AlertResponse[] {
   return [...alerts].sort((left, right) => {
     if (left.status !== right.status) {
@@ -172,6 +200,26 @@ export function buildPortfolioByWatchlistId(items: PortfolioItemResponse[]): Map
     items
       .filter((item): item is PortfolioItemResponse & { sourceWatchlistItemId: string } => Boolean(item.sourceWatchlistItemId))
       .map((item) => [item.sourceWatchlistItemId, item]),
+  );
+}
+
+export function buildComparisonByScoreId(items: ComparisonItemResponse[]): Map<string, ComparisonItemResponse> {
+  return new Map(items.map((item) => [item.scoredRecordId, item]));
+}
+
+export function buildComparisonByWatchlistId(items: ComparisonItemResponse[]): Map<string, ComparisonItemResponse> {
+  return new Map(
+    items
+      .filter((item): item is ComparisonItemResponse & { sourceWatchlistItemId: string } => Boolean(item.sourceWatchlistItemId))
+      .map((item) => [item.sourceWatchlistItemId, item]),
+  );
+}
+
+export function buildComparisonByPortfolioId(items: ComparisonItemResponse[]): Map<string, ComparisonItemResponse> {
+  return new Map(
+    items
+      .filter((item): item is ComparisonItemResponse & { sourcePortfolioItemId: string } => Boolean(item.sourcePortfolioItemId))
+      .map((item) => [item.sourcePortfolioItemId, item]),
   );
 }
 
@@ -279,6 +327,32 @@ export function portfolioStatusClassName(status: PortfolioStatus): string {
     case "reviewing":
       return "border-amber-200 bg-amber-50 text-amber-800";
     case "tracked":
+      return "border-line bg-field text-ink";
+  }
+}
+
+export function comparisonDecisionLabel(decision: ComparisonDecision): string {
+  switch (decision) {
+    case "undecided":
+      return "Undecided";
+    case "keep_reviewing":
+      return "Keep reviewing";
+    case "move_forward":
+      return "Move forward";
+    case "rejected":
+      return "Rejected";
+  }
+}
+
+export function comparisonDecisionClassName(decision: ComparisonDecision): string {
+  switch (decision) {
+    case "move_forward":
+      return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    case "rejected":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "keep_reviewing":
+      return "border-amber-200 bg-amber-50 text-amber-800";
+    case "undecided":
       return "border-line bg-field text-ink";
   }
 }

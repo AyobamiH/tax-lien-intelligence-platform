@@ -22,6 +22,7 @@ Current implementation:
 - frontend review of scored records exists;
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
+- comparison workspace and lightweight decision notes exist;
 - in-app alert records exist for scoring job completion/failure;
 - first internal enrichment adapter exists for uploaded source-row inference;
 - controlled user-triggered dataset refresh/reprocessing exists through the
@@ -37,11 +38,12 @@ Current implementation:
   rely on scoring or future automation;
 - focused manual mapping repair exists for critical source-column mapping;
 - reusable import profiles exist for deterministic tenant-owned mapping reuse;
-- no portfolio automation or external monitoring.
+- no portfolio automation, automated comparison recommendations, or external
+  monitoring.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
 scoring foundation, manual review surface, watchlist shortlist, portfolio
-status tracking, automation-ready internal job records, in-app alerts, and a
+status tracking, comparison workspace, automation-ready internal job records, in-app alerts, and a
 minimal worker/scheduler execution boundary. It also has enrichment
 orchestration, a controlled manual refresh workflow for dataset reprocessing,
 and scheduled maintenance groundwork with explicit policy gates. Broad product
@@ -231,6 +233,7 @@ Now:
 - frontend scored-results review;
 - watchlist shortlisting.
 - portfolio/status tracking.
+- comparison workspace and decision notes.
 - internal job plumbing for scoring.
 - in-app alerts for scoring job outcomes.
 - worker-driven execution for queued scoring jobs.

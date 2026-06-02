@@ -77,6 +77,13 @@ Current repo protections:
 - portfolio ownership enforcement against scored records and watchlist items;
 - duplicate-safe portfolio adds;
 - cross-user portfolio rejection tests;
+- tenant-owned comparison item persistence;
+- authenticated comparison add/list/update/delete routes;
+- comparison ownership enforcement against scored records, watchlist items, and
+  portfolio items;
+- duplicate-safe comparison adds;
+- bounded note validation;
+- cross-user comparison rejection tests;
 - tenant-owned internal job persistence;
 - authenticated job detail route;
 - job ownership enforcement;
@@ -421,6 +428,7 @@ Tests must include:
 - user A cannot update user B records;
 - user A cannot watchlist user B parcel;
 - user A cannot track or update user B portfolio records;
+- user A cannot compare, update, or delete user B comparison records;
 - user A cannot read user B job records;
 - user A cannot read or acknowledge user B alert records;
 - user A cannot infer user B records through counts or errors.
@@ -537,6 +545,19 @@ Portfolio records now verify ownership of the referenced scored record or
 watchlist item before tracking. Portfolio reads, status updates, and deletes are
 scoped to the authenticated user. Future portfolio expansion such as notes,
 alerts, or collaboration must add validation and cross-user tests before release.
+
+### Comparison Records
+
+Comparison records are private tenant decision data because they reveal which
+opportunities a user is actively evaluating and why.
+
+Comparison records now verify ownership of the referenced scored record,
+watchlist item, or portfolio item before adding to comparison. Comparison list,
+decision/note updates, and deletes are scoped to the authenticated user. Notes
+are plain text, bounded, and validated; they are not rich text, comments, audit
+events, or task records. Future expansion such as multiple workspaces,
+collaboration, note history, or downstream side effects must add validation,
+authorization, docs, and cross-user tests before release.
 
 ### Automation Jobs And Workers
 

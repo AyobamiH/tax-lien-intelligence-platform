@@ -6,6 +6,8 @@ import { createAlertService } from "./alerts/factory.js";
 import type { AlertService } from "./alerts/alert-service.js";
 import type { AuthService } from "./auth/auth-service.js";
 import { createAuthService } from "./auth/factory.js";
+import { createComparisonService } from "./comparison/factory.js";
+import type { ComparisonService } from "./comparison/comparison-service.js";
 import { apiConfig } from "./config/env.js";
 import type { DatasetService } from "./datasets/dataset-service.js";
 import { createDatasetService } from "./datasets/factory.js";
@@ -16,6 +18,7 @@ import { createPortfolioService } from "./portfolio/factory.js";
 import type { PortfolioService } from "./portfolio/portfolio-service.js";
 import { createAlertRouter } from "./routes/alerts.js";
 import { createAuthRouter } from "./routes/auth.js";
+import { createComparisonRouter } from "./routes/comparison.js";
 import { createDatasetRouter } from "./routes/datasets.js";
 import { createInternalJobRouter } from "./routes/jobs.js";
 import { createPortfolioRouter } from "./routes/portfolio.js";
@@ -34,6 +37,7 @@ export interface AppDependencies {
   watchlistService?: WatchlistService;
   portfolioService?: PortfolioService;
   alertService?: AlertService;
+  comparisonService?: ComparisonService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -45,6 +49,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const scoringService = dependencies.scoringService ?? createScoringService(internalJobService);
   const watchlistService = dependencies.watchlistService ?? createWatchlistService();
   const portfolioService = dependencies.portfolioService ?? createPortfolioService();
+  const comparisonService = dependencies.comparisonService ?? createComparisonService();
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -68,6 +73,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/alerts", createAlertRouter(authService, alertService));
   app.use("/watchlist", createWatchlistRouter(authService, watchlistService));
   app.use("/portfolio", createPortfolioRouter(authService, portfolioService));
+  app.use("/comparison", createComparisonRouter(authService, comparisonService));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

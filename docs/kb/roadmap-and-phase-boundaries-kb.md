@@ -641,11 +641,41 @@ Phase 20 does not include:
 - collaboration;
 - auction execution.
 
+## Phase 21: Comparison Workspace And Decision Notes
+
+Current status: implemented.
+
+Phase 21 includes:
+
+- tenant-owned comparison item model;
+- authenticated comparison add/list/update/delete API;
+- source resolution from owned scored records, watchlist items, or portfolio
+  items;
+- duplicate-safe comparison adds;
+- explicit decision states;
+- bounded lightweight plain-text notes;
+- compare actions from scored review, watchlist, and portfolio surfaces;
+- dedicated `#/comparison` workspace;
+- side-by-side comparison matrix;
+- selected-item note, reasoning, and flag detail;
+- cross-user comparison source/update/delete tests.
+
+Phase 21 does not include:
+
+- multiple saved workspaces;
+- collaboration/team comments;
+- audit trails;
+- task/project management;
+- rich text notes;
+- spreadsheet comparison builders;
+- auction execution;
+- ML/AI decision suggestions.
+
 ## Later Phases
 
 Later phases may include:
 
-- notes and decision history;
+- richer decision history;
 - richer filtering;
 - richer import profile management;
 - additional county import adapters after deterministic mapping tests;
@@ -682,7 +712,8 @@ Dependency order matters:
 16. import validation and scoring-readiness workflow;
 17. manual mapping and import repair workflow;
 18. reusable import profile workflow;
-19. broader automation.
+19. comparison workspace and decision notes;
+20. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

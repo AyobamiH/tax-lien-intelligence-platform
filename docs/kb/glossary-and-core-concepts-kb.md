@@ -100,6 +100,13 @@ A user-owned record of actively tracked decisions or position candidates over
 time. Implemented as tenant-owned portfolio items with a small status model and
 score/reasoning snapshot.
 
+## Comparison Workspace
+
+A user-owned side-by-side review layer for selected scored, watchlist, or
+portfolio-linked records. Implemented as tenant-owned comparison items with a
+small decision state and bounded plain-text note. It is not collaboration,
+auction execution, or an AI recommendation system.
+
 ## Ingestion
 
 The process of accepting, parsing, validating, normalizing, and storing source
@@ -132,10 +139,10 @@ mirror is not product truth.
 
 What users can actually see or call today. Current callable API surface includes
 health, auth, dataset, scoring, internal job detail, alerts, watchlist, and
-portfolio endpoints. The browser surface includes login/register, dataset
+portfolio, and comparison endpoints. The browser surface includes login/register, dataset
 list/detail review with import summary context, worker-backed scoring
 trigger/status, scored table, record reasoning detail, alerts, watchlist review,
-and portfolio tracking.
+portfolio tracking, and side-by-side comparison.
 
 ## Placeholder
 

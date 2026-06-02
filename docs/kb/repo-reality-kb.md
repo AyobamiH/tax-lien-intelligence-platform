@@ -154,6 +154,19 @@ Implemented today:
 - watchlist-to-portfolio promotion actions;
 - dedicated portfolio status tracking page;
 - portfolio detail surface with flags, reasoning, and status controls;
+- tenant-owned comparison item model in `packages/db`;
+- authenticated comparison endpoints at `POST /comparison`, `GET /comparison`,
+  `PATCH /comparison/:comparisonItemId`, and
+  `DELETE /comparison/:comparisonItemId`;
+- comparison creation from owned scored records, watchlist items, or portfolio
+  items;
+- duplicate-safe comparison adds;
+- bounded lightweight decision notes;
+- comparison ownership tests;
+- compare actions from scored review, watchlist, and portfolio surfaces;
+- dedicated side-by-side comparison workspace;
+- comparison detail surface with decision state, note editing, flags, and
+  reasoning;
 - frontend score job status polling after a scoring trigger;
 - frontend alerts route with unread count and read/read-all actions;
 - structured JSON 404 for unknown API routes;
@@ -267,6 +280,9 @@ Current tests cover:
 - portfolio add/list/detail/status/delete behavior;
 - duplicate portfolio handling;
 - cross-user portfolio source/read/update/delete rejection.
+- comparison add/list/update/delete behavior;
+- duplicate comparison handling;
+- cross-user comparison source/update/delete rejection.
 
 Tests do not yet cover:
 
@@ -318,6 +334,7 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
   through deterministic owner-scoped matching or explicit user confirmation.
 - tenant-owned scored-record and watchlist item records are implemented.
 - tenant-owned portfolio item records are implemented.
+- tenant-owned comparison item records are implemented.
 - tenant-owned parcel records are not yet implemented.
 
 Security cannot be considered complete until rate limits, production CORS
