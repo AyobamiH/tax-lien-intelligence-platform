@@ -22,8 +22,11 @@ import { createComparisonRouter } from "./routes/comparison.js";
 import { createDatasetRouter } from "./routes/datasets.js";
 import { createInternalJobRouter } from "./routes/jobs.js";
 import { createPortfolioRouter } from "./routes/portfolio.js";
+import { createSavedViewRouter } from "./routes/saved-views.js";
 import { createScoringRouter } from "./routes/scoring.js";
 import { createWatchlistRouter } from "./routes/watchlist.js";
+import { createSavedViewService } from "./saved-views/factory.js";
+import type { SavedViewService } from "./saved-views/saved-view-service.js";
 import { createScoringService } from "./scoring/factory.js";
 import type { ScoringService } from "./scoring/scoring-service.js";
 import { createWatchlistService } from "./watchlist/factory.js";
@@ -38,6 +41,7 @@ export interface AppDependencies {
   portfolioService?: PortfolioService;
   alertService?: AlertService;
   comparisonService?: ComparisonService;
+  savedViewService?: SavedViewService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -50,6 +54,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const watchlistService = dependencies.watchlistService ?? createWatchlistService();
   const portfolioService = dependencies.portfolioService ?? createPortfolioService();
   const comparisonService = dependencies.comparisonService ?? createComparisonService();
+  const savedViewService = dependencies.savedViewService ?? createSavedViewService();
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -74,6 +79,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/watchlist", createWatchlistRouter(authService, watchlistService));
   app.use("/portfolio", createPortfolioRouter(authService, portfolioService));
   app.use("/comparison", createComparisonRouter(authService, comparisonService));
+  app.use("/saved-views", createSavedViewRouter(authService, savedViewService));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

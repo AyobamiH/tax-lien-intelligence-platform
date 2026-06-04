@@ -733,3 +733,100 @@ export interface ComparisonHandoffToPortfolioResponse {
   alreadyExists: boolean;
   historyEvent: DecisionHistoryEventResponse;
 }
+
+export type SavedViewSurface = "portfolio" | "comparison";
+
+export type SavedViewSortKey =
+  | "tracked_at"
+  | "status_updated_at"
+  | "added_at"
+  | "decision_updated_at"
+  | "investment_score"
+  | "risk_score"
+  | "confidence_score";
+
+export type SavedViewSortDirection = "asc" | "desc";
+
+export type SavedViewPortfolioQueue = "needs_attention" | "recently_changed";
+export type SavedViewComparisonQueue = "needs_decision" | "recent_decisions";
+
+export interface SavedViewPortfolioFilters {
+  statuses?: PortfolioStatus[];
+  queue?: SavedViewPortfolioQueue;
+  hasFlags?: boolean;
+  maxRiskScore?: number;
+  minConfidenceScore?: number;
+}
+
+export interface SavedViewComparisonFilters {
+  decisions?: ComparisonDecision[];
+  sourceTypes?: ComparisonSourceType[];
+  queue?: SavedViewComparisonQueue;
+  hasNote?: boolean;
+}
+
+export type SavedViewFilters = SavedViewPortfolioFilters | SavedViewComparisonFilters;
+
+export interface SavedViewSort {
+  key: SavedViewSortKey;
+  direction: SavedViewSortDirection;
+}
+
+export interface SavedViewResponse {
+  id: string;
+  surface: SavedViewSurface;
+  name: string;
+  description?: string;
+  filters: SavedViewFilters;
+  sort?: SavedViewSort;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateSavedViewRequest {
+  surface: SavedViewSurface;
+  name: string;
+  description?: string;
+  filters: SavedViewFilters;
+  sort?: SavedViewSort;
+}
+
+export interface UpdateSavedViewRequest {
+  name?: string;
+  description?: string | null;
+  filters?: SavedViewFilters;
+  sort?: SavedViewSort | null;
+}
+
+export interface CreateSavedViewResponse {
+  view: SavedViewResponse;
+}
+
+export interface SavedViewListResponse {
+  views: SavedViewResponse[];
+  queues: SavedViewResponse[];
+}
+
+export interface UpdateSavedViewResponse {
+  view: SavedViewResponse;
+}
+
+export interface DeleteSavedViewResponse {
+  deleted: true;
+  id: string;
+}
+
+export interface ApplyPortfolioSavedViewResponse {
+  view: SavedViewResponse;
+  surface: "portfolio";
+  items: PortfolioItemResponse[];
+  summary: PortfolioSummaryResponse;
+}
+
+export interface ApplyComparisonSavedViewResponse {
+  view: SavedViewResponse;
+  surface: "comparison";
+  items: ComparisonItemResponse[];
+}
+
+export type ApplySavedViewResponse = ApplyPortfolioSavedViewResponse | ApplyComparisonSavedViewResponse;

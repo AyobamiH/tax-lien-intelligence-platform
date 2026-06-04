@@ -2,6 +2,17 @@
 
 ## 2026-06-01
 
+- Implemented Phase 25 saved views with a tenant-owned saved view model,
+  authenticated saved-view create/list/apply/update/delete routes, deterministic
+  portfolio and comparison criteria validation, built-in attention queues, a
+  frontend portfolio saved-view/apply/default flow, and tests for valid
+  creation, invalid criteria, ownership-safe apply, queue behavior, API client
+  calls, and review helpers.
+- Added saved-view API/architecture documentation and updated the KB pack to
+  mark saved operational views as current while keeping BI/report builders,
+  arbitrary query languages, team/shared views, spreadsheet exports,
+  collaboration workflows, ML/AI prioritization, and auction execution out of
+  scope.
 - Implemented Phase 24 portfolio dashboard with an authenticated
   `GET /portfolio/summary` endpoint, tenant-scoped status distribution,
   recent additions/status changes, conservative needs-attention summaries,

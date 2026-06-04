@@ -17,9 +17,13 @@ import type {
   DecisionHistoryListResponse,
   ComparisonListResponse,
   AddPortfolioItemResponse,
+  ApplySavedViewResponse,
   ApplyImportProfileToDatasetRequest,
   ApplyImportProfileToDatasetResponse,
+  CreateSavedViewRequest,
+  CreateSavedViewResponse,
   DeletePortfolioItemResponse,
+  DeleteSavedViewResponse,
   DatasetRefreshJobResponse,
   DatasetScoringStatusResponse,
   DatasetManualMappingContextResponse,
@@ -35,6 +39,7 @@ import type {
   SaveDatasetManualMappingResponse,
   SaveImportProfileFromDatasetRequest,
   SaveImportProfileFromDatasetResponse,
+  SavedViewListResponse,
   UpdateComparisonItemResponse,
   UpdatePortfolioItemResponse,
   WatchlistListResponse,
@@ -361,6 +366,33 @@ export async function removeComparisonItem(
   comparisonItemId: string,
 ): Promise<DeleteComparisonItemResponse> {
   return requestJson<DeleteComparisonItemResponse>(`/comparison/${encodeURIComponent(comparisonItemId)}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
+export async function listSavedViews(token: string): Promise<SavedViewListResponse> {
+  return requestJson<SavedViewListResponse>("/saved-views", {
+    token,
+  });
+}
+
+export async function createSavedView(token: string, input: CreateSavedViewRequest): Promise<CreateSavedViewResponse> {
+  return requestJson<CreateSavedViewResponse>("/saved-views", {
+    method: "POST",
+    token,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function applySavedView(token: string, savedViewId: string): Promise<ApplySavedViewResponse> {
+  return requestJson<ApplySavedViewResponse>(`/saved-views/${encodeURIComponent(savedViewId)}/apply`, {
+    token,
+  });
+}
+
+export async function deleteSavedView(token: string, savedViewId: string): Promise<DeleteSavedViewResponse> {
+  return requestJson<DeleteSavedViewResponse>(`/saved-views/${encodeURIComponent(savedViewId)}`, {
     method: "DELETE",
     token,
   });

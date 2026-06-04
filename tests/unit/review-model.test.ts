@@ -11,6 +11,7 @@ import type {
 import {
   alertSeverityClassName,
   alertTypeLabel,
+  applyPortfolioSavedViewForReview,
   buildComparisonByPortfolioId,
   buildComparisonByScoreId,
   buildComparisonByWatchlistId,
@@ -43,6 +44,7 @@ import {
   portfolioStatusLabel,
   portfolioStatusOptions,
   reasoningPreview,
+  savedViewCriteriaLabel,
   scoreBand,
   sortAlertsForReview,
   sortComparisonItemsForReview,
@@ -497,6 +499,43 @@ describe("review model helpers", () => {
     expect(filterPortfolioItemsForReview([tracked, reviewing, ready, closed], "ready").map((item) => item.id)).toEqual([
       "ready",
     ]);
+  });
+
+  it("applies saved portfolio views and describes deterministic criteria", () => {
+    const tracked = portfolioItem({
+      id: "tracked",
+      status: "tracked",
+      flags: ["Needs property type review"],
+      trackedAt: "2026-05-25T01:00:00.000Z",
+      statusUpdatedAt: "2026-05-25T01:00:00.000Z",
+    });
+    const ready = portfolioItem({
+      id: "ready",
+      status: "ready",
+      riskScore: 12,
+      confidenceScore: 92,
+      trackedAt: "2026-05-25T03:00:00.000Z",
+      statusUpdatedAt: "2026-05-25T03:00:00.000Z",
+    });
+    const closed = portfolioItem({
+      id: "closed",
+      status: "closed",
+      flags: ["Historical flag"],
+      trackedAt: "2026-05-25T04:00:00.000Z",
+      statusUpdatedAt: "2026-05-25T04:00:00.000Z",
+    });
+    const view = {
+      id: "view-1",
+      surface: "portfolio" as const,
+      name: "Attention",
+      filters: { queue: "needs_attention" as const, hasFlags: true },
+      sort: { key: "tracked_at" as const, direction: "desc" as const },
+      createdAt: "2026-05-25T00:00:00.000Z",
+      updatedAt: "2026-05-25T00:00:00.000Z",
+    };
+
+    expect(applyPortfolioSavedViewForReview([tracked, ready, closed], view).map((item) => item.id)).toEqual(["tracked"]);
+    expect(savedViewCriteriaLabel(view)).toBe("needs attention · with flags");
   });
 
   it("builds comparison state, labels decisions, and sorts decision records", () => {

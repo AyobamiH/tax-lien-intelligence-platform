@@ -34,7 +34,8 @@ workspace with lightweight decision notes. Phase 22 adds lightweight decision
 history for comparison decision/note changes. Phase 23 adds explicit decision
 handoff from comparison into watchlist and portfolio. Phase 24 adds an
 operational portfolio dashboard with status distribution, recent activity, and
-needs-attention summaries.
+needs-attention summaries. Phase 25 adds tenant-owned saved views and practical
+attention queues for returning to reusable operational work slices.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -201,6 +202,8 @@ Current implementation:
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
 - portfolio dashboard summaries exist for operational review;
+- saved views exist for private reusable portfolio/comparison filters and
+  built-in attention queues;
 - side-by-side comparison with lightweight decision notes and decision history
   exists;
 - explicit comparison-to-watchlist/portfolio handoff exists;

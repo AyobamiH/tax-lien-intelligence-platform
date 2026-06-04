@@ -89,6 +89,11 @@ Current repo protections:
 - explicit owner-scoped decision handoff routes;
 - server-derived handoff target metadata;
 - cross-user comparison/history/handoff rejection tests;
+- tenant-owned saved view persistence;
+- authenticated saved-view create/list/apply/update/delete routes;
+- saved-view criteria allowlists for known portfolio/comparison fields;
+- saved-view apply behavior over owned portfolio/comparison records only;
+- cross-user saved-view apply rejection tests;
 - tenant-owned internal job persistence;
 - authenticated job detail route;
 - job ownership enforcement;

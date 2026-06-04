@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ApiClientError,
   addComparisonItem,
+  applySavedView,
   applyDatasetImportProfile,
+  createSavedView,
   createDataset,
   getPortfolioSummary,
   handoffComparisonToPortfolio,
@@ -10,6 +12,7 @@ import {
   listComparisonHistory,
   listComparison,
   listImportProfiles,
+  listSavedViews,
   removeComparisonItem,
   saveDatasetImportProfile,
   saveDatasetManualMapping,
@@ -384,6 +387,64 @@ describe("web API client", () => {
     expect(url).toBe("http://localhost:4000/portfolio/summary");
     expect(init.method).toBe("GET");
     expect((init.headers as Headers).get("Authorization")).toBe("Bearer test-token");
+  });
+
+  it("calls saved-view endpoints with bearer auth and structured payloads", async () => {
+    const view = {
+      id: "view-1",
+      surface: "portfolio",
+      name: "Ready review",
+      filters: { statuses: ["ready"] },
+      sort: { key: "tracked_at", direction: "desc" },
+      createdAt: "2026-06-01T00:00:00.000Z",
+      updatedAt: "2026-06-01T00:00:00.000Z",
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ views: [view], queues: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ view }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ view, surface: "portfolio", items: [], summary: { totalTrackedItems: 0 } }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    globalThis.fetch = fetchMock;
+
+    await expect(listSavedViews("test-token")).resolves.toEqual({ views: [view], queues: [] });
+    await expect(
+      createSavedView("test-token", {
+        surface: "portfolio",
+        name: "Ready review",
+        filters: { statuses: ["ready"] },
+        sort: { key: "tracked_at", direction: "desc" },
+      }),
+    ).resolves.toEqual({ view });
+    await expect(applySavedView("test-token", "view-1")).resolves.toMatchObject({ surface: "portfolio" });
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://localhost:4000/saved-views");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://localhost:4000/saved-views");
+    expect(fetchMock.mock.calls[1]?.[1]?.method).toBe("POST");
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(
+      JSON.stringify({
+        surface: "portfolio",
+        name: "Ready review",
+        filters: { statuses: ["ready"] },
+        sort: { key: "tracked_at", direction: "desc" },
+      }),
+    );
+    expect(fetchMock.mock.calls[2]?.[0]).toBe("http://localhost:4000/saved-views/view-1/apply");
+    expect((fetchMock.mock.calls[2]?.[1]?.headers as Headers).get("Authorization")).toBe("Bearer test-token");
   });
 
   it("calls comparison endpoints with bearer auth and structured payloads", async () => {

@@ -8,15 +8,16 @@ into structured investment decisions.
 This repository contains the baseline monorepo plus authenticated dataset
 upload, first-pass explainable scoring, scored-results review, watchlist,
 portfolio/status tracking, comparison, decision history, decision handoff,
-internal jobs, alerts, worker/scheduler groundwork, enrichment, import repair,
-reusable import profiles, and the Phase 24 portfolio dashboard:
+saved operational views, internal jobs, alerts, worker/scheduler groundwork,
+enrichment, import repair, reusable import profiles, and the Phase 25 saved
+views workflow:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind review workspace
 - `apps/api`: Express, TypeScript, auth, dataset, scoring, internal jobs,
   alerts, watchlist, portfolio, and comparison APIs
 - `packages/db`: MongoDB connection plus user, dataset, scored-record,
   internal-job, alert, watchlist, portfolio, comparison, decision-history, and
-  import-profile models
+  import-profile/saved-view models
 - `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
@@ -58,6 +59,11 @@ Implemented API surfaces:
 - `POST /comparison/:comparisonItemId/handoff/watchlist`
 - `POST /comparison/:comparisonItemId/handoff/portfolio`
 - `DELETE /comparison/:comparisonItemId`
+- `POST /saved-views`
+- `GET /saved-views`
+- `GET /saved-views/:savedViewId/apply`
+- `PATCH /saved-views/:savedViewId`
+- `DELETE /saved-views/:savedViewId`
 
 ## Local Development
 

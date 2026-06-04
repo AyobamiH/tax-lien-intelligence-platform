@@ -21,6 +21,8 @@ import type {
   PortfolioStatusCount,
   PortfolioSummaryRecord,
   PortfolioSummaryResponse,
+  SavedViewPortfolioFilters,
+  SavedViewResponse,
   ScoredRecordResponse,
   WatchlistItemResponse,
 } from "@tax-lien/types";
@@ -188,6 +190,70 @@ export function filterPortfolioItemsForReview(
   });
 }
 
+export function applyPortfolioSavedViewForReview(
+  items: PortfolioItemResponse[],
+  view: SavedViewResponse | null,
+): PortfolioItemResponse[] {
+  if (!view || view.surface !== "portfolio") {
+    return sortPortfolioItemsForReview(items);
+  }
+
+  const filters = view.filters as SavedViewPortfolioFilters;
+  const filteredItems = items.filter((item) => {
+    if (filters.statuses && !filters.statuses.includes(item.status)) {
+      return false;
+    }
+    if (filters.hasFlags !== undefined && (item.flags.length > 0) !== filters.hasFlags) {
+      return false;
+    }
+    if (filters.maxRiskScore !== undefined && item.riskScore > filters.maxRiskScore) {
+      return false;
+    }
+    if (filters.minConfidenceScore !== undefined && item.confidenceScore < filters.minConfidenceScore) {
+      return false;
+    }
+    if (filters.queue === "needs_attention" && !portfolioItemNeedsAttention(item)) {
+      return false;
+    }
+    if (filters.queue === "recently_changed" && new Date(item.statusUpdatedAt).getTime() === new Date(item.trackedAt).getTime()) {
+      return false;
+    }
+
+    return true;
+  });
+
+  return sortPortfolioItemsForSavedView(filteredItems, view);
+}
+
+export function savedViewCriteriaLabel(view: SavedViewResponse): string {
+  if (view.surface === "portfolio") {
+    const filters = view.filters as SavedViewPortfolioFilters;
+    const parts: string[] = [];
+    if (filters.queue === "needs_attention") {
+      parts.push("needs attention");
+    }
+    if (filters.queue === "recently_changed") {
+      parts.push("recent status changes");
+    }
+    if (filters.statuses?.length) {
+      parts.push(`status ${filters.statuses.map(portfolioStatusLabel).join(", ")}`);
+    }
+    if (filters.hasFlags !== undefined) {
+      parts.push(filters.hasFlags ? "with flags" : "without flags");
+    }
+    if (filters.maxRiskScore !== undefined) {
+      parts.push(`risk <= ${filters.maxRiskScore}`);
+    }
+    if (filters.minConfidenceScore !== undefined) {
+      parts.push(`confidence >= ${filters.minConfidenceScore}`);
+    }
+
+    return parts.length > 0 ? parts.join(" · ") : "all portfolio items";
+  }
+
+  return "comparison work slice";
+}
+
 export function summarizePortfolioForReview(
   items: PortfolioItemResponse[],
   generatedAt = new Date().toISOString(),
@@ -243,6 +309,43 @@ function buildRecentPortfolioAdditions(items: PortfolioItemResponse[]): Portfoli
         : "Portfolio tracking started from scored review.",
       item: toPortfolioSummaryRecord(item),
     }));
+}
+
+function sortPortfolioItemsForSavedView(items: PortfolioItemResponse[], view: SavedViewResponse): PortfolioItemResponse[] {
+  const sort = view.sort;
+  if (!sort) {
+    return sortPortfolioItemsForReview(items);
+  }
+
+  return [...items].sort((left, right) => {
+    const leftValue = portfolioSavedViewSortValue(left, sort.key);
+    const rightValue = portfolioSavedViewSortValue(right, sort.key);
+    return sort.direction === "asc" ? leftValue - rightValue : rightValue - leftValue;
+  });
+}
+
+function portfolioSavedViewSortValue(item: PortfolioItemResponse, key: NonNullable<SavedViewResponse["sort"]>["key"]): number {
+  switch (key) {
+    case "status_updated_at":
+      return new Date(item.statusUpdatedAt).getTime();
+    case "investment_score":
+      return item.investmentScore;
+    case "risk_score":
+      return item.riskScore;
+    case "confidence_score":
+      return item.confidenceScore;
+    case "tracked_at":
+    case "added_at":
+    case "decision_updated_at":
+      return new Date(item.trackedAt).getTime();
+  }
+}
+
+function portfolioItemNeedsAttention(item: PortfolioItemResponse): boolean {
+  return (
+    isActivePortfolioStatus(item.status) &&
+    (item.status === "reviewing" || item.status === "tracked" || item.flags.length > 0 || item.confidenceScore < 60)
+  );
 }
 
 function buildRecentPortfolioStatusChanges(items: PortfolioItemResponse[]): PortfolioActivitySummary[] {

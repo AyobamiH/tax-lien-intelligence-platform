@@ -49,6 +49,9 @@ It shows:
 - portfolio dashboard with status distribution, recent additions, recent status
   changes, conservative needs-attention indicators, status filtering, flags,
   reasoning, and status controls;
+- portfolio saved-view controls for saving reusable status filters, applying
+  saved views, activating the built-in needs-attention queue, and returning to
+  the default view;
 - compare actions from scored review, watchlist, and portfolio surfaces;
 - dedicated comparison route using `#/comparison`;
 - side-by-side comparison matrix with decision state and lightweight notes;
@@ -102,6 +105,11 @@ The current API surface is minimal:
 - `POST /comparison/:comparisonItemId/handoff/watchlist`
 - `POST /comparison/:comparisonItemId/handoff/portfolio`
 - `DELETE /comparison/:comparisonItemId`
+- `POST /saved-views`
+- `GET /saved-views`
+- `GET /saved-views/:savedViewId/apply`
+- `PATCH /saved-views/:savedViewId`
+- `DELETE /saved-views/:savedViewId`
 - structured JSON 404 for unknown routes
 
 Documented in:
@@ -115,6 +123,7 @@ Documented in:
 - `docs/api/watchlist.md`
 - `docs/api/portfolio.md`
 - `docs/api/comparison.md`
+- `docs/api/saved-views.md`
 
 There is no standalone parcel API yet.
 
@@ -149,11 +158,14 @@ Real workflows now present:
 - portfolio tracking and status updates.
 - portfolio dashboard review with status distribution, recent activity,
   needs-attention signals, and filtered tracked decisions.
+- saved portfolio views and built-in attention queues for reusable operational
+  work slices.
 - comparison workspace, decision state, and lightweight notes.
 - in-app alert review for scoring completions and failures.
 - import readiness review before relying on score output.
 - focused import repair before rerunning readiness/scoring.
 - deterministic import profile reuse for repeated upload shapes.
+- deterministic saved views for repeated portfolio review filters.
 
 Real workflows not present:
 
@@ -186,6 +198,7 @@ The current frontend cannot:
 - manage county-wide shared import profile catalogs or live county sync.
 - share import profiles globally or edit profile rules in a full management
   console.
+- build arbitrary saved reports, shared/team views, or spreadsheet exports.
 
 The current API cannot:
 
@@ -199,6 +212,7 @@ The current API cannot:
 - provide broad county adapter coverage or scraping;
 - provide a full spreadsheet transformation workflow;
 - manage collaboration or auction execution.
+- run arbitrary saved-view query expressions or BI/report-builder workflows.
 
 ## Where The Current Surface Could Mislead Contributors
 
@@ -209,6 +223,10 @@ The portfolio dashboard could make contributors think financial analytics,
 return tracking, BI reporting, or predictive portfolio insights exist. They do
 not. The current dashboard is an operational summary over existing portfolio
 items only.
+
+Saved views could make contributors think reporting or shared workspaces exist.
+They do not. Current saved views are private operational filters and built-in
+queues over existing portfolio/comparison data only.
 
 The presence of browser auth, score review, and worker-backed scoring could make
 contributors think the whole V1 app is implemented. It is not: batch upload,

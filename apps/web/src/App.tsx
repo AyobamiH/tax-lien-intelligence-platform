@@ -15,6 +15,7 @@ import type {
   PortfolioStatus,
   PortfolioSummaryRecord,
   PortfolioSummaryResponse,
+  SavedViewResponse,
   ScoredRecordResponse,
   WatchlistItemResponse,
 } from "@tax-lien/types";
@@ -23,8 +24,11 @@ import {
   addComparisonItem,
   addPortfolioItem,
   addWatchlistItem,
+  applySavedView,
   applyDatasetImportProfile,
+  createSavedView,
   createDataset,
+  deleteSavedView,
   getCurrentUser,
   getDataset,
   getDatasetScoringStatus,
@@ -38,6 +42,7 @@ import {
   listDatasets,
   listDatasetScores,
   listPortfolio,
+  listSavedViews,
   listWatchlist,
   login,
   markAlertRead,
@@ -56,6 +61,7 @@ import {
 import {
   alertSeverityClassName,
   alertTypeLabel,
+  applyPortfolioSavedViewForReview,
   buildComparisonByPortfolioId,
   buildComparisonByScoreId,
   buildComparisonByWatchlistId,
@@ -86,6 +92,7 @@ import {
   portfolioStatusOptions,
   primaryRecordLabel,
   reasoningPreview,
+  savedViewCriteriaLabel,
   scoreBand,
   sortAlertsForReview,
   sortComparisonItemsForReview,
@@ -148,6 +155,15 @@ interface PortfolioState {
   actionId: string | null;
 }
 
+interface SavedViewsState {
+  views: SavedViewResponse[];
+  queues: SavedViewResponse[];
+  activeView: SavedViewResponse | null;
+  isLoading: boolean;
+  error: string | null;
+  actionId: string | null;
+}
+
 interface ComparisonState {
   items: ComparisonItemResponse[];
   isLoading: boolean;
@@ -183,6 +199,14 @@ function App() {
   const [portfolio, setPortfolio] = useState<PortfolioState>({
     items: [],
     summary: null,
+    isLoading: false,
+    error: null,
+    actionId: null,
+  });
+  const [savedViews, setSavedViews] = useState<SavedViewsState>({
+    views: [],
+    queues: [],
+    activeView: null,
     isLoading: false,
     error: null,
     actionId: null,
@@ -242,6 +266,14 @@ function App() {
         error: null,
         actionId: null,
       });
+      setSavedViews({
+        views: [],
+        queues: [],
+        activeView: null,
+        isLoading: false,
+        error: null,
+        actionId: null,
+      });
       setComparison({
         items: [],
         isLoading: false,
@@ -283,6 +315,7 @@ function App() {
     void refreshPortfolio(authToken);
     void refreshComparison(authToken);
     void refreshAlerts(authToken);
+    void refreshSavedViews(authToken);
   }, [authToken]);
 
   function handleSignedIn(nextSession: StoredSession): void {
@@ -377,6 +410,142 @@ function App() {
       setPortfolio((current) => ({
         ...current,
         isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function refreshSavedViews(token: string): Promise<void> {
+    setSavedViews((current) => ({ ...current, isLoading: true, error: null }));
+
+    try {
+      const result = await listSavedViews(token);
+      setSavedViews((current) => ({
+        ...current,
+        views: result.views,
+        queues: result.queues,
+        activeView:
+          current.activeView && [...result.views, ...result.queues].some((view) => view.id === current.activeView?.id)
+            ? current.activeView
+            : null,
+        isLoading: false,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setSavedViews((current) => ({
+        ...current,
+        isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function saveCurrentPortfolioView(name: string, filter: PortfolioReviewFilter): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setSavedViews((current) => ({ ...current, actionId: "save-portfolio-view", error: null }));
+
+    try {
+      const filters =
+        filter === "all"
+          ? {}
+          : filter === "active"
+            ? { statuses: portfolioStatusOptions.filter((status) => status !== "closed" && status !== "discarded") }
+            : { statuses: [filter] };
+      const result = await createSavedView(session.token, {
+        surface: "portfolio",
+        name,
+        filters,
+        sort: { key: "tracked_at", direction: "desc" },
+      });
+      setSavedViews((current) => ({
+        ...current,
+        views: [result.view, ...current.views.filter((view) => view.id !== result.view.id)],
+        activeView: result.view,
+        actionId: null,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setSavedViews((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function applyPortfolioSavedView(savedViewId: string | null): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    if (!savedViewId) {
+      setSavedViews((current) => ({ ...current, activeView: null, actionId: null, error: null }));
+      await refreshPortfolio(session.token);
+      return;
+    }
+
+    setSavedViews((current) => ({ ...current, actionId: savedViewId, error: null }));
+
+    try {
+      const result = await applySavedView(session.token, savedViewId);
+      if (result.surface !== "portfolio") {
+        throw new ApiClientError(400, "saved_view_wrong_surface", "Saved view does not target portfolio.");
+      }
+      setPortfolio((current) => ({
+        ...current,
+        items: result.items,
+        summary: result.summary,
+      }));
+      setSavedViews((current) => ({
+        ...current,
+        activeView: result.view,
+        actionId: null,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setSavedViews((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function removeSavedPortfolioView(savedViewId: string): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setSavedViews((current) => ({ ...current, actionId: savedViewId, error: null }));
+
+    try {
+      await deleteSavedView(session.token, savedViewId);
+      setSavedViews((current) => ({
+        ...current,
+        views: current.views.filter((view) => view.id !== savedViewId),
+        activeView: current.activeView?.id === savedViewId ? null : current.activeView,
+        actionId: null,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setSavedViews((current) => ({
+        ...current,
+        actionId: null,
         error: errorMessage(error),
       }));
       if (isAuthError(error)) {
@@ -904,6 +1073,7 @@ function App() {
           <PortfolioPage
             items={portfolio.items}
             summary={portfolio.summary}
+            savedViews={savedViews}
             isLoading={portfolio.isLoading}
             error={portfolio.error}
             actionId={portfolio.actionId}
@@ -915,6 +1085,9 @@ function App() {
             onRemove={(portfolioItemId) => void removeFromPortfolio(portfolioItemId)}
             onCompare={(portfolioItemId) => void addPortfolioToComparison(portfolioItemId)}
             onRemoveFromComparison={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
+            onSaveView={(name, filter) => void saveCurrentPortfolioView(name, filter)}
+            onApplyView={(savedViewId) => void applyPortfolioSavedView(savedViewId)}
+            onDeleteView={(savedViewId) => void removeSavedPortfolioView(savedViewId)}
           />
         ) : page.name === "comparison" ? (
           <ComparisonPage
@@ -3159,6 +3332,7 @@ function WatchlistPage({
 function PortfolioPage({
   items,
   summary,
+  savedViews,
   isLoading,
   error,
   actionId,
@@ -3170,9 +3344,13 @@ function PortfolioPage({
   onRemove,
   onCompare,
   onRemoveFromComparison,
+  onSaveView,
+  onApplyView,
+  onDeleteView,
 }: {
   items: PortfolioItemResponse[];
   summary: PortfolioSummaryResponse | null;
+  savedViews: SavedViewsState;
   isLoading: boolean;
   error: string | null;
   actionId: string | null;
@@ -3184,10 +3362,21 @@ function PortfolioPage({
   onRemove: (portfolioItemId: string) => void;
   onCompare: (portfolioItemId: string) => void;
   onRemoveFromComparison: (comparisonItemId: string) => void;
+  onSaveView: (name: string, filter: PortfolioReviewFilter) => void;
+  onApplyView: (savedViewId: string | null) => void;
+  onDeleteView: (savedViewId: string) => void;
 }) {
   const dashboardSummary = useMemo(() => summary ?? summarizePortfolioForReview(items), [items, summary]);
   const [statusFilter, setStatusFilter] = useState<PortfolioReviewFilter>("all");
-  const filteredItems = useMemo(() => filterPortfolioItemsForReview(items, statusFilter), [items, statusFilter]);
+  const [saveViewName, setSaveViewName] = useState("");
+  const portfolioViewItems = useMemo(
+    () => applyPortfolioSavedViewForReview(items, savedViews.activeView),
+    [items, savedViews.activeView],
+  );
+  const filteredItems = useMemo(
+    () => filterPortfolioItemsForReview(portfolioViewItems, statusFilter),
+    [portfolioViewItems, statusFilter],
+  );
   const comparisonByScoreId = useMemo(() => buildComparisonByScoreId(comparisonItems), [comparisonItems]);
   const comparisonByPortfolioId = useMemo(() => buildComparisonByPortfolioId(comparisonItems), [comparisonItems]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -3233,6 +3422,9 @@ function PortfolioPage({
         {comparisonError ? (
           <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{comparisonError}</div>
         ) : null}
+        {savedViews.error ? (
+          <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{savedViews.error}</div>
+        ) : null}
       </div>
 
       {dashboardSummary.totalTrackedItems === 0 && !isLoading ? (
@@ -3245,6 +3437,121 @@ function PortfolioPage({
         </div>
       ) : (
         <div className="space-y-5">
+          <section className="border border-line bg-white p-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">Saved Views</p>
+                <h3 className="mt-1 text-lg font-semibold">
+                  {savedViews.activeView ? savedViews.activeView.name : "Default portfolio review"}
+                </h3>
+                <p className="mt-1 text-sm text-ink/65">
+                  {savedViews.activeView ? savedViewCriteriaLabel(savedViews.activeView) : "All tracked portfolio items."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setStatusFilter("all");
+                  onApplyView(null);
+                }}
+                className="border border-line px-3 py-2 text-sm font-semibold"
+              >
+                Default View
+              </button>
+            </div>
+            <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="space-y-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/55">Attention Queues</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {savedViews.queues
+                      .filter((view) => view.surface === "portfolio")
+                      .map((view) => (
+                        <button
+                          key={view.id}
+                          type="button"
+                          disabled={savedViews.actionId === view.id}
+                          onClick={() => {
+                            setStatusFilter("all");
+                            onApplyView(view.id);
+                          }}
+                          className={`border px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+                            savedViews.activeView?.id === view.id ? "border-pine bg-pine text-white" : "border-line bg-white"
+                          }`}
+                        >
+                          {savedViews.actionId === view.id ? "Applying" : view.name}
+                        </button>
+                      ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/55">Saved Portfolio Views</p>
+                  {savedViews.views.filter((view) => view.surface === "portfolio").length === 0 ? (
+                    <p className="mt-2 text-sm text-ink/65">No saved portfolio views yet.</p>
+                  ) : (
+                    <ul className="mt-2 divide-y divide-line border border-line">
+                      {savedViews.views
+                        .filter((view) => view.surface === "portfolio")
+                        .map((view) => (
+                          <li key={view.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
+                            <button
+                              type="button"
+                              disabled={savedViews.actionId === view.id}
+                              onClick={() => {
+                                setStatusFilter("all");
+                                onApplyView(view.id);
+                              }}
+                              className="text-left"
+                            >
+                              <span className="block text-sm font-semibold">{view.name}</span>
+                              <span className="mt-1 block text-xs text-ink/60">{savedViewCriteriaLabel(view)}</span>
+                            </button>
+                            <button
+                              type="button"
+                              disabled={savedViews.actionId === view.id}
+                              onClick={() => onDeleteView(view.id)}
+                              className="border border-line px-2 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              Delete
+                            </button>
+                          </li>
+                        ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+              <form
+                className="border border-line bg-field p-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  onSaveView(saveViewName, statusFilter);
+                  setSaveViewName("");
+                }}
+              >
+                <label htmlFor="portfolio-save-view-name" className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/60">
+                  Save Current Filter
+                </label>
+                <input
+                  id="portfolio-save-view-name"
+                  value={saveViewName}
+                  onChange={(event) => setSaveViewName(event.target.value)}
+                  placeholder="Review-ready deals"
+                  className="mt-2 w-full border border-line bg-white px-3 py-2 text-sm"
+                />
+                <p className="mt-2 text-xs text-ink/60">
+                  Current filter: {statusFilter === "all" ? "All statuses" : statusFilter === "active" ? "Active only" : portfolioStatusLabel(statusFilter)}
+                </p>
+                <button
+                  type="submit"
+                  disabled={savedViews.actionId === "save-portfolio-view" || saveViewName.trim().length === 0}
+                  className="mt-3 w-full bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {savedViews.actionId === "save-portfolio-view" ? "Saving" : "Save View"}
+                </button>
+              </form>
+            </div>
+          </section>
+
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
             <section className="border border-line bg-white p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">

@@ -105,6 +105,20 @@ export {
   type ScoredRecordRecord,
   type ScoredRecordScoreRecord,
 } from "./models/scored-record.js";
+export {
+  SavedViewModel,
+  type SavedViewComparisonFiltersRecord,
+  type SavedViewComparisonQueueRecord,
+  type SavedViewDocument,
+  type SavedViewFiltersRecord,
+  type SavedViewPortfolioFiltersRecord,
+  type SavedViewPortfolioQueueRecord,
+  type SavedViewRecord,
+  type SavedViewSortDirectionRecord,
+  type SavedViewSortKeyRecord,
+  type SavedViewSortRecord,
+  type SavedViewSurfaceRecord,
+} from "./models/saved-view.js";
 export { UserModel, type UserDocument, type UserRecord } from "./models/user.js";
 export {
   WatchlistItemModel,

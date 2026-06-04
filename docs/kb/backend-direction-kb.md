@@ -78,6 +78,10 @@ Current implementation:
 - server-side comparison decision/note history capture;
 - explicit comparison handoff routes for watchlist and portfolio;
 - server-side handoff history capture with destination linkage metadata;
+- saved view model;
+- authenticated saved-view create/list/apply/update/delete routes;
+- server-side validation for saved portfolio/comparison criteria;
+- built-in attention queues grounded in current portfolio/comparison data;
 - structured 404;
 - startup connects to MongoDB;
 - env parsing with `zod`;
@@ -99,6 +103,7 @@ The backend should become the trusted boundary for:
 - comparison workspace persistence;
 - decision history persistence;
 - decision handoff orchestration;
+- saved operational view persistence;
 - in-app alert persistence;
 - future audit events;
 - security enforcement.
@@ -434,6 +439,42 @@ Current limitation:
   management, rich text notes, spreadsheet builders, workflow engines,
   approval pipelines, auction execution, or ML/AI decision suggestions.
 
+## Saved Views Implementation
+
+The saved-view foundation now exists. Saved views belong to one user and store
+validated reusable criteria for known review surfaces.
+
+Current saved-view API:
+
+- `POST /saved-views`;
+- `GET /saved-views`;
+- `GET /saved-views/:savedViewId/apply`;
+- `PATCH /saved-views/:savedViewId`;
+- `DELETE /saved-views/:savedViewId`.
+
+Saved-view endpoints:
+
+- require auth;
+- scope all user-created views by authenticated `userId`;
+- validate portfolio and comparison criteria against explicit allowlists;
+- apply views over only the authenticated user's portfolio/comparison records;
+- expose built-in attention queues grounded in current product data;
+- reject arbitrary query fields and unsupported sorts.
+
+Current queue signals:
+
+- portfolio `needs_attention` from active `reviewing`/`tracked` items, score
+  flags, and low confidence;
+- portfolio `recently_changed` from status timestamp changes;
+- comparison `needs_decision` from undecided comparison items;
+- comparison `recent_decisions` from decision timestamp changes.
+
+Current limitation:
+
+- no shared/team views, report builders, arbitrary query languages,
+  spreadsheet exports, collaboration workflows, ML/AI prioritization, or
+  auction execution.
+
 ## Alerts Implementation
 
 The alerts foundation now exists as in-app user-owned monitoring records.
@@ -582,7 +623,8 @@ Backend implementation order should stay disciplined:
 20. lightweight decision history: implemented in Phase 22;
 21. explicit decision handoff: implemented in Phase 23;
 22. portfolio dashboard and summary API: implemented in Phase 24;
-23. later external automation.
+23. saved views and attention queues: implemented in Phase 25;
+24. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -596,6 +638,8 @@ Avoid:
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
   separate financial analytics phase.
+- arbitrary saved-view query builders, shared/team views, exports, or reporting
+  dashboards before explicit access and product boundaries exist.
 
 ## Security Expectations
 

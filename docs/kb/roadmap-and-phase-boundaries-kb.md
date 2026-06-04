@@ -774,13 +774,44 @@ Future expansion may include:
 - export workflows after access control and redaction rules are designed;
 - financial analytics only after a separate accounting/returns domain phase.
 
+## Phase 25: Saved Views, Filters, And Attention Queues
+
+Current status: implemented.
+
+Phase 25 includes:
+
+- tenant-owned saved view model;
+- authenticated saved-view create/list/apply/update/delete API;
+- deterministic portfolio and comparison filter criteria;
+- built-in attention queues grounded in current portfolio/comparison data;
+- frontend portfolio saved-view controls for save/apply/default workflows;
+- tests for valid creation, invalid criteria, listing, apply behavior,
+  ownership-safe access, queue behavior, API client calls, and review helpers.
+
+Phase 25 does not include:
+
+- complex report builders;
+- arbitrary SQL-like query builders;
+- shared/team views;
+- collaboration workflows;
+- spreadsheet exports;
+- ML/AI queue prioritization;
+- auction execution.
+
+Future expansion may include:
+
+- richer saved comparison UI after comparison filter controls mature;
+- shared views only after explicit team ownership and access-control design;
+- exports only after redaction and tenant data controls are designed;
+- reporting only after a separate analytics/reporting product phase.
+
 ## Later Phases
 
 Later phases may include:
 
 - richer decision history beyond the current comparison-item timeline;
 - richer decision handoff surfaces beyond the current comparison bridge;
-- richer filtering;
+- richer saved-view management;
 - richer import profile management;
 - additional county import adapters after deterministic mapping tests;
 - richer enrichment adapters;
@@ -820,7 +851,8 @@ Dependency order matters:
 20. lightweight decision history;
 21. explicit decision handoff;
 22. portfolio dashboard and operational summaries;
-23. broader automation.
+23. saved views and attention queues;
+24. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

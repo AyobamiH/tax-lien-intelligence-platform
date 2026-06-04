@@ -39,6 +39,8 @@ Current implementation:
 - dedicated portfolio dashboard/status tracking page;
 - portfolio status distribution, recent activity, needs-attention indicators,
   and status filtering;
+- portfolio saved-view controls for saving and applying reusable status filters,
+  built-in attention queue activation, active-view labeling, and default reset;
 - portfolio detail surface for flags, reasoning, and status;
 - compare actions from scored review, watchlist, and portfolio;
 - dedicated comparison workspace;
@@ -86,6 +88,7 @@ Current and future page direction:
 - implemented: watchlist detail reasoning surface;
 - implemented: portfolio status tracking surface;
 - implemented: operational portfolio dashboard and summary surface;
+- implemented: saved portfolio views and built-in attention queue surface;
 - implemented: portfolio detail reasoning/status surface;
 - implemented: comparison workspace with decision notes and lightweight
   decision history;
@@ -156,6 +159,9 @@ Implemented portfolio:
 - preserve why a record mattered originally;
 - display and update simple status;
 - support removal from active tracking.
+- let users save and reopen practical portfolio work slices without rebuilding
+  the same filter each time.
+- expose attention queues as deterministic review aids, not urgency scores.
 
 Future portfolio expansion:
 
@@ -163,6 +169,7 @@ Future portfolio expansion:
 - tags;
 - alerts;
 - decision history beyond status timestamps;
+- shared/team saved views;
 - advanced reporting or BI dashboards;
 - accounting or realized-return fields only after a separate domain phase.
 

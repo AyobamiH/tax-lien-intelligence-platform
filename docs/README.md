@@ -29,6 +29,7 @@ before writing specs, prompts, or implementation plans.
 - [Comparison Workspace Architecture](architecture/comparison.md)
 - [Decision History Architecture](architecture/decision-history.md)
 - [Decision Handoff Architecture](architecture/decision-handoff.md)
+- [Saved Views And Attention Queues Architecture](architecture/saved-views.md)
 - [Internal Job Architecture](architecture/internal-jobs.md)
 - [Alerts And Monitoring Architecture](architecture/alerts.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
@@ -45,6 +46,7 @@ before writing specs, prompts, or implementation plans.
 - [Watchlist API](api/watchlist.md)
 - [Portfolio API](api/portfolio.md)
 - [Comparison API](api/comparison.md)
+- [Saved Views API](api/saved-views.md)
 
 ## Decisions
 

@@ -158,6 +158,14 @@ Implemented today:
 - frontend portfolio status distribution, recent activity, needs-attention
   review, and status filtering;
 - portfolio detail surface with flags, reasoning, and status controls;
+- tenant-owned saved view model in `packages/db`;
+- authenticated saved-view endpoints at `POST /saved-views`,
+  `GET /saved-views`, `GET /saved-views/:savedViewId/apply`,
+  `PATCH /saved-views/:savedViewId`, and
+  `DELETE /saved-views/:savedViewId`;
+- saved portfolio/comparison criteria validation with built-in attention
+  queues;
+- frontend portfolio saved-view save/apply/default flow;
 - tenant-owned comparison item model in `packages/db`;
 - tenant-owned decision history model in `packages/db`;
 - authenticated comparison endpoints at `POST /comparison`, `GET /comparison`,
@@ -301,6 +309,10 @@ Current tests cover:
   ownership-safe aggregation behavior;
 - duplicate portfolio handling;
 - cross-user portfolio source/read/update/delete rejection.
+- saved-view create/list/apply behavior;
+- invalid saved-view criteria rejection;
+- built-in attention queue behavior;
+- cross-user saved-view apply rejection.
 - comparison add/list/update/delete behavior;
 - duplicate comparison handling;
 - cross-user comparison source/update/delete/history/handoff rejection.
@@ -357,6 +369,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - tenant-owned portfolio item records are implemented.
 - tenant-owned portfolio summary aggregation is implemented over owned
   portfolio records only.
+- tenant-owned saved views are implemented and applied only over owned
+  portfolio/comparison records.
 - tenant-owned comparison item records are implemented.
 - tenant-owned parcel records are not yet implemented.
 

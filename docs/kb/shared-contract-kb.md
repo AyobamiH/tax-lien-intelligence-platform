@@ -94,6 +94,14 @@ Current shared types in `packages/types`:
 - `PortfolioAttentionReason`;
 - `PortfolioAttentionSummary`;
 - `PortfolioSummaryResponse`.
+- `SavedViewSurface`;
+- `SavedViewPortfolioFilters`;
+- `SavedViewComparisonFilters`;
+- `SavedViewSort`;
+- `SavedViewResponse`;
+- `CreateSavedViewRequest`;
+- `SavedViewListResponse`;
+- `ApplySavedViewResponse`;
 
 Current scoring package:
 
@@ -525,6 +533,28 @@ Current portfolio summary contracts include:
 Portfolio summaries are dashboard contracts. They must not become raw source-row
 exports, accounting ledgers, P&L objects, broad analytics payloads, or
 cross-tenant activity feeds.
+
+## Saved View Contract
+
+Current saved-view contracts include:
+
+- saved view id;
+- surface: `portfolio` or `comparison`;
+- display name and optional description;
+- validated filter object for the selected surface;
+- optional validated sort;
+- created/updated timestamps;
+- list response with user-created views and built-in queues;
+- apply response that returns matching portfolio or comparison records.
+
+Portfolio saved-view filters are limited to statuses, practical queues, flag
+presence, risk threshold, and confidence threshold. Comparison saved-view filters
+are limited to decisions, source types, practical queues, and note presence.
+
+Saved-view contracts must remain explicit and deterministic. They must not
+become arbitrary field selectors, SQL-like query contracts, hidden-field
+exposure, report-builder payloads, spreadsheet export schemas, or shared/team
+view contracts without a new access-control design.
 
 ## Comparison Object Contract
 
