@@ -5,17 +5,18 @@ into structured investment decisions.
 
 ## Current State
 
-This repository contains the baseline monorepo plus the Phase 2 authentication
-foundation, Phase 3 dataset foundation, and Phase 4 first-pass scoring
-foundation, Phase 5 scored-results review surface, Phase 6 watchlist workflow,
-Phase 7 portfolio/status tracking, and Phase 8 automation-ready internal job
-plumbing:
+This repository contains the baseline monorepo plus authenticated dataset
+upload, first-pass explainable scoring, scored-results review, watchlist,
+portfolio/status tracking, comparison, decision history, decision handoff,
+internal jobs, alerts, worker/scheduler groundwork, enrichment, import repair,
+reusable import profiles, and the Phase 24 portfolio dashboard:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind review workspace
 - `apps/api`: Express, TypeScript, auth, dataset, scoring, internal jobs,
-  watchlist, and portfolio APIs
+  alerts, watchlist, portfolio, and comparison APIs
 - `packages/db`: MongoDB connection plus user, dataset, scored-record,
-  internal-job, watchlist, and portfolio models
+  internal-job, alert, watchlist, portfolio, comparison, decision-history, and
+  import-profile models
 - `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
@@ -28,17 +29,35 @@ Implemented API surfaces:
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
+- `GET /datasets/import-profiles`
+- `GET /datasets/:datasetId/mapping`
+- `PATCH /datasets/:datasetId/mapping`
+- `POST /datasets/:datasetId/import-profile`
+- `POST /datasets/:datasetId/import-profile/apply`
 - `POST /datasets/:datasetId/score`
+- `POST /datasets/:datasetId/refresh`
+- `GET /datasets/:datasetId/scoring-status`
 - `GET /datasets/:datasetId/scores`
 - `GET /jobs/:jobId`
+- `GET /alerts`
+- `PATCH /alerts/:alertId/read`
+- `PATCH /alerts/read-all`
 - `POST /watchlist`
 - `GET /watchlist`
 - `DELETE /watchlist/:watchlistItemId`
 - `POST /portfolio`
 - `GET /portfolio`
+- `GET /portfolio/summary`
 - `GET /portfolio/:portfolioItemId`
 - `PATCH /portfolio/:portfolioItemId`
 - `DELETE /portfolio/:portfolioItemId`
+- `POST /comparison`
+- `GET /comparison`
+- `PATCH /comparison/:comparisonItemId`
+- `GET /comparison/:comparisonItemId/history`
+- `POST /comparison/:comparisonItemId/handoff/watchlist`
+- `POST /comparison/:comparisonItemId/handoff/portfolio`
+- `DELETE /comparison/:comparisonItemId`
 
 ## Local Development
 

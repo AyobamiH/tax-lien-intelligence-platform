@@ -3,10 +3,12 @@
 Phase 7 adds portfolio/status tracking as the first post-shortlist operating
 layer. Portfolio routes are authenticated, tenant-scoped, and only accept
 references to scored records or watchlist items owned by the authenticated user.
+Phase 24 adds a portfolio summary endpoint for operational review.
 
 The portfolio is not an accounting, brokerage, auction, or return-tracking
 system. It records which scored opportunities the user is actively tracking and
-the current decision status for each tracked item.
+the current decision status for each tracked item. Summary responses are
+operational visibility, not financial analytics.
 
 ## Security Model
 
@@ -19,6 +21,8 @@ the current decision status for each tracked item.
 - Status changes are limited to the supported portfolio status enum.
 - Portfolio responses expose denormalized score context, flags, and reasoning
   for the signed-in user only.
+- Portfolio summaries aggregate only the signed-in user's portfolio records and
+  do not expose `userId`, raw dataset rows, or cross-tenant activity.
 
 ## Portfolio Statuses
 
@@ -111,6 +115,94 @@ Returns the authenticated user's portfolio items.
 }
 ```
 
+## `GET /portfolio/summary`
+
+Returns an authenticated, tenant-scoped operational summary for the user's
+portfolio dashboard.
+
+The summary is derived from existing portfolio item state. It includes status
+distribution, recent additions, recent status changes, and conservative
+attention indicators grounded in current data such as review status, tracked
+items without a next status, score flags, and low confidence.
+
+### Response `200`
+
+```json
+{
+  "totalTrackedItems": 2,
+  "activeItems": 2,
+  "readyItems": 1,
+  "acquiredItems": 0,
+  "statusCounts": [
+    {
+      "status": "tracked",
+      "count": 1,
+      "isActive": true
+    }
+  ],
+  "recentAdditions": [
+    {
+      "activityType": "added",
+      "occurredAt": "2026-06-01T10:00:00.000Z",
+      "message": "Portfolio tracking started from scored review.",
+      "item": {
+        "id": "portfolio-item-id",
+        "datasetId": "dataset-id",
+        "scoredRecordId": "score-id",
+        "status": "tracked",
+        "statusUpdatedAt": "2026-06-01T10:00:00.000Z",
+        "sourceRowNumber": 2,
+        "normalizedFields": {
+          "parcelId": "A-100",
+          "propertyTypeCategory": "residential"
+        },
+        "investmentScore": 82,
+        "riskScore": 18,
+        "confidenceScore": 90,
+        "flagCount": 0,
+        "trackedAt": "2026-06-01T10:00:00.000Z",
+        "updatedAt": "2026-06-01T10:00:00.000Z"
+      }
+    }
+  ],
+  "recentStatusChanges": [],
+  "needsAttention": [
+    {
+      "item": {
+        "id": "portfolio-item-id",
+        "datasetId": "dataset-id",
+        "scoredRecordId": "score-id",
+        "status": "tracked",
+        "statusUpdatedAt": "2026-06-01T10:00:00.000Z",
+        "sourceRowNumber": 2,
+        "normalizedFields": {
+          "parcelId": "A-100",
+          "propertyTypeCategory": "residential"
+        },
+        "investmentScore": 82,
+        "riskScore": 18,
+        "confidenceScore": 90,
+        "flagCount": 0,
+        "trackedAt": "2026-06-01T10:00:00.000Z",
+        "updatedAt": "2026-06-01T10:00:00.000Z"
+      },
+      "reasons": [
+        {
+          "code": "tracked_without_next_status",
+          "severity": "info",
+          "message": "Item is tracked but has not moved into a next decision status."
+        }
+      ]
+    }
+  ],
+  "generatedAt": "2026-06-01T10:05:00.000Z"
+}
+```
+
+Summary records are intentionally smaller than full portfolio item responses.
+They include enough context for dashboard navigation and review without turning
+the endpoint into raw source-row or analytics export.
+
 ## `GET /portfolio/:portfolioItemId`
 
 Returns one portfolio item owned by the authenticated user.
@@ -187,6 +279,7 @@ Possible portfolio errors:
 
 ## Current Limitation
 
-Portfolio tracking is intentionally narrow. It does not include notes, tags,
-alerts, collaboration, auction execution, accounting, payment tracking, or
+Portfolio tracking and summary visibility are intentionally narrow. They do not
+include notes, tags, collaboration, auction execution, accounting, payment
+tracking, return calculators, BI/report builders, spreadsheet export suites, or
 portfolio performance analytics.

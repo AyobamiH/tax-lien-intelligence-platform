@@ -2,9 +2,15 @@ import mongoose from "mongoose";
 import type {
   AddPortfolioItemResponse,
   DeletePortfolioItemResponse,
+  PortfolioActivitySummary,
+  PortfolioAttentionReason,
+  PortfolioAttentionSummary,
   PortfolioDetailResponse,
   PortfolioItemResponse,
   PortfolioListResponse,
+  PortfolioStatusCount,
+  PortfolioSummaryRecord,
+  PortfolioSummaryResponse,
   PortfolioStatus,
   UpdatePortfolioItemResponse,
 } from "@tax-lien/types";
@@ -79,6 +85,11 @@ export class PortfolioService {
     return {
       items: items.map(toPortfolioItemResponse),
     };
+  }
+
+  public async getSummary(userId: string): Promise<PortfolioSummaryResponse> {
+    const items = await this.portfolioStore.listItemsForUser(userId);
+    return buildPortfolioSummary(items);
   }
 
   public async getItem(userId: string, portfolioItemId: string): Promise<PortfolioDetailResponse> {
@@ -180,6 +191,167 @@ export function toPortfolioItemResponse(item: StoredPortfolioItem): PortfolioIte
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   };
+}
+
+export function buildPortfolioSummary(items: StoredPortfolioItem[], generatedAt = new Date()): PortfolioSummaryResponse {
+  const activeItems = items.filter(isActivePortfolioItem);
+  const statusCounts = portfolioStatuses.map<PortfolioStatusCount>((status) => ({
+    status,
+    count: items.filter((item) => item.status === status).length,
+    isActive: isActivePortfolioStatus(status),
+  }));
+
+  return {
+    totalTrackedItems: items.length,
+    activeItems: activeItems.length,
+    readyItems: items.filter((item) => item.status === "ready").length,
+    acquiredItems: items.filter((item) => item.status === "acquired").length,
+    statusCounts,
+    recentAdditions: buildRecentAdditions(items),
+    recentStatusChanges: buildRecentStatusChanges(items),
+    needsAttention: buildAttentionSummaries(activeItems),
+    generatedAt: generatedAt.toISOString(),
+  };
+}
+
+function buildRecentAdditions(items: StoredPortfolioItem[]): PortfolioActivitySummary[] {
+  return [...items]
+    .sort((left, right) => right.trackedAt.getTime() - left.trackedAt.getTime())
+    .slice(0, 5)
+    .map((item) => ({
+      activityType: "added",
+      occurredAt: item.trackedAt.toISOString(),
+      message: item.sourceWatchlistItemId
+        ? "Portfolio tracking started from a watchlist item."
+        : "Portfolio tracking started from scored review.",
+      item: toPortfolioSummaryRecord(item),
+    }));
+}
+
+function buildRecentStatusChanges(items: StoredPortfolioItem[]): PortfolioActivitySummary[] {
+  return items
+    .filter((item) => item.statusUpdatedAt.getTime() !== item.trackedAt.getTime())
+    .sort((left, right) => right.statusUpdatedAt.getTime() - left.statusUpdatedAt.getTime())
+    .slice(0, 5)
+    .map((item) => ({
+      activityType: "status_changed",
+      occurredAt: item.statusUpdatedAt.toISOString(),
+      message: `Status changed to ${item.status}.`,
+      item: toPortfolioSummaryRecord(item),
+    }));
+}
+
+function buildAttentionSummaries(items: StoredPortfolioItem[]): PortfolioAttentionSummary[] {
+  return items
+    .map((item) => ({
+      item,
+      reasons: attentionReasonsForItem(item),
+    }))
+    .filter((summary): summary is { item: StoredPortfolioItem; reasons: PortfolioAttentionReason[] } => summary.reasons.length > 0)
+    .sort((left, right) => {
+      const severityDelta = attentionSeverityScore(right.reasons) - attentionSeverityScore(left.reasons);
+      if (severityDelta !== 0) {
+        return severityDelta;
+      }
+
+      const statusDelta = attentionStatusPriority(left.item.status) - attentionStatusPriority(right.item.status);
+      if (statusDelta !== 0) {
+        return statusDelta;
+      }
+
+      return right.item.statusUpdatedAt.getTime() - left.item.statusUpdatedAt.getTime();
+    })
+    .slice(0, 8)
+    .map((summary) => ({
+      item: toPortfolioSummaryRecord(summary.item),
+      reasons: summary.reasons,
+    }));
+}
+
+function attentionReasonsForItem(item: StoredPortfolioItem): PortfolioAttentionReason[] {
+  const reasons: PortfolioAttentionReason[] = [];
+
+  if (item.status === "reviewing") {
+    reasons.push({
+      code: "review_status",
+      severity: "info",
+      message: "Item is explicitly marked for review.",
+    });
+  }
+
+  if (item.status === "tracked") {
+    reasons.push({
+      code: "tracked_without_next_status",
+      severity: "info",
+      message: "Item is tracked but has not moved into a next decision status.",
+    });
+  }
+
+  if (item.score.flags.length > 0) {
+    reasons.push({
+      code: "risk_flags",
+      severity: "warning",
+      message: `${item.score.flags.length} scoring flag${item.score.flags.length === 1 ? "" : "s"} need review.`,
+    });
+  }
+
+  if (item.score.confidenceScore < 60) {
+    reasons.push({
+      code: "low_confidence",
+      severity: "warning",
+      message: "Supporting data confidence is below the review threshold.",
+    });
+  }
+
+  return reasons;
+}
+
+function toPortfolioSummaryRecord(item: StoredPortfolioItem): PortfolioSummaryRecord {
+  return {
+    id: item.id,
+    datasetId: item.datasetId,
+    scoredRecordId: item.scoredRecordId,
+    ...(item.sourceWatchlistItemId ? { sourceWatchlistItemId: item.sourceWatchlistItemId } : {}),
+    status: item.status,
+    statusUpdatedAt: item.statusUpdatedAt.toISOString(),
+    sourceRowNumber: item.sourceRowNumber,
+    normalizedFields: item.normalizedFields,
+    investmentScore: item.score.investmentScore,
+    riskScore: item.score.riskScore,
+    confidenceScore: item.score.confidenceScore,
+    flagCount: item.score.flags.length,
+    ...(item.score.flags[0] ? { primaryFlag: item.score.flags[0] } : {}),
+    trackedAt: item.trackedAt.toISOString(),
+    updatedAt: item.updatedAt.toISOString(),
+  };
+}
+
+function isActivePortfolioItem(item: StoredPortfolioItem): boolean {
+  return isActivePortfolioStatus(item.status);
+}
+
+function isActivePortfolioStatus(status: PortfolioStatus): boolean {
+  return status !== "closed" && status !== "discarded";
+}
+
+function attentionSeverityScore(reasons: PortfolioAttentionReason[]): number {
+  return reasons.reduce((score, reason) => score + (reason.severity === "warning" ? 2 : 1), 0);
+}
+
+function attentionStatusPriority(status: PortfolioStatus): number {
+  switch (status) {
+    case "reviewing":
+      return 0;
+    case "tracked":
+      return 1;
+    case "ready":
+      return 2;
+    case "acquired":
+      return 3;
+    case "closed":
+    case "discarded":
+      return 4;
+  }
 }
 
 function snapshotFromWatchlistItem(item: StoredWatchlistItem): PortfolioSourceSnapshot {

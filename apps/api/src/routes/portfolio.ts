@@ -57,6 +57,18 @@ export function createPortfolioRouter(authService: AuthService, portfolioService
     }
   });
 
+  router.get("/summary", requireAuthenticatedUser, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+
+      response.status(200).json(await portfolioService.getSummary(request.auth.userId));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get("/:portfolioItemId", requireAuthenticatedUser, async (request, response, next) => {
     try {
       if (!request.auth) {

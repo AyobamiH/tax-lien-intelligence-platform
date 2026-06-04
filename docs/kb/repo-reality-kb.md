@@ -145,14 +145,18 @@ Implemented today:
 - watchlist detail surface with flags and reasoning;
 - tenant-owned portfolio item model in `packages/db`;
 - authenticated portfolio endpoints at `POST /portfolio`, `GET /portfolio`,
-  `GET /portfolio/:portfolioItemId`, `PATCH /portfolio/:portfolioItemId`, and
-  `DELETE /portfolio/:portfolioItemId`;
+  `GET /portfolio/summary`, `GET /portfolio/:portfolioItemId`,
+  `PATCH /portfolio/:portfolioItemId`, and `DELETE /portfolio/:portfolioItemId`;
 - portfolio creation from owned scored records or owned watchlist items;
 - portfolio status tracking with a small explicit status enum;
+- tenant-scoped portfolio summary with status distribution, recent additions,
+  recent status changes, and conservative needs-attention signals;
 - portfolio ownership tests;
 - frontend track/untrack actions from scored results;
 - watchlist-to-portfolio promotion actions;
-- dedicated portfolio status tracking page;
+- dedicated portfolio dashboard/status tracking page;
+- frontend portfolio status distribution, recent activity, needs-attention
+  review, and status filtering;
 - portfolio detail surface with flags, reasoning, and status controls;
 - tenant-owned comparison item model in `packages/db`;
 - tenant-owned decision history model in `packages/db`;
@@ -293,6 +297,8 @@ Current tests cover:
 - duplicate watchlist handling;
 - cross-user watchlist add/delete rejection.
 - portfolio add/list/detail/status/delete behavior;
+- portfolio summary status distribution, recent activity, empty summary, and
+  ownership-safe aggregation behavior;
 - duplicate portfolio handling;
 - cross-user portfolio source/read/update/delete rejection.
 - comparison add/list/update/delete behavior;
@@ -349,6 +355,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
   through deterministic owner-scoped matching or explicit user confirmation.
 - tenant-owned scored-record and watchlist item records are implemented.
 - tenant-owned portfolio item records are implemented.
+- tenant-owned portfolio summary aggregation is implemented over owned
+  portfolio records only.
 - tenant-owned comparison item records are implemented.
 - tenant-owned parcel records are not yet implemented.
 
@@ -372,6 +380,8 @@ Repo drift risks:
 - describing first-pass scoring as final underwriting.
 - describing worker plumbing as full automation.
 - describing in-app alerts as external notification delivery.
+- describing portfolio summaries as accounting, return analytics, BI reporting,
+  or predictive financial insight.
 - describing import readiness as manual field mapping, broad county support, or
   proof that scoring quality is final.
 - describing focused manual mapping as a full spreadsheet editor or county

@@ -73,8 +73,9 @@ Current repo protections:
 - duplicate-safe watchlist adds;
 - cross-user watchlist rejection tests;
 - tenant-owned portfolio item persistence;
-- authenticated portfolio add/list/detail/status/delete routes;
+- authenticated portfolio add/list/summary/detail/status/delete routes;
 - portfolio ownership enforcement against scored records and watchlist items;
+- portfolio summary aggregation over owned records only;
 - duplicate-safe portfolio adds;
 - cross-user portfolio rejection tests;
 - tenant-owned comparison item persistence;
@@ -546,9 +547,12 @@ Portfolio records may be more sensitive than raw parcel data because they reveal
 investment intent and decisions.
 
 Portfolio records now verify ownership of the referenced scored record or
-watchlist item before tracking. Portfolio reads, status updates, and deletes are
-scoped to the authenticated user. Future portfolio expansion such as notes,
-alerts, or collaboration must add validation and cross-user tests before release.
+watchlist item before tracking. Portfolio reads, summaries, status updates, and
+deletes are scoped to the authenticated user. Portfolio summaries aggregate
+owned records only and expose bounded status/activity/attention metadata rather
+than raw source rows, financial analytics, or cross-tenant activity. Future
+portfolio expansion such as notes, alerts, reporting, exports, or collaboration
+must add validation and cross-user tests before release.
 
 ### Comparison Records
 

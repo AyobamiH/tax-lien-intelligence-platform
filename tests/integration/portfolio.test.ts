@@ -513,6 +513,112 @@ describe("portfolio API", () => {
     expect(response.body.item.statusUpdatedAt).toEqual(expect.any(String));
   });
 
+  it("returns an empty portfolio summary for the authenticated user", async () => {
+    const { app } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+
+    const response = await request(app).get("/portfolio/summary").set("Authorization", `Bearer ${owner.token}`).expect(200);
+
+    expect(response.body).toMatchObject({
+      totalTrackedItems: 0,
+      activeItems: 0,
+      readyItems: 0,
+      acquiredItems: 0,
+      recentAdditions: [],
+      recentStatusChanges: [],
+      needsAttention: [],
+      generatedAt: expect.any(String),
+    });
+    expect(response.body.statusCounts).toEqual([
+      { status: "tracked", count: 0, isActive: true },
+      { status: "reviewing", count: 0, isActive: true },
+      { status: "ready", count: 0, isActive: true },
+      { status: "acquired", count: 0, isActive: true },
+      { status: "closed", count: 0, isActive: false },
+      { status: "discarded", count: 0, isActive: false },
+    ]);
+  });
+
+  it("summarizes only the current user's portfolio status, activity, and attention signals", async () => {
+    const { app, workerProcessor } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const other = await registerUser(app, "other@example.com");
+    const ownerFirstScoreId = await createScoredRecord(app, workerProcessor, owner.token);
+    const ownerSecondScoreId = await createScoredRecord(app, workerProcessor, owner.token);
+    const otherScoreId = await createScoredRecord(app, workerProcessor, other.token);
+
+    const firstAdd = await request(app)
+      .post("/portfolio")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ scoredRecordId: ownerFirstScoreId })
+      .expect(201);
+    await request(app)
+      .post("/portfolio")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ scoredRecordId: ownerSecondScoreId, status: "ready" })
+      .expect(201);
+    await request(app)
+      .post("/portfolio")
+      .set("Authorization", `Bearer ${other.token}`)
+      .send({ scoredRecordId: otherScoreId, status: "acquired" })
+      .expect(201);
+
+    await request(app)
+      .patch(`/portfolio/${firstAdd.body.item.id as string}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ status: "reviewing" })
+      .expect(200);
+
+    const response = await request(app).get("/portfolio/summary").set("Authorization", `Bearer ${owner.token}`).expect(200);
+    const reviewingCount = response.body.statusCounts.find((count: { status: string }) => count.status === "reviewing");
+    const readyCount = response.body.statusCounts.find((count: { status: string }) => count.status === "ready");
+    const acquiredCount = response.body.statusCounts.find((count: { status: string }) => count.status === "acquired");
+
+    expect(response.body).toMatchObject({
+      totalTrackedItems: 2,
+      activeItems: 2,
+      readyItems: 1,
+      acquiredItems: 0,
+    });
+    expect(reviewingCount).toMatchObject({ count: 1, isActive: true });
+    expect(readyCount).toMatchObject({ count: 1, isActive: true });
+    expect(acquiredCount).toMatchObject({ count: 0, isActive: true });
+    expect(response.body.recentAdditions).toHaveLength(2);
+    expect(response.body.recentAdditions[0]).toMatchObject({
+      activityType: "added",
+      item: {
+        id: expect.any(String),
+        scoredRecordId: expect.any(String),
+        flagCount: expect.any(Number),
+      },
+    });
+    expect(response.body.recentStatusChanges).toHaveLength(1);
+    expect(response.body.recentStatusChanges[0]).toMatchObject({
+      activityType: "status_changed",
+      item: {
+        id: firstAdd.body.item.id,
+        status: "reviewing",
+      },
+    });
+    expect(response.body.needsAttention).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          item: expect.objectContaining({
+            id: firstAdd.body.item.id,
+            status: "reviewing",
+          }),
+          reasons: expect.arrayContaining([
+            expect.objectContaining({
+              code: "review_status",
+            }),
+          ]),
+        }),
+      ]),
+    );
+    expect(JSON.stringify(response.body)).not.toContain(other.userId);
+    expect(JSON.stringify(response.body)).not.toContain(otherScoreId);
+  });
+
   it("removes a portfolio item for the owner", async () => {
     const { app, workerProcessor } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
@@ -536,6 +642,7 @@ describe("portfolio API", () => {
     const { app } = createTestContext();
 
     await request(app).get("/portfolio").expect(401);
+    await request(app).get("/portfolio/summary").expect(401);
     await request(app).post("/portfolio").send({ scoredRecordId: new mongoose.Types.ObjectId().toString() }).expect(401);
     await request(app).get(`/portfolio/${new mongoose.Types.ObjectId().toString()}`).expect(401);
     await request(app).patch(`/portfolio/${new mongoose.Types.ObjectId().toString()}`).send({ status: "ready" }).expect(401);

@@ -738,6 +738,42 @@ Future expansion may include:
 - approval or collaboration flows after authorization design;
 - automation hooks after manual handoff behavior is proven.
 
+## Phase 24: Portfolio Dashboard And Outcome Summaries
+
+Current status: implemented.
+
+Phase 24 includes:
+
+- authenticated portfolio summary endpoint;
+- tenant-scoped status distribution counts;
+- total tracked, active, ready, and acquired item counts;
+- recent portfolio additions;
+- recent portfolio status changes;
+- conservative needs-attention summaries grounded in status, score flags, and
+  confidence;
+- focused frontend portfolio dashboard on the existing portfolio route;
+- status filtering for tracked decisions;
+- tests for empty summaries, status grouping, recent activity, ownership-safe
+  aggregation, frontend summary helpers, and API client behavior.
+
+Phase 24 does not include:
+
+- P&L accounting;
+- payment tracking;
+- return calculators;
+- BI/report builders;
+- spreadsheet export suites;
+- predictive portfolio insights;
+- collaboration dashboards;
+- auction execution.
+
+Future expansion may include:
+
+- richer portfolio history after broader activity events exist;
+- operator reporting after the domain model supports real reporting data;
+- export workflows after access control and redaction rules are designed;
+- financial analytics only after a separate accounting/returns domain phase.
+
 ## Later Phases
 
 Later phases may include:
@@ -783,7 +819,8 @@ Dependency order matters:
 19. comparison workspace and decision notes;
 20. lightweight decision history;
 21. explicit decision handoff;
-22. broader automation.
+22. portfolio dashboard and operational summaries;
+23. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

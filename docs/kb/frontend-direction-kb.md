@@ -36,7 +36,9 @@ Current implementation:
 - watchlist detail surface for flags and reasoning;
 - portfolio track/untrack actions;
 - watchlist-to-portfolio promotion actions;
-- dedicated portfolio status tracking page;
+- dedicated portfolio dashboard/status tracking page;
+- portfolio status distribution, recent activity, needs-attention indicators,
+  and status filtering;
 - portfolio detail surface for flags, reasoning, and status;
 - compare actions from scored review, watchlist, and portfolio;
 - dedicated comparison workspace;
@@ -83,6 +85,7 @@ Current and future page direction:
 - implemented: watchlist comparison surface;
 - implemented: watchlist detail reasoning surface;
 - implemented: portfolio status tracking surface;
+- implemented: operational portfolio dashboard and summary surface;
 - implemented: portfolio detail reasoning/status surface;
 - implemented: comparison workspace with decision notes and lightweight
   decision history;
@@ -145,6 +148,11 @@ Future watchlist expansion:
 Implemented portfolio:
 
 - show actively tracked scored records;
+- summarize total tracked, active, ready, and acquired items;
+- show status distribution and allow status-filtered review;
+- show recent additions and recent status changes;
+- show conservative needs-attention indicators grounded in current status,
+  flags, and confidence data;
 - preserve why a record mattered originally;
 - display and update simple status;
 - support removal from active tracking.
@@ -155,6 +163,7 @@ Future portfolio expansion:
 - tags;
 - alerts;
 - decision history beyond status timestamps;
+- advanced reporting or BI dashboards;
 - accounting or realized-return fields only after a separate domain phase.
 
 Implemented comparison:

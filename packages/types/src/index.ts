@@ -558,6 +558,68 @@ export interface DeletePortfolioItemResponse {
   id: string;
 }
 
+export interface PortfolioStatusCount {
+  status: PortfolioStatus;
+  count: number;
+  isActive: boolean;
+}
+
+export type PortfolioSummaryActivityType = "added" | "status_changed";
+
+export interface PortfolioSummaryRecord {
+  id: string;
+  datasetId: string;
+  scoredRecordId: string;
+  sourceWatchlistItemId?: string;
+  status: PortfolioStatus;
+  statusUpdatedAt: string;
+  sourceRowNumber: number;
+  normalizedFields: NormalizedScoredRecordFields;
+  investmentScore: number;
+  riskScore: number;
+  confidenceScore: number;
+  flagCount: number;
+  primaryFlag?: string;
+  trackedAt: string;
+  updatedAt: string;
+}
+
+export interface PortfolioActivitySummary {
+  activityType: PortfolioSummaryActivityType;
+  occurredAt: string;
+  message: string;
+  item: PortfolioSummaryRecord;
+}
+
+export type PortfolioAttentionReasonCode =
+  | "review_status"
+  | "tracked_without_next_status"
+  | "risk_flags"
+  | "low_confidence";
+
+export interface PortfolioAttentionReason {
+  code: PortfolioAttentionReasonCode;
+  severity: "info" | "warning";
+  message: string;
+}
+
+export interface PortfolioAttentionSummary {
+  item: PortfolioSummaryRecord;
+  reasons: PortfolioAttentionReason[];
+}
+
+export interface PortfolioSummaryResponse {
+  totalTrackedItems: number;
+  activeItems: number;
+  readyItems: number;
+  acquiredItems: number;
+  statusCounts: PortfolioStatusCount[];
+  recentAdditions: PortfolioActivitySummary[];
+  recentStatusChanges: PortfolioActivitySummary[];
+  needsAttention: PortfolioAttentionSummary[];
+  generatedAt: string;
+}
+
 export type ComparisonSourceType = "score" | "watchlist" | "portfolio";
 
 export type ComparisonDecision = "undecided" | "keep_reviewing" | "move_forward" | "rejected";

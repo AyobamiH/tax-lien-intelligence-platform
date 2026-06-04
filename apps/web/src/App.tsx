@@ -13,6 +13,8 @@ import type {
   InternalJobResponse,
   PortfolioItemResponse,
   PortfolioStatus,
+  PortfolioSummaryRecord,
+  PortfolioSummaryResponse,
   ScoredRecordResponse,
   WatchlistItemResponse,
 } from "@tax-lien/types";
@@ -27,6 +29,7 @@ import {
   getDataset,
   getDatasetScoringStatus,
   getJob,
+  getPortfolioSummary,
   handoffComparisonToPortfolio,
   handoffComparisonToWatchlist,
   listAlerts,
@@ -68,6 +71,7 @@ import {
   datasetReadinessPresentation,
   datasetScoringStatusClassName,
   datasetScoringStatusLabel,
+  filterPortfolioItemsForReview,
   filterScoresForReview,
   flagPreview,
   formatMoney,
@@ -88,6 +92,8 @@ import {
   sortDecisionHistoryForReview,
   sortPortfolioItemsForReview,
   sortWatchlistItemsForReview,
+  summarizePortfolioForReview,
+  type PortfolioReviewFilter,
   type ScoreFilter,
   summarizeScores,
   topReadinessIssues,
@@ -136,6 +142,7 @@ interface WatchlistState {
 
 interface PortfolioState {
   items: PortfolioItemResponse[];
+  summary: PortfolioSummaryResponse | null;
   isLoading: boolean;
   error: string | null;
   actionId: string | null;
@@ -175,6 +182,7 @@ function App() {
   });
   const [portfolio, setPortfolio] = useState<PortfolioState>({
     items: [],
+    summary: null,
     isLoading: false,
     error: null,
     actionId: null,
@@ -229,6 +237,7 @@ function App() {
       });
       setPortfolio({
         items: [],
+        summary: null,
         isLoading: false,
         error: null,
         actionId: null,
@@ -356,10 +365,11 @@ function App() {
     setPortfolio((current) => ({ ...current, isLoading: true, error: null }));
 
     try {
-      const result = await listPortfolio(token);
+      const [result, summary] = await Promise.all([listPortfolio(token), getPortfolioSummary(token)]);
       setPortfolio((current) => ({
         ...current,
         items: result.items,
+        summary,
         isLoading: false,
         error: null,
       }));
@@ -616,7 +626,8 @@ function App() {
       await removePortfolioItem(session.token, portfolioItemId);
       setPortfolio((current) => ({
         ...current,
-        items: current.items.filter((item) => item.id !== portfolioItemId),
+        items: sortPortfolioItemsForReview(current.items.filter((item) => item.id !== portfolioItemId)),
+        summary: summarizePortfolioForReview(current.items.filter((item) => item.id !== portfolioItemId)),
         actionId: null,
         error: null,
       }));
@@ -892,6 +903,7 @@ function App() {
         ) : page.name === "portfolio" ? (
           <PortfolioPage
             items={portfolio.items}
+            summary={portfolio.summary}
             isLoading={portfolio.isLoading}
             error={portfolio.error}
             actionId={portfolio.actionId}
@@ -3146,6 +3158,7 @@ function WatchlistPage({
 
 function PortfolioPage({
   items,
+  summary,
   isLoading,
   error,
   actionId,
@@ -3159,6 +3172,7 @@ function PortfolioPage({
   onRemoveFromComparison,
 }: {
   items: PortfolioItemResponse[];
+  summary: PortfolioSummaryResponse | null;
   isLoading: boolean;
   error: string | null;
   actionId: string | null;
@@ -3171,27 +3185,26 @@ function PortfolioPage({
   onCompare: (portfolioItemId: string) => void;
   onRemoveFromComparison: (comparisonItemId: string) => void;
 }) {
-  const sortedItems = useMemo(() => sortPortfolioItemsForReview(items), [items]);
+  const dashboardSummary = useMemo(() => summary ?? summarizePortfolioForReview(items), [items, summary]);
+  const [statusFilter, setStatusFilter] = useState<PortfolioReviewFilter>("all");
+  const filteredItems = useMemo(() => filterPortfolioItemsForReview(items, statusFilter), [items, statusFilter]);
   const comparisonByScoreId = useMemo(() => buildComparisonByScoreId(comparisonItems), [comparisonItems]);
   const comparisonByPortfolioId = useMemo(() => buildComparisonByPortfolioId(comparisonItems), [comparisonItems]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const selectedItem = sortedItems.find((item) => item.id === selectedItemId) ?? sortedItems[0] ?? null;
+  const selectedItem = filteredItems.find((item) => item.id === selectedItemId) ?? filteredItems[0] ?? null;
   const selectedComparisonItem = selectedItem
     ? comparisonByPortfolioId.get(selectedItem.id) ?? comparisonByScoreId.get(selectedItem.scoredRecordId) ?? null
     : null;
-  const readyCount = sortedItems.filter((item) => item.status === "ready").length;
-  const activeCount = sortedItems.filter((item) => item.status !== "closed" && item.status !== "discarded").length;
-  const acquiredCount = sortedItems.filter((item) => item.status === "acquired").length;
 
   useEffect(() => {
-    if (selectedItemId && sortedItems.some((item) => item.id === selectedItemId)) {
+    if (selectedItemId && filteredItems.some((item) => item.id === selectedItemId)) {
       return;
     }
 
-    setSelectedItemId(sortedItems[0]?.id ?? null);
-  }, [selectedItemId, sortedItems]);
+    setSelectedItemId(filteredItems[0]?.id ?? null);
+  }, [filteredItems, selectedItemId]);
 
-  if (isLoading && sortedItems.length === 0) {
+  if (isLoading && dashboardSummary.totalTrackedItems === 0) {
     return <PanelMessage label="Loading portfolio..." />;
   }
 
@@ -3211,10 +3224,10 @@ function PortfolioPage({
           </button>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-4">
-          <Metric label="Tracked Items" value={String(sortedItems.length)} />
-          <Metric label="Active" value={String(activeCount)} />
-          <Metric label="Ready" value={String(readyCount)} />
-          <Metric label="Acquired" value={String(acquiredCount)} />
+          <Metric label="Tracked Items" value={String(dashboardSummary.totalTrackedItems)} />
+          <Metric label="Active" value={String(dashboardSummary.activeItems)} />
+          <Metric label="Ready" value={String(dashboardSummary.readyItems)} />
+          <Metric label="Acquired" value={String(dashboardSummary.acquiredItems)} />
         </div>
         {error ? <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</div> : null}
         {comparisonError ? (
@@ -3222,7 +3235,7 @@ function PortfolioPage({
         ) : null}
       </div>
 
-      {sortedItems.length === 0 && !isLoading ? (
+      {dashboardSummary.totalTrackedItems === 0 && !isLoading ? (
         <div className="border border-line bg-white p-5">
           <h3 className="text-lg font-semibold">No tracked portfolio items yet</h3>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
@@ -3231,14 +3244,122 @@ function PortfolioPage({
           {error ? <PanelError message={error} onRetry={onRetry} /> : null}
         </div>
       ) : (
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="space-y-5">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+            <section className="border border-line bg-white p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">Status Distribution</p>
+                  <h3 className="mt-1 text-lg font-semibold">Portfolio at a glance</h3>
+                </div>
+                <p className="text-xs text-ink/55">Updated {formatDateTime(dashboardSummary.generatedAt)}</p>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {dashboardSummary.statusCounts.map((count) => (
+                  <button
+                    key={count.status}
+                    type="button"
+                    onClick={() => setStatusFilter(count.status)}
+                    className={`border px-3 py-3 text-left ${
+                      statusFilter === count.status ? "border-pine bg-field" : "border-line bg-white"
+                    }`}
+                  >
+                    <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-ink/55">
+                      {portfolioStatusLabel(count.status)}
+                    </span>
+                    <span className="mt-1 block text-2xl font-semibold">{count.count}</span>
+                    <span className="mt-1 block text-xs text-ink/60">{count.isActive ? "Active review state" : "Closed state"}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="border border-line bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">Needs Attention</p>
+              <h3 className="mt-1 text-lg font-semibold">{dashboardSummary.needsAttention.length} items to review</h3>
+              {dashboardSummary.needsAttention.length === 0 ? (
+                <p className="mt-3 text-sm leading-6 text-ink/70">No tracked items are currently flagged by the summary rules.</p>
+              ) : (
+                <ul className="mt-3 space-y-3">
+                  {dashboardSummary.needsAttention.slice(0, 4).map((attention) => (
+                    <li key={attention.item.id} className="border border-line bg-field p-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStatusFilter("all");
+                          setSelectedItemId(attention.item.id);
+                        }}
+                        className="text-left text-sm font-semibold"
+                      >
+                        {summaryRecordLabel(attention.item)}
+                      </button>
+                      <p className="mt-1 text-xs text-ink/60">Status {portfolioStatusLabel(attention.item.status)}</p>
+                      <ul className="mt-2 space-y-1">
+                        {attention.reasons.slice(0, 2).map((reason) => (
+                          <li
+                            key={reason.code}
+                            className={`text-xs ${
+                              reason.severity === "warning" ? "text-amber-900" : "text-ink/70"
+                            }`}
+                          >
+                            {reason.message}
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-2">
+            <PortfolioActivityPanel
+              title="Recent Additions"
+              emptyLabel="No recent portfolio additions."
+              activities={dashboardSummary.recentAdditions}
+              onSelect={(portfolioItemId) => {
+                setStatusFilter("all");
+                setSelectedItemId(portfolioItemId);
+              }}
+            />
+            <PortfolioActivityPanel
+              title="Recent Status Changes"
+              emptyLabel="No status changes recorded yet."
+              activities={dashboardSummary.recentStatusChanges}
+              onSelect={(portfolioItemId) => {
+                setStatusFilter("all");
+                setSelectedItemId(portfolioItemId);
+              }}
+            />
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="min-w-0 border border-line bg-white">
-            <div className="border-b border-line px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3">
               <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">
-                Tracked Decisions ({sortedItems.length})
+                Tracked Decisions ({filteredItems.length}/{dashboardSummary.totalTrackedItems})
               </h3>
+              <div className="flex flex-wrap gap-2">
+                <select
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value as PortfolioReviewFilter)}
+                  className="border border-line bg-white px-3 py-2 text-sm"
+                >
+                  <option value="all">All statuses</option>
+                  <option value="active">Active only</option>
+                  {portfolioStatusOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {portfolioStatusLabel(status)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="overflow-x-auto">
+            {filteredItems.length === 0 ? (
+              <PanelMessage label="No portfolio items match the current status filter." />
+            ) : (
+              <div className="overflow-x-auto">
               <table className="min-w-[1080px] w-full border-collapse text-sm">
                 <thead className="bg-field text-left text-xs uppercase tracking-[0.08em] text-ink/60">
                   <tr>
@@ -3255,7 +3376,7 @@ function PortfolioPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedItems.map((item) => {
+                  {filteredItems.map((item) => {
                     const band = scoreBand(item.investmentScore);
                     const comparisonItem =
                       comparisonByPortfolioId.get(item.id) ?? comparisonByScoreId.get(item.scoredRecordId) ?? null;
@@ -3340,6 +3461,7 @@ function PortfolioPage({
                 </tbody>
               </table>
             </div>
+            )}
           </div>
           <PortfolioDetail
             item={selectedItem}
@@ -3351,7 +3473,54 @@ function PortfolioPage({
             onCompare={onCompare}
             onRemoveFromComparison={onRemoveFromComparison}
           />
+          </div>
         </div>
+      )}
+    </section>
+  );
+}
+
+function PortfolioActivityPanel({
+  title,
+  emptyLabel,
+  activities,
+  onSelect,
+}: {
+  title: string;
+  emptyLabel: string;
+  activities: PortfolioSummaryResponse["recentAdditions"];
+  onSelect: (portfolioItemId: string) => void;
+}) {
+  return (
+    <section className="border border-line bg-white p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">Activity</p>
+      <h3 className="mt-1 text-lg font-semibold">{title}</h3>
+      {activities.length === 0 ? (
+        <p className="mt-3 text-sm text-ink/70">{emptyLabel}</p>
+      ) : (
+        <ul className="mt-3 divide-y divide-line border border-line">
+          {activities.map((activity) => (
+            <li key={`${activity.activityType}:${activity.item.id}:${activity.occurredAt}`} className="p-3">
+              <button type="button" onClick={() => onSelect(activity.item.id)} className="text-left text-sm font-semibold">
+                {summaryRecordLabel(activity.item)}
+              </button>
+              <p className="mt-1 text-xs text-ink/60">
+                {activity.message} {formatDateTime(activity.occurredAt)}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                <span className={`border px-2 py-1 font-semibold ${portfolioStatusClassName(activity.item.status)}`}>
+                  {portfolioStatusLabel(activity.item.status)}
+                </span>
+                <span className="border border-line bg-field px-2 py-1 text-ink/70">
+                  Invest {activity.item.investmentScore}
+                </span>
+                <span className="border border-line bg-field px-2 py-1 text-ink/70">
+                  Risk {activity.item.riskScore}
+                </span>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </section>
   );
@@ -4175,6 +4344,10 @@ function shortId(id: string): string {
   return id.length > 8 ? id.slice(-8) : id;
 }
 
+function summaryRecordLabel(record: PortfolioSummaryRecord): string {
+  return record.normalizedFields.parcelId ?? `Row ${record.sourceRowNumber}`;
+}
+
 function upsertWatchlistItem(current: WatchlistState, item: WatchlistItemResponse): WatchlistState {
   const withoutDuplicate = current.items.filter(
     (existing) => existing.id !== item.id && existing.scoredRecordId !== item.scoredRecordId,
@@ -4192,10 +4365,12 @@ function upsertPortfolioItem(current: PortfolioState, item: PortfolioItemRespons
   const withoutDuplicate = current.items.filter(
     (existing) => existing.id !== item.id && existing.scoredRecordId !== item.scoredRecordId,
   );
+  const items = sortPortfolioItemsForReview([item, ...withoutDuplicate]);
 
   return {
     ...current,
-    items: sortPortfolioItemsForReview([item, ...withoutDuplicate]),
+    items,
+    summary: summarizePortfolioForReview(items),
     actionId: null,
     error: null,
   };

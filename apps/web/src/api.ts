@@ -30,6 +30,7 @@ import type {
   PortfolioDetailResponse,
   PortfolioListResponse,
   PortfolioStatus,
+  PortfolioSummaryResponse,
   SaveDatasetManualMappingRequest,
   SaveDatasetManualMappingResponse,
   SaveImportProfileFromDatasetRequest,
@@ -243,6 +244,12 @@ export async function removeWatchlistItem(token: string, watchlistItemId: string
 
 export async function listPortfolio(token: string): Promise<PortfolioListResponse> {
   return requestJson<PortfolioListResponse>("/portfolio", {
+    token,
+  });
+}
+
+export async function getPortfolioSummary(token: string): Promise<PortfolioSummaryResponse> {
+  return requestJson<PortfolioSummaryResponse>("/portfolio/summary", {
     token,
   });
 }

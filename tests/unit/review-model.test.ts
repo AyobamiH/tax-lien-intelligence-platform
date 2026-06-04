@@ -24,6 +24,7 @@ import {
   datasetReadinessPresentation,
   datasetScoringStatusClassName,
   datasetScoringStatusLabel,
+  filterPortfolioItemsForReview,
   filterScoresForReview,
   flagPreview,
   formatMoney,
@@ -49,6 +50,7 @@ import {
   sortPortfolioItemsForReview,
   sortScoresForReview,
   sortWatchlistItemsForReview,
+  summarizePortfolioForReview,
   summarizeScores,
   topReadinessIssues,
 } from "../../apps/web/src/review-model.js";
@@ -429,6 +431,72 @@ describe("review model helpers", () => {
     expect(byWatchlistId.has("watch-reviewing")).toBe(false);
     expect(portfolioStatusLabel("ready")).toBe("Ready");
     expect(portfolioStatusClassName("discarded")).toContain("red");
+  });
+
+  it("summarizes portfolio status distribution, activity, attention, and filters", () => {
+    const tracked = portfolioItem({
+      id: "tracked",
+      scoredRecordId: "score-tracked",
+      status: "tracked",
+      trackedAt: "2026-05-25T01:00:00.000Z",
+      statusUpdatedAt: "2026-05-25T01:00:00.000Z",
+    });
+    const reviewing = portfolioItem({
+      id: "reviewing",
+      scoredRecordId: "score-reviewing",
+      status: "reviewing",
+      flags: ["Missing estimated value"],
+      confidenceScore: 55,
+      trackedAt: "2026-05-25T02:00:00.000Z",
+      statusUpdatedAt: "2026-05-25T04:00:00.000Z",
+    });
+    const ready = portfolioItem({
+      id: "ready",
+      scoredRecordId: "score-ready",
+      status: "ready",
+      trackedAt: "2026-05-25T03:00:00.000Z",
+      statusUpdatedAt: "2026-05-25T03:00:00.000Z",
+    });
+    const closed = portfolioItem({
+      id: "closed",
+      scoredRecordId: "score-closed",
+      status: "closed",
+      trackedAt: "2026-05-25T00:30:00.000Z",
+      statusUpdatedAt: "2026-05-25T05:00:00.000Z",
+    });
+
+    const summary = summarizePortfolioForReview([tracked, reviewing, ready, closed], "2026-05-25T06:00:00.000Z");
+
+    expect(summary).toMatchObject({
+      totalTrackedItems: 4,
+      activeItems: 3,
+      readyItems: 1,
+      acquiredItems: 0,
+      generatedAt: "2026-05-25T06:00:00.000Z",
+    });
+    expect(summary.statusCounts.find((count) => count.status === "closed")).toEqual({
+      status: "closed",
+      count: 1,
+      isActive: false,
+    });
+    expect(summary.recentAdditions.map((activity) => activity.item.id)).toEqual(["ready", "reviewing", "tracked", "closed"]);
+    expect(summary.recentStatusChanges.map((activity) => activity.item.id)).toEqual(["closed", "reviewing"]);
+    expect(summary.needsAttention[0]).toMatchObject({
+      item: { id: "reviewing" },
+      reasons: expect.arrayContaining([
+        expect.objectContaining({ code: "review_status" }),
+        expect.objectContaining({ code: "risk_flags" }),
+        expect.objectContaining({ code: "low_confidence" }),
+      ]),
+    });
+    expect(filterPortfolioItemsForReview([tracked, reviewing, ready, closed], "active").map((item) => item.id)).toEqual([
+      "tracked",
+      "reviewing",
+      "ready",
+    ]);
+    expect(filterPortfolioItemsForReview([tracked, reviewing, ready, closed], "ready").map((item) => item.id)).toEqual([
+      "ready",
+    ]);
   });
 
   it("builds comparison state, labels decisions, and sorts decision records", () => {

@@ -2,6 +2,16 @@
 
 ## 2026-06-01
 
+- Implemented Phase 24 portfolio dashboard with an authenticated
+  `GET /portfolio/summary` endpoint, tenant-scoped status distribution,
+  recent additions/status changes, conservative needs-attention summaries,
+  a focused frontend portfolio dashboard, status filtering, and tests for
+  summary behavior, ownership-safe aggregation, API client calls, and review
+  helpers.
+- Updated portfolio API/architecture documentation and the KB pack to mark the
+  portfolio dashboard as current while keeping accounting, return calculators,
+  BI/report builders, collaboration dashboards, ML/AI insights, and auction
+  execution out of scope.
 - Implemented Phase 23 decision handoff with explicit comparison-to-watchlist
   and comparison-to-portfolio actions, duplicate-safe target creation/reuse,
   server-recorded handoff history with target linkage and rationale snapshots,

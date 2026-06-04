@@ -87,7 +87,13 @@ Current shared types in `packages/types`:
 - `PortfolioListResponse`;
 - `PortfolioDetailResponse`;
 - `UpdatePortfolioItemResponse`;
-- `DeletePortfolioItemResponse`.
+- `DeletePortfolioItemResponse`;
+- `PortfolioStatusCount`;
+- `PortfolioSummaryRecord`;
+- `PortfolioActivitySummary`;
+- `PortfolioAttentionReason`;
+- `PortfolioAttentionSummary`;
+- `PortfolioSummaryResponse`.
 
 Current scoring package:
 
@@ -504,6 +510,21 @@ and `discarded`.
 
 Future portfolio contracts may add notes, tags, alerts, or richer decision
 history, but only with validation, API docs, and tenancy tests.
+
+Current portfolio summary contracts include:
+
+- total tracked, active, ready, and acquired counts;
+- status distribution for each supported portfolio status;
+- recent additions using the tracked timestamp;
+- recent status changes using the status update timestamp;
+- conservative needs-attention entries grounded in status, scoring flags, and
+  confidence;
+- smaller summary records with safe identifiers, normalized display fields,
+  scores, flag counts, and timestamps.
+
+Portfolio summaries are dashboard contracts. They must not become raw source-row
+exports, accounting ledgers, P&L objects, broad analytics payloads, or
+cross-tenant activity feeds.
 
 ## Comparison Object Contract
 

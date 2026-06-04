@@ -32,7 +32,9 @@ tenant-owned reusable import profiles so repeated upload shapes can reuse known
 mapping repairs deterministically. Phase 21 adds a side-by-side comparison
 workspace with lightweight decision notes. Phase 22 adds lightweight decision
 history for comparison decision/note changes. Phase 23 adds explicit decision
-handoff from comparison into watchlist and portfolio.
+handoff from comparison into watchlist and portfolio. Phase 24 adds an
+operational portfolio dashboard with status distribution, recent activity, and
+needs-attention summaries.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -49,7 +51,8 @@ Current evidence:
   flags, and reasoning;
 - the watchlist surface lets signed-in users keep and compare scored records;
 - the portfolio surface lets signed-in users track active decisions with
-  simple status;
+  simple status and review status distribution, recent changes, and
+  needs-attention signals;
 - the comparison surface lets signed-in users compare selected records side by
   side, mark lightweight decisions, save bounded notes, and inspect recent
   decision/note history;
@@ -197,6 +200,7 @@ Current implementation:
 - frontend review of scored results exists;
 - watchlist shortlisting exists;
 - portfolio/status tracking exists;
+- portfolio dashboard summaries exist for operational review;
 - side-by-side comparison with lightweight decision notes and decision history
   exists;
 - explicit comparison-to-watchlist/portfolio handoff exists;

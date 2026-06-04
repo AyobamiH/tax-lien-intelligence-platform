@@ -46,7 +46,9 @@ It shows:
 - portfolio track/untrack actions for scored records;
 - watchlist-to-portfolio promotion actions;
 - dedicated portfolio route using `#/portfolio`;
-- portfolio status tracking surface with flags and reasoning;
+- portfolio dashboard with status distribution, recent additions, recent status
+  changes, conservative needs-attention indicators, status filtering, flags,
+  reasoning, and status controls;
 - compare actions from scored review, watchlist, and portfolio surfaces;
 - dedicated comparison route using `#/comparison`;
 - side-by-side comparison matrix with decision state and lightweight notes;
@@ -89,6 +91,7 @@ The current API surface is minimal:
 - `DELETE /watchlist/:watchlistItemId`
 - `POST /portfolio`
 - `GET /portfolio`
+- `GET /portfolio/summary`
 - `GET /portfolio/:portfolioItemId`
 - `PATCH /portfolio/:portfolioItemId`
 - `DELETE /portfolio/:portfolioItemId`
@@ -144,6 +147,8 @@ Real workflows now present:
 - add/remove watchlist actions;
 - watchlist shortlist comparison.
 - portfolio tracking and status updates.
+- portfolio dashboard review with status distribution, recent activity,
+  needs-attention signals, and filtered tracked decisions.
 - comparison workspace, decision state, and lightweight notes.
 - in-app alert review for scoring completions and failures.
 - import readiness review before relying on score output.
@@ -200,6 +205,11 @@ The current API cannot:
 The review, upload, watchlist, and portfolio surfaces could make future
 contributors think automation workflows also exist. They do not.
 
+The portfolio dashboard could make contributors think financial analytics,
+return tracking, BI reporting, or predictive portfolio insights exist. They do
+not. The current dashboard is an operational summary over existing portfolio
+items only.
+
 The presence of browser auth, score review, and worker-backed scoring could make
 contributors think the whole V1 app is implemented. It is not: batch upload,
 settings, external delivery, and product automation are still future work.
@@ -232,10 +242,10 @@ further when the repo adds:
 - alert or automation workflows.
 
 The watchlist is now user-owned decision data and has its own backend ownership
-checks. Portfolio tracking is also user-owned decision data and has backend
-ownership checks. Comparison items, decision notes, lightweight decision
-history, and decision handoff events are also user-owned decision data and have
-backend ownership checks.
+checks. Portfolio tracking and portfolio summaries are also user-owned decision
+data and have backend ownership checks. Comparison items, decision notes,
+lightweight decision history, and decision handoff events are also user-owned
+decision data and have backend ownership checks.
 Internal jobs are user-owned
 operational metadata and have backend ownership checks. Future changes must
 preserve these boundaries.

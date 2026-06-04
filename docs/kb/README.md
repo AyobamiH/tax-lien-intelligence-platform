@@ -72,7 +72,7 @@ records the current implementation state:
 - browser upload workflow exists for authenticated single CSV imports.
 - frontend scored-results review surface exists.
 - watchlist API and review surface exist.
-- portfolio API and status tracking surface exist.
+- portfolio API, summary endpoint, dashboard, and status tracking surface exist.
 - comparison API, side-by-side workspace, and lightweight decision notes exist.
 - lightweight comparison decision history exists.
 - explicit comparison handoff into watchlist/portfolio exists.
@@ -108,8 +108,9 @@ validation, Helmet, a JSON body limit, ignored local env files, quality gates,
 password hashing, JWT auth, auth middleware, safe auth error handling,
 tenant-owned dataset records, upload size limits, CSV validation, and
 safe import summary metadata. It now also has tenant-owned watchlist items and
-cross-user watchlist tests. It now also has tenant-owned portfolio items and
-cross-user portfolio tests. It now also has tenant-owned comparison items,
+cross-user watchlist tests. It now also has tenant-owned portfolio items,
+tenant-scoped portfolio summary aggregation, and cross-user portfolio tests. It
+now also has tenant-owned comparison items,
 bounded decision notes, lightweight decision history, and cross-user comparison
 tests. It now has explicit comparison handoff actions with tenant-scoped target
 records and history linkage. It now has tenant-owned internal job records for

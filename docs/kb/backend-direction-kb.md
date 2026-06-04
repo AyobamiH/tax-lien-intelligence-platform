@@ -62,10 +62,11 @@ Current implementation:
 - watchlist ownership enforcement against scored records;
 - duplicate-safe watchlist adds;
 - portfolio item model;
-- authenticated portfolio add/list/detail/status/delete routes;
+- authenticated portfolio add/list/summary/detail/status/delete routes;
 - portfolio ownership enforcement against scored records and watchlist items;
 - duplicate-safe portfolio adds;
 - simple portfolio status model;
+- tenant-scoped portfolio summary aggregation;
 - comparison item model;
 - authenticated comparison add/list/update/delete routes;
 - comparison ownership enforcement against scored records, watchlist items, and
@@ -366,6 +367,7 @@ Current portfolio API:
 
 - `POST /portfolio`;
 - `GET /portfolio`;
+- `GET /portfolio/summary`;
 - `GET /portfolio/:portfolioItemId`;
 - `PATCH /portfolio/:portfolioItemId`;
 - `DELETE /portfolio/:portfolioItemId`.
@@ -376,13 +378,25 @@ Portfolio endpoints:
 - verify ownership of the scored record or watchlist item being tracked;
 - prevent cross-user references;
 - support add/list/detail/status/delete;
+- support summary/status distribution/recent activity retrieval;
 - preserve score context, flags, reasoning, and a status timestamp;
 - do not imply financial performance guarantees.
+
+The portfolio summary endpoint:
+
+- aggregates only owned portfolio records;
+- exposes status counts, active/ready/acquired totals, recent additions, recent
+  status changes, and conservative needs-attention reasons;
+- derives attention from current status, score flags, and confidence only;
+- does not expose raw source rows, financial returns, accounting data, or
+  predictive insight.
 
 Current limitation:
 
 - no notes, tags, alerts, collaboration, auction execution, accounting, or
-  realized-return tracking.
+  realized-return tracking;
+- no financial analytics, return calculators, BI/report builders, or
+  spreadsheet export suites.
 
 ## Comparison Implementation
 
@@ -567,7 +581,8 @@ Backend implementation order should stay disciplined:
 19. comparison workspace and decision notes: implemented in Phase 21;
 20. lightweight decision history: implemented in Phase 22;
 21. explicit decision handoff: implemented in Phase 23;
-22. later external automation.
+22. portfolio dashboard and summary API: implemented in Phase 24;
+23. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -579,7 +594,8 @@ Avoid:
 - complex roles before single-user tenancy is secure;
 - admin APIs before audit/security controls;
 - AI workflows before deterministic scoring;
-- portfolio performance tracking before basic portfolio status tracking.
+- portfolio performance tracking, return calculators, or BI reporting before a
+  separate financial analytics phase.
 
 ## Security Expectations
 

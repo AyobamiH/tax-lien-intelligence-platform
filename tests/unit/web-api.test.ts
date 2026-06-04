@@ -4,6 +4,7 @@ import {
   addComparisonItem,
   applyDatasetImportProfile,
   createDataset,
+  getPortfolioSummary,
   handoffComparisonToPortfolio,
   handoffComparisonToWatchlist,
   listComparisonHistory,
@@ -348,6 +349,41 @@ describe("web API client", () => {
     expect(JSON.parse(fetchMock.mock.calls[1]?.[1]?.body as string)).toEqual({ name: "County import" });
     expect(JSON.parse(fetchMock.mock.calls[2]?.[1]?.body as string)).toEqual({ profileId: "profile-1" });
     expect((fetchMock.mock.calls[2]?.[1]?.headers as Headers).get("Authorization")).toBe("Bearer test-token");
+  });
+
+  it("fetches portfolio summaries with bearer auth", async () => {
+    const responsePayload = {
+      totalTrackedItems: 1,
+      activeItems: 1,
+      readyItems: 0,
+      acquiredItems: 0,
+      statusCounts: [
+        { status: "tracked", count: 1, isActive: true },
+        { status: "reviewing", count: 0, isActive: true },
+        { status: "ready", count: 0, isActive: true },
+        { status: "acquired", count: 0, isActive: true },
+        { status: "closed", count: 0, isActive: false },
+        { status: "discarded", count: 0, isActive: false },
+      ],
+      recentAdditions: [],
+      recentStatusChanges: [],
+      needsAttention: [],
+      generatedAt: "2026-06-01T00:00:00.000Z",
+    };
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(responsePayload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+
+    await expect(getPortfolioSummary("test-token")).resolves.toEqual(responsePayload);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("http://localhost:4000/portfolio/summary");
+    expect(init.method).toBe("GET");
+    expect((init.headers as Headers).get("Authorization")).toBe("Bearer test-token");
   });
 
   it("calls comparison endpoints with bearer auth and structured payloads", async () => {
