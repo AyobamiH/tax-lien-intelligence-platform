@@ -14,6 +14,8 @@ import { createDatasetService } from "./datasets/factory.js";
 import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
 import { createInternalJobService } from "./jobs/factory.js";
 import type { InternalJobService } from "./jobs/internal-job-service.js";
+import { createNotificationDeliveryService } from "./notification-delivery/factory.js";
+import type { NotificationDeliveryService } from "./notification-delivery/notification-delivery-service.js";
 import { createNotificationPreferenceService } from "./notification-preferences/factory.js";
 import type { NotificationPreferenceService } from "./notification-preferences/notification-preference-service.js";
 import { createPortfolioService } from "./portfolio/factory.js";
@@ -44,6 +46,7 @@ export interface AppDependencies {
   portfolioService?: PortfolioService;
   alertService?: AlertService;
   notificationPreferenceService?: NotificationPreferenceService;
+  notificationDeliveryService?: NotificationDeliveryService;
   comparisonService?: ComparisonService;
   savedViewService?: SavedViewService;
 }
@@ -54,7 +57,9 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const datasetService = dependencies.datasetService ?? createDatasetService();
   const notificationPreferenceService =
     dependencies.notificationPreferenceService ?? createNotificationPreferenceService();
-  const alertService = dependencies.alertService ?? createAlertService(notificationPreferenceService);
+  const notificationDeliveryService = dependencies.notificationDeliveryService ?? createNotificationDeliveryService();
+  const alertService =
+    dependencies.alertService ?? createAlertService(notificationPreferenceService, notificationDeliveryService);
   const internalJobService = dependencies.internalJobService ?? createInternalJobService(alertService);
   const scoringService = dependencies.scoringService ?? createScoringService(internalJobService);
   const watchlistService = dependencies.watchlistService ?? createWatchlistService();

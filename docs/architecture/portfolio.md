@@ -168,7 +168,7 @@ Do not:
 - turn the summary endpoint into a broad analytics export;
 - create portfolio items from arbitrary client-submitted score data;
 - rely on frontend filtering as authorization;
-- add automation or external alert delivery through portfolio status without
+- add automation or SMS/push alert delivery through portfolio status without
   job, alert, and audit design.
 
 ## Update Rules

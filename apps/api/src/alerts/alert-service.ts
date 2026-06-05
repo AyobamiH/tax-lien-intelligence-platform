@@ -12,6 +12,7 @@ import type {
   MarkAllAlertsReadResponse,
 } from "@tax-lien/types";
 import { ApiError } from "../errors/api-error.js";
+import type { NotificationDeliveryService } from "../notification-delivery/notification-delivery-service.js";
 import type { NotificationPreferenceService } from "../notification-preferences/notification-preference-service.js";
 import type { AlertStore, CreateAlertInput, StoredAlert } from "./alert-store.js";
 
@@ -35,10 +36,16 @@ export interface JobAlertEvent {
 export class AlertService implements JobAlertSink {
   private readonly alertStore: AlertStore;
   private readonly notificationPreferenceService: NotificationPreferenceService | undefined;
+  private readonly notificationDeliveryService: NotificationDeliveryService | undefined;
 
-  public constructor(alertStore: AlertStore, notificationPreferenceService?: NotificationPreferenceService) {
+  public constructor(
+    alertStore: AlertStore,
+    notificationPreferenceService?: NotificationPreferenceService,
+    notificationDeliveryService?: NotificationDeliveryService,
+  ) {
     this.alertStore = alertStore;
     this.notificationPreferenceService = notificationPreferenceService;
+    this.notificationDeliveryService = notificationDeliveryService;
   }
 
   public async createAlert(input: CreateAlertInput): Promise<AlertResponse> {
@@ -99,13 +106,15 @@ export class AlertService implements JobAlertSink {
 
     const result = await this.notificationPreferenceService.prepareAlertForDelivery(input);
     if (result.suppressed) {
+      await this.notificationDeliveryService?.recordSuppressed(input, result.preparation);
       return;
     }
 
-    await this.createAlert({
+    const alert = await this.alertStore.createAlert({
       ...input,
       deliveryPreparation: result.preparation,
     });
+    await this.notificationDeliveryService?.processAlertDelivery(alert, result.preparation);
   }
 
   public async listAlerts(userId: string): Promise<AlertListResponse> {

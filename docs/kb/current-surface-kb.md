@@ -61,7 +61,7 @@ It shows:
 - unread alert count and alert read/read-all actions;
 - dedicated notification preferences route using `#/notifications`;
 - notification controls for supported scoring alert types, enabled state,
-  in-app-only versus delivery-ready handling, and immediate versus digest-ready
+  in-app-only versus email-capable handling, and immediate versus digest-ready
   timing;
 - loading, empty, and error states.
 
@@ -174,13 +174,15 @@ Real workflows now present:
 - focused import repair before rerunning readiness/scoring.
 - deterministic import profile reuse for repeated upload shapes.
 - deterministic saved views for repeated portfolio review filters.
-- notification preferences for controlling in-app-only versus delivery-ready
+- notification preferences for controlling in-app-only versus email-capable
   scoring alerts.
+- env-driven immediate product-alert email for supported alerts when SMTP
+  config is complete.
 
 Real workflows not present:
 
 - settings;
-- email/SMS alert delivery;
+- SMS/push alert delivery;
 - realtime alerts.
 
 ## Current Visual Signals
@@ -214,7 +216,7 @@ The current API cannot:
 
 - provide a standalone parcel/lien row API;
 - persist user-owned parcel records outside scored-record outputs;
-- deliver alerts outside the app;
+- deliver SMS/push alerts or scheduled email digests;
 - provide realtime worker status;
 - show external enrichment/provider verification;
 - perform broad scheduled refresh or sync;
@@ -223,7 +225,8 @@ The current API cannot:
 - provide a full spreadsheet transformation workflow;
 - manage collaboration or auction execution.
 - run arbitrary saved-view query expressions or BI/report-builder workflows.
-- send email/SMS alerts or realtime push notifications.
+- send SMS/push alerts or realtime notifications.
+- send digest emails on a schedule.
 
 ## Where The Current Surface Could Mislead Contributors
 
@@ -239,13 +242,15 @@ Saved views could make contributors think reporting or shared workspaces exist.
 They do not. Current saved views are private operational filters and built-in
 queues over existing portfolio/comparison data only.
 
-Notification preferences could make contributors think external delivery exists.
-It does not. Current notification preferences control in-app alert generation
-and provider-agnostic delivery readiness only.
+Notification preferences could make contributors think every delivery channel
+exists. They do not. Current notification preferences control in-app alert
+generation, immediate email eligibility when SMTP config is complete, and
+digest-ready outbox records only.
 
 The presence of browser auth, score review, and worker-backed scoring could make
 contributors think the whole V1 app is implemented. It is not: batch upload,
-settings, external delivery, and product automation are still future work.
+settings, SMS/push delivery, user-facing digest send workers, and product
+automation are still future work.
 
 The presence of a dataset model could make contributors think full parcel
 ingestion exists. It does not.

@@ -4,6 +4,8 @@ import type { RuntimeEnvironment } from "@tax-lien/types";
 
 loadDotenv();
 
+const emptyStringToUndefined = (value: unknown): unknown => (value === "" ? undefined : value);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   API_PORT: z.coerce.number().int().positive().default(4000),
@@ -23,6 +25,20 @@ const envSchema = z.object({
   CENSUS_GEOCODER_TIMEOUT_MS: z.coerce.number().int().positive().max(10000).default(3000),
   CENSUS_GEOCODER_MAX_ROWS_PER_JOB: z.coerce.number().int().min(0).max(500).default(25),
   ENRICHMENT_FRESHNESS_WINDOW_DAYS: z.coerce.number().int().positive().max(365).default(30),
+  EMAIL_DELIVERY_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
+  EMAIL_FROM_ADDRESS: z.preprocess(emptyStringToUndefined, z.string().email().optional()),
+  EMAIL_FROM_NAME: z.preprocess(
+    emptyStringToUndefined,
+    z.string().trim().min(1).max(120).optional(),
+  ).default("Tax Lien Intelligence Platform"),
+  EMAIL_REPLY_TO: z.preprocess(emptyStringToUndefined, z.string().email().optional()),
+  EMAIL_APP_BASE_URL: z.preprocess(emptyStringToUndefined, z.string().url().optional()),
+  SMTP_HOST: z.preprocess(emptyStringToUndefined, z.string().trim().min(1).optional()),
+  SMTP_PORT: z.coerce.number().int().positive().max(65535).default(465),
+  SMTP_USERNAME: z.preprocess(emptyStringToUndefined, z.string().trim().min(1).optional()),
+  SMTP_PASSWORD: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
+  SMTP_SECURE: z.enum(["true", "false"]).default("true").transform((value) => value === "true"),
+  SMTP_CONNECTION_TIMEOUT_MS: z.coerce.number().int().positive().max(60000).default(10000),
 });
 
 const developmentJwtSecret = "development-only-change-before-production";
@@ -36,6 +52,9 @@ if (parsedEnv.NODE_ENV === "production" && !parsedEnv.JWT_SECRET) {
 if (parsedEnv.CENSUS_GEOCODER_ENABLED && !parsedEnv.CENSUS_GEOCODER_BASE_URL.startsWith("https://")) {
   throw new Error("CENSUS_GEOCODER_BASE_URL must use https when Census geocoding is enabled.");
 }
+
+const emailDeliveryEnabled =
+  parsedEnv.EMAIL_DELIVERY_ENABLED && Boolean(parsedEnv.EMAIL_FROM_ADDRESS && parsedEnv.SMTP_HOST);
 
 export interface ApiConfig {
   nodeEnv: RuntimeEnvironment;
@@ -61,6 +80,22 @@ export interface ApiConfig {
       benchmark: string;
       timeoutMs: number;
       maxRowsPerJob: number;
+    };
+  };
+  email: {
+    enabled: boolean;
+    provider: "smtp";
+    fromAddress?: string;
+    fromName: string;
+    replyTo?: string;
+    appBaseUrl?: string;
+    smtp: {
+      host?: string;
+      port: number;
+      username?: string;
+      password?: string;
+      secure: boolean;
+      connectionTimeoutMs: number;
     };
   };
 }
@@ -89,6 +124,22 @@ export const apiConfig: ApiConfig = {
       benchmark: parsedEnv.CENSUS_GEOCODER_BENCHMARK,
       timeoutMs: parsedEnv.CENSUS_GEOCODER_TIMEOUT_MS,
       maxRowsPerJob: parsedEnv.CENSUS_GEOCODER_MAX_ROWS_PER_JOB,
+    },
+  },
+  email: {
+    enabled: emailDeliveryEnabled,
+    provider: "smtp",
+    ...(parsedEnv.EMAIL_FROM_ADDRESS ? { fromAddress: parsedEnv.EMAIL_FROM_ADDRESS } : {}),
+    fromName: parsedEnv.EMAIL_FROM_NAME,
+    ...(parsedEnv.EMAIL_REPLY_TO ? { replyTo: parsedEnv.EMAIL_REPLY_TO } : {}),
+    ...(parsedEnv.EMAIL_APP_BASE_URL ? { appBaseUrl: parsedEnv.EMAIL_APP_BASE_URL } : {}),
+    smtp: {
+      ...(parsedEnv.SMTP_HOST ? { host: parsedEnv.SMTP_HOST } : {}),
+      port: parsedEnv.SMTP_PORT,
+      ...(parsedEnv.SMTP_USERNAME ? { username: parsedEnv.SMTP_USERNAME } : {}),
+      ...(parsedEnv.SMTP_PASSWORD ? { password: parsedEnv.SMTP_PASSWORD } : {}),
+      secure: parsedEnv.SMTP_SECURE,
+      connectionTimeoutMs: parsedEnv.SMTP_CONNECTION_TIMEOUT_MS,
     },
   },
 };

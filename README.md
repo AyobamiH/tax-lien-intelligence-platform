@@ -9,15 +9,15 @@ This repository contains the baseline monorepo plus authenticated dataset
 upload, first-pass explainable scoring, scored-results review, watchlist,
 portfolio/status tracking, comparison, decision history, decision handoff,
 saved operational views, internal jobs, alerts, worker/scheduler groundwork,
-enrichment, import repair, reusable import profiles, and the Phase 25 saved
-views workflow plus Phase 26 notification preferences:
+enrichment, import repair, reusable import profiles, saved views, notification
+preferences, and the Phase 27 email delivery foundation:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind review workspace
 - `apps/api`: Express, TypeScript, auth, dataset, scoring, internal jobs,
-  alerts, watchlist, portfolio, and comparison APIs
+  alerts, notification delivery, watchlist, portfolio, and comparison APIs
 - `packages/db`: MongoDB connection plus user, dataset, scored-record,
   internal-job, alert, watchlist, portfolio, comparison, decision-history, and
-  import-profile/saved-view/notification-preference models
+  import-profile/saved-view/notification-preference/notification-delivery models
 - `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
@@ -66,6 +66,11 @@ Implemented API surfaces:
 - `GET /saved-views/:savedViewId/apply`
 - `PATCH /saved-views/:savedViewId`
 - `DELETE /saved-views/:savedViewId`
+
+Email delivery is provider-configured and disabled by default. When SMTP and
+sender env config are present, supported delivery-eligible product alerts can
+send immediate email; otherwise the API records provider-disabled outbox state.
+SMS, push, and marketing messaging are future work.
 
 ## Local Development
 

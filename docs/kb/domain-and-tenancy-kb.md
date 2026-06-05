@@ -177,8 +177,10 @@ workflow event happened or needs attention.
 
 Current status: implemented for in-app scoring job completion and failure
 events. Alerts include safe messages, severity, read/unread state, related
-dataset/job metadata, and timestamps. They do not deliver email/SMS and must not
-store raw job payloads, stack traces, or uploaded source rows.
+dataset/job metadata, and timestamps. Supported product alerts can create
+tenant-owned email outbox records and send immediate email when preferences and
+SMTP config allow it. Alerts do not deliver SMS/push and must not store raw job
+payloads, stack traces, or uploaded source rows.
 
 ## Multi-Tenant Rule
 

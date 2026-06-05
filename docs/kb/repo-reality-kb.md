@@ -167,10 +167,16 @@ Implemented today:
   queues;
 - frontend portfolio saved-view save/apply/default flow;
 - tenant-owned notification preference model in `packages/db`;
+- tenant-owned notification delivery outbox model in `packages/db`;
 - authenticated notification preference endpoints at
   `GET /notification-preferences` and `PATCH /notification-preferences`;
 - provider-agnostic delivery preparation on job-generated alerts;
 - preference-driven suppression/classification for current scoring alert types;
+- SMTP-backed email delivery boundary for supported immediate product alerts
+  when env config is complete;
+- provider-disabled, failed, sent, in-app-only, suppressed, and digest-ready
+  delivery outbox tracking;
+- duplicate-send avoidance for email delivery source keys;
 - frontend notification preferences route;
 - tenant-owned comparison item model in `packages/db`;
 - tenant-owned decision history model in `packages/db`;
@@ -240,7 +246,7 @@ Not implemented:
 - broad import profile sharing or marketplace behavior.
 - live county sync or scraping.
 - production deployment config.
-- email/SMS alert delivery;
+- SMS/push alert delivery;
 - realtime alert delivery;
 - external schedulers, worker fleets, or third-party queues.
 - broad cron-based refresh or external sync automation.
@@ -322,6 +328,9 @@ Current tests cover:
 - notification preference default retrieval/update behavior;
 - invalid notification preference payload rejection;
 - preference-driven alert suppression and delivery classification.
+- email delivery success, disabled config, provider failure, duplicate-send
+  avoidance, digest-ready grouping, owner-safe recipient resolution, and email
+  content generation.
 - comparison add/list/update/delete behavior;
 - duplicate comparison handling;
 - cross-user comparison source/update/delete/history/handoff rejection.
@@ -382,14 +391,18 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
   portfolio/comparison records.
 - tenant-owned notification preferences are implemented and affect only the
   authenticated user's generated scoring alerts.
+- tenant-owned notification delivery records are implemented and scoped to the
+  alert owner.
 - tenant-owned comparison item records are implemented.
 - tenant-owned parcel records are not yet implemented.
 
 Security cannot be considered complete until rate limits, production CORS
 decisions, browser session hardening, and additional cross-user resource tests
 for later resource types exist. The current worker layer is a local background
-execution boundary, not hardened external automation, distributed queueing, or
-delivery infrastructure. The current alert layer is in-app visibility only.
+execution boundary, not hardened external automation or distributed queueing.
+The current alert layer has in-app visibility plus an env-driven email delivery
+foundation for product alerts only. SMS, push, marketing messaging, and
+user-facing digest send workers are not implemented.
 
 ## Drift Risks
 
@@ -404,7 +417,8 @@ Repo drift risks:
 - duplicating scoring logic outside `packages/scoring`;
 - describing first-pass scoring as final underwriting.
 - describing worker plumbing as full automation.
-- describing in-app alerts as external notification delivery.
+- describing email delivery as SMS, push, marketing messaging, or realtime
+  notification delivery.
 - describing portfolio summaries as accounting, return analytics, BI reporting,
   or predictive financial insight.
 - describing import readiness as manual field mapping, broad county support, or

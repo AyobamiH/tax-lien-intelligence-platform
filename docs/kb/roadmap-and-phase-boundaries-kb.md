@@ -824,7 +824,8 @@ Phase 26 includes:
 
 Phase 26 does not include:
 
-- broad email/SMS provider rollout;
+- email provider sending;
+- SMS/push provider rollout;
 - marketing messaging;
 - realtime websocket push;
 - shared/team notification policies;
@@ -835,10 +836,46 @@ Phase 26 does not include:
 
 Future expansion may include:
 
-- provider delivery only after unsubscribe, retry, rate-limit, and audit rules
-  are designed;
+- email delivery after provider config, outbox tracking, duplicate avoidance,
+  and product-alert content safety are designed;
 - richer alert event sources after backend contracts exist;
 - digest processing after delivery workers and grouping policy exist.
+
+## Phase 27: Email Delivery And Digest Workflow Foundation
+
+Current status: implemented.
+
+Phase 27 includes:
+
+- tenant-owned notification delivery outbox model;
+- provider-agnostic email transport boundary;
+- env-driven SMTP transport implementation;
+- disabled-by-default email config handling;
+- immediate email path for preference-enabled supported product alerts;
+- provider-disabled and provider-failure outbox states;
+- duplicate-send avoidance for user/source/channel keys;
+- digest-ready outbox grouping for supported digest cadence alerts;
+- frontend notification preference copy for email-capable categories;
+- tests for preference-enabled delivery, suppression, immediate success,
+  disabled config, provider failure, duplicate-send avoidance, digest grouping,
+  owner-safe recipient resolution, and email content generation.
+
+Phase 27 does not include:
+
+- SMS delivery;
+- push notifications;
+- marketing messaging;
+- user-facing digest send scheduler;
+- team/shared notification policies;
+- collaboration workflows;
+- auction execution.
+
+Future expansion may include:
+
+- scheduled digest email sends after grouping windows, retry, rate-limit, and
+  audit rules exist;
+- SMS/push only after separate opt-in, provider, and unsubscribe design;
+- richer alert event sources after backend contracts exist.
 
 ## Later Phases
 
@@ -851,7 +888,8 @@ Later phases may include:
 - additional county import adapters after deterministic mapping tests;
 - richer enrichment adapters;
 - external enrichment provider hardening;
-- external alert delivery;
+- SMS/push alert delivery;
+- scheduled digest email delivery;
 - scheduled ingestion;
 - external worker deployment hardening;
 - team workflows;
@@ -888,7 +926,8 @@ Dependency order matters:
 22. portfolio dashboard and operational summaries;
 23. saved views and attention queues;
 24. notification preferences and delivery foundation;
-25. broader automation.
+25. email delivery and digest-ready outbox foundation;
+26. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

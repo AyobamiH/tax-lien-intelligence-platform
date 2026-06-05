@@ -102,8 +102,15 @@ Current repo protections:
 - notification preference validation for known alert types and delivery modes;
 - preference-driven alert suppression and provider-agnostic delivery
   preparation without raw payload dumping;
+- tenant-owned notification delivery outbox persistence;
+- env-driven SMTP email config that remains disabled when required config is
+  missing;
+- owner-derived email recipient resolution for supported product alerts;
+- duplicate-send avoidance for email delivery source keys;
 - notification preference tests for defaults, invalid payloads, and delivery
   classification;
+- notification delivery tests for suppression, disabled config, provider
+  failure, duplicate avoidance, owner-safe recipients, and email content;
 - worker-side queued job claiming for supported job types;
 - worker-driven dataset scoring execution;
 - request-kind metadata for scoring vs refresh jobs;
@@ -143,7 +150,8 @@ Not yet implemented:
 - final browser session architecture beyond the current session-scoped JWT;
 - deployed worker authorization and credential isolation model;
 - rate limits for repeated refresh requests;
-- external alert delivery security;
+- SMS/push alert delivery security;
+- scheduled digest delivery hardening;
 - secret rotation guidance.
 
 ### Intentionally Deferred
@@ -157,7 +165,8 @@ Deferred because the corresponding systems do not exist yet:
 - external enrichment provider security;
 - admin security;
 - richer scoring audit trail;
-- external alert delivery;
+- SMS/push alert delivery;
+- scheduled digest email delivery;
 - automation monitoring.
 
 ### Where The Baseline Is Acceptable
@@ -595,13 +604,17 @@ credential isolation, and safe logs.
 
 ### Alerts And Notifications
 
-Current alerts are in-app records only. They are tenant-owned, authenticated,
-and limited to safe scoring job summaries.
+Current alerts are tenant-owned, authenticated, and limited to safe scoring job
+summaries. Phase 27 adds email delivery/outbox handling for supported product
+alerts only.
 
 Alerts must not reveal tenant data through raw metadata, email previews, logs,
-or incorrect recipient routing. Future delivery channels require recipient
-validation, template review, provider secret handling, and opt-out/settings
-controls before launch.
+or incorrect recipient routing. Current email delivery resolves recipients from
+the alert owner's user record, uses bounded product-alert content, stores safe
+outbox state, and keeps SMTP config in env. Future SMS/push channels and
+scheduled digest sends require separate recipient validation, template review,
+provider secret handling, retry/rate-limit rules, and opt-out/settings controls
+before launch.
 
 ### Admin/Internal Tooling
 

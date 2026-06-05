@@ -64,7 +64,8 @@ Implemented:
 
 Not implemented:
 
-- email/SMS alert delivery;
+- SMS/push alert delivery;
+- scheduled digest email delivery;
 - automation;
 - ML/AI features;
 - final design polish or advanced filtering.
@@ -279,8 +280,9 @@ The alerts surface is informational rather than noisy. It shows:
 - read/read-all actions;
 - dataset navigation when the alert references a dataset.
 
-It is not email delivery, realtime notifications, an admin logs console, or a
-generic event feed.
+It is not a realtime notification center, an admin logs console, or a generic
+event feed. Email delivery is handled server-side through the notification
+delivery foundation when preferences and SMTP config allow it.
 
 ## Security Notes
 

@@ -50,7 +50,7 @@ Not implemented:
 - retries;
 - unlimited autonomous refresh;
 - provider-sprawl refresh policies;
-- external alert delivery;
+- SMS/push alert delivery;
 - additional worker job types for enrichment-only passes;
 - ML/AI;
 - auction execution.

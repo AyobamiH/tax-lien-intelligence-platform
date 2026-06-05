@@ -5,6 +5,9 @@ import { AlertService } from "../../apps/api/src/alerts/alert-service.js";
 import { AuthService } from "../../apps/api/src/auth/auth-service.js";
 import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
 import { createApp } from "../../apps/api/src/app.js";
+import type { ApiConfig } from "../../apps/api/src/config/env.js";
+import type { EmailMessage, EmailTransport } from "../../apps/api/src/notification-delivery/email-transport.js";
+import { NotificationDeliveryService } from "../../apps/api/src/notification-delivery/notification-delivery-service.js";
 import { NotificationPreferenceService } from "../../apps/api/src/notification-preferences/notification-preference-service.js";
 import type {
   NotificationPreferenceStore,
@@ -13,6 +16,7 @@ import type {
 } from "../../apps/api/src/notification-preferences/notification-preference-store.js";
 import type { NotificationPreferenceRule } from "@tax-lien/types";
 import { InMemoryAlertStore } from "../support/in-memory-alert-store.js";
+import { InMemoryNotificationDeliveryStore } from "../support/in-memory-notification-delivery-store.js";
 
 const testJwtSecret = "test-notification-preferences-secret-long-enough";
 
@@ -66,11 +70,32 @@ class InMemoryNotificationPreferenceStore implements NotificationPreferenceStore
   }
 }
 
+class FakeEmailTransport implements EmailTransport {
+  public readonly providerId = "fake-smtp";
+  public readonly messages: EmailMessage[] = [];
+
+  public async send(message: EmailMessage): Promise<{ providerMessageId?: string }> {
+    this.messages.push(message);
+    return { providerMessageId: `fake-message-${this.messages.length}` };
+  }
+}
+
 function createTestContext() {
   const userStore = new InMemoryUserStore();
   const notificationPreferenceService = new NotificationPreferenceService(new InMemoryNotificationPreferenceStore());
+  const notificationDeliveryStore = new InMemoryNotificationDeliveryStore();
+  const emailTransport = new FakeEmailTransport();
+  const notificationDeliveryService = new NotificationDeliveryService(
+    notificationDeliveryStore,
+    emailTransport,
+    async (userId) => {
+      const user = await userStore.findById(userId);
+      return user?.email ?? null;
+    },
+    enabledEmailConfig(),
+  );
   const alertStore = new InMemoryAlertStore();
-  const alertService = new AlertService(alertStore, notificationPreferenceService);
+  const alertService = new AlertService(alertStore, notificationPreferenceService, notificationDeliveryService);
   const authService = new AuthService(userStore, {
     jwtSecret: testJwtSecret,
     jwtExpiresIn: "1h",
@@ -78,8 +103,10 @@ function createTestContext() {
   });
 
   return {
-    app: createApp({ authService, alertService, notificationPreferenceService }),
+    app: createApp({ authService, alertService, notificationPreferenceService, notificationDeliveryService }),
     alertService,
+    notificationDeliveryStore,
+    emailTransport,
   };
 }
 
@@ -171,7 +198,7 @@ describe("notification preferences API", () => {
   });
 
   it("applies preferences when classifying job alerts for delivery", async () => {
-    const { app, alertService } = createTestContext();
+    const { app, alertService, notificationDeliveryStore, emailTransport } = createTestContext();
     const owner = await registerUser(app, "owner@example.com");
 
     await request(app)
@@ -218,5 +245,37 @@ describe("notification preferences API", () => {
         },
       },
     });
+
+    expect(notificationDeliveryStore.listAll()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceKey: expect.stringContaining("scoring_job_completed"),
+          status: "suppressed",
+          attempts: 0,
+        }),
+        expect.objectContaining({
+          alertId: response.body.alerts[0].id,
+          status: "sent",
+          recipientEmail: "owner@example.com",
+          attempts: 1,
+        }),
+      ]),
+    );
+    expect(emailTransport.messages).toHaveLength(1);
   });
 });
+
+function enabledEmailConfig(): ApiConfig["email"] {
+  return {
+    enabled: true,
+    provider: "smtp",
+    fromAddress: "alerts@example.com",
+    fromName: "Tax Lien Intelligence Platform",
+    smtp: {
+      host: "smtp.example.com",
+      port: 465,
+      secure: true,
+      connectionTimeoutMs: 1000,
+    },
+  };
+}

@@ -80,6 +80,10 @@ Current shared types in `packages/types`:
 - `NotificationPreferencesDetailResponse`;
 - `UpdateNotificationPreferencesRequest`;
 - `NotificationDeliveryPreparation`.
+- `NotificationDeliveryChannel`;
+- `NotificationDeliveryStatus`;
+- `NotificationDeliveryFailureCode`;
+- `NotificationDeliveryOutcome`.
 - `AddWatchlistItemRequest`;
 - `WatchlistItemResponse`;
 - `AddWatchlistItemResponse`;
@@ -471,8 +475,9 @@ Current alert metadata is limited to safe identifiers and summary values:
 - request kind.
 
 Alert contracts must not expose raw job payloads, stack traces, source rows,
-tokens, secrets, provider responses, or another tenant's data. Provider-backed
-external delivery contracts are not implemented.
+tokens, secrets, provider responses, or another tenant's data. Email delivery
+outcomes are tracked server-side through the notification delivery outbox; SMS,
+push, and realtime delivery contracts are not implemented.
 
 ## Notification Preference Contract
 
@@ -485,11 +490,12 @@ Current notification preference contracts include:
 - cadence: `immediate` or `digest`;
 - category metadata for frontend display;
 - provider-agnostic delivery preparation for generated alerts.
+- email delivery status/failure enums for server-side outbox tracking.
 
 Notification preferences cover only current scoring alert types. They must not
 become a broad messaging rules engine, marketing preference center, shared/team
-policy model, provider configuration payload, or realtime push contract without
-a separate product and security phase.
+policy model, provider configuration payload, SMS/push contract, or realtime
+push contract without a separate product and security phase.
 
 ## Watchlist Object Contract
 

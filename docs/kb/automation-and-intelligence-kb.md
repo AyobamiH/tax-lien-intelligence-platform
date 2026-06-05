@@ -28,6 +28,9 @@ Current implementation:
 - in-app alert records exist for scoring job completion/failure;
 - notification preferences and provider-agnostic delivery classification exist
   for current scoring alert types;
+- an env-driven SMTP email delivery foundation exists for supported immediate
+  product alerts, with disabled-provider and failure outbox tracking;
+- digest-ready outbox grouping exists, but no scheduled digest sender exists;
 - first internal enrichment adapter exists for uploaded source-row inference;
 - controlled user-triggered dataset refresh/reprocessing exists through the
   worker job boundary;
@@ -43,7 +46,7 @@ Current implementation:
 - focused manual mapping repair exists for critical source-column mapping;
 - reusable import profiles exist for deterministic tenant-owned mapping reuse;
 - no portfolio automation, automated comparison recommendations, broad external
-  monitoring, or provider-backed notification delivery.
+  monitoring, SMS/push delivery, or scheduled digest delivery.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
 scoring foundation, manual review surface, watchlist shortlist, portfolio
@@ -58,8 +61,9 @@ automated ingestion. Phase 18 adds readiness visibility for uploaded data, but
 it is still manual-first guidance, not automated field mapping. Phase 19 adds
 human-controlled repair mapping. Phase 20 adds deterministic reuse of saved
 mapping profiles, but it is still not broad automated import tooling. Phase 26
-adds notification preference control and delivery-ready classification, but it
-does not send external messages or introduce a provider platform.
+adds notification preference control and delivery-ready classification. Phase 27
+adds the first email delivery foundation for product alerts, but it does not
+introduce SMS, push, marketing messaging, or a broad provider platform.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -114,7 +118,8 @@ Manual-first sequence:
 17. focused manual mapping repair;
 18. reusable import profiles;
 19. notification preference control;
-20. then broader automation.
+20. email delivery foundation for supported product alerts;
+21. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -199,7 +204,8 @@ Future monitoring could alert users about:
 - stale data.
 
 Alerts must be user-scoped and avoid leaking tenant data. Current alerts are
-in-app only; external delivery is later work.
+in-app records with a bounded email delivery foundation for supported product
+alerts. SMS, push, marketing messaging, and realtime delivery are later work.
 
 ## Watchlist Assistance
 
@@ -268,15 +274,16 @@ Later:
 - user-facing refresh policy controls;
 - broader automatic recurring refresh;
 - additional external enrichment providers;
-- external alert delivery;
+- SMS/push alert delivery;
+- scheduled digest email delivery;
 - external worker orchestration;
 - portfolio automation;
 - AI or ML assistance.
 
 Internal jobs, the worker, and scheduled maintenance scans are not full
 automation by themselves. They are the execution boundary and policy layer that
-later automation can use safely. In-app alerts are visibility records, not
-delivery automation.
+later automation can use safely. In-app alerts and the email outbox are
+product-alert visibility/delivery records, not broad automation.
 
 ## Security Expectations
 

@@ -467,6 +467,16 @@ export interface MarkAllAlertsReadResponse {
 export type NotificationDeliveryMode = "in_app_only" | "delivery_eligible";
 export type NotificationCadence = "immediate" | "digest";
 export type NotificationDeliveryState = "suppressed" | "in_app_only" | "delivery_immediate" | "delivery_digest";
+export type NotificationDeliveryChannel = "email";
+export type NotificationDeliveryStatus =
+  | "suppressed"
+  | "in_app_only"
+  | "digest_ready"
+  | "pending"
+  | "sent"
+  | "failed"
+  | "provider_disabled";
+export type NotificationDeliveryFailureCode = "provider_disabled" | "recipient_missing" | "provider_error";
 
 export interface NotificationPreferenceRule {
   alertType: AlertType;
@@ -519,6 +529,19 @@ export interface NotificationDeliveryPreparation {
     relatedEntityId?: string;
     metadata: Pick<AlertMetadata, "jobId" | "datasetId" | "scoredRecordCount" | "errorCode" | "requestKind">;
   };
+}
+
+export interface NotificationDeliveryOutcome {
+  channel: NotificationDeliveryChannel;
+  status: NotificationDeliveryStatus;
+  deliveryMode: NotificationDeliveryMode;
+  cadence: NotificationCadence;
+  attempts: number;
+  provider?: string;
+  providerMessageId?: string;
+  failureCode?: NotificationDeliveryFailureCode;
+  failureReason?: string;
+  updatedAt: string;
 }
 
 export interface AddWatchlistItemRequest {

@@ -302,4 +302,4 @@ distinguishable `policy_refresh` jobs. It is not unlimited autonomous refresh.
 Phase 20 adds deterministic reusable import profiles whose applied mappings use
 the same overlay boundary before scoring. Future phases may add stronger county
 adapters, additional providers, deduplication, historical redemption signals,
-external alert delivery, and broader automation.
+SMS/push alert delivery, and broader automation.

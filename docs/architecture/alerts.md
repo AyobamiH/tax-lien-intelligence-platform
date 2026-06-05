@@ -2,8 +2,9 @@
 
 Phase 9 adds the first user-visible monitoring layer on top of internal jobs.
 Phase 10 preserves those alerts while moving scoring execution into the worker
-path. Alerts still do not add email delivery, SMS, realtime websockets,
-external schedulers, external delivery workers, or alert automation.
+path. Phase 27 adds preference-aware email delivery/outbox handling for
+supported product alerts. Alerts still do not add SMS, push notifications,
+realtime websockets, external schedulers, or alert automation.
 
 ## Purpose
 
@@ -29,6 +30,10 @@ Implemented:
 - `PATCH /alerts/:alertId/read`;
 - `PATCH /alerts/read-all`;
 - alert creation from `dataset_scoring` job completion and failure;
+- notification preference classification for supported scoring alerts;
+- email outbox tracking for suppressed, in-app-only, digest-ready,
+  provider-disabled, failed, and sent delivery outcomes;
+- immediate email delivery when preferences and SMTP env config allow it;
 - frontend alerts route using `#/alerts`;
 - alert indicator in the app header and side navigation;
 - unread/read state;
@@ -37,10 +42,10 @@ Implemented:
 
 Not implemented:
 
-- email/SMS delivery;
+- SMS delivery;
 - push notifications;
 - realtime websocket subscriptions;
-- external delivery workers;
+- user-facing digest send workers;
 - scheduled alert generation;
 - admin observability dashboard;
 - alert rules engine.
@@ -113,6 +118,11 @@ Future delivery channels need additional controls:
 - delivery provider secret handling;
 - bounce/error handling without leaking tenant data.
 
+Phase 27 implements the first version of those controls for email only: the
+recipient is resolved from the alert owner's user record, email content uses
+bounded product-alert summaries, SMTP config is env-driven and disabled by
+default, and duplicate sends are blocked through the delivery outbox source key.
+
 ## Frontend Surface
 
 The current frontend alerts surface is deliberately small:
@@ -132,7 +142,8 @@ Do not:
 
 - use alerts as raw logs;
 - store stack traces or source row data in alert metadata;
-- add external delivery without a security review;
+- add SMS, push, or new external delivery providers without a security review;
+- send marketing messages through product-alert infrastructure;
 - add alert rules that bypass tenant ownership;
 - imply realtime monitoring exists before it is implemented.
 

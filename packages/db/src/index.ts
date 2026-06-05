@@ -94,6 +94,14 @@ export {
   type NotificationPreferenceRuleRecord,
 } from "./models/notification-preference.js";
 export {
+  NotificationDeliveryModel,
+  type NotificationDeliveryChannelRecord,
+  type NotificationDeliveryDocument,
+  type NotificationDeliveryFailureCodeRecord,
+  type NotificationDeliveryRecord,
+  type NotificationDeliveryStatusRecord,
+} from "./models/notification-delivery.js";
+export {
   ScoredRecordModel,
   type EnrichmentAdapterOutcomeRecord,
   type EnrichmentAdapterOutcomeStatusRecord,

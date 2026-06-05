@@ -37,7 +37,9 @@ operational portfolio dashboard with status distribution, recent activity, and
 needs-attention summaries. Phase 25 adds tenant-owned saved views and practical
 attention queues for returning to reusable operational work slices. Phase 26
 adds tenant-owned notification preferences and delivery-ready classification
-for current scoring alerts.
+for current scoring alerts. Phase 27 adds the first email delivery foundation
+for supported product alerts with env-driven SMTP config, outbox tracking, and
+digest-ready grouping.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -71,8 +73,8 @@ Current evidence:
   Maricopa-style CSV shape without claiming broad county coverage;
 - internal enrichment improves uploaded-row interpretation without claiming
   external verification;
-- in-app alerts make scoring job outcomes visible without adding delivery
-  automation;
+- in-app alerts make scoring job outcomes visible, and supported product alerts
+  can send immediate email when preferences and SMTP config allow it;
 - architecture docs say every future user-owned document must include `userId`.
 
 ## What This SaaS Is
@@ -112,9 +114,9 @@ Maricopa-style county import adapter exists. Browser CSV upload and import
 readiness guidance now exist. Focused manual field mapping repair now exists.
 Reusable import profiles and the comparison workspace now exist. Broad county
 coverage, live county sync, full spreadsheet editing, collaboration, rich
-decision history, ML mapping suggestions, external alert delivery, user-facing
-scheduler policy controls, broader automatic refresh, and richer automation
-remain future direction.
+decision history, ML mapping suggestions, SMS/push alert delivery, user-facing
+scheduler policy controls, broader automatic refresh, scheduled digest sends,
+and richer automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -207,6 +209,8 @@ Current implementation:
 - saved views exist for private reusable portfolio/comparison filters and
   built-in attention queues;
 - notification preferences exist for current scoring alert types;
+- env-driven immediate email delivery exists for supported product alerts when
+  SMTP config is complete;
 - side-by-side comparison with lightweight decision notes and decision history
   exists;
 - explicit comparison-to-watchlist/portfolio handoff exists;
@@ -305,7 +309,8 @@ Long-term direction may include:
 - geographic demand signals;
 - watchlist monitoring;
 - portfolio analytics;
-- external alert delivery;
+- SMS/push alert delivery;
+- scheduled digest email delivery;
 - automation for recurring county files;
 - team workflows;
 - audit trails.

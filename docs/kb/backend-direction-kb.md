@@ -52,9 +52,15 @@ Current implementation:
 - authenticated alert list/read/read-all routes;
 - scoring job completion/failure alert creation;
 - notification preference model;
+- notification delivery outbox model;
 - authenticated notification preference get/update routes;
 - preference-driven job-alert suppression and delivery classification;
 - provider-agnostic delivery-preparation metadata for supported alerts;
+- env-driven SMTP email transport boundary;
+- preference-aware immediate email delivery for supported product alerts when
+  SMTP config is complete;
+- provider-disabled, failed, sent, suppressed, in-app-only, and digest-ready
+  delivery outbox tracking;
 - scheduled maintenance service for stale scored-record scans;
 - `dataset_maintenance` job type for policy-driven maintenance decisions;
 - policy-created `dataset_scoring` refresh jobs with
@@ -496,7 +502,8 @@ Alert endpoints:
 - scope reads and updates by authenticated `userId`;
 - expose safe event summaries only;
 - support unread/read state;
-- do not provide external delivery.
+- delegate supported email delivery decisions to the notification delivery
+  service.
 
 Current alert sources:
 
@@ -505,7 +512,7 @@ Current alert sources:
 
 Current limitation:
 
-- no email/SMS delivery;
+- no SMS/push delivery;
 - no realtime websocket feed;
 - no scheduled alert generation;
 - no admin monitoring dashboard.
@@ -539,9 +546,17 @@ Delivery-preparation payloads are provider-agnostic and bounded to safe alert
 summaries and metadata. They do not contain raw dataset rows, stack traces,
 provider credentials, or broad job internals.
 
+The notification delivery foundation now records one email outbox entry per
+user/source/channel. Immediate delivery-eligible alerts send through the SMTP
+transport only when `EMAIL_DELIVERY_ENABLED`, `EMAIL_FROM_ADDRESS`, and
+`SMTP_HOST` are configured. Missing config creates `provider_disabled` records
+instead of failing startup. Digest cadence creates `digest_ready` records for
+future batching.
+
 Current limitation:
 
-- no email/SMS provider delivery;
+- no SMS/push provider delivery;
+- no scheduled digest email sender;
 - no marketing messaging;
 - no realtime push;
 - no shared/team notification policies;
@@ -667,7 +682,8 @@ Backend implementation order should stay disciplined:
 22. portfolio dashboard and summary API: implemented in Phase 24;
 23. saved views and attention queues: implemented in Phase 25;
 24. notification preferences and delivery foundation: implemented in Phase 26;
-25. later external automation.
+25. email delivery and digest-ready outbox foundation: implemented in Phase 27;
+26. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

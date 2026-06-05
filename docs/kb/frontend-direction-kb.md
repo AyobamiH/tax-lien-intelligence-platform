@@ -54,7 +54,7 @@ Current implementation:
 - alerts route with unread count and read/read-all actions;
 - alert entries for scoring completion/failure outcomes;
 - notification preferences route with controls for current scoring alert types,
-  enabled state, in-app-only versus delivery-ready handling, and timing;
+  enabled state, in-app-only versus email-capable handling, and timing;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -210,9 +210,10 @@ Implemented notification preferences:
 
 - show supported scoring alert categories;
 - allow enabling/disabling each category;
-- allow in-app-only versus delivery-ready handling;
+- allow in-app-only versus email-capable handling;
 - allow immediate versus digest-ready timing;
-- explain that external providers are not enabled yet.
+- explain that email sends only when provider env config is complete and that
+  delivery-ready alerts are safely tracked otherwise.
 
 Implemented scoring execution visibility:
 
@@ -224,7 +225,9 @@ Implemented scoring execution visibility:
 
 Future alerts expansion:
 
-- email/SMS only after a separate security and product phase;
+- SMS/push only after a separate security and product phase;
+- scheduled digest email send workflow after grouping, rate-limit, retry, and
+  audit rules exist;
 - richer event sources only when backend contracts exist.
 
 ## Design Tone
@@ -296,7 +299,7 @@ repo truth:
 
 - do not invent pages that do not have implementation priority;
 - do not add mock data as if it were real;
-- do not imply batch upload, external alert delivery, or automation workflows
+- do not imply batch upload, SMS/push alert delivery, or automation workflows
   exist before they are wired to backend contracts;
 - do not imply one county adapter means broad county import support;
 - do not imply readiness status means every field can be remapped or edited;

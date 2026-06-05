@@ -2,6 +2,18 @@
 
 ## 2026-06-01
 
+- Implemented Phase 27 email delivery foundation with a tenant-owned delivery
+  outbox model, provider-agnostic email transport boundary, env-driven SMTP
+  transport, disabled-by-default provider safety, immediate email handling for
+  preference-enabled product alerts, provider-disabled and failure tracking,
+  duplicate-send avoidance, digest-ready outbox grouping, frontend notification
+  preference copy updates, and tests for success, suppression, disabled config,
+  provider failure, duplicate avoidance, digest grouping, owner-safe recipient
+  resolution, and email content.
+- Updated notification preference, alert, architecture, API, README, env, and
+  KB docs to mark email delivery foundation as current while keeping SMS, push,
+  marketing messaging, user-facing digest send workers, collaboration, and
+  auction execution out of scope.
 - Implemented Phase 26 notification preferences with a tenant-owned preference
   model, authenticated get/update API, explicit rules for current scoring alert
   types, frontend notification preference controls, preference-driven

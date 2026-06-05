@@ -204,7 +204,8 @@ Remaining hardening:
 - rate limits for repeated scoring;
 - retry/idempotency design before automatic reruns;
 - audit trail for scoring runs;
-- external alert delivery security if scoring alerts leave the app;
+- SMS/push delivery security if scoring alerts move beyond the current email
+  foundation;
 - stronger row-level validation before broad county adapter coverage expands.
 
 ## Drift Risks

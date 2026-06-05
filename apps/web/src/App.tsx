@@ -4080,7 +4080,7 @@ function NotificationPreferencesPage({
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-pine">Notification Control</p>
             <h2 className="mt-1 text-2xl font-semibold">Notification Preferences</h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/70">
-              Choose which product alerts stay active in-app and which are prepared for future external delivery.
+              Choose which product alerts stay active in-app, can send immediate email when SMTP is configured, or wait for digest batching.
             </p>
           </div>
           <button type="button" onClick={onRetry} className="border border-line px-3 py-2 text-sm font-semibold">
@@ -4126,7 +4126,7 @@ function NotificationPreferencesPage({
                       {notificationDeliveryStateLabel(deliveryState)}
                     </span>
                     <span className="border border-line bg-field px-2 py-1">
-                      {category.supportsDelivery ? "Delivery foundation ready" : "In-app only"}
+                      {category.supportsDelivery ? "Email-capable" : "In-app only"}
                     </span>
                     <span className="border border-line bg-field px-2 py-1">
                       {category.supportsDigest ? "Digest-ready supported" : "Immediate only"}
@@ -4181,7 +4181,7 @@ function NotificationPreferencesPage({
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-field px-4 py-3">
           <p className="text-xs text-ink/60">
-            External providers are not enabled yet. Delivery-ready alerts are classified for future provider-safe handling.
+            Email sends only when provider env config is complete; otherwise delivery-ready alerts are tracked safely in the outbox.
           </p>
           <button
             type="submit"
