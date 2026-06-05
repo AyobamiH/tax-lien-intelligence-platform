@@ -14,6 +14,8 @@ import { createDatasetService } from "./datasets/factory.js";
 import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
 import { createInternalJobService } from "./jobs/factory.js";
 import type { InternalJobService } from "./jobs/internal-job-service.js";
+import { createNotificationPreferenceService } from "./notification-preferences/factory.js";
+import type { NotificationPreferenceService } from "./notification-preferences/notification-preference-service.js";
 import { createPortfolioService } from "./portfolio/factory.js";
 import type { PortfolioService } from "./portfolio/portfolio-service.js";
 import { createAlertRouter } from "./routes/alerts.js";
@@ -21,6 +23,7 @@ import { createAuthRouter } from "./routes/auth.js";
 import { createComparisonRouter } from "./routes/comparison.js";
 import { createDatasetRouter } from "./routes/datasets.js";
 import { createInternalJobRouter } from "./routes/jobs.js";
+import { createNotificationPreferenceRouter } from "./routes/notification-preferences.js";
 import { createPortfolioRouter } from "./routes/portfolio.js";
 import { createSavedViewRouter } from "./routes/saved-views.js";
 import { createScoringRouter } from "./routes/scoring.js";
@@ -40,6 +43,7 @@ export interface AppDependencies {
   watchlistService?: WatchlistService;
   portfolioService?: PortfolioService;
   alertService?: AlertService;
+  notificationPreferenceService?: NotificationPreferenceService;
   comparisonService?: ComparisonService;
   savedViewService?: SavedViewService;
 }
@@ -48,7 +52,9 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const app = express();
   const authService = dependencies.authService ?? createAuthService();
   const datasetService = dependencies.datasetService ?? createDatasetService();
-  const alertService = dependencies.alertService ?? createAlertService();
+  const notificationPreferenceService =
+    dependencies.notificationPreferenceService ?? createNotificationPreferenceService();
+  const alertService = dependencies.alertService ?? createAlertService(notificationPreferenceService);
   const internalJobService = dependencies.internalJobService ?? createInternalJobService(alertService);
   const scoringService = dependencies.scoringService ?? createScoringService(internalJobService);
   const watchlistService = dependencies.watchlistService ?? createWatchlistService();
@@ -76,6 +82,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/datasets", createScoringRouter(authService, scoringService));
   app.use("/jobs", createInternalJobRouter(authService, internalJobService));
   app.use("/alerts", createAlertRouter(authService, alertService));
+  app.use("/notification-preferences", createNotificationPreferenceRouter(authService, notificationPreferenceService));
   app.use("/watchlist", createWatchlistRouter(authService, watchlistService));
   app.use("/portfolio", createPortfolioRouter(authService, portfolioService));
   app.use("/comparison", createComparisonRouter(authService, comparisonService));

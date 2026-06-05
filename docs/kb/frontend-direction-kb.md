@@ -53,6 +53,8 @@ Current implementation:
 - maintenance mode/message visibility for scored datasets;
 - alerts route with unread count and read/read-all actions;
 - alert entries for scoring completion/failure outcomes;
+- notification preferences route with controls for current scoring alert types,
+  enabled state, in-app-only versus delivery-ready handling, and timing;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -97,6 +99,7 @@ Current and future page direction:
 - implemented: controlled refresh action and scoring status badge;
 - implemented: maintenance policy status display on dataset detail;
 - implemented: alerts monitoring surface;
+- implemented: notification preferences surface;
 - future: account/settings page.
 
 ## Page Responsibilities
@@ -203,6 +206,14 @@ Implemented alerts:
 - link back to related datasets when available;
 - avoid raw job payloads, stack traces, or internal logs.
 
+Implemented notification preferences:
+
+- show supported scoring alert categories;
+- allow enabling/disabling each category;
+- allow in-app-only versus delivery-ready handling;
+- allow immediate versus digest-ready timing;
+- explain that external providers are not enabled yet.
+
 Implemented scoring execution visibility:
 
 - show queued, running, completed, or failed state for score jobs;
@@ -213,7 +224,6 @@ Implemented scoring execution visibility:
 
 Future alerts expansion:
 
-- delivery preferences;
 - email/SMS only after a separate security and product phase;
 - richer event sources only when backend contracts exist.
 

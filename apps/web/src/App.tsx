@@ -11,6 +11,9 @@ import type {
   DatasetResponse,
   DatasetScoringStatusResponse,
   InternalJobResponse,
+  NotificationPreferenceCategory,
+  NotificationPreferenceRule,
+  NotificationPreferencesResponse,
   PortfolioItemResponse,
   PortfolioStatus,
   PortfolioSummaryRecord,
@@ -33,6 +36,7 @@ import {
   getDataset,
   getDatasetScoringStatus,
   getJob,
+  getNotificationPreferences,
   getPortfolioSummary,
   handoffComparisonToPortfolio,
   handoffComparisonToWatchlist,
@@ -56,6 +60,7 @@ import {
   saveDatasetManualMapping,
   scoreDataset,
   updateComparisonItem,
+  updateNotificationPreferences,
   updatePortfolioItemStatus,
 } from "./api";
 import {
@@ -87,6 +92,9 @@ import {
   importProfileMappingSourceLabel,
   manualMappingByTarget,
   manualMappingTargetPresentations,
+  notificationCadenceLabel,
+  notificationDeliveryModeLabel,
+  notificationDeliveryStateLabel,
   portfolioStatusClassName,
   portfolioStatusLabel,
   portfolioStatusOptions,
@@ -114,7 +122,8 @@ type PageState =
   | { name: "watchlist" }
   | { name: "portfolio" }
   | { name: "comparison" }
-  | { name: "alerts" };
+  | { name: "alerts" }
+  | { name: "notifications" };
 
 type AuthMode = "login" | "register";
 
@@ -179,6 +188,15 @@ interface AlertsState {
   actionId: string | null;
 }
 
+interface NotificationPreferencesState {
+  preferences: NotificationPreferencesResponse | null;
+  categories: NotificationPreferenceCategory[];
+  isLoading: boolean;
+  error: string | null;
+  success: string | null;
+  isSaving: boolean;
+}
+
 function App() {
   const [session, setSession] = useState<StoredSession | null>(() => loadStoredSession());
   const [page, setPage] = useState<PageState>(() => readRoute());
@@ -223,6 +241,14 @@ function App() {
     isLoading: false,
     error: null,
     actionId: null,
+  });
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferencesState>({
+    preferences: null,
+    categories: [],
+    isLoading: false,
+    error: null,
+    success: null,
+    isSaving: false,
   });
   const authToken = session?.token ?? null;
 
@@ -287,6 +313,14 @@ function App() {
         error: null,
         actionId: null,
       });
+      setNotificationPreferences({
+        preferences: null,
+        categories: [],
+        isLoading: false,
+        error: null,
+        success: null,
+        isSaving: false,
+      });
       return;
     }
 
@@ -316,6 +350,7 @@ function App() {
     void refreshComparison(authToken);
     void refreshAlerts(authToken);
     void refreshSavedViews(authToken);
+    void refreshNotificationPreferences(authToken);
   }, [authToken]);
 
   function handleSignedIn(nextSession: StoredSession): void {
@@ -593,6 +628,59 @@ function App() {
       setAlerts((current) => ({
         ...current,
         isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function refreshNotificationPreferences(token: string): Promise<void> {
+    setNotificationPreferences((current) => ({ ...current, isLoading: true, error: null, success: null }));
+
+    try {
+      const result = await getNotificationPreferences(token);
+      setNotificationPreferences((current) => ({
+        ...current,
+        preferences: result.preferences,
+        categories: result.categories,
+        isLoading: false,
+        error: null,
+      }));
+    } catch (error: unknown) {
+      setNotificationPreferences((current) => ({
+        ...current,
+        isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function saveNotificationPreferenceRules(rules: NotificationPreferenceRule[]): Promise<void> {
+    if (!session) {
+      return;
+    }
+
+    setNotificationPreferences((current) => ({ ...current, isSaving: true, error: null, success: null }));
+
+    try {
+      const result = await updateNotificationPreferences(session.token, { rules });
+      setNotificationPreferences((current) => ({
+        ...current,
+        preferences: result.preferences,
+        categories: result.categories,
+        isSaving: false,
+        error: null,
+        success: "Notification preferences saved.",
+      }));
+    } catch (error: unknown) {
+      setNotificationPreferences((current) => ({
+        ...current,
+        isSaving: false,
         error: errorMessage(error),
       }));
       if (isAuthError(error)) {
@@ -1116,6 +1204,12 @@ function App() {
             onMarkAllRead={() => void markEveryAlertRead()}
             onOpenDataset={(datasetId) => navigate({ name: "dataset", datasetId }, setPage)}
           />
+        ) : page.name === "notifications" ? (
+          <NotificationPreferencesPage
+            state={notificationPreferences}
+            onRetry={() => void refreshNotificationPreferences(session.token)}
+            onSave={(rules) => void saveNotificationPreferenceRules(rules)}
+          />
         ) : (
           <ReviewHome
             datasets={datasets}
@@ -1288,6 +1382,13 @@ function AppHeader({
             className={`border border-line px-3 py-2 font-medium ${page.name === "alerts" ? "bg-field" : "bg-white"}`}
           >
             Alerts ({unreadAlertCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate({ name: "notifications" })}
+            className={`border border-line px-3 py-2 font-medium ${page.name === "notifications" ? "bg-field" : "bg-white"}`}
+          >
+            Notifications
           </button>
         </nav>
         <div className="flex items-center gap-3 text-sm">
@@ -3944,6 +4045,157 @@ function PortfolioDetail({
   );
 }
 
+function NotificationPreferencesPage({
+  state,
+  onRetry,
+  onSave,
+}: {
+  state: NotificationPreferencesState;
+  onRetry: () => void;
+  onSave: (rules: NotificationPreferenceRule[]) => void;
+}) {
+  const [draftRules, setDraftRules] = useState<NotificationPreferenceRule[]>([]);
+
+  useEffect(() => {
+    setDraftRules(state.preferences?.rules ?? state.categories.map((category) => category.defaultRule));
+  }, [state.preferences, state.categories]);
+
+  const rulesByType = useMemo(() => new Map(draftRules.map((rule) => [rule.alertType, rule])), [draftRules]);
+
+  function updateRule(alertType: NotificationPreferenceRule["alertType"], update: Partial<NotificationPreferenceRule>): void {
+    setDraftRules((current) =>
+      current.map((rule) => (rule.alertType === alertType ? { ...rule, ...update } : rule)),
+    );
+  }
+
+  if (state.isLoading && !state.preferences) {
+    return <PanelMessage label="Loading notification preferences..." />;
+  }
+
+  return (
+    <section className="min-w-0 space-y-5">
+      <div className="border border-line bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-pine">Notification Control</p>
+            <h2 className="mt-1 text-2xl font-semibold">Notification Preferences</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/70">
+              Choose which product alerts stay active in-app and which are prepared for future external delivery.
+            </p>
+          </div>
+          <button type="button" onClick={onRetry} className="border border-line px-3 py-2 text-sm font-semibold">
+            Refresh
+          </button>
+        </div>
+        {state.error ? <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{state.error}</div> : null}
+        {state.success ? (
+          <div className="mt-4 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+            {state.success}
+          </div>
+        ) : null}
+      </div>
+
+      <form
+        className="border border-line bg-white"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSave(draftRules);
+        }}
+      >
+        <div className="border-b border-line px-4 py-3">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Alert Rules</h3>
+        </div>
+        <div className="divide-y divide-line">
+          {state.categories.map((category) => {
+            const rule = rulesByType.get(category.alertType) ?? category.defaultRule;
+            const deliveryState = !rule.enabled
+              ? "suppressed"
+              : rule.deliveryMode === "in_app_only"
+                ? "in_app_only"
+                : rule.cadence === "immediate"
+                  ? "delivery_immediate"
+                  : "delivery_digest";
+
+            return (
+              <section key={category.alertType} className="grid gap-4 px-4 py-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+                <div>
+                  <h4 className="font-semibold">{category.label}</h4>
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/70">{category.description}</p>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                    <span className="border border-line bg-field px-2 py-1">
+                      {notificationDeliveryStateLabel(deliveryState)}
+                    </span>
+                    <span className="border border-line bg-field px-2 py-1">
+                      {category.supportsDelivery ? "Delivery foundation ready" : "In-app only"}
+                    </span>
+                    <span className="border border-line bg-field px-2 py-1">
+                      {category.supportsDigest ? "Digest-ready supported" : "Immediate only"}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                  <label className="flex items-center gap-2 text-sm font-semibold">
+                    <input
+                      type="checkbox"
+                      checked={rule.enabled}
+                      onChange={(event) => updateRule(rule.alertType, { enabled: event.target.checked })}
+                    />
+                    Enabled
+                  </label>
+                  <label className="text-sm font-semibold">
+                    Delivery
+                    <select
+                      value={rule.deliveryMode}
+                      disabled={!rule.enabled}
+                      onChange={(event) =>
+                        updateRule(rule.alertType, {
+                          deliveryMode: event.target.value as NotificationPreferenceRule["deliveryMode"],
+                        })
+                      }
+                      className="mt-1 w-full border border-line bg-white px-3 py-2 text-sm disabled:opacity-60"
+                    >
+                      <option value="in_app_only">{notificationDeliveryModeLabel("in_app_only")}</option>
+                      <option value="delivery_eligible">{notificationDeliveryModeLabel("delivery_eligible")}</option>
+                    </select>
+                  </label>
+                  <label className="text-sm font-semibold">
+                    Timing
+                    <select
+                      value={rule.cadence}
+                      disabled={!rule.enabled}
+                      onChange={(event) =>
+                        updateRule(rule.alertType, {
+                          cadence: event.target.value as NotificationPreferenceRule["cadence"],
+                        })
+                      }
+                      className="mt-1 w-full border border-line bg-white px-3 py-2 text-sm disabled:opacity-60"
+                    >
+                      <option value="immediate">{notificationCadenceLabel("immediate")}</option>
+                      <option value="digest">{notificationCadenceLabel("digest")}</option>
+                    </select>
+                  </label>
+                </div>
+              </section>
+            );
+          })}
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-field px-4 py-3">
+          <p className="text-xs text-ink/60">
+            External providers are not enabled yet. Delivery-ready alerts are classified for future provider-safe handling.
+          </p>
+          <button
+            type="submit"
+            disabled={state.isSaving || draftRules.length === 0}
+            className="bg-pine px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {state.isSaving ? "Saving" : "Save Preferences"}
+          </button>
+        </div>
+      </form>
+    </section>
+  );
+}
+
 function ScoreTable({
   scores,
   totalCount,
@@ -4518,7 +4770,9 @@ function navigate(page: PageState, setPage: (page: PageState) => void): void {
           ? "#/comparison"
           : page.name === "alerts"
             ? "#/alerts"
-            : `#/datasets/${page.datasetId}`;
+            : page.name === "notifications"
+              ? "#/notifications"
+              : `#/datasets/${page.datasetId}`;
   window.history.pushState(null, "", hash);
   setPage(page);
 }
@@ -4538,6 +4792,10 @@ function readRoute(): PageState {
 
   if (window.location.hash === "#/alerts") {
     return { name: "alerts" };
+  }
+
+  if (window.location.hash === "#/notifications") {
+    return { name: "notifications" };
   }
 
   const match = window.location.hash.match(/^#\/datasets\/([^/]+)$/);

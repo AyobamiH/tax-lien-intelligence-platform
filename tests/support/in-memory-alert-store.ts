@@ -17,6 +17,7 @@ export class InMemoryAlertStore implements AlertStore {
       ...(input.relatedEntityType ? { relatedEntityType: input.relatedEntityType } : {}),
       ...(input.relatedEntityId ? { relatedEntityId: input.relatedEntityId } : {}),
       ...(input.metadata ? { metadata: input.metadata } : {}),
+      ...(input.deliveryPreparation ? { deliveryPreparation: input.deliveryPreparation } : {}),
       createdAt: now,
       updatedAt: now,
     };

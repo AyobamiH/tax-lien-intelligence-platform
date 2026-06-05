@@ -31,6 +31,7 @@ import type {
   ImportProfileListResponse,
   JobDetailResponse,
   MarkAllAlertsReadResponse,
+  NotificationPreferencesDetailResponse,
   PortfolioDetailResponse,
   PortfolioListResponse,
   PortfolioStatus,
@@ -41,6 +42,8 @@ import type {
   SaveImportProfileFromDatasetResponse,
   SavedViewListResponse,
   UpdateComparisonItemResponse,
+  UpdateNotificationPreferencesRequest,
+  UpdateNotificationPreferencesResponse,
   UpdatePortfolioItemResponse,
   WatchlistListResponse,
 } from "@tax-lien/types";
@@ -223,6 +226,23 @@ export async function markAllAlertsRead(token: string): Promise<MarkAllAlertsRea
   return requestJson<MarkAllAlertsReadResponse>("/alerts/read-all", {
     method: "PATCH",
     token,
+  });
+}
+
+export async function getNotificationPreferences(token: string): Promise<NotificationPreferencesDetailResponse> {
+  return requestJson<NotificationPreferencesDetailResponse>("/notification-preferences", {
+    token,
+  });
+}
+
+export async function updateNotificationPreferences(
+  token: string,
+  input: UpdateNotificationPreferencesRequest,
+): Promise<UpdateNotificationPreferencesResponse> {
+  return requestJson<UpdateNotificationPreferencesResponse>("/notification-preferences", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify(input),
   });
 }
 

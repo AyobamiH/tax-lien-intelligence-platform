@@ -13,6 +13,9 @@ import type {
   DatasetResponse,
   DatasetScoringStatus,
   NormalizedScoredRecordFields,
+  NotificationCadence,
+  NotificationDeliveryMode,
+  NotificationDeliveryState,
   PortfolioActivitySummary,
   PortfolioAttentionReason,
   PortfolioAttentionSummary,
@@ -669,6 +672,37 @@ export function alertTypeLabel(type: AlertType): string {
       return "Scoring completed";
     case "scoring_job_failed":
       return "Scoring failed";
+  }
+}
+
+export function notificationDeliveryModeLabel(mode: NotificationDeliveryMode): string {
+  switch (mode) {
+    case "in_app_only":
+      return "In-app only";
+    case "delivery_eligible":
+      return "Delivery-ready";
+  }
+}
+
+export function notificationCadenceLabel(cadence: NotificationCadence): string {
+  switch (cadence) {
+    case "immediate":
+      return "Immediate";
+    case "digest":
+      return "Digest-ready";
+  }
+}
+
+export function notificationDeliveryStateLabel(state: NotificationDeliveryState): string {
+  switch (state) {
+    case "suppressed":
+      return "Suppressed";
+    case "in_app_only":
+      return "In-app only";
+    case "delivery_immediate":
+      return "Delivery-ready immediate";
+    case "delivery_digest":
+      return "Delivery-ready digest";
   }
 }
 

@@ -2,6 +2,16 @@
 
 ## 2026-06-01
 
+- Implemented Phase 26 notification preferences with a tenant-owned preference
+  model, authenticated get/update API, explicit rules for current scoring alert
+  types, frontend notification preference controls, preference-driven
+  job-alert suppression, and provider-agnostic delivery classification for
+  in-app-only, immediate delivery-ready, and digest-ready alerts.
+- Added notification preference API/architecture docs and updated the KB pack
+  to mark notification preferences and delivery readiness as current while
+  keeping broad email/SMS provider rollout, marketing messaging, realtime push,
+  team policies, complex rules engines, ML/AI prioritization, collaboration,
+  and auction execution out of scope.
 - Implemented Phase 25 saved views with a tenant-owned saved view model,
   authenticated saved-view create/list/apply/update/delete routes, deterministic
   portfolio and comparison criteria validation, built-in attention queues, a

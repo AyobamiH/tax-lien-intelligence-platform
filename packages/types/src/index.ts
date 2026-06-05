@@ -445,6 +445,7 @@ export interface AlertResponse {
   relatedEntityType?: AlertRelatedEntityType;
   relatedEntityId?: string;
   metadata?: AlertMetadata;
+  deliveryPreparation?: NotificationDeliveryPreparation;
   createdAt: string;
   updatedAt: string;
   readAt?: string;
@@ -461,6 +462,63 @@ export interface AlertDetailResponse {
 
 export interface MarkAllAlertsReadResponse {
   updatedCount: number;
+}
+
+export type NotificationDeliveryMode = "in_app_only" | "delivery_eligible";
+export type NotificationCadence = "immediate" | "digest";
+export type NotificationDeliveryState = "suppressed" | "in_app_only" | "delivery_immediate" | "delivery_digest";
+
+export interface NotificationPreferenceRule {
+  alertType: AlertType;
+  enabled: boolean;
+  deliveryMode: NotificationDeliveryMode;
+  cadence: NotificationCadence;
+}
+
+export interface NotificationPreferencesResponse {
+  id: string;
+  rules: NotificationPreferenceRule[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationPreferenceCategory {
+  alertType: AlertType;
+  label: string;
+  description: string;
+  supportsDelivery: boolean;
+  supportsDigest: boolean;
+  defaultRule: NotificationPreferenceRule;
+}
+
+export interface NotificationPreferencesDetailResponse {
+  preferences: NotificationPreferencesResponse;
+  categories: NotificationPreferenceCategory[];
+}
+
+export interface UpdateNotificationPreferencesRequest {
+  rules: NotificationPreferenceRule[];
+}
+
+export interface UpdateNotificationPreferencesResponse {
+  preferences: NotificationPreferencesResponse;
+  categories: NotificationPreferenceCategory[];
+}
+
+export interface NotificationDeliveryPreparation {
+  alertType: AlertType;
+  deliveryState: NotificationDeliveryState;
+  deliveryMode: NotificationDeliveryMode;
+  cadence: NotificationCadence;
+  eligibleForDelivery: boolean;
+  preparedAt: string;
+  payload?: {
+    subject: string;
+    summary: string;
+    relatedEntityType?: AlertRelatedEntityType;
+    relatedEntityId?: string;
+    metadata: Pick<AlertMetadata, "jobId" | "datasetId" | "scoredRecordCount" | "errorCode" | "requestKind">;
+  };
 }
 
 export interface AddWatchlistItemRequest {

@@ -35,6 +35,9 @@ import {
   importProfileMappingSourceLabel,
   manualMappingByTarget,
   manualMappingTargetPresentations,
+  notificationCadenceLabel,
+  notificationDeliveryModeLabel,
+  notificationDeliveryStateLabel,
   primaryRecordLabel,
   comparisonDecisionClassName,
   comparisonDecisionLabel,
@@ -626,6 +629,10 @@ describe("review model helpers", () => {
     expect(alertTypeLabel("scoring_job_completed")).toBe("Scoring completed");
     expect(alertTypeLabel("scoring_job_failed")).toBe("Scoring failed");
     expect(alertSeverityClassName("error")).toContain("red");
+    expect(notificationDeliveryModeLabel("in_app_only")).toBe("In-app only");
+    expect(notificationDeliveryModeLabel("delivery_eligible")).toBe("Delivery-ready");
+    expect(notificationCadenceLabel("digest")).toBe("Digest-ready");
+    expect(notificationDeliveryStateLabel("delivery_immediate")).toBe("Delivery-ready immediate");
   });
 
   it("labels dataset refresh and scoring status states", () => {

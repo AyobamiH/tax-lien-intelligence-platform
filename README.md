@@ -10,14 +10,14 @@ upload, first-pass explainable scoring, scored-results review, watchlist,
 portfolio/status tracking, comparison, decision history, decision handoff,
 saved operational views, internal jobs, alerts, worker/scheduler groundwork,
 enrichment, import repair, reusable import profiles, and the Phase 25 saved
-views workflow:
+views workflow plus Phase 26 notification preferences:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind review workspace
 - `apps/api`: Express, TypeScript, auth, dataset, scoring, internal jobs,
   alerts, watchlist, portfolio, and comparison APIs
 - `packages/db`: MongoDB connection plus user, dataset, scored-record,
   internal-job, alert, watchlist, portfolio, comparison, decision-history, and
-  import-profile/saved-view models
+  import-profile/saved-view/notification-preference models
 - `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
@@ -43,6 +43,8 @@ Implemented API surfaces:
 - `GET /alerts`
 - `PATCH /alerts/:alertId/read`
 - `PATCH /alerts/read-all`
+- `GET /notification-preferences`
+- `PATCH /notification-preferences`
 - `POST /watchlist`
 - `GET /watchlist`
 - `DELETE /watchlist/:watchlistItemId`

@@ -75,6 +75,8 @@ records the current implementation state:
 - portfolio API, summary endpoint, dashboard, and status tracking surface exist.
 - saved views and built-in attention queues exist for reusable operational
   portfolio/comparison work slices.
+- notification preferences and delivery-ready classification exist for current
+  scoring alert types.
 - comparison API, side-by-side workspace, and lightweight decision notes exist.
 - lightweight comparison decision history exists.
 - explicit comparison handoff into watchlist/portfolio exists.
@@ -89,6 +91,7 @@ records the current implementation state:
 - watchlist item model exists.
 - portfolio item model exists.
 - saved view model exists.
+- notification preference model exists.
 - comparison item model exists.
 - shared types exist.
 - scoring package is a real first-pass deterministic engine.
@@ -118,7 +121,9 @@ bounded decision notes, lightweight decision history, and cross-user comparison
 tests. It now has explicit comparison handoff actions with tenant-scoped target
 records and history linkage. It now also has tenant-owned saved views,
 server-validated criteria, built-in attention queues, and cross-user saved-view
-tests. It now has tenant-owned internal job records for
+tests. It now has tenant-owned notification preferences, safe
+delivery-preparation metadata, and notification preference tests. It now has
+tenant-owned internal job records for
 scoring, controlled refresh/reprocessing, scheduled maintenance policy gates,
 and cross-user job tests. It does not yet have standalone parcel models, rate
 limiting, user-facing scheduler controls, collaboration, auction execution,

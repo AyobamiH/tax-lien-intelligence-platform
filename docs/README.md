@@ -32,6 +32,7 @@ before writing specs, prompts, or implementation plans.
 - [Saved Views And Attention Queues Architecture](architecture/saved-views.md)
 - [Internal Job Architecture](architecture/internal-jobs.md)
 - [Alerts And Monitoring Architecture](architecture/alerts.md)
+- [Notification Preferences And Delivery Foundation](architecture/notification-preferences.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
@@ -43,6 +44,7 @@ before writing specs, prompts, or implementation plans.
 - [Scoring API](api/scoring.md)
 - [Internal Jobs API](api/jobs.md)
 - [Alerts API](api/alerts.md)
+- [Notification Preferences API](api/notification-preferences.md)
 - [Watchlist API](api/watchlist.md)
 - [Portfolio API](api/portfolio.md)
 - [Comparison API](api/comparison.md)

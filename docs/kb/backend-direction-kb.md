@@ -51,6 +51,10 @@ Current implementation:
 - alert model;
 - authenticated alert list/read/read-all routes;
 - scoring job completion/failure alert creation;
+- notification preference model;
+- authenticated notification preference get/update routes;
+- preference-driven job-alert suppression and delivery classification;
+- provider-agnostic delivery-preparation metadata for supported alerts;
 - scheduled maintenance service for stale scored-record scans;
 - `dataset_maintenance` job type for policy-driven maintenance decisions;
 - policy-created `dataset_scoring` refresh jobs with
@@ -105,6 +109,7 @@ The backend should become the trusted boundary for:
 - decision handoff orchestration;
 - saved operational view persistence;
 - in-app alert persistence;
+- notification preference persistence;
 - future audit events;
 - security enforcement.
 
@@ -505,6 +510,43 @@ Current limitation:
 - no scheduled alert generation;
 - no admin monitoring dashboard.
 
+## Notification Preferences Implementation
+
+The notification preference foundation now exists. Preferences belong to one
+user and control the current scoring alert types.
+
+Current notification preference API:
+
+- `GET /notification-preferences`;
+- `PATCH /notification-preferences`.
+
+Notification preference endpoints:
+
+- require auth;
+- scope lookup and upsert by authenticated `userId`;
+- validate alert types, enabled flags, delivery modes, and cadence values;
+- expose category metadata for the supported alert types only.
+
+Job-generated alerts now receive explicit delivery classification:
+
+- disabled alert types are suppressed;
+- `in_app_only` alerts remain in-app records;
+- `delivery_eligible` + `immediate` alerts are prepared as
+  `delivery_immediate`;
+- `delivery_eligible` + `digest` alerts are prepared as `delivery_digest`.
+
+Delivery-preparation payloads are provider-agnostic and bounded to safe alert
+summaries and metadata. They do not contain raw dataset rows, stack traces,
+provider credentials, or broad job internals.
+
+Current limitation:
+
+- no email/SMS provider delivery;
+- no marketing messaging;
+- no realtime push;
+- no shared/team notification policies;
+- no complex rules engines.
+
 ## Service Boundaries
 
 Preferred backend boundaries:
@@ -624,7 +666,8 @@ Backend implementation order should stay disciplined:
 21. explicit decision handoff: implemented in Phase 23;
 22. portfolio dashboard and summary API: implemented in Phase 24;
 23. saved views and attention queues: implemented in Phase 25;
-24. later external automation.
+24. notification preferences and delivery foundation: implemented in Phase 26;
+25. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

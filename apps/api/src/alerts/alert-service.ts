@@ -12,6 +12,7 @@ import type {
   MarkAllAlertsReadResponse,
 } from "@tax-lien/types";
 import { ApiError } from "../errors/api-error.js";
+import type { NotificationPreferenceService } from "../notification-preferences/notification-preference-service.js";
 import type { AlertStore, CreateAlertInput, StoredAlert } from "./alert-store.js";
 
 export interface JobAlertSink {
@@ -33,9 +34,11 @@ export interface JobAlertEvent {
 
 export class AlertService implements JobAlertSink {
   private readonly alertStore: AlertStore;
+  private readonly notificationPreferenceService: NotificationPreferenceService | undefined;
 
-  public constructor(alertStore: AlertStore) {
+  public constructor(alertStore: AlertStore, notificationPreferenceService?: NotificationPreferenceService) {
     this.alertStore = alertStore;
+    this.notificationPreferenceService = notificationPreferenceService;
   }
 
   public async createAlert(input: CreateAlertInput): Promise<AlertResponse> {
@@ -49,7 +52,7 @@ export class AlertService implements JobAlertSink {
 
     const scoredRecordCount = job.summary?.scoredRecordCount ?? 0;
     const actionLabel = jobActionLabel(job.requestKind);
-    await this.createAlert({
+    await this.createPreferenceAwareAlert({
       userId: job.userId,
       type: "scoring_job_completed",
       severity: "info",
@@ -70,7 +73,7 @@ export class AlertService implements JobAlertSink {
       return;
     }
 
-    await this.createAlert({
+    await this.createPreferenceAwareAlert({
       userId: job.userId,
       type: "scoring_job_failed",
       severity: "error",
@@ -85,6 +88,23 @@ export class AlertService implements JobAlertSink {
         requestKind: job.requestKind,
         ...(job.error?.code ? { errorCode: job.error.code } : {}),
       },
+    });
+  }
+
+  private async createPreferenceAwareAlert(input: CreateAlertInput): Promise<void> {
+    if (!this.notificationPreferenceService) {
+      await this.createAlert(input);
+      return;
+    }
+
+    const result = await this.notificationPreferenceService.prepareAlertForDelivery(input);
+    if (result.suppressed) {
+      return;
+    }
+
+    await this.createAlert({
+      ...input,
+      deliveryPreparation: result.preparation,
     });
   }
 
@@ -140,6 +160,7 @@ export function toAlertResponse(alert: StoredAlert): AlertResponse {
     ...(alert.relatedEntityType ? { relatedEntityType: alert.relatedEntityType } : {}),
     ...(alert.relatedEntityId ? { relatedEntityId: alert.relatedEntityId } : {}),
     ...(alert.metadata ? { metadata: alert.metadata } : {}),
+    ...(alert.deliveryPreparation ? { deliveryPreparation: alert.deliveryPreparation } : {}),
     createdAt: alert.createdAt.toISOString(),
     updatedAt: alert.updatedAt.toISOString(),
     ...(alert.readAt ? { readAt: alert.readAt.toISOString() } : {}),

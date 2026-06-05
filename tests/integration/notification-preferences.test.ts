@@ -1,0 +1,222 @@
+import mongoose from "mongoose";
+import request from "supertest";
+import { describe, expect, it } from "vitest";
+import { AlertService } from "../../apps/api/src/alerts/alert-service.js";
+import { AuthService } from "../../apps/api/src/auth/auth-service.js";
+import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
+import { createApp } from "../../apps/api/src/app.js";
+import { NotificationPreferenceService } from "../../apps/api/src/notification-preferences/notification-preference-service.js";
+import type {
+  NotificationPreferenceStore,
+  SaveNotificationPreferencesInput,
+  StoredNotificationPreferences,
+} from "../../apps/api/src/notification-preferences/notification-preference-store.js";
+import type { NotificationPreferenceRule } from "@tax-lien/types";
+import { InMemoryAlertStore } from "../support/in-memory-alert-store.js";
+
+const testJwtSecret = "test-notification-preferences-secret-long-enough";
+
+class InMemoryUserStore implements UserStore {
+  private readonly usersById = new Map<string, StoredUser>();
+  private readonly idsByEmail = new Map<string, string>();
+
+  public async createUser(input: CreateUserInput): Promise<StoredUser> {
+    const now = new Date();
+    const user: StoredUser = {
+      id: new mongoose.Types.ObjectId().toString(),
+      email: input.email,
+      passwordHash: input.passwordHash,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.usersById.set(user.id, user);
+    this.idsByEmail.set(user.email, user.id);
+    return user;
+  }
+
+  public async findByEmail(email: string): Promise<StoredUser | null> {
+    const id = this.idsByEmail.get(email);
+    return id ? (this.usersById.get(id) ?? null) : null;
+  }
+
+  public async findById(id: string): Promise<StoredUser | null> {
+    return this.usersById.get(id) ?? null;
+  }
+}
+
+class InMemoryNotificationPreferenceStore implements NotificationPreferenceStore {
+  private readonly preferencesByUserId = new Map<string, StoredNotificationPreferences>();
+
+  public async findForUser(userId: string): Promise<StoredNotificationPreferences | null> {
+    return this.preferencesByUserId.get(userId) ?? null;
+  }
+
+  public async upsertForUser(input: SaveNotificationPreferencesInput): Promise<StoredNotificationPreferences> {
+    const now = new Date();
+    const current = this.preferencesByUserId.get(input.userId);
+    const preferences: StoredNotificationPreferences = {
+      id: current?.id ?? new mongoose.Types.ObjectId().toString(),
+      userId: input.userId,
+      rules: input.rules,
+      createdAt: current?.createdAt ?? now,
+      updatedAt: now,
+    };
+    this.preferencesByUserId.set(input.userId, preferences);
+    return preferences;
+  }
+}
+
+function createTestContext() {
+  const userStore = new InMemoryUserStore();
+  const notificationPreferenceService = new NotificationPreferenceService(new InMemoryNotificationPreferenceStore());
+  const alertStore = new InMemoryAlertStore();
+  const alertService = new AlertService(alertStore, notificationPreferenceService);
+  const authService = new AuthService(userStore, {
+    jwtSecret: testJwtSecret,
+    jwtExpiresIn: "1h",
+    passwordSaltRounds: 4,
+  });
+
+  return {
+    app: createApp({ authService, alertService, notificationPreferenceService }),
+    alertService,
+  };
+}
+
+async function registerUser(app: ReturnType<typeof createApp>, email: string): Promise<{ token: string; userId: string }> {
+  const response = await request(app).post("/auth/register").send({
+    email,
+    password: "StrongPass123",
+  });
+
+  return {
+    token: response.body.token as string,
+    userId: response.body.user.id as string,
+  };
+}
+
+function rulesWithCompletedDisabled(): NotificationPreferenceRule[] {
+  return [
+    {
+      alertType: "scoring_job_completed",
+      enabled: false,
+      deliveryMode: "in_app_only",
+      cadence: "digest",
+    },
+    {
+      alertType: "scoring_job_failed",
+      enabled: true,
+      deliveryMode: "delivery_eligible",
+      cadence: "immediate",
+    },
+  ];
+}
+
+describe("notification preferences API", () => {
+  it("retrieves default preferences for the authenticated user", async () => {
+    const { app } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+
+    const response = await request(app)
+      .get("/notification-preferences")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(response.body.preferences).toMatchObject({
+      id: expect.any(String),
+      rules: [
+        { alertType: "scoring_job_completed", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
+        { alertType: "scoring_job_failed", enabled: true, deliveryMode: "delivery_eligible", cadence: "immediate" },
+      ],
+    });
+    expect(response.body.categories).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ alertType: "scoring_job_completed", supportsDelivery: true }),
+        expect.objectContaining({ alertType: "scoring_job_failed", supportsDigest: true }),
+      ]),
+    );
+    expect(JSON.stringify(response.body)).not.toContain(owner.userId);
+  });
+
+  it("updates valid preferences and rejects invalid payloads", async () => {
+    const { app } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+
+    const update = await request(app)
+      .patch("/notification-preferences")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ rules: rulesWithCompletedDisabled() })
+      .expect(200);
+
+    expect(update.body.preferences.rules[0]).toMatchObject({
+      alertType: "scoring_job_completed",
+      enabled: false,
+    });
+
+    await request(app)
+      .patch("/notification-preferences")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({
+        rules: [
+          {
+            alertType: "made_up_alert",
+            enabled: true,
+            deliveryMode: "delivery_eligible",
+            cadence: "immediate",
+          },
+        ],
+      })
+      .expect(400);
+    await request(app).get("/notification-preferences").expect(401);
+  });
+
+  it("applies preferences when classifying job alerts for delivery", async () => {
+    const { app, alertService } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+
+    await request(app)
+      .patch("/notification-preferences")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .send({ rules: rulesWithCompletedDisabled() })
+      .expect(200);
+
+    await alertService.recordJobCompleted({
+      id: new mongoose.Types.ObjectId().toString(),
+      userId: owner.userId,
+      type: "dataset_scoring",
+      targetEntityType: "dataset",
+      targetEntityId: new mongoose.Types.ObjectId().toString(),
+      requestKind: "score",
+      status: "completed",
+      summary: { scoredRecordCount: 3 },
+    });
+    await alertService.recordJobFailed({
+      id: new mongoose.Types.ObjectId().toString(),
+      userId: owner.userId,
+      type: "dataset_scoring",
+      targetEntityType: "dataset",
+      targetEntityId: new mongoose.Types.ObjectId().toString(),
+      requestKind: "refresh",
+      status: "failed",
+      error: { code: "worker_failed", message: "Worker failed safely." },
+    });
+
+    const response = await request(app).get("/alerts").set("Authorization", `Bearer ${owner.token}`).expect(200);
+
+    expect(response.body.alerts).toHaveLength(1);
+    expect(response.body.alerts[0]).toMatchObject({
+      type: "scoring_job_failed",
+      deliveryPreparation: {
+        deliveryState: "delivery_immediate",
+        eligibleForDelivery: true,
+        payload: {
+          subject: "Scoring failed",
+          metadata: {
+            errorCode: "worker_failed",
+            requestKind: "refresh",
+          },
+        },
+      },
+    });
+  });
+});

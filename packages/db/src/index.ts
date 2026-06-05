@@ -8,6 +8,8 @@ export {
 
 export {
   AlertModel,
+  type AlertDeliveryPreparationPayloadRecord,
+  type AlertDeliveryPreparationRecord,
   type AlertDocument,
   type AlertMetadataRecord,
   type AlertRecord,
@@ -83,6 +85,14 @@ export {
   type PortfolioItemRecord,
   type PortfolioStatusRecord,
 } from "./models/portfolio-item.js";
+export {
+  NotificationPreferenceModel,
+  type NotificationCadenceRecord,
+  type NotificationDeliveryModeRecord,
+  type NotificationPreferenceDocument,
+  type NotificationPreferenceRecord,
+  type NotificationPreferenceRuleRecord,
+} from "./models/notification-preference.js";
 export {
   ScoredRecordModel,
   type EnrichmentAdapterOutcomeRecord,

@@ -26,6 +26,8 @@ Current implementation:
 - lightweight comparison decision history exists;
 - explicit user-driven comparison handoff exists;
 - in-app alert records exist for scoring job completion/failure;
+- notification preferences and provider-agnostic delivery classification exist
+  for current scoring alert types;
 - first internal enrichment adapter exists for uploaded source-row inference;
 - controlled user-triggered dataset refresh/reprocessing exists through the
   worker job boundary;
@@ -40,8 +42,8 @@ Current implementation:
   rely on scoring or future automation;
 - focused manual mapping repair exists for critical source-column mapping;
 - reusable import profiles exist for deterministic tenant-owned mapping reuse;
-- no portfolio automation, automated comparison recommendations, or external
-  monitoring.
+- no portfolio automation, automated comparison recommendations, broad external
+  monitoring, or provider-backed notification delivery.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
 scoring foundation, manual review surface, watchlist shortlist, portfolio
@@ -55,7 +57,9 @@ manual browser upload, but neither adds broad county sync, scraping, or
 automated ingestion. Phase 18 adds readiness visibility for uploaded data, but
 it is still manual-first guidance, not automated field mapping. Phase 19 adds
 human-controlled repair mapping. Phase 20 adds deterministic reuse of saved
-mapping profiles, but it is still not broad automated import tooling.
+mapping profiles, but it is still not broad automated import tooling. Phase 26
+adds notification preference control and delivery-ready classification, but it
+does not send external messages or introduce a provider platform.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -109,7 +113,8 @@ Manual-first sequence:
 16. import readiness and scoring-suitability visibility;
 17. focused manual mapping repair;
 18. reusable import profiles;
-19. then broader automation.
+19. notification preference control;
+20. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.

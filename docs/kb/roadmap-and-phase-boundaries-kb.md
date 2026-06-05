@@ -805,6 +805,41 @@ Future expansion may include:
 - exports only after redaction and tenant data controls are designed;
 - reporting only after a separate analytics/reporting product phase.
 
+## Phase 26: Notification Preferences And Delivery Foundation
+
+Current status: implemented.
+
+Phase 26 includes:
+
+- tenant-owned notification preference model;
+- authenticated notification preference get/update API;
+- explicit rules for current scoring alert types;
+- enabled/disabled state, delivery mode, and cadence controls;
+- frontend notification preferences route;
+- preference-driven job-alert suppression;
+- provider-agnostic delivery classification and safe preparation metadata;
+- tests for default retrieval, updates, invalid payloads, preference
+  application, delivery classification, API client calls, and presentation
+  helpers.
+
+Phase 26 does not include:
+
+- broad email/SMS provider rollout;
+- marketing messaging;
+- realtime websocket push;
+- shared/team notification policies;
+- complex rules engines;
+- ML/AI prioritization;
+- collaboration workflows;
+- auction execution.
+
+Future expansion may include:
+
+- provider delivery only after unsubscribe, retry, rate-limit, and audit rules
+  are designed;
+- richer alert event sources after backend contracts exist;
+- digest processing after delivery workers and grouping policy exist.
+
 ## Later Phases
 
 Later phases may include:
@@ -852,7 +887,8 @@ Dependency order matters:
 21. explicit decision handoff;
 22. portfolio dashboard and operational summaries;
 23. saved views and attention queues;
-24. broader automation.
+24. notification preferences and delivery foundation;
+25. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

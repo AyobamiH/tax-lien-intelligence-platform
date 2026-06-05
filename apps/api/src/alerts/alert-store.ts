@@ -6,6 +6,7 @@ import type {
   AlertSeverity,
   AlertStatus,
   AlertType,
+  NotificationDeliveryPreparation,
 } from "@tax-lien/types";
 
 export interface StoredAlert {
@@ -18,6 +19,7 @@ export interface StoredAlert {
   relatedEntityType?: AlertRelatedEntityType;
   relatedEntityId?: string;
   metadata?: AlertMetadata;
+  deliveryPreparation?: NotificationDeliveryPreparation;
   readAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -31,6 +33,7 @@ export interface CreateAlertInput {
   relatedEntityType?: AlertRelatedEntityType;
   relatedEntityId?: string;
   metadata?: AlertMetadata;
+  deliveryPreparation?: NotificationDeliveryPreparation;
 }
 
 export interface AlertStore {
@@ -44,7 +47,14 @@ export interface AlertStore {
 export class MongoAlertStore implements AlertStore {
   public async createAlert(input: CreateAlertInput): Promise<StoredAlert> {
     const document = await AlertModel.create({
-      ...input,
+      userId: input.userId,
+      type: input.type,
+      severity: input.severity,
+      message: input.message,
+      ...(input.relatedEntityType ? { relatedEntityType: input.relatedEntityType } : {}),
+      ...(input.relatedEntityId ? { relatedEntityId: input.relatedEntityId } : {}),
+      ...(input.metadata ? { metadata: input.metadata } : {}),
+      ...(input.deliveryPreparation ? { deliveryPreparation: toPersistedDeliveryPreparation(input.deliveryPreparation) } : {}),
       status: "unread",
     });
     return mapAlert(document);
@@ -89,6 +99,28 @@ export class MongoAlertStore implements AlertStore {
   }
 }
 
+function toPersistedDeliveryPreparation(preparation: NotificationDeliveryPreparation): Record<string, unknown> {
+  return {
+    alertType: preparation.alertType,
+    deliveryState: preparation.deliveryState,
+    deliveryMode: preparation.deliveryMode,
+    cadence: preparation.cadence,
+    eligibleForDelivery: preparation.eligibleForDelivery,
+    preparedAt: new Date(preparation.preparedAt),
+    ...(preparation.payload
+      ? {
+          payload: {
+            subject: preparation.payload.subject,
+            summary: preparation.payload.summary,
+            ...(preparation.payload.relatedEntityType ? { relatedEntityType: preparation.payload.relatedEntityType } : {}),
+            ...(preparation.payload.relatedEntityId ? { relatedEntityId: preparation.payload.relatedEntityId } : {}),
+            metadata: preparation.payload.metadata,
+          },
+        }
+      : {}),
+  };
+}
+
 export function mapAlert(document: AlertDocument): StoredAlert {
   return {
     id: document.id,
@@ -109,6 +141,49 @@ export function mapAlert(document: AlertDocument): StoredAlert {
               : {}),
             ...(document.metadata.errorCode ? { errorCode: document.metadata.errorCode } : {}),
             ...(document.metadata.requestKind ? { requestKind: document.metadata.requestKind } : {}),
+          },
+        }
+      : {}),
+    ...(document.deliveryPreparation
+      ? {
+          deliveryPreparation: {
+            alertType: document.deliveryPreparation.alertType,
+            deliveryState: document.deliveryPreparation.deliveryState,
+            deliveryMode: document.deliveryPreparation.deliveryMode,
+            cadence: document.deliveryPreparation.cadence,
+            eligibleForDelivery: document.deliveryPreparation.eligibleForDelivery,
+            preparedAt: document.deliveryPreparation.preparedAt.toISOString(),
+            ...(document.deliveryPreparation.payload
+              ? {
+                  payload: {
+                    subject: document.deliveryPreparation.payload.subject,
+                    summary: document.deliveryPreparation.payload.summary,
+                    ...(document.deliveryPreparation.payload.relatedEntityType
+                      ? { relatedEntityType: document.deliveryPreparation.payload.relatedEntityType }
+                      : {}),
+                    ...(document.deliveryPreparation.payload.relatedEntityId
+                      ? { relatedEntityId: document.deliveryPreparation.payload.relatedEntityId }
+                      : {}),
+                    metadata: {
+                      ...(document.deliveryPreparation.payload.metadata.jobId
+                        ? { jobId: document.deliveryPreparation.payload.metadata.jobId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.datasetId
+                        ? { datasetId: document.deliveryPreparation.payload.metadata.datasetId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.scoredRecordCount !== undefined
+                        ? { scoredRecordCount: document.deliveryPreparation.payload.metadata.scoredRecordCount }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.errorCode
+                        ? { errorCode: document.deliveryPreparation.payload.metadata.errorCode }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.requestKind
+                        ? { requestKind: document.deliveryPreparation.payload.metadata.requestKind }
+                        : {}),
+                    },
+                  },
+                }
+              : {}),
           },
         }
       : {}),

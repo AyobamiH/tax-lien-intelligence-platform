@@ -13,6 +13,24 @@ export interface AlertMetadataRecord {
   requestKind?: "score" | "refresh" | "policy_refresh" | "maintenance_scan";
 }
 
+export interface AlertDeliveryPreparationPayloadRecord {
+  subject: string;
+  summary: string;
+  relatedEntityType?: AlertRelatedEntityTypeRecord;
+  relatedEntityId?: string;
+  metadata: AlertMetadataRecord;
+}
+
+export interface AlertDeliveryPreparationRecord {
+  alertType: AlertTypeRecord;
+  deliveryState: "suppressed" | "in_app_only" | "delivery_immediate" | "delivery_digest";
+  deliveryMode: "in_app_only" | "delivery_eligible";
+  cadence: "immediate" | "digest";
+  eligibleForDelivery: boolean;
+  preparedAt: Date;
+  payload?: AlertDeliveryPreparationPayloadRecord;
+}
+
 export interface AlertRecord {
   userId: string;
   type: AlertTypeRecord;
@@ -22,6 +40,7 @@ export interface AlertRecord {
   relatedEntityType?: AlertRelatedEntityTypeRecord;
   relatedEntityId?: string;
   metadata?: AlertMetadataRecord;
+  deliveryPreparation?: AlertDeliveryPreparationRecord;
   readAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -36,6 +55,64 @@ const alertMetadataSchema = new Schema<AlertMetadataRecord>(
     scoredRecordCount: { type: Number, min: 0 },
     errorCode: { type: String, trim: true, maxlength: 120 },
     requestKind: { type: String, enum: ["score", "refresh", "policy_refresh", "maintenance_scan"] },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
+const alertDeliveryPreparationPayloadSchema = new Schema<AlertDeliveryPreparationPayloadRecord>(
+  {
+    subject: { type: String, required: true, trim: true, maxlength: 160 },
+    summary: { type: String, required: true, trim: true, maxlength: 500 },
+    relatedEntityType: { type: String, enum: ["dataset", "job"] },
+    relatedEntityId: { type: String, trim: true },
+    metadata: {
+      type: alertMetadataSchema,
+      required: true,
+      default: {},
+    },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
+const alertDeliveryPreparationSchema = new Schema<AlertDeliveryPreparationRecord>(
+  {
+    alertType: {
+      type: String,
+      enum: ["scoring_job_completed", "scoring_job_failed"],
+      required: true,
+    },
+    deliveryState: {
+      type: String,
+      enum: ["suppressed", "in_app_only", "delivery_immediate", "delivery_digest"],
+      required: true,
+    },
+    deliveryMode: {
+      type: String,
+      enum: ["in_app_only", "delivery_eligible"],
+      required: true,
+    },
+    cadence: {
+      type: String,
+      enum: ["immediate", "digest"],
+      required: true,
+    },
+    eligibleForDelivery: {
+      type: Boolean,
+      required: true,
+    },
+    preparedAt: {
+      type: Date,
+      required: true,
+    },
+    payload: {
+      type: alertDeliveryPreparationPayloadSchema,
+    },
   },
   {
     _id: false,
@@ -87,6 +164,9 @@ const alertSchema = new Schema<AlertRecord>(
     },
     metadata: {
       type: alertMetadataSchema,
+    },
+    deliveryPreparation: {
+      type: alertDeliveryPreparationSchema,
     },
     readAt: {
       type: Date,

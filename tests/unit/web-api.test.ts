@@ -6,6 +6,7 @@ import {
   applyDatasetImportProfile,
   createSavedView,
   createDataset,
+  getNotificationPreferences,
   getPortfolioSummary,
   handoffComparisonToPortfolio,
   handoffComparisonToWatchlist,
@@ -17,6 +18,7 @@ import {
   saveDatasetImportProfile,
   saveDatasetManualMapping,
   updateComparisonItem,
+  updateNotificationPreferences,
 } from "../../apps/web/src/api.js";
 
 const originalFetch = globalThis.fetch;
@@ -387,6 +389,57 @@ describe("web API client", () => {
     expect(url).toBe("http://localhost:4000/portfolio/summary");
     expect(init.method).toBe("GET");
     expect((init.headers as Headers).get("Authorization")).toBe("Bearer test-token");
+  });
+
+  it("calls notification preference endpoints with bearer auth and structured payloads", async () => {
+    const responsePayload = {
+      preferences: {
+        id: "prefs-1",
+        rules: [
+          {
+            alertType: "scoring_job_completed",
+            enabled: true,
+            deliveryMode: "in_app_only",
+            cadence: "digest",
+          },
+          {
+            alertType: "scoring_job_failed",
+            enabled: true,
+            deliveryMode: "delivery_eligible",
+            cadence: "immediate",
+          },
+        ],
+        createdAt: "2026-06-01T00:00:00.000Z",
+        updatedAt: "2026-06-01T00:00:00.000Z",
+      },
+      categories: [],
+    };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(responsePayload), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(responsePayload), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    globalThis.fetch = fetchMock;
+
+    await expect(getNotificationPreferences("test-token")).resolves.toEqual(responsePayload);
+    await expect(
+      updateNotificationPreferences("test-token", { rules: responsePayload.preferences.rules }),
+    ).resolves.toEqual(responsePayload);
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://localhost:4000/notification-preferences");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("http://localhost:4000/notification-preferences");
+    expect(fetchMock.mock.calls[1]?.[1]?.method).toBe("PATCH");
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ rules: responsePayload.preferences.rules }));
+    expect((fetchMock.mock.calls[1]?.[1]?.headers as Headers).get("Authorization")).toBe("Bearer test-token");
   });
 
   it("calls saved-view endpoints with bearer auth and structured payloads", async () => {

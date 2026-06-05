@@ -59,6 +59,10 @@ It shows:
 - selected comparison item handoff actions into watchlist and portfolio;
 - dedicated alerts route using `#/alerts`;
 - unread alert count and alert read/read-all actions;
+- dedicated notification preferences route using `#/notifications`;
+- notification controls for supported scoring alert types, enabled state,
+  in-app-only versus delivery-ready handling, and immediate versus digest-ready
+  timing;
 - loading, empty, and error states.
 
 This is the first real user-facing review and decision-tracking workflow. It is
@@ -89,6 +93,8 @@ The current API surface is minimal:
 - `GET /alerts`
 - `PATCH /alerts/:alertId/read`
 - `PATCH /alerts/read-all`
+- `GET /notification-preferences`
+- `PATCH /notification-preferences`
 - `POST /watchlist`
 - `GET /watchlist`
 - `DELETE /watchlist/:watchlistItemId`
@@ -120,6 +126,7 @@ Documented in:
 - `docs/api/scoring.md`
 - `docs/api/jobs.md`
 - `docs/api/alerts.md`
+- `docs/api/notification-preferences.md`
 - `docs/api/watchlist.md`
 - `docs/api/portfolio.md`
 - `docs/api/comparison.md`
@@ -162,10 +169,13 @@ Real workflows now present:
   work slices.
 - comparison workspace, decision state, and lightweight notes.
 - in-app alert review for scoring completions and failures.
+- notification preference management for current scoring alert types.
 - import readiness review before relying on score output.
 - focused import repair before rerunning readiness/scoring.
 - deterministic import profile reuse for repeated upload shapes.
 - deterministic saved views for repeated portfolio review filters.
+- notification preferences for controlling in-app-only versus delivery-ready
+  scoring alerts.
 
 Real workflows not present:
 
@@ -213,6 +223,7 @@ The current API cannot:
 - provide a full spreadsheet transformation workflow;
 - manage collaboration or auction execution.
 - run arbitrary saved-view query expressions or BI/report-builder workflows.
+- send email/SMS alerts or realtime push notifications.
 
 ## Where The Current Surface Could Mislead Contributors
 
@@ -227,6 +238,10 @@ items only.
 Saved views could make contributors think reporting or shared workspaces exist.
 They do not. Current saved views are private operational filters and built-in
 queues over existing portfolio/comparison data only.
+
+Notification preferences could make contributors think external delivery exists.
+It does not. Current notification preferences control in-app alert generation
+and provider-agnostic delivery readiness only.
 
 The presence of browser auth, score review, and worker-backed scoring could make
 contributors think the whole V1 app is implemented. It is not: batch upload,

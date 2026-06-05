@@ -97,6 +97,13 @@ Current repo protections:
 - tenant-owned internal job persistence;
 - authenticated job detail route;
 - job ownership enforcement;
+- tenant-owned notification preference persistence;
+- authenticated notification preference get/update routes;
+- notification preference validation for known alert types and delivery modes;
+- preference-driven alert suppression and provider-agnostic delivery
+  preparation without raw payload dumping;
+- notification preference tests for defaults, invalid payloads, and delivery
+  classification;
 - worker-side queued job claiming for supported job types;
 - worker-driven dataset scoring execution;
 - request-kind metadata for scoring vs refresh jobs;

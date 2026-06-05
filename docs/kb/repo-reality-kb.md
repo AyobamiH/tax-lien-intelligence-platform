@@ -166,6 +166,12 @@ Implemented today:
 - saved portfolio/comparison criteria validation with built-in attention
   queues;
 - frontend portfolio saved-view save/apply/default flow;
+- tenant-owned notification preference model in `packages/db`;
+- authenticated notification preference endpoints at
+  `GET /notification-preferences` and `PATCH /notification-preferences`;
+- provider-agnostic delivery preparation on job-generated alerts;
+- preference-driven suppression/classification for current scoring alert types;
+- frontend notification preferences route;
 - tenant-owned comparison item model in `packages/db`;
 - tenant-owned decision history model in `packages/db`;
 - authenticated comparison endpoints at `POST /comparison`, `GET /comparison`,
@@ -313,6 +319,9 @@ Current tests cover:
 - invalid saved-view criteria rejection;
 - built-in attention queue behavior;
 - cross-user saved-view apply rejection.
+- notification preference default retrieval/update behavior;
+- invalid notification preference payload rejection;
+- preference-driven alert suppression and delivery classification.
 - comparison add/list/update/delete behavior;
 - duplicate comparison handling;
 - cross-user comparison source/update/delete/history/handoff rejection.
@@ -371,6 +380,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
   portfolio records only.
 - tenant-owned saved views are implemented and applied only over owned
   portfolio/comparison records.
+- tenant-owned notification preferences are implemented and affect only the
+  authenticated user's generated scoring alerts.
 - tenant-owned comparison item records are implemented.
 - tenant-owned parcel records are not yet implemented.
 

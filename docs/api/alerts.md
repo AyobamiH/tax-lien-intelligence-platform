@@ -4,6 +4,9 @@ Phase 9 introduces tenant-owned in-app alerts for important user-visible
 workflow events. Alerts are a monitoring surface inside the app, not email,
 SMS, realtime delivery, or external automation.
 
+Phase 26 adds notification preferences and delivery-preparation metadata for
+job-generated alerts. External provider delivery is still not implemented.
+
 Current alert sources:
 
 - dataset scoring job completed;
@@ -64,6 +67,14 @@ Lists recent alerts owned by the authenticated user and returns an unread count.
         "scoredRecordCount": 2,
         "requestKind": "score"
       },
+      "deliveryPreparation": {
+        "alertType": "scoring_job_completed",
+        "deliveryState": "in_app_only",
+        "deliveryMode": "in_app_only",
+        "cadence": "digest",
+        "eligibleForDelivery": false,
+        "preparedAt": "2026-05-25T00:00:00.000Z"
+      },
       "createdAt": "2026-05-25T00:00:00.000Z",
       "updatedAt": "2026-05-25T00:00:00.000Z"
     }
@@ -119,7 +130,8 @@ Possible alert errors:
 
 ## Current Limitations
 
-Alerts are currently in-app records only. There is no email delivery, SMS
-delivery, realtime websocket feed, external scheduler product, delivery worker,
-or admin monitoring console. Phase 15 scheduled maintenance can create
-policy-refresh scoring alerts, but it does not add external alert delivery.
+Alerts are currently in-app records with provider-agnostic delivery
+classification only. There is no email delivery, SMS delivery, realtime
+websocket feed, external scheduler product, delivery worker, or admin
+monitoring console. Phase 15 scheduled maintenance can create policy-refresh
+scoring alerts, but it does not add external alert delivery.
