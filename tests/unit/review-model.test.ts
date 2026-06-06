@@ -4,6 +4,8 @@ import type {
   ComparisonItemResponse,
   DecisionHistoryEventResponse,
   DatasetResponse,
+  NotificationDeliveryHistoryItem,
+  NotificationDigestBatchResponse,
   PortfolioItemResponse,
   ScoredRecordResponse,
   WatchlistItemResponse,
@@ -38,6 +40,9 @@ import {
   notificationCadenceLabel,
   notificationDeliveryModeLabel,
   notificationDeliveryStateLabel,
+  notificationDeliveryStatusClassName,
+  notificationDeliveryStatusLabel,
+  notificationDigestBatchStatusLabel,
   primaryRecordLabel,
   comparisonDecisionClassName,
   comparisonDecisionLabel,
@@ -52,6 +57,8 @@ import {
   sortAlertsForReview,
   sortComparisonItemsForReview,
   sortDecisionHistoryForReview,
+  sortNotificationDeliveriesForReview,
+  sortNotificationDigestBatchesForReview,
   sortPortfolioItemsForReview,
   sortScoresForReview,
   sortWatchlistItemsForReview,
@@ -633,6 +640,52 @@ describe("review model helpers", () => {
     expect(notificationDeliveryModeLabel("delivery_eligible")).toBe("Delivery-ready");
     expect(notificationCadenceLabel("digest")).toBe("Digest-ready");
     expect(notificationDeliveryStateLabel("delivery_immediate")).toBe("Delivery-ready immediate");
+    expect(notificationDeliveryStatusLabel("digest_processing")).toBe("Building digest");
+    expect(notificationDigestBatchStatusLabel("provider_disabled")).toBe("Provider disabled");
+    expect(notificationDeliveryStatusClassName("failed")).toContain("red");
+  });
+
+  it("orders notification delivery history and digest batches newest first", () => {
+    const olderDelivery: NotificationDeliveryHistoryItem = {
+      id: "older",
+      alertType: "scoring_job_completed",
+      channel: "email",
+      status: "sent",
+      deliveryMode: "delivery_eligible",
+      cadence: "digest",
+      attempts: 1,
+      preparedAt: "2026-06-05T00:00:00.000Z",
+      updatedAt: "2026-06-05T01:00:00.000Z",
+    };
+    const newerDelivery: NotificationDeliveryHistoryItem = {
+      ...olderDelivery,
+      id: "newer",
+      cadence: "immediate",
+      updatedAt: "2026-06-06T01:00:00.000Z",
+    };
+    const olderBatch: NotificationDigestBatchResponse = {
+      id: "batch-older",
+      status: "sent",
+      itemCount: 2,
+      attempts: 1,
+      createdAt: "2026-06-05T00:00:00.000Z",
+      updatedAt: "2026-06-05T01:00:00.000Z",
+    };
+    const newerBatch: NotificationDigestBatchResponse = {
+      ...olderBatch,
+      id: "batch-newer",
+      createdAt: "2026-06-06T00:00:00.000Z",
+      updatedAt: "2026-06-06T01:00:00.000Z",
+    };
+
+    expect(sortNotificationDeliveriesForReview([olderDelivery, newerDelivery]).map((item) => item.id)).toEqual([
+      "newer",
+      "older",
+    ]);
+    expect(sortNotificationDigestBatchesForReview([olderBatch, newerBatch]).map((item) => item.id)).toEqual([
+      "batch-newer",
+      "batch-older",
+    ]);
   });
 
   it("labels dataset refresh and scoring status states", () => {

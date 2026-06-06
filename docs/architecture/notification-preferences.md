@@ -4,13 +4,15 @@ Phase 26 added tenant-owned notification preferences and provider-agnostic
 delivery preparation. Phase 27 adds the first email delivery foundation:
 preference-aware immediate email for supported product alerts, Mongo-backed
 outbox tracking, SMTP transport wiring, and digest-ready batching records.
+Phase 28 adds scheduled digest processing, digest batch records, and
+authenticated user-visible delivery history.
 
 Email delivery is disabled by default. It sends only when email delivery is
 enabled and required SMTP/sender env config is complete.
 
 ## Current Implementation
 
-Implemented through Phase 27:
+Implemented through Phase 28:
 
 - tenant-owned notification preference model in `packages/db`;
 - notification preference store/service boundaries in
@@ -31,6 +33,12 @@ Implemented through Phase 27:
 - failure outbox records when the provider rejects a message;
 - duplicate-send avoidance by unique user/source/channel outbox keys;
 - digest-ready outbox records for delivery-eligible digest alerts;
+- tenant-owned digest batch records and outbox-to-batch linkage;
+- scheduler-backed bounded digest processing;
+- current-preference recheck before digest send;
+- duplicate-safe digest batch and outbox claiming;
+- authenticated `GET /notification-deliveries`;
+- frontend delivery history page using `#/delivery-history`;
 - frontend notification preferences page using `#/notifications`;
 - tests for preference-enabled delivery, suppressed alerts, immediate success,
   disabled config, provider failure, duplicate-send avoidance, digest grouping,
@@ -41,7 +49,6 @@ Not implemented:
 - SMS delivery;
 - push notifications;
 - marketing or lifecycle messaging;
-- user-facing digest send scheduler;
 - realtime websocket push;
 - team/shared notification policies;
 - complex rules engines;
@@ -93,6 +100,7 @@ Outbox statuses:
 - `suppressed`;
 - `in_app_only`;
 - `digest_ready`;
+- `digest_processing`;
 - `pending`;
 - `sent`;
 - `failed`;
@@ -130,18 +138,20 @@ sends only when `EMAIL_FROM_ADDRESS` and `SMTP_HOST` are also present. Missing
 config does not crash startup; delivery-eligible alerts become
 `provider_disabled` outbox records.
 
-## Digest Foundation
+## Digest Processing
 
-Digest sending is not scheduled yet. Phase 27 intentionally stops at
-digest-ready outbox grouping:
+Phase 28 registers digest processing with the existing worker scheduler. The
+default processing interval is 24 hours. Each run limits users and items per
+batch through env config.
 
-- preference rules can classify supported alerts as `delivery_digest`;
-- delivery service records them as `digest_ready`;
-- the store can list digest-ready email records by user in created order.
+The worker creates one batch per user and processing window, atomically claims
+eligible outbox records, rechecks current preferences, and sends one grouped
+plain-text product-alert email. A batch receives one provider attempt; outcomes
+are recorded as sent, failed, provider-disabled, suppressed, or empty.
 
-A later digest phase can add grouping windows, rendered digest content, send
-state transitions, rate limits, and scheduler/worker execution without changing
-the preference contract.
+Users can inspect safe delivery and batch history at `#/delivery-history`.
+Recipient addresses, provider message ids, and raw provider errors remain
+server-only.
 
 ## Security
 
@@ -155,6 +165,7 @@ workflow state. The implementation requires:
 - delivery preparation over the alert being generated for the current user;
 - recipient lookup by alert owner;
 - no cross-user preference, alert, or outbox leakage;
+- no cross-user digest batch or delivery history leakage;
 - no raw uploaded rows, stack traces, tokens, SMTP passwords, or provider
   payloads in email content or outbox metadata.
 

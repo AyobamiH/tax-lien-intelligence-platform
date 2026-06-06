@@ -94,6 +94,12 @@ export {
   type NotificationPreferenceRuleRecord,
 } from "./models/notification-preference.js";
 export {
+  NotificationDigestBatchModel,
+  type NotificationDigestBatchDocument,
+  type NotificationDigestBatchRecord,
+  type NotificationDigestBatchStatusRecord,
+} from "./models/notification-digest-batch.js";
+export {
   NotificationDeliveryModel,
   type NotificationDeliveryChannelRecord,
   type NotificationDeliveryDocument,

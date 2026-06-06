@@ -7,6 +7,7 @@ export type NotificationDeliveryStatusRecord =
   | "suppressed"
   | "in_app_only"
   | "digest_ready"
+  | "digest_processing"
   | "pending"
   | "sent"
   | "failed"
@@ -16,6 +17,7 @@ export type NotificationDeliveryFailureCodeRecord = "provider_disabled" | "recip
 export interface NotificationDeliveryRecord {
   userId: string;
   alertId?: string;
+  digestBatchId?: string;
   sourceKey: string;
   alertType: AlertTypeRecord;
   channel: NotificationDeliveryChannelRecord;
@@ -68,6 +70,11 @@ const notificationDeliverySchema = new Schema<NotificationDeliveryRecord>(
       trim: true,
       index: true,
     },
+    digestBatchId: {
+      type: String,
+      trim: true,
+      index: true,
+    },
     sourceKey: {
       type: String,
       required: true,
@@ -88,7 +95,16 @@ const notificationDeliverySchema = new Schema<NotificationDeliveryRecord>(
     },
     status: {
       type: String,
-      enum: ["suppressed", "in_app_only", "digest_ready", "pending", "sent", "failed", "provider_disabled"],
+      enum: [
+        "suppressed",
+        "in_app_only",
+        "digest_ready",
+        "digest_processing",
+        "pending",
+        "sent",
+        "failed",
+        "provider_disabled",
+      ],
       required: true,
       index: true,
     },

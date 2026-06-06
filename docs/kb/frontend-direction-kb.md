@@ -55,6 +55,7 @@ Current implementation:
 - alert entries for scoring completion/failure outcomes;
 - notification preferences route with controls for current scoring alert types,
   enabled state, in-app-only versus email-capable handling, and timing;
+- delivery history route with safe immediate and digest outcomes;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -100,6 +101,7 @@ Current and future page direction:
 - implemented: maintenance policy status display on dataset detail;
 - implemented: alerts monitoring surface;
 - implemented: notification preferences surface;
+- implemented: delivery history surface;
 - future: account/settings page.
 
 ## Page Responsibilities
@@ -215,6 +217,15 @@ Implemented notification preferences:
 - explain that email sends only when provider env config is complete and that
   delivery-ready alerts are safely tracked otherwise.
 
+Implemented delivery history:
+
+- show immediate versus digest cadence;
+- show sent, suppressed, failed, provider-disabled, waiting, and processing
+  states;
+- show digest batch item counts and attempts;
+- show safe failure messages without raw provider errors or recipient emails;
+- provide useful loading, empty, and error states.
+
 Implemented scoring execution visibility:
 
 - show queued, running, completed, or failed state for score jobs;
@@ -226,8 +237,8 @@ Implemented scoring execution visibility:
 Future alerts expansion:
 
 - SMS/push only after a separate security and product phase;
-- scheduled digest email send workflow after grouping, rate-limit, retry, and
-  audit rules exist;
+- richer digest cadence/customization only after product demand and security
+  design justify it;
 - richer event sources only when backend contracts exist.
 
 ## Design Tone

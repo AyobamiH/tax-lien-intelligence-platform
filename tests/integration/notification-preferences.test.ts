@@ -7,6 +7,7 @@ import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/
 import { createApp } from "../../apps/api/src/app.js";
 import type { ApiConfig } from "../../apps/api/src/config/env.js";
 import type { EmailMessage, EmailTransport } from "../../apps/api/src/notification-delivery/email-transport.js";
+import { InMemoryNotificationDigestBatchStore } from "../support/in-memory-notification-digest-batch-store.js";
 import { NotificationDeliveryService } from "../../apps/api/src/notification-delivery/notification-delivery-service.js";
 import { NotificationPreferenceService } from "../../apps/api/src/notification-preferences/notification-preference-service.js";
 import type {
@@ -84,6 +85,7 @@ function createTestContext() {
   const userStore = new InMemoryUserStore();
   const notificationPreferenceService = new NotificationPreferenceService(new InMemoryNotificationPreferenceStore());
   const notificationDeliveryStore = new InMemoryNotificationDeliveryStore();
+  const notificationDigestBatchStore = new InMemoryNotificationDigestBatchStore();
   const emailTransport = new FakeEmailTransport();
   const notificationDeliveryService = new NotificationDeliveryService(
     notificationDeliveryStore,
@@ -93,6 +95,8 @@ function createTestContext() {
       return user?.email ?? null;
     },
     enabledEmailConfig(),
+    notificationDigestBatchStore,
+    (userId, alertType) => notificationPreferenceService.isDigestDeliveryEnabled(userId, alertType),
   );
   const alertStore = new InMemoryAlertStore();
   const alertService = new AlertService(alertStore, notificationPreferenceService, notificationDeliveryService);
@@ -106,6 +110,7 @@ function createTestContext() {
     app: createApp({ authService, alertService, notificationPreferenceService, notificationDeliveryService }),
     alertService,
     notificationDeliveryStore,
+    notificationDigestBatchStore,
     emailTransport,
   };
 }
@@ -263,6 +268,59 @@ describe("notification preferences API", () => {
     );
     expect(emailTransport.messages).toHaveLength(1);
   });
+
+  it("returns owner-scoped delivery history without recipient or raw provider details", async () => {
+    const { app, alertService } = createTestContext();
+    const owner = await registerUser(app, "owner@example.com");
+    const other = await registerUser(app, "other@example.com");
+
+    await alertService.recordJobFailed({
+      id: new mongoose.Types.ObjectId().toString(),
+      userId: owner.userId,
+      type: "dataset_scoring",
+      targetEntityType: "dataset",
+      targetEntityId: new mongoose.Types.ObjectId().toString(),
+      requestKind: "refresh",
+      status: "failed",
+      error: { code: "owner_failure", message: "Owner job failed safely." },
+    });
+    await alertService.recordJobFailed({
+      id: new mongoose.Types.ObjectId().toString(),
+      userId: other.userId,
+      type: "dataset_scoring",
+      targetEntityType: "dataset",
+      targetEntityId: new mongoose.Types.ObjectId().toString(),
+      requestKind: "refresh",
+      status: "failed",
+      error: { code: "other_failure", message: "Other job failed safely." },
+    });
+
+    const response = await request(app)
+      .get("/notification-deliveries")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(response.body.deliveries).toHaveLength(1);
+    expect(response.body.deliveries[0]).toMatchObject({
+      alertType: "scoring_job_failed",
+      status: "sent",
+      cadence: "immediate",
+    });
+    expect(response.body.digestBatches).toEqual([]);
+    expect(JSON.stringify(response.body)).not.toContain("other_failure");
+    expect(JSON.stringify(response.body)).not.toContain("owner@example.com");
+    expect(JSON.stringify(response.body)).not.toContain("providerMessageId");
+    expect(JSON.stringify(response.body)).not.toContain("failureReason");
+
+    const emptyOwner = await registerUser(app, "empty@example.com");
+    const emptyResponse = await request(app)
+      .get("/notification-deliveries")
+      .set("Authorization", `Bearer ${emptyOwner.token}`)
+      .expect(200);
+    expect(emptyResponse.body).toEqual({ deliveries: [], digestBatches: [] });
+
+    await request(app).get("/notification-deliveries").expect(401);
+  });
 });
 
 function enabledEmailConfig(): ApiConfig["email"] {
@@ -276,6 +334,11 @@ function enabledEmailConfig(): ApiConfig["email"] {
       port: 465,
       secure: true,
       connectionTimeoutMs: 1000,
+    },
+    digest: {
+      processingIntervalMs: 86_400_000,
+      maxUsersPerRun: 100,
+      maxItemsPerBatch: 50,
     },
   };
 }

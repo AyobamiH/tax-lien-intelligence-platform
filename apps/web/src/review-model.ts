@@ -14,8 +14,12 @@ import type {
   DatasetScoringStatus,
   NormalizedScoredRecordFields,
   NotificationCadence,
+  NotificationDeliveryHistoryItem,
   NotificationDeliveryMode,
   NotificationDeliveryState,
+  NotificationDeliveryStatus,
+  NotificationDigestBatchResponse,
+  NotificationDigestBatchStatus,
   PortfolioActivitySummary,
   PortfolioAttentionReason,
   PortfolioAttentionSummary,
@@ -704,6 +708,82 @@ export function notificationDeliveryStateLabel(state: NotificationDeliveryState)
     case "delivery_digest":
       return "Delivery-ready digest";
   }
+}
+
+export function notificationDeliveryStatusLabel(status: NotificationDeliveryStatus): string {
+  switch (status) {
+    case "suppressed":
+      return "Suppressed";
+    case "in_app_only":
+      return "In-app only";
+    case "digest_ready":
+      return "Waiting for digest";
+    case "digest_processing":
+      return "Building digest";
+    case "pending":
+      return "Sending";
+    case "sent":
+      return "Sent";
+    case "failed":
+      return "Failed";
+    case "provider_disabled":
+      return "Provider disabled";
+  }
+}
+
+export function notificationDigestBatchStatusLabel(status: NotificationDigestBatchStatus): string {
+  switch (status) {
+    case "pending":
+      return "Pending";
+    case "processing":
+      return "Processing";
+    case "sent":
+      return "Sent";
+    case "failed":
+      return "Failed";
+    case "provider_disabled":
+      return "Provider disabled";
+    case "suppressed":
+      return "Suppressed";
+    case "empty":
+      return "No eligible items";
+  }
+}
+
+export function notificationDeliveryStatusClassName(
+  status: NotificationDeliveryStatus | NotificationDigestBatchStatus,
+): string {
+  switch (status) {
+    case "sent":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    case "failed":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "provider_disabled":
+    case "suppressed":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+    case "pending":
+    case "processing":
+    case "digest_processing":
+      return "border-sky-200 bg-sky-50 text-sky-900";
+    default:
+      return "border-line bg-field text-ink";
+  }
+}
+
+export function sortNotificationDeliveriesForReview(
+  deliveries: NotificationDeliveryHistoryItem[],
+): NotificationDeliveryHistoryItem[] {
+  return [...deliveries].sort(
+    (left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime(),
+  );
+}
+
+export function sortNotificationDigestBatchesForReview(
+  batches: NotificationDigestBatchResponse[],
+): NotificationDigestBatchResponse[] {
+  return [...batches].sort(
+    (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+  );
 }
 
 export function alertSeverityClassName(severity: AlertSeverity): string {

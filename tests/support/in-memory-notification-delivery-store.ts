@@ -28,6 +28,7 @@ export class InMemoryNotificationDeliveryStore implements NotificationDeliverySt
       id: new mongoose.Types.ObjectId().toString(),
       userId: input.userId,
       ...(input.alertId ? { alertId: input.alertId } : {}),
+      ...(input.digestBatchId ? { digestBatchId: input.digestBatchId } : {}),
       sourceKey: input.sourceKey,
       alertType: input.alertType,
       channel: input.channel,
@@ -69,10 +70,70 @@ export class InMemoryNotificationDeliveryStore implements NotificationDeliverySt
     return updated;
   }
 
+  public async updateDeliveries(
+    ids: string[],
+    input: UpdateNotificationDeliveryInput,
+  ): Promise<StoredNotificationDelivery[]> {
+    return Promise.all(ids.map((id) => this.updateDelivery(id, input)));
+  }
+
+  public async listDigestReadyUserIds(limit: number): Promise<string[]> {
+    return [
+      ...new Set(
+        [...this.deliveriesById.values()]
+          .filter(
+            (delivery) =>
+              delivery.channel === "email" &&
+              delivery.cadence === "digest" &&
+              delivery.status === "digest_ready",
+          )
+          .map((delivery) => delivery.userId),
+      ),
+    ]
+      .sort()
+      .slice(0, limit);
+  }
+
+  public async claimDigestReadyForBatch(
+    userId: string,
+    digestBatchId: string,
+    limit: number,
+    claimedAt: Date,
+  ): Promise<StoredNotificationDelivery[]> {
+    const candidates = [...this.deliveriesById.values()]
+      .filter(
+        (delivery) =>
+          delivery.userId === userId &&
+          delivery.channel === "email" &&
+          delivery.cadence === "digest" &&
+          delivery.status === "digest_ready" &&
+          !delivery.digestBatchId,
+      )
+      .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime())
+      .slice(0, limit);
+
+    return Promise.all(
+      candidates.map((delivery) =>
+        this.updateDelivery(delivery.id, {
+          status: "digest_processing",
+          digestBatchId,
+          lastAttemptAt: claimedAt,
+        }),
+      ),
+    );
+  }
+
   public async listDigestReadyForUser(userId: string): Promise<StoredNotificationDelivery[]> {
     return [...this.deliveriesById.values()]
       .filter((delivery) => delivery.userId === userId && delivery.channel === "email" && delivery.status === "digest_ready")
       .sort((left, right) => left.createdAt.getTime() - right.createdAt.getTime());
+  }
+
+  public async listHistoryForUser(userId: string, limit: number): Promise<StoredNotificationDelivery[]> {
+    return [...this.deliveriesById.values()]
+      .filter((delivery) => delivery.userId === userId)
+      .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+      .slice(0, limit);
   }
 
   public listAll(): StoredNotificationDelivery[] {

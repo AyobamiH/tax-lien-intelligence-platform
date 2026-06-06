@@ -63,6 +63,9 @@ It shows:
 - notification controls for supported scoring alert types, enabled state,
   in-app-only versus email-capable handling, and immediate versus digest-ready
   timing;
+- dedicated delivery history route using `#/delivery-history`;
+- immediate email and digest batch status, attempts, suppressions, failures,
+  provider-disabled state, and safe related-dataset navigation;
 - loading, empty, and error states.
 
 This is the first real user-facing review and decision-tracking workflow. It is
@@ -95,6 +98,7 @@ The current API surface is minimal:
 - `PATCH /alerts/read-all`
 - `GET /notification-preferences`
 - `PATCH /notification-preferences`
+- `GET /notification-deliveries`
 - `POST /watchlist`
 - `GET /watchlist`
 - `DELETE /watchlist/:watchlistItemId`
@@ -127,6 +131,7 @@ Documented in:
 - `docs/api/jobs.md`
 - `docs/api/alerts.md`
 - `docs/api/notification-preferences.md`
+- `docs/api/notification-deliveries.md`
 - `docs/api/watchlist.md`
 - `docs/api/portfolio.md`
 - `docs/api/comparison.md`
@@ -178,6 +183,7 @@ Real workflows now present:
   scoring alerts.
 - env-driven immediate product-alert email for supported alerts when SMTP
   config is complete.
+- scheduled digest processing and owner-scoped delivery history.
 
 Real workflows not present:
 
@@ -216,7 +222,7 @@ The current API cannot:
 
 - provide a standalone parcel/lien row API;
 - persist user-owned parcel records outside scored-record outputs;
-- deliver SMS/push alerts or scheduled email digests;
+- deliver SMS/push alerts;
 - provide realtime worker status;
 - show external enrichment/provider verification;
 - perform broad scheduled refresh or sync;
@@ -226,7 +232,6 @@ The current API cannot:
 - manage collaboration or auction execution.
 - run arbitrary saved-view query expressions or BI/report-builder workflows.
 - send SMS/push alerts or realtime notifications.
-- send digest emails on a schedule.
 
 ## Where The Current Surface Could Mislead Contributors
 
@@ -245,12 +250,13 @@ queues over existing portfolio/comparison data only.
 Notification preferences could make contributors think every delivery channel
 exists. They do not. Current notification preferences control in-app alert
 generation, immediate email eligibility when SMTP config is complete, and
-digest-ready outbox records only.
+scheduled digest delivery. Delivery history exposes safe outcomes without
+recipient addresses or raw provider errors.
 
 The presence of browser auth, score review, and worker-backed scoring could make
 contributors think the whole V1 app is implemented. It is not: batch upload,
-settings, SMS/push delivery, user-facing digest send workers, and product
-automation are still future work.
+settings, SMS/push delivery, marketing campaigns, and broader product automation
+are still future work.
 
 The presence of a dataset model could make contributors think full parcel
 ingestion exists. It does not.

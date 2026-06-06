@@ -39,7 +39,9 @@ attention queues for returning to reusable operational work slices. Phase 26
 adds tenant-owned notification preferences and delivery-ready classification
 for current scoring alerts. Phase 27 adds the first email delivery foundation
 for supported product alerts with env-driven SMTP config, outbox tracking, and
-digest-ready grouping.
+digest-ready grouping. Phase 28 adds bounded scheduled digest processing,
+tenant-owned digest batch records, send-time preference checks, and an
+authenticated delivery history surface.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -75,6 +77,8 @@ Current evidence:
   external verification;
 - in-app alerts make scoring job outcomes visible, and supported product alerts
   can send immediate email when preferences and SMTP config allow it;
+- supported digest alerts can be grouped into bounded scheduled email batches,
+  with owner-safe delivery and batch history in the app;
 - architecture docs say every future user-owned document must include `userId`.
 
 ## What This SaaS Is
@@ -115,8 +119,8 @@ readiness guidance now exist. Focused manual field mapping repair now exists.
 Reusable import profiles and the comparison workspace now exist. Broad county
 coverage, live county sync, full spreadsheet editing, collaboration, rich
 decision history, ML mapping suggestions, SMS/push alert delivery, user-facing
-scheduler policy controls, broader automatic refresh, scheduled digest sends,
-and richer automation remain future direction.
+scheduler policy controls, broader automatic refresh, advanced digest
+scheduling/templates/retries, and richer automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -310,7 +314,7 @@ Long-term direction may include:
 - watchlist monitoring;
 - portfolio analytics;
 - SMS/push alert delivery;
-- scheduled digest email delivery;
+- richer digest scheduling, templates, and explicit retry policy;
 - automation for recurring county files;
 - team workflows;
 - audit trails.

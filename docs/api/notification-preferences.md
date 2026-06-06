@@ -1,9 +1,10 @@
 # Notification Preferences API
 
 Phase 26 added tenant-owned notification preferences for the current alert
-system. Phase 27 adds the email delivery foundation behind those preferences.
+system. Phase 27 adds the email delivery foundation behind those preferences,
+and Phase 28 processes digest cadence through the worker scheduler.
 Preferences control whether supported alert types are enabled, in-app only,
-delivery-eligible immediate email, or digest-ready for later batching.
+delivery-eligible immediate email, or scheduled digest email.
 
 This is not SMS delivery, push delivery, marketing messaging, websocket push,
 or a general rules engine. Email sends only when env-driven SMTP config is
@@ -28,7 +29,7 @@ Each rule includes:
 
 `delivery_eligible` can send immediate product-alert email for supported alert
 types when SMTP is enabled. Digest cadence writes digest-ready outbox records
-for future batching.
+that the worker groups and processes on schedule.
 
 ## `GET /notification-preferences`
 
@@ -110,7 +111,7 @@ Job-generated alerts now receive an internal delivery classification:
 - `suppressed` when disabled by preference;
 - `in_app_only` when the alert should remain in the app;
 - `delivery_immediate` when eligible for immediate product-alert email;
-- `delivery_digest` when eligible for future grouped email delivery.
+- `delivery_digest` when eligible for scheduled grouped email delivery.
 
 Delivery-preparation payloads are provider-agnostic and contain safe summaries
 plus bounded alert metadata. They do not include raw source rows, stack traces,
@@ -121,6 +122,7 @@ The delivery service writes outbox records for supported job alerts:
 - `suppressed`;
 - `in_app_only`;
 - `digest_ready`;
+- `digest_processing`;
 - `pending`;
 - `sent`;
 - `failed`;
@@ -135,7 +137,9 @@ Email is disabled by default. To enable immediate email sends, configure:
   base URL.
 
 If config is missing, delivery-ready immediate alerts still create in-app alerts
-and provider-disabled outbox records. SMS and push are future channels.
+and provider-disabled outbox records. Scheduled digest processing follows the
+same provider-disabled-safe behavior. Delivery outcomes are available through
+`GET /notification-deliveries`. SMS and push are future channels.
 
 ## Errors
 

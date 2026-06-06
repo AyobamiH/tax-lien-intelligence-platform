@@ -58,6 +58,8 @@ Implemented:
 - selected comparison item decision history timeline;
 - selected comparison item handoff actions to watchlist and portfolio;
 - dedicated alerts route with unread/read state;
+- dedicated delivery history route with immediate/digest status and batch
+  summaries;
 - alert links back to related datasets when available;
 - loading, empty, and error states;
 - reusable review model helpers and unit tests.
@@ -65,7 +67,6 @@ Implemented:
 Not implemented:
 
 - SMS/push alert delivery;
-- scheduled digest email delivery;
 - automation;
 - ML/AI features;
 - final design polish or advanced filtering.
@@ -283,6 +284,11 @@ The alerts surface is informational rather than noisy. It shows:
 It is not a realtime notification center, an admin logs console, or a generic
 event feed. Email delivery is handled server-side through the notification
 delivery foundation when preferences and SMTP config allow it.
+
+The delivery history surface is operational rather than inbox-like. It shows
+safe immediate and digest outcomes, attempts, suppressions, failures, and
+related dataset navigation without exposing recipient addresses or raw
+provider errors.
 
 ## Security Notes
 

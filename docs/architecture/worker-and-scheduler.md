@@ -9,10 +9,12 @@ refresh request path that reuses worker-claimed dataset scoring jobs rather than
 creating autonomous refresh automation. Phase 15 adds a scheduled maintenance
 task that can detect stale scored datasets and queue policy-gated maintenance
 jobs.
+Phase 28 registers bounded notification digest processing through the same
+internal scheduler.
 
 This is groundwork. It is not an external automation product, distributed queue,
-cron platform, email/SMS delivery system, ML system, collaboration workflow, or
-auction execution layer.
+cron platform, general-purpose messaging system, ML system, collaboration
+workflow, or auction execution layer.
 
 ## Current Implementation
 
@@ -36,6 +38,8 @@ Implemented:
   `requestKind: "policy_refresh"` only when server policy allows it;
 - duplicate guards suppress active scoring/maintenance work, recent maintenance
   runs, recent policy refreshes, and recent policy refresh failures;
+- bounded notification digest processing groups current digest-ready product
+  alerts by user/window and records tenant-owned batch outcomes;
 - frontend score status polling after the scoring trigger returns a queued job;
 - unit tests for job claiming and scheduler behavior;
 - integration tests for worker-driven scoring success, failure, and stale
@@ -49,7 +53,8 @@ Not implemented:
 - unlimited autonomous refresh;
 - user-facing scheduler configuration UI;
 - worker fleet coordination;
-- email/SMS/realtime delivery;
+- SMS/push/realtime delivery;
+- external campaign or messaging scheduling;
 - additional external enrichment providers beyond the opt-in Census Geocoder
   adapter;
 - ML/AI;

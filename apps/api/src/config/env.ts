@@ -39,6 +39,9 @@ const envSchema = z.object({
   SMTP_PASSWORD: z.preprocess(emptyStringToUndefined, z.string().min(1).optional()),
   SMTP_SECURE: z.enum(["true", "false"]).default("true").transform((value) => value === "true"),
   SMTP_CONNECTION_TIMEOUT_MS: z.coerce.number().int().positive().max(60000).default(10000),
+  EMAIL_DIGEST_PROCESSING_INTERVAL_MS: z.coerce.number().int().positive().default(86_400_000),
+  EMAIL_DIGEST_MAX_USERS_PER_RUN: z.coerce.number().int().positive().max(1000).default(100),
+  EMAIL_DIGEST_MAX_ITEMS_PER_BATCH: z.coerce.number().int().positive().max(200).default(50),
 });
 
 const developmentJwtSecret = "development-only-change-before-production";
@@ -97,6 +100,11 @@ export interface ApiConfig {
       secure: boolean;
       connectionTimeoutMs: number;
     };
+    digest: {
+      processingIntervalMs: number;
+      maxUsersPerRun: number;
+      maxItemsPerBatch: number;
+    };
   };
 }
 
@@ -140,6 +148,11 @@ export const apiConfig: ApiConfig = {
       ...(parsedEnv.SMTP_PASSWORD ? { password: parsedEnv.SMTP_PASSWORD } : {}),
       secure: parsedEnv.SMTP_SECURE,
       connectionTimeoutMs: parsedEnv.SMTP_CONNECTION_TIMEOUT_MS,
+    },
+    digest: {
+      processingIntervalMs: parsedEnv.EMAIL_DIGEST_PROCESSING_INTERVAL_MS,
+      maxUsersPerRun: parsedEnv.EMAIL_DIGEST_MAX_USERS_PER_RUN,
+      maxItemsPerBatch: parsedEnv.EMAIL_DIGEST_MAX_ITEMS_PER_BATCH,
     },
   },
 };

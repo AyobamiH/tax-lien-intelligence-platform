@@ -53,6 +53,7 @@ Current implementation:
 - scoring job completion/failure alert creation;
 - notification preference model;
 - notification delivery outbox model;
+- notification digest batch model;
 - authenticated notification preference get/update routes;
 - preference-driven job-alert suppression and delivery classification;
 - provider-agnostic delivery-preparation metadata for supported alerts;
@@ -61,6 +62,9 @@ Current implementation:
   SMTP config is complete;
 - provider-disabled, failed, sent, suppressed, in-app-only, and digest-ready
   delivery outbox tracking;
+- scheduled digest processing through the existing worker scheduler;
+- atomic digest batch/outbox claim behavior and current-preference rechecks;
+- authenticated owner-scoped delivery history retrieval;
 - scheduled maintenance service for stale scored-record scans;
 - `dataset_maintenance` job type for policy-driven maintenance decisions;
 - policy-created `dataset_scoring` refresh jobs with
@@ -550,13 +554,18 @@ The notification delivery foundation now records one email outbox entry per
 user/source/channel. Immediate delivery-eligible alerts send through the SMTP
 transport only when `EMAIL_DELIVERY_ENABLED`, `EMAIL_FROM_ADDRESS`, and
 `SMTP_HOST` are configured. Missing config creates `provider_disabled` records
-instead of failing startup. Digest cadence creates `digest_ready` records for
-future batching.
+instead of failing startup.
+
+Digest cadence creates `digest_ready` records. Phase 28 groups them by user and
+processing window, atomically claims a bounded set, rechecks current
+preferences, and sends one concise email through the same transport boundary.
+The batch and included outbox records preserve sent, suppressed, failed, empty,
+or provider-disabled outcomes. `GET /notification-deliveries` returns a safe
+owner-scoped history projection.
 
 Current limitation:
 
 - no SMS/push provider delivery;
-- no scheduled digest email sender;
 - no marketing messaging;
 - no realtime push;
 - no shared/team notification policies;
@@ -683,7 +692,8 @@ Backend implementation order should stay disciplined:
 23. saved views and attention queues: implemented in Phase 25;
 24. notification preferences and delivery foundation: implemented in Phase 26;
 25. email delivery and digest-ready outbox foundation: implemented in Phase 27;
-26. later external automation.
+26. scheduled digest processing and delivery history: implemented in Phase 28;
+27. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 

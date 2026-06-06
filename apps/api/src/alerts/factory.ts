@@ -7,7 +7,11 @@ import type { NotificationPreferenceService } from "../notification-preferences/
 
 export function createAlertService(
   notificationPreferenceService: NotificationPreferenceService = createNotificationPreferenceService(),
-  notificationDeliveryService: NotificationDeliveryService = createNotificationDeliveryService(),
+  notificationDeliveryService?: NotificationDeliveryService,
 ): AlertService {
-  return new AlertService(new MongoAlertStore(), notificationPreferenceService, notificationDeliveryService);
+  return new AlertService(
+    new MongoAlertStore(),
+    notificationPreferenceService,
+    notificationDeliveryService ?? createNotificationDeliveryService(notificationPreferenceService),
+  );
 }

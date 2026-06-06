@@ -31,6 +31,7 @@ import type {
   ImportProfileListResponse,
   JobDetailResponse,
   MarkAllAlertsReadResponse,
+  NotificationDeliveryHistoryResponse,
   NotificationPreferencesDetailResponse,
   PortfolioDetailResponse,
   PortfolioListResponse,
@@ -225,6 +226,12 @@ export async function markAlertRead(token: string, alertId: string): Promise<Ale
 export async function markAllAlertsRead(token: string): Promise<MarkAllAlertsReadResponse> {
   return requestJson<MarkAllAlertsReadResponse>("/alerts/read-all", {
     method: "PATCH",
+    token,
+  });
+}
+
+export async function listNotificationDeliveryHistory(token: string): Promise<NotificationDeliveryHistoryResponse> {
+  return requestJson<NotificationDeliveryHistoryResponse>("/notification-deliveries", {
     token,
   });
 }

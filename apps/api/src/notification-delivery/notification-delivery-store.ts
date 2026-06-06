@@ -15,6 +15,7 @@ export interface StoredNotificationDelivery {
   id: string;
   userId: string;
   alertId?: string;
+  digestBatchId?: string;
   sourceKey: string;
   alertType: AlertType;
   channel: NotificationDeliveryChannel;
@@ -48,6 +49,7 @@ export interface NotificationDeliverySourceQuery {
 export interface CreateNotificationDeliveryInput {
   userId: string;
   alertId?: string;
+  digestBatchId?: string;
   sourceKey: string;
   alertType: AlertType;
   channel: NotificationDeliveryChannel;
@@ -69,6 +71,7 @@ export interface CreateNotificationDeliveryInput {
 
 export interface UpdateNotificationDeliveryInput {
   status?: NotificationDeliveryStatus;
+  digestBatchId?: string;
   recipientEmail?: string;
   provider?: string;
   providerMessageId?: string;
@@ -83,7 +86,16 @@ export interface NotificationDeliveryStore {
   findBySource(query: NotificationDeliverySourceQuery): Promise<StoredNotificationDelivery | null>;
   createDeliveryOnce(input: CreateNotificationDeliveryInput): Promise<StoredNotificationDelivery>;
   updateDelivery(id: string, input: UpdateNotificationDeliveryInput): Promise<StoredNotificationDelivery>;
+  updateDeliveries(ids: string[], input: UpdateNotificationDeliveryInput): Promise<StoredNotificationDelivery[]>;
+  listDigestReadyUserIds(limit: number): Promise<string[]>;
+  claimDigestReadyForBatch(
+    userId: string,
+    digestBatchId: string,
+    limit: number,
+    claimedAt: Date,
+  ): Promise<StoredNotificationDelivery[]>;
   listDigestReadyForUser(userId: string): Promise<StoredNotificationDelivery[]>;
+  listHistoryForUser(userId: string, limit: number): Promise<StoredNotificationDelivery[]>;
 }
 
 export class MongoNotificationDeliveryStore implements NotificationDeliveryStore {
@@ -108,6 +120,7 @@ export class MongoNotificationDeliveryStore implements NotificationDeliveryStore
         $setOnInsert: {
           userId: input.userId,
           ...(input.alertId ? { alertId: input.alertId } : {}),
+          ...(input.digestBatchId ? { digestBatchId: input.digestBatchId } : {}),
           sourceKey: input.sourceKey,
           alertType: input.alertType,
           channel: input.channel,
@@ -142,6 +155,77 @@ export class MongoNotificationDeliveryStore implements NotificationDeliveryStore
     return mapNotificationDelivery(document);
   }
 
+  public async updateDeliveries(
+    ids: string[],
+    input: UpdateNotificationDeliveryInput,
+  ): Promise<StoredNotificationDelivery[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    await NotificationDeliveryModel.updateMany({ _id: { $in: ids } }, { $set: input }).exec();
+    const documents = await NotificationDeliveryModel.find({ _id: { $in: ids } }).exec();
+    return documents.map(mapNotificationDelivery);
+  }
+
+  public async listDigestReadyUserIds(limit: number): Promise<string[]> {
+    const userIds = await NotificationDeliveryModel.distinct("userId", {
+      channel: "email",
+      cadence: "digest",
+      status: "digest_ready",
+    }).exec();
+
+    return userIds.sort().slice(0, limit);
+  }
+
+  public async claimDigestReadyForBatch(
+    userId: string,
+    digestBatchId: string,
+    limit: number,
+    claimedAt: Date,
+  ): Promise<StoredNotificationDelivery[]> {
+    const candidates = await NotificationDeliveryModel.find({
+      userId,
+      channel: "email",
+      cadence: "digest",
+      status: "digest_ready",
+      digestBatchId: { $exists: false },
+    })
+      .sort({ createdAt: 1 })
+      .limit(limit)
+      .select({ _id: 1 })
+      .exec();
+    const ids = candidates.map((candidate) => candidate.id);
+    if (ids.length === 0) {
+      return [];
+    }
+
+    await NotificationDeliveryModel.updateMany(
+      {
+        _id: { $in: ids },
+        status: "digest_ready",
+        digestBatchId: { $exists: false },
+      },
+      {
+        $set: {
+          status: "digest_processing",
+          digestBatchId,
+          lastAttemptAt: claimedAt,
+        },
+      },
+    ).exec();
+
+    const documents = await NotificationDeliveryModel.find({
+      _id: { $in: ids },
+      digestBatchId,
+      status: "digest_processing",
+    })
+      .sort({ createdAt: 1 })
+      .exec();
+
+    return documents.map(mapNotificationDelivery);
+  }
+
   public async listDigestReadyForUser(userId: string): Promise<StoredNotificationDelivery[]> {
     const documents = await NotificationDeliveryModel.find({
       userId,
@@ -153,6 +237,15 @@ export class MongoNotificationDeliveryStore implements NotificationDeliveryStore
 
     return documents.map(mapNotificationDelivery);
   }
+
+  public async listHistoryForUser(userId: string, limit: number): Promise<StoredNotificationDelivery[]> {
+    const documents = await NotificationDeliveryModel.find({ userId })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .exec();
+
+    return documents.map(mapNotificationDelivery);
+  }
 }
 
 export function mapNotificationDelivery(document: NotificationDeliveryDocument): StoredNotificationDelivery {
@@ -160,6 +253,7 @@ export function mapNotificationDelivery(document: NotificationDeliveryDocument):
     id: document.id,
     userId: document.userId,
     ...(document.alertId ? { alertId: document.alertId } : {}),
+    ...(document.digestBatchId ? { digestBatchId: document.digestBatchId } : {}),
     sourceKey: document.sourceKey,
     alertType: document.alertType,
     channel: document.channel,

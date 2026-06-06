@@ -10,14 +10,16 @@ upload, first-pass explainable scoring, scored-results review, watchlist,
 portfolio/status tracking, comparison, decision history, decision handoff,
 saved operational views, internal jobs, alerts, worker/scheduler groundwork,
 enrichment, import repair, reusable import profiles, saved views, notification
-preferences, and the Phase 27 email delivery foundation:
+preferences, email delivery, and the Phase 28 digest processing and delivery
+history workflow:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind review workspace
 - `apps/api`: Express, TypeScript, auth, dataset, scoring, internal jobs,
   alerts, notification delivery, watchlist, portfolio, and comparison APIs
 - `packages/db`: MongoDB connection plus user, dataset, scored-record,
   internal-job, alert, watchlist, portfolio, comparison, decision-history, and
-  import-profile/saved-view/notification-preference/notification-delivery models
+  import-profile/saved-view/notification-preference/notification-delivery/
+  notification-digest-batch models
 - `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
@@ -45,6 +47,7 @@ Implemented API surfaces:
 - `PATCH /alerts/read-all`
 - `GET /notification-preferences`
 - `PATCH /notification-preferences`
+- `GET /notification-deliveries`
 - `POST /watchlist`
 - `GET /watchlist`
 - `DELETE /watchlist/:watchlistItemId`
@@ -69,8 +72,10 @@ Implemented API surfaces:
 
 Email delivery is provider-configured and disabled by default. When SMTP and
 sender env config are present, supported delivery-eligible product alerts can
-send immediate email; otherwise the API records provider-disabled outbox state.
-SMS, push, and marketing messaging are future work.
+send immediate email or be grouped into bounded scheduled digests. Users can
+review delivery and digest outcomes at `#/delivery-history`; otherwise the API
+records provider-disabled outbox state. SMS, push, campaigns, and marketing
+messaging are future work.
 
 ## Local Development
 

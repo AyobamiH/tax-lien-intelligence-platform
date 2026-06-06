@@ -1,6 +1,9 @@
 import { connectMongo, disconnectMongo } from "@tax-lien/db";
 import { apiConfig } from "./config/env.js";
 import { createMaintenanceService } from "./maintenance/factory.js";
+import { createNotificationDigestTask } from "./notification-delivery/digest-scheduler.js";
+import { createNotificationDeliveryService } from "./notification-delivery/factory.js";
+import { createNotificationPreferenceService } from "./notification-preferences/factory.js";
 import { InternalScheduler } from "./scheduler/internal-scheduler.js";
 import { createAlertService } from "./alerts/factory.js";
 import { createInternalJobService } from "./jobs/factory.js";
@@ -13,7 +16,9 @@ async function main(): Promise<void> {
     dbName: apiConfig.mongoDbName,
   });
 
-  const alertService = createAlertService();
+  const notificationPreferenceService = createNotificationPreferenceService();
+  const notificationDeliveryService = createNotificationDeliveryService(notificationPreferenceService);
+  const alertService = createAlertService(notificationPreferenceService, notificationDeliveryService);
   const internalJobService = createInternalJobService(alertService);
   const scoringService = createScoringService(internalJobService);
   const maintenanceService = createMaintenanceService(internalJobService);
@@ -53,8 +58,16 @@ async function main(): Promise<void> {
       }
     },
   });
+  scheduler.register(
+    createNotificationDigestTask(notificationDeliveryService, apiConfig.email.digest.processingIntervalMs),
+  );
   scheduler.start(
-    Math.min(apiConfig.schedulerTickIntervalMs, apiConfig.workerPollIntervalMs, apiConfig.maintenance.scanIntervalMs),
+    Math.min(
+      apiConfig.schedulerTickIntervalMs,
+      apiConfig.workerPollIntervalMs,
+      apiConfig.maintenance.scanIntervalMs,
+      apiConfig.email.digest.processingIntervalMs,
+    ),
   );
 
   const shutdown = async (): Promise<void> => {

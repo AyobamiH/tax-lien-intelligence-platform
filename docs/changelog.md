@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-06-06
+
+- Implemented Phase 28 digest delivery with tenant-owned digest batches,
+  scheduler-backed bounded processing, atomic outbox claims, current-preference
+  rechecks, concise grouped product-alert email, duplicate-send protection, and
+  coherent sent/suppressed/failed/provider-disabled state transitions.
+- Added authenticated `GET /notification-deliveries`, safe owner-scoped history
+  projections, and a focused `#/delivery-history` frontend surface for immediate
+  email, digest batches, suppressions, failures, loading, empty, and error
+  states.
+- Added tests for digest grouping, scheduled success, preference suppression,
+  duplicate avoidance, provider-disabled and provider-failure behavior, history
+  isolation, API client behavior, and frontend presentation helpers.
+- Updated architecture, API, README, env, and KB documentation to mark digest
+  processing and user-visible delivery history as current product-alert
+  workflow while keeping SMS, push, campaigns, realtime messaging,
+  collaboration, ML/AI prioritization, and auction execution out of scope.
+
 ## 2026-06-01
 
 - Implemented Phase 27 email delivery foundation with a tenant-owned delivery

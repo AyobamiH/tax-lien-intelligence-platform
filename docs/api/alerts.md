@@ -7,9 +7,9 @@ product alerts.
 
 Phase 26 adds notification preferences and delivery-preparation metadata for
 job-generated alerts. Phase 27 adds SMTP-backed immediate email when env config
-is complete, provider-disabled outbox records when it is not, and digest-ready
-outbox records for future batching. SMS, push, realtime delivery, and marketing
-messaging are not implemented.
+is complete and digest-ready outbox records. Phase 28 adds scheduled digest
+processing and user-visible delivery history. SMS, push, realtime delivery, and
+marketing messaging are not implemented.
 
 Current alert sources:
 
@@ -138,7 +138,8 @@ Alerts are currently in-app records with provider-agnostic delivery
 classification and email outbox tracking. Immediate email sends are available
 only for delivery-eligible supported alerts when SMTP env config is complete.
 There is no SMS delivery, push delivery, realtime websocket feed, external
-scheduler product, user-facing digest sender, or admin monitoring console.
+scheduler product, or admin monitoring console. Digest processing uses the
+existing internal worker scheduler and delivery history is available to users.
 Phase 15 scheduled maintenance can create policy-refresh scoring alerts, and
 Phase 27 can deliver those as product-alert email when preferences and provider
 config allow it.

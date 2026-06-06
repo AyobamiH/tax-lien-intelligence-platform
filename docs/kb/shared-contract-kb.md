@@ -84,6 +84,11 @@ Current shared types in `packages/types`:
 - `NotificationDeliveryStatus`;
 - `NotificationDeliveryFailureCode`;
 - `NotificationDeliveryOutcome`.
+- `NotificationDigestBatchStatus`;
+- `NotificationDeliveryHistoryItem`;
+- `NotificationDigestBatchResponse`;
+- `NotificationDeliveryHistoryResponse`;
+- `NotificationDigestProcessingResult`.
 - `AddWatchlistItemRequest`;
 - `WatchlistItemResponse`;
 - `AddWatchlistItemResponse`;
@@ -491,6 +496,8 @@ Current notification preference contracts include:
 - category metadata for frontend display;
 - provider-agnostic delivery preparation for generated alerts.
 - email delivery status/failure enums for server-side outbox tracking.
+- digest batch status and scheduler result contracts;
+- safe owner-facing delivery and digest history response contracts.
 
 Notification preferences cover only current scoring alert types. They must not
 become a broad messaging rules engine, marketing preference center, shared/team

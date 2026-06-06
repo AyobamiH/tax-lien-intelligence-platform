@@ -472,11 +472,20 @@ export type NotificationDeliveryStatus =
   | "suppressed"
   | "in_app_only"
   | "digest_ready"
+  | "digest_processing"
   | "pending"
   | "sent"
   | "failed"
   | "provider_disabled";
 export type NotificationDeliveryFailureCode = "provider_disabled" | "recipient_missing" | "provider_error";
+export type NotificationDigestBatchStatus =
+  | "pending"
+  | "processing"
+  | "sent"
+  | "failed"
+  | "provider_disabled"
+  | "suppressed"
+  | "empty";
 
 export interface NotificationPreferenceRule {
   alertType: AlertType;
@@ -542,6 +551,54 @@ export interface NotificationDeliveryOutcome {
   failureCode?: NotificationDeliveryFailureCode;
   failureReason?: string;
   updatedAt: string;
+}
+
+export interface NotificationDeliveryHistoryItem {
+  id: string;
+  alertType: AlertType;
+  channel: NotificationDeliveryChannel;
+  status: NotificationDeliveryStatus;
+  deliveryMode: NotificationDeliveryMode;
+  cadence: NotificationCadence;
+  subject?: string;
+  summary?: string;
+  relatedEntityType?: AlertRelatedEntityType;
+  relatedEntityId?: string;
+  digestBatchId?: string;
+  attempts: number;
+  failureCode?: NotificationDeliveryFailureCode;
+  failureMessage?: string;
+  preparedAt: string;
+  sentAt?: string;
+  updatedAt: string;
+}
+
+export interface NotificationDigestBatchResponse {
+  id: string;
+  status: NotificationDigestBatchStatus;
+  itemCount: number;
+  subject?: string;
+  attempts: number;
+  failureCode?: NotificationDeliveryFailureCode;
+  failureMessage?: string;
+  sentAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationDeliveryHistoryResponse {
+  deliveries: NotificationDeliveryHistoryItem[];
+  digestBatches: NotificationDigestBatchResponse[];
+}
+
+export interface NotificationDigestProcessingResult {
+  windowKey: string;
+  usersConsidered: number;
+  batchesCreated: number;
+  batchesSent: number;
+  batchesFailed: number;
+  batchesSuppressed: number;
+  providerDisabledBatches: number;
 }
 
 export interface AddWatchlistItemRequest {

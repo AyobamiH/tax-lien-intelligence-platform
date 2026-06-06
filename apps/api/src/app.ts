@@ -25,6 +25,7 @@ import { createAuthRouter } from "./routes/auth.js";
 import { createComparisonRouter } from "./routes/comparison.js";
 import { createDatasetRouter } from "./routes/datasets.js";
 import { createInternalJobRouter } from "./routes/jobs.js";
+import { createNotificationDeliveryRouter } from "./routes/notification-deliveries.js";
 import { createNotificationPreferenceRouter } from "./routes/notification-preferences.js";
 import { createPortfolioRouter } from "./routes/portfolio.js";
 import { createSavedViewRouter } from "./routes/saved-views.js";
@@ -57,7 +58,8 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const datasetService = dependencies.datasetService ?? createDatasetService();
   const notificationPreferenceService =
     dependencies.notificationPreferenceService ?? createNotificationPreferenceService();
-  const notificationDeliveryService = dependencies.notificationDeliveryService ?? createNotificationDeliveryService();
+  const notificationDeliveryService =
+    dependencies.notificationDeliveryService ?? createNotificationDeliveryService(notificationPreferenceService);
   const alertService =
     dependencies.alertService ?? createAlertService(notificationPreferenceService, notificationDeliveryService);
   const internalJobService = dependencies.internalJobService ?? createInternalJobService(alertService);
@@ -87,6 +89,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/datasets", createScoringRouter(authService, scoringService));
   app.use("/jobs", createInternalJobRouter(authService, internalJobService));
   app.use("/alerts", createAlertRouter(authService, alertService));
+  app.use("/notification-deliveries", createNotificationDeliveryRouter(authService, notificationDeliveryService));
   app.use("/notification-preferences", createNotificationPreferenceRouter(authService, notificationPreferenceService));
   app.use("/watchlist", createWatchlistRouter(authService, watchlistService));
   app.use("/portfolio", createPortfolioRouter(authService, portfolioService));

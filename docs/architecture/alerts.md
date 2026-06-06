@@ -3,8 +3,9 @@
 Phase 9 adds the first user-visible monitoring layer on top of internal jobs.
 Phase 10 preserves those alerts while moving scoring execution into the worker
 path. Phase 27 adds preference-aware email delivery/outbox handling for
-supported product alerts. Alerts still do not add SMS, push notifications,
-realtime websockets, external schedulers, or alert automation.
+supported product alerts. Phase 28 adds bounded scheduled digest processing and
+owner-safe delivery history. Alerts still do not add SMS, push notifications,
+realtime websockets, external schedulers, campaigns, or broad alert automation.
 
 ## Purpose
 
@@ -32,8 +33,10 @@ Implemented:
 - alert creation from `dataset_scoring` job completion and failure;
 - notification preference classification for supported scoring alerts;
 - email outbox tracking for suppressed, in-app-only, digest-ready,
-  provider-disabled, failed, and sent delivery outcomes;
+  digest-processing, provider-disabled, failed, and sent delivery outcomes;
 - immediate email delivery when preferences and SMTP env config allow it;
+- tenant-owned digest batches with bounded per-user, per-window processing;
+- authenticated owner-safe immediate-delivery and digest history;
 - frontend alerts route using `#/alerts`;
 - alert indicator in the app header and side navigation;
 - unread/read state;
@@ -45,7 +48,7 @@ Not implemented:
 - SMS delivery;
 - push notifications;
 - realtime websocket subscriptions;
-- user-facing digest send workers;
+- user-configurable digest schedules, advanced templates, and automatic retries;
 - scheduled alert generation;
 - admin observability dashboard;
 - alert rules engine.

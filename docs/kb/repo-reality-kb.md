@@ -168,6 +168,7 @@ Implemented today:
 - frontend portfolio saved-view save/apply/default flow;
 - tenant-owned notification preference model in `packages/db`;
 - tenant-owned notification delivery outbox model in `packages/db`;
+- tenant-owned notification digest batch model in `packages/db`;
 - authenticated notification preference endpoints at
   `GET /notification-preferences` and `PATCH /notification-preferences`;
 - provider-agnostic delivery preparation on job-generated alerts;
@@ -177,7 +178,11 @@ Implemented today:
 - provider-disabled, failed, sent, in-app-only, suppressed, and digest-ready
   delivery outbox tracking;
 - duplicate-send avoidance for email delivery source keys;
+- scheduler-backed digest processing with bounded users/items per run;
+- digest batch/outbox linkage and current-preference suppression checks;
+- authenticated delivery history endpoint at `GET /notification-deliveries`;
 - frontend notification preferences route;
+- frontend delivery history route;
 - tenant-owned comparison item model in `packages/db`;
 - tenant-owned decision history model in `packages/db`;
 - authenticated comparison endpoints at `POST /comparison`, `GET /comparison`,
@@ -248,6 +253,7 @@ Not implemented:
 - production deployment config.
 - SMS/push alert delivery;
 - realtime alert delivery;
+- marketing campaigns or general messaging workflows;
 - external schedulers, worker fleets, or third-party queues.
 - broad cron-based refresh or external sync automation.
 - provider-sprawl refresh policies.
@@ -331,6 +337,9 @@ Current tests cover:
 - email delivery success, disabled config, provider failure, duplicate-send
   avoidance, digest-ready grouping, owner-safe recipient resolution, and email
   content generation.
+- digest scheduled success, preference suppression, duplicate processing
+  avoidance, provider-disabled/failure transitions, owner-safe history, API
+  client behavior, and frontend delivery presentation.
 - comparison add/list/update/delete behavior;
 - duplicate comparison handling;
 - cross-user comparison source/update/delete/history/handoff rejection.
@@ -393,6 +402,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
   authenticated user's generated scoring alerts.
 - tenant-owned notification delivery records are implemented and scoped to the
   alert owner.
+- tenant-owned notification digest batches are implemented and scoped to the
+  batch owner.
 - tenant-owned comparison item records are implemented.
 - tenant-owned parcel records are not yet implemented.
 
@@ -401,8 +412,9 @@ decisions, browser session hardening, and additional cross-user resource tests
 for later resource types exist. The current worker layer is a local background
 execution boundary, not hardened external automation or distributed queueing.
 The current alert layer has in-app visibility plus an env-driven email delivery
-foundation for product alerts only. SMS, push, marketing messaging, and
-user-facing digest send workers are not implemented.
+workflow for product alerts only. Scheduled digest processing and user-visible
+delivery history are implemented. SMS, push, marketing messaging, and general
+communications tooling are not implemented.
 
 ## Drift Risks
 

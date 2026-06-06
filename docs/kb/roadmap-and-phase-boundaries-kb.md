@@ -865,17 +865,56 @@ Phase 27 does not include:
 - SMS delivery;
 - push notifications;
 - marketing messaging;
-- user-facing digest send scheduler;
 - team/shared notification policies;
 - collaboration workflows;
 - auction execution.
 
 Future expansion may include:
 
-- scheduled digest email sends after grouping windows, retry, rate-limit, and
-  audit rules exist;
+- bounded scheduled digest email sends after grouping-window, ownership, and
+  duplicate-processing rules exist;
 - SMS/push only after separate opt-in, provider, and unsubscribe design;
 - richer alert event sources after backend contracts exist.
+
+## Phase 28: Digest Delivery Workflow And History
+
+Current status: implemented.
+
+Phase 28 includes:
+
+- tenant-owned notification digest batch records;
+- bounded per-user, per-window grouping of digest-ready outbox records;
+- atomic batch and outbox claiming to avoid duplicate processing;
+- send-time notification preference rechecks;
+- explicit pending, processing, sent, failed, provider-disabled, suppressed,
+  and empty batch outcomes;
+- one provider attempt per claimed batch without a hidden retry loop;
+- safe failure state for both batch and delivery records;
+- worker scheduler registration with env-driven interval and run limits;
+- authenticated owner-only delivery history for immediate and digest records;
+- frontend delivery history with loading, empty, error, summary, and detail
+  states;
+- tests for grouping, suppression, duplicate avoidance, disabled providers,
+  provider failure, scheduler cadence, and owner isolation.
+
+Phase 28 does not include:
+
+- SMS or push delivery;
+- campaign or marketing messaging;
+- advanced template management;
+- configurable team/shared notification policies;
+- realtime messaging;
+- ML/AI prioritization;
+- collaboration workflows;
+- auction execution;
+- automatic provider retry loops or a general-purpose notification platform.
+
+Future expansion may include:
+
+- explicit retry and rate-limit policy after operational evidence exists;
+- richer user-configurable digest schedules and templates;
+- additional product alert sources after their contracts exist;
+- SMS/push only through separately designed opt-in channel phases.
 
 ## Later Phases
 
@@ -889,7 +928,7 @@ Later phases may include:
 - richer enrichment adapters;
 - external enrichment provider hardening;
 - SMS/push alert delivery;
-- scheduled digest email delivery;
+- richer digest scheduling, templates, and explicit retry policy;
 - scheduled ingestion;
 - external worker deployment hardening;
 - team workflows;
@@ -927,7 +966,8 @@ Dependency order matters:
 23. saved views and attention queues;
 24. notification preferences and delivery foundation;
 25. email delivery and digest-ready outbox foundation;
-26. broader automation.
+26. digest delivery workflow and owner-safe history;
+27. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

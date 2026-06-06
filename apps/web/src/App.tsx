@@ -11,6 +11,8 @@ import type {
   DatasetResponse,
   DatasetScoringStatusResponse,
   InternalJobResponse,
+  NotificationDeliveryHistoryItem,
+  NotificationDigestBatchResponse,
   NotificationPreferenceCategory,
   NotificationPreferenceRule,
   NotificationPreferencesResponse,
@@ -45,6 +47,7 @@ import {
   listComparisonHistory,
   listDatasets,
   listDatasetScores,
+  listNotificationDeliveryHistory,
   listPortfolio,
   listSavedViews,
   listWatchlist,
@@ -93,8 +96,11 @@ import {
   manualMappingByTarget,
   manualMappingTargetPresentations,
   notificationCadenceLabel,
+  notificationDeliveryStatusClassName,
+  notificationDeliveryStatusLabel,
   notificationDeliveryModeLabel,
   notificationDeliveryStateLabel,
+  notificationDigestBatchStatusLabel,
   portfolioStatusClassName,
   portfolioStatusLabel,
   portfolioStatusOptions,
@@ -105,6 +111,8 @@ import {
   sortAlertsForReview,
   sortComparisonItemsForReview,
   sortDecisionHistoryForReview,
+  sortNotificationDeliveriesForReview,
+  sortNotificationDigestBatchesForReview,
   sortPortfolioItemsForReview,
   sortWatchlistItemsForReview,
   summarizePortfolioForReview,
@@ -123,7 +131,8 @@ type PageState =
   | { name: "portfolio" }
   | { name: "comparison" }
   | { name: "alerts" }
-  | { name: "notifications" };
+  | { name: "notifications" }
+  | { name: "delivery-history" };
 
 type AuthMode = "login" | "register";
 
@@ -197,6 +206,13 @@ interface NotificationPreferencesState {
   isSaving: boolean;
 }
 
+interface NotificationDeliveryHistoryState {
+  deliveries: NotificationDeliveryHistoryItem[];
+  digestBatches: NotificationDigestBatchResponse[];
+  isLoading: boolean;
+  error: string | null;
+}
+
 function App() {
   const [session, setSession] = useState<StoredSession | null>(() => loadStoredSession());
   const [page, setPage] = useState<PageState>(() => readRoute());
@@ -250,6 +266,13 @@ function App() {
     success: null,
     isSaving: false,
   });
+  const [notificationDeliveryHistory, setNotificationDeliveryHistory] =
+    useState<NotificationDeliveryHistoryState>({
+      deliveries: [],
+      digestBatches: [],
+      isLoading: false,
+      error: null,
+    });
   const authToken = session?.token ?? null;
 
   useEffect(() => {
@@ -321,6 +344,12 @@ function App() {
         success: null,
         isSaving: false,
       });
+      setNotificationDeliveryHistory({
+        deliveries: [],
+        digestBatches: [],
+        isLoading: false,
+        error: null,
+      });
       return;
     }
 
@@ -351,6 +380,7 @@ function App() {
     void refreshAlerts(authToken);
     void refreshSavedViews(authToken);
     void refreshNotificationPreferences(authToken);
+    void refreshNotificationDeliveryHistory(authToken);
   }, [authToken]);
 
   function handleSignedIn(nextSession: StoredSession): void {
@@ -650,6 +680,29 @@ function App() {
       }));
     } catch (error: unknown) {
       setNotificationPreferences((current) => ({
+        ...current,
+        isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
+  async function refreshNotificationDeliveryHistory(token: string): Promise<void> {
+    setNotificationDeliveryHistory((current) => ({ ...current, isLoading: true, error: null }));
+
+    try {
+      const result = await listNotificationDeliveryHistory(token);
+      setNotificationDeliveryHistory({
+        deliveries: sortNotificationDeliveriesForReview(result.deliveries),
+        digestBatches: sortNotificationDigestBatchesForReview(result.digestBatches),
+        isLoading: false,
+        error: null,
+      });
+    } catch (error: unknown) {
+      setNotificationDeliveryHistory((current) => ({
         ...current,
         isLoading: false,
         error: errorMessage(error),
@@ -1210,6 +1263,12 @@ function App() {
             onRetry={() => void refreshNotificationPreferences(session.token)}
             onSave={(rules) => void saveNotificationPreferenceRules(rules)}
           />
+        ) : page.name === "delivery-history" ? (
+          <NotificationDeliveryHistoryPage
+            state={notificationDeliveryHistory}
+            onRetry={() => void refreshNotificationDeliveryHistory(session.token)}
+            onOpenDataset={(datasetId) => navigate({ name: "dataset", datasetId }, setPage)}
+          />
         ) : (
           <ReviewHome
             datasets={datasets}
@@ -1389,6 +1448,15 @@ function AppHeader({
             className={`border border-line px-3 py-2 font-medium ${page.name === "notifications" ? "bg-field" : "bg-white"}`}
           >
             Notifications
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate({ name: "delivery-history" })}
+            className={`border border-line px-3 py-2 font-medium ${
+              page.name === "delivery-history" ? "bg-field" : "bg-white"
+            }`}
+          >
+            Delivery History
           </button>
         </nav>
         <div className="flex items-center gap-3 text-sm">
@@ -4045,6 +4113,147 @@ function PortfolioDetail({
   );
 }
 
+function NotificationDeliveryHistoryPage({
+  state,
+  onRetry,
+  onOpenDataset,
+}: {
+  state: NotificationDeliveryHistoryState;
+  onRetry: () => void;
+  onOpenDataset: (datasetId: string) => void;
+}) {
+  const deliveries = useMemo(
+    () => sortNotificationDeliveriesForReview(state.deliveries),
+    [state.deliveries],
+  );
+  const digestBatches = useMemo(
+    () => sortNotificationDigestBatchesForReview(state.digestBatches),
+    [state.digestBatches],
+  );
+  const sentCount = deliveries.filter((delivery) => delivery.status === "sent").length;
+  const attentionCount = deliveries.filter(
+    (delivery) => delivery.status === "failed" || delivery.status === "provider_disabled",
+  ).length;
+
+  if (state.isLoading && deliveries.length === 0 && digestBatches.length === 0) {
+    return <PanelMessage label="Loading delivery history..." />;
+  }
+
+  return (
+    <section className="min-w-0 space-y-5">
+      <div className="border border-line bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-pine">Delivery Operations</p>
+            <h2 className="mt-1 text-2xl font-semibold">Delivery History</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/70">
+              Review immediate emails, scheduled digest batches, suppressions, and delivery failures for product alerts.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Metric label="Sent" value={String(sentCount)} />
+            <Metric label="Needs attention" value={String(attentionCount)} />
+            <Metric label="Digest batches" value={String(digestBatches.length)} />
+          </div>
+        </div>
+        <button type="button" onClick={onRetry} className="mt-4 border border-line px-3 py-2 text-sm font-semibold">
+          Refresh
+        </button>
+        {state.error ? <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{state.error}</div> : null}
+      </div>
+
+      {deliveries.length === 0 && digestBatches.length === 0 && !state.isLoading ? (
+        <div className="border border-line bg-white p-5">
+          <h3 className="text-lg font-semibold">No delivery history yet</h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+            Immediate email attempts, digest processing, and preference suppressions will appear here as product alerts are generated.
+          </p>
+        </div>
+      ) : null}
+
+      {digestBatches.length > 0 ? (
+        <section className="border border-line bg-white">
+          <div className="border-b border-line px-4 py-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Digest Batches</h3>
+          </div>
+          <div className="divide-y divide-line">
+            {digestBatches.map((batch) => (
+              <article key={batch.id} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_160px_180px]">
+                <div className="min-w-0">
+                  <h4 className="font-semibold">{batch.subject ?? "Scheduled product-alert digest"}</h4>
+                  <p className="mt-1 text-sm text-ink/65">
+                    {batch.itemCount} {batch.itemCount === 1 ? "included event" : "included events"}
+                  </p>
+                  {batch.failureMessage ? (
+                    <p className="mt-2 text-sm text-amber-900">{batch.failureMessage}</p>
+                  ) : null}
+                </div>
+                <div>
+                  <span className={`inline-flex border px-2 py-1 text-xs font-semibold ${notificationDeliveryStatusClassName(batch.status)}`}>
+                    {notificationDigestBatchStatusLabel(batch.status)}
+                  </span>
+                  <p className="mt-2 text-xs text-ink/55">{batch.attempts} send attempt{batch.attempts === 1 ? "" : "s"}</p>
+                </div>
+                <p className="text-sm text-ink/60 md:text-right">{formatDateTime(batch.sentAt ?? batch.updatedAt)}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {deliveries.length > 0 ? (
+        <section className="border border-line bg-white">
+          <div className="border-b border-line px-4 py-3">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">
+              Notification Deliveries ({deliveries.length})
+            </h3>
+          </div>
+          <div className="divide-y divide-line">
+            {deliveries.map((delivery) => (
+              <article key={delivery.id} className="grid gap-3 px-4 py-4 lg:grid-cols-[150px_minmax(0,1fr)_210px]">
+                <div>
+                  <span className={`inline-flex border px-2 py-1 text-xs font-semibold ${notificationDeliveryStatusClassName(delivery.status)}`}>
+                    {notificationDeliveryStatusLabel(delivery.status)}
+                  </span>
+                  <p className="mt-2 text-xs text-ink/55">
+                    {delivery.cadence === "digest" ? "Digest email" : "Immediate email"}
+                  </p>
+                </div>
+                <div className="min-w-0">
+                  <h4 className="font-semibold">{delivery.subject ?? alertTypeLabel(delivery.alertType)}</h4>
+                  {delivery.summary ? <p className="mt-1 text-sm leading-6 text-ink/70">{delivery.summary}</p> : null}
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-ink/60">
+                    <span className="border border-line bg-field px-2 py-1">{notificationCadenceLabel(delivery.cadence)}</span>
+                    <span className="border border-line bg-field px-2 py-1">
+                      {delivery.attempts} attempt{delivery.attempts === 1 ? "" : "s"}
+                    </span>
+                    {delivery.digestBatchId ? <span className="border border-line bg-field px-2 py-1">Digest batch</span> : null}
+                  </div>
+                  {delivery.failureMessage ? (
+                    <p className="mt-3 text-sm text-amber-900">{delivery.failureMessage}</p>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap items-start justify-between gap-2 lg:justify-end">
+                  <p className="text-xs text-ink/55">{formatDateTime(delivery.sentAt ?? delivery.updatedAt)}</p>
+                  {delivery.relatedEntityType === "dataset" && delivery.relatedEntityId ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenDataset(delivery.relatedEntityId as string)}
+                      className="border border-line px-3 py-2 text-xs font-semibold"
+                    >
+                      Open dataset
+                    </button>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </section>
+  );
+}
+
 function NotificationPreferencesPage({
   state,
   onRetry,
@@ -4772,7 +4981,9 @@ function navigate(page: PageState, setPage: (page: PageState) => void): void {
             ? "#/alerts"
             : page.name === "notifications"
               ? "#/notifications"
-              : `#/datasets/${page.datasetId}`;
+              : page.name === "delivery-history"
+                ? "#/delivery-history"
+                : `#/datasets/${page.datasetId}`;
   window.history.pushState(null, "", hash);
   setPage(page);
 }
@@ -4796,6 +5007,10 @@ function readRoute(): PageState {
 
   if (window.location.hash === "#/notifications") {
     return { name: "notifications" };
+  }
+
+  if (window.location.hash === "#/delivery-history") {
+    return { name: "delivery-history" };
   }
 
   const match = window.location.hash.match(/^#\/datasets\/([^/]+)$/);

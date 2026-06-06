@@ -151,7 +151,7 @@ Not yet implemented:
 - deployed worker authorization and credential isolation model;
 - rate limits for repeated refresh requests;
 - SMS/push alert delivery security;
-- scheduled digest delivery hardening;
+- digest retry/rate-limit policy beyond the current bounded one-attempt batch;
 - secret rotation guidance.
 
 ### Intentionally Deferred
@@ -166,7 +166,7 @@ Deferred because the corresponding systems do not exist yet:
 - admin security;
 - richer scoring audit trail;
 - SMS/push alert delivery;
-- scheduled digest email delivery;
+- advanced digest templates and user-configurable scheduling;
 - automation monitoring.
 
 ### Where The Baseline Is Acceptable
@@ -606,15 +606,20 @@ credential isolation, and safe logs.
 
 Current alerts are tenant-owned, authenticated, and limited to safe scoring job
 summaries. Phase 27 adds email delivery/outbox handling for supported product
-alerts only.
+alerts only. Phase 28 adds tenant-owned digest batches, bounded scheduled
+processing, send-time preference checks, duplicate-window protection, and
+owner-safe delivery history.
 
 Alerts must not reveal tenant data through raw metadata, email previews, logs,
 or incorrect recipient routing. Current email delivery resolves recipients from
 the alert owner's user record, uses bounded product-alert content, stores safe
-outbox state, and keeps SMTP config in env. Future SMS/push channels and
-scheduled digest sends require separate recipient validation, template review,
-provider secret handling, retry/rate-limit rules, and opt-out/settings controls
-before launch.
+outbox state, keeps SMTP config in env, and exposes neither recipient addresses
+nor raw provider details in delivery history. Digest processing atomically
+claims one user/window batch, bounds records per batch and users per run,
+rechecks current preferences, and makes one provider attempt without hidden
+retries. Future SMS/push channels, advanced templates, configurable schedules,
+and retry policies require separate recipient validation, provider secret
+handling, rate limits, and opt-out/settings controls before launch.
 
 ### Admin/Internal Tooling
 

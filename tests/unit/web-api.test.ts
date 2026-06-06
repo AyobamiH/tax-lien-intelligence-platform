@@ -13,6 +13,7 @@ import {
   listComparisonHistory,
   listComparison,
   listImportProfiles,
+  listNotificationDeliveryHistory,
   listSavedViews,
   removeComparisonItem,
   saveDatasetImportProfile,
@@ -440,6 +441,40 @@ describe("web API client", () => {
     expect(fetchMock.mock.calls[1]?.[1]?.method).toBe("PATCH");
     expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ rules: responsePayload.preferences.rules }));
     expect((fetchMock.mock.calls[1]?.[1]?.headers as Headers).get("Authorization")).toBe("Bearer test-token");
+  });
+
+  it("retrieves notification delivery history with bearer auth", async () => {
+    const responsePayload = {
+      deliveries: [
+        {
+          id: "delivery-1",
+          alertType: "scoring_job_failed",
+          channel: "email",
+          status: "sent",
+          deliveryMode: "delivery_eligible",
+          cadence: "immediate",
+          subject: "Scoring failed",
+          summary: "Refresh failed safely.",
+          attempts: 1,
+          preparedAt: "2026-06-06T00:00:00.000Z",
+          sentAt: "2026-06-06T00:01:00.000Z",
+          updatedAt: "2026-06-06T00:01:00.000Z",
+        },
+      ],
+      digestBatches: [],
+    };
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify(responsePayload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+
+    await expect(listNotificationDeliveryHistory("test-token")).resolves.toEqual(responsePayload);
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("http://localhost:4000/notification-deliveries");
+    expect((fetchMock.mock.calls[0]?.[1]?.headers as Headers).get("Authorization")).toBe("Bearer test-token");
   });
 
   it("calls saved-view endpoints with bearer auth and structured payloads", async () => {

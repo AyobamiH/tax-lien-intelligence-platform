@@ -1,7 +1,20 @@
-import type { AlertMetadata, NotificationDeliveryPreparation } from "@tax-lien/types";
+import type {
+  AlertMetadata,
+  AlertType,
+  NotificationDeliveryFailureCode,
+  NotificationDeliveryHistoryItem,
+  NotificationDeliveryHistoryResponse,
+  NotificationDeliveryPreparation,
+  NotificationDigestBatchResponse,
+  NotificationDigestProcessingResult,
+} from "@tax-lien/types";
 import type { CreateAlertInput, StoredAlert } from "../alerts/alert-store.js";
 import type { ApiConfig } from "../config/env.js";
 import type { EmailMessage, EmailTransport } from "./email-transport.js";
+import type {
+  NotificationDigestBatchStore,
+  StoredNotificationDigestBatch,
+} from "./notification-digest-batch-store.js";
 import type {
   CreateNotificationDeliveryInput,
   NotificationDeliveryStore,
@@ -9,10 +22,16 @@ import type {
 } from "./notification-delivery-store.js";
 
 export type EmailRecipientResolver = (userId: string) => Promise<string | null>;
+export type DigestEligibilityResolver = (userId: string, alertType: AlertType) => Promise<boolean>;
 
 export interface NotificationEmailContent {
   subject: string;
   text: string;
+}
+
+interface DigestBatchProcessingOutcome {
+  batch: StoredNotificationDigestBatch;
+  wasProcessed: boolean;
 }
 
 export class NotificationDeliveryService {
@@ -20,17 +39,23 @@ export class NotificationDeliveryService {
   private readonly emailTransport: EmailTransport;
   private readonly resolveRecipientEmail: EmailRecipientResolver;
   private readonly emailConfig: ApiConfig["email"];
+  private readonly digestBatchStore: NotificationDigestBatchStore;
+  private readonly isDigestEligible: DigestEligibilityResolver;
 
   public constructor(
     deliveryStore: NotificationDeliveryStore,
     emailTransport: EmailTransport,
     resolveRecipientEmail: EmailRecipientResolver,
     emailConfig: ApiConfig["email"],
+    digestBatchStore: NotificationDigestBatchStore,
+    isDigestEligible: DigestEligibilityResolver,
   ) {
     this.deliveryStore = deliveryStore;
     this.emailTransport = emailTransport;
     this.resolveRecipientEmail = resolveRecipientEmail;
     this.emailConfig = emailConfig;
+    this.digestBatchStore = digestBatchStore;
+    this.isDigestEligible = isDigestEligible;
   }
 
   public async recordSuppressed(
@@ -156,6 +181,229 @@ export class NotificationDeliveryService {
   public async listDigestReadyForUser(userId: string): Promise<StoredNotificationDelivery[]> {
     return this.deliveryStore.listDigestReadyForUser(userId);
   }
+
+  public async processDigestQueue(now = new Date()): Promise<NotificationDigestProcessingResult> {
+    const windowKey = digestWindowKey(now, this.emailConfig.digest.processingIntervalMs);
+    const userIds = await this.deliveryStore.listDigestReadyUserIds(this.emailConfig.digest.maxUsersPerRun);
+    const result: NotificationDigestProcessingResult = {
+      windowKey,
+      usersConsidered: userIds.length,
+      batchesCreated: 0,
+      batchesSent: 0,
+      batchesFailed: 0,
+      batchesSuppressed: 0,
+      providerDisabledBatches: 0,
+    };
+
+    for (const userId of userIds) {
+      const outcome = await this.processDigestForUser(userId, windowKey, now);
+      if (!outcome.wasProcessed) {
+        continue;
+      }
+
+      result.batchesCreated += 1;
+      switch (outcome.batch.status) {
+        case "sent":
+          result.batchesSent += 1;
+          break;
+        case "failed":
+          result.batchesFailed += 1;
+          break;
+        case "suppressed":
+          result.batchesSuppressed += 1;
+          break;
+        case "provider_disabled":
+          result.providerDisabledBatches += 1;
+          break;
+        default:
+          break;
+      }
+    }
+
+    return result;
+  }
+
+  public async getDeliveryHistory(userId: string): Promise<NotificationDeliveryHistoryResponse> {
+    const [deliveries, digestBatches] = await Promise.all([
+      this.deliveryStore.listHistoryForUser(userId, 100),
+      this.digestBatchStore.listHistoryForUser(userId, 30),
+    ]);
+
+    return {
+      deliveries: deliveries.map(toDeliveryHistoryItem),
+      digestBatches: digestBatches.map(toDigestBatchResponse),
+    };
+  }
+
+  private async processDigestForUser(
+    userId: string,
+    windowKey: string,
+    now: Date,
+  ): Promise<DigestBatchProcessingOutcome> {
+    const existingBatch = await this.digestBatchStore.createBatchOnce({ userId, windowKey });
+    const batch = await this.digestBatchStore.claimBatchForProcessing(existingBatch.id, now);
+    if (!batch) {
+      return { batch: existingBatch, wasProcessed: false };
+    }
+
+    const claimed = await this.deliveryStore.claimDigestReadyForBatch(
+      userId,
+      batch.id,
+      this.emailConfig.digest.maxItemsPerBatch,
+      now,
+    );
+    if (claimed.length === 0) {
+      return {
+        batch: await this.digestBatchStore.updateBatch(batch.id, {
+          status: "empty",
+          itemCount: 0,
+        }),
+        wasProcessed: true,
+      };
+    }
+
+    const eligibility = await Promise.all(
+      claimed.map(async (delivery) => ({
+        delivery,
+        eligible: await this.isDigestEligible(userId, delivery.alertType),
+      })),
+    );
+    const suppressed = eligibility.filter((candidate) => !candidate.eligible).map((candidate) => candidate.delivery);
+    const eligible = eligibility.filter((candidate) => candidate.eligible).map((candidate) => candidate.delivery);
+
+    await this.deliveryStore.updateDeliveries(
+      suppressed.map((delivery) => delivery.id),
+      {
+        status: "suppressed",
+        failureReason: "Digest delivery was suppressed because current notification preferences no longer allow it.",
+      },
+    );
+
+    if (eligible.length === 0) {
+      return {
+        batch: await this.digestBatchStore.updateBatch(batch.id, {
+          status: "suppressed",
+          itemCount: 0,
+          failureReason: "All digest items were suppressed by current notification preferences.",
+        }),
+        wasProcessed: true,
+      };
+    }
+
+    if (!this.emailConfig.enabled || !this.emailConfig.fromAddress) {
+      await this.deliveryStore.updateDeliveries(
+        eligible.map((delivery) => delivery.id),
+        {
+          status: "provider_disabled",
+          provider: this.emailTransport.providerId,
+          failureCode: "provider_disabled",
+          failureReason: "Email delivery is disabled until SMTP host and sender env config are provided.",
+        },
+      );
+      return {
+        batch: await this.digestBatchStore.updateBatch(batch.id, {
+          status: "provider_disabled",
+          itemCount: eligible.length,
+          provider: this.emailTransport.providerId,
+          failureCode: "provider_disabled",
+          failureReason: "Email delivery is disabled until SMTP host and sender env config are provided.",
+        }),
+        wasProcessed: true,
+      };
+    }
+
+    const recipientEmail = await this.resolveRecipientEmail(userId);
+    if (!recipientEmail) {
+      await this.deliveryStore.updateDeliveries(
+        eligible.map((delivery) => delivery.id),
+        {
+          status: "failed",
+          provider: this.emailTransport.providerId,
+          failureCode: "recipient_missing",
+          failureReason: "No email recipient could be resolved for the alert owner.",
+        },
+      );
+      return {
+        batch: await this.digestBatchStore.updateBatch(batch.id, {
+          status: "failed",
+          itemCount: eligible.length,
+          provider: this.emailTransport.providerId,
+          failureCode: "recipient_missing",
+          failureReason: "No email recipient could be resolved for the alert owner.",
+        }),
+        wasProcessed: true,
+      };
+    }
+
+    const content = buildNotificationDigestEmailContent({
+      deliveries: eligible,
+      ...(this.emailConfig.appBaseUrl ? { appBaseUrl: this.emailConfig.appBaseUrl } : {}),
+    });
+    const attemptedAt = new Date();
+    await this.digestBatchStore.updateBatch(batch.id, {
+      itemCount: eligible.length,
+      subject: content.subject,
+      provider: this.emailTransport.providerId,
+      attempts: 1,
+    });
+
+    try {
+      const sendResult = await this.emailTransport.send({
+        to: { address: recipientEmail },
+        from: {
+          address: this.emailConfig.fromAddress,
+          name: this.emailConfig.fromName,
+        },
+        ...(this.emailConfig.replyTo ? { replyTo: { address: this.emailConfig.replyTo } } : {}),
+        subject: content.subject,
+        text: content.text,
+      });
+      const sentAt = new Date();
+      await this.deliveryStore.updateDeliveries(
+        eligible.map((delivery) => delivery.id),
+        {
+          status: "sent",
+          recipientEmail,
+          provider: this.emailTransport.providerId,
+          attempts: 1,
+          lastAttemptAt: attemptedAt,
+          sentAt,
+          ...(sendResult.providerMessageId ? { providerMessageId: sendResult.providerMessageId } : {}),
+        },
+      );
+
+      return {
+        batch: await this.digestBatchStore.updateBatch(batch.id, {
+          status: "sent",
+          sentAt,
+          ...(sendResult.providerMessageId ? { providerMessageId: sendResult.providerMessageId } : {}),
+        }),
+        wasProcessed: true,
+      };
+    } catch (error) {
+      const failureReason = boundedFailureReason(error);
+      await this.deliveryStore.updateDeliveries(
+        eligible.map((delivery) => delivery.id),
+        {
+          status: "failed",
+          provider: this.emailTransport.providerId,
+          attempts: 1,
+          lastAttemptAt: attemptedAt,
+          failureCode: "provider_error",
+          failureReason,
+        },
+      );
+
+      return {
+        batch: await this.digestBatchStore.updateBatch(batch.id, {
+          status: "failed",
+          failureCode: "provider_error",
+          failureReason,
+        }),
+        wasProcessed: true,
+      };
+    }
+  }
 }
 
 export function buildNotificationEmailContent(input: {
@@ -183,6 +431,35 @@ export function buildNotificationEmailContent(input: {
 
   return {
     subject: payload?.subject ?? alertTypeLabel(input.alert.type),
+    text: lines.join("\n"),
+  };
+}
+
+export function buildNotificationDigestEmailContent(input: {
+  deliveries: StoredNotificationDelivery[];
+  appBaseUrl?: string;
+}): NotificationEmailContent {
+  const itemCount = input.deliveries.length;
+  const lines = [
+    "Tax Lien Intelligence Platform",
+    "",
+    `Your scheduled product-alert digest includes ${itemCount} ${itemCount === 1 ? "event" : "events"}.`,
+    "",
+    ...input.deliveries.flatMap((delivery, index) => [
+      `${index + 1}. ${delivery.subject ?? alertTypeLabel(delivery.alertType)}`,
+      `   ${delivery.summary ?? "A product alert is ready for review."}`,
+      ...(delivery.metadata?.datasetId ? [`   Dataset: ${delivery.metadata.datasetId}`] : []),
+      ...(delivery.metadata?.jobId ? [`   Job: ${delivery.metadata.jobId}`] : []),
+      "",
+    ]),
+    "You are receiving this digest because these alert categories are enabled for digest email in your notification preferences.",
+    ...(input.appBaseUrl ? ["", `Open workspace: ${input.appBaseUrl}`] : []),
+    "",
+    "This is a product alert for your tax lien review workspace, not a marketing message.",
+  ];
+
+  return {
+    subject: `${itemCount} ${itemCount === 1 ? "update" : "updates"} in your tax lien workspace`,
     text: lines.join("\n"),
   };
 }
@@ -291,4 +568,82 @@ function requestKindLabel(requestKind: NonNullable<AlertMetadata["requestKind"]>
 function boundedFailureReason(error: unknown): string {
   const message = error instanceof Error ? error.message : "Email provider failed.";
   return message.slice(0, 500);
+}
+
+function digestWindowKey(now: Date, intervalMs: number): string {
+  return new Date(Math.floor(now.getTime() / intervalMs) * intervalMs).toISOString();
+}
+
+function toDeliveryHistoryItem(delivery: StoredNotificationDelivery): NotificationDeliveryHistoryItem {
+  const failureMessage = safeDeliveryFailureMessage(delivery.status, delivery.failureCode);
+  return {
+    id: delivery.id,
+    alertType: delivery.alertType,
+    channel: delivery.channel,
+    status: delivery.status,
+    deliveryMode: delivery.deliveryMode,
+    cadence: delivery.cadence,
+    ...(delivery.subject ? { subject: delivery.subject } : {}),
+    ...(delivery.summary ? { summary: delivery.summary } : {}),
+    ...(delivery.relatedEntityType ? { relatedEntityType: delivery.relatedEntityType } : {}),
+    ...(delivery.relatedEntityId ? { relatedEntityId: delivery.relatedEntityId } : {}),
+    ...(delivery.digestBatchId ? { digestBatchId: delivery.digestBatchId } : {}),
+    attempts: delivery.attempts,
+    ...(delivery.failureCode ? { failureCode: delivery.failureCode } : {}),
+    ...(failureMessage ? { failureMessage } : {}),
+    preparedAt: delivery.preparedAt.toISOString(),
+    ...(delivery.sentAt ? { sentAt: delivery.sentAt.toISOString() } : {}),
+    updatedAt: delivery.updatedAt.toISOString(),
+  };
+}
+
+function toDigestBatchResponse(batch: StoredNotificationDigestBatch): NotificationDigestBatchResponse {
+  const failureMessage = safeBatchFailureMessage(batch.status, batch.failureCode);
+  return {
+    id: batch.id,
+    status: batch.status,
+    itemCount: batch.itemCount,
+    ...(batch.subject ? { subject: batch.subject } : {}),
+    attempts: batch.attempts,
+    ...(batch.failureCode ? { failureCode: batch.failureCode } : {}),
+    ...(failureMessage ? { failureMessage } : {}),
+    ...(batch.sentAt ? { sentAt: batch.sentAt.toISOString() } : {}),
+    createdAt: batch.createdAt.toISOString(),
+    updatedAt: batch.updatedAt.toISOString(),
+  };
+}
+
+function safeDeliveryFailureMessage(
+  status: StoredNotificationDelivery["status"],
+  failureCode: NotificationDeliveryFailureCode | undefined,
+): string | undefined {
+  if (status === "suppressed") {
+    return "Delivery was suppressed by your current notification preferences.";
+  }
+
+  return safeFailureCodeMessage(failureCode);
+}
+
+function safeBatchFailureMessage(
+  status: StoredNotificationDigestBatch["status"],
+  failureCode: NotificationDeliveryFailureCode | undefined,
+): string | undefined {
+  if (status === "suppressed") {
+    return "This digest was suppressed because no included alert remained eligible.";
+  }
+
+  return safeFailureCodeMessage(failureCode);
+}
+
+function safeFailureCodeMessage(failureCode: NotificationDeliveryFailureCode | undefined): string | undefined {
+  switch (failureCode) {
+    case "provider_disabled":
+      return "Email delivery is unavailable because the provider is not configured.";
+    case "recipient_missing":
+      return "Email delivery could not resolve a recipient for this account.";
+    case "provider_error":
+      return "Email delivery could not be completed by the configured provider.";
+    default:
+      return undefined;
+  }
 }

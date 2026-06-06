@@ -33,6 +33,7 @@ before writing specs, prompts, or implementation plans.
 - [Internal Job Architecture](architecture/internal-jobs.md)
 - [Alerts And Monitoring Architecture](architecture/alerts.md)
 - [Notification Preferences And Email Delivery Foundation](architecture/notification-preferences.md)
+- [Digest Delivery And History Architecture](architecture/digest-delivery.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
@@ -45,6 +46,7 @@ before writing specs, prompts, or implementation plans.
 - [Internal Jobs API](api/jobs.md)
 - [Alerts API](api/alerts.md)
 - [Notification Preferences API](api/notification-preferences.md)
+- [Notification Deliveries API](api/notification-deliveries.md)
 - [Watchlist API](api/watchlist.md)
 - [Portfolio API](api/portfolio.md)
 - [Comparison API](api/comparison.md)

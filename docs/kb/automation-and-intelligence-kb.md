@@ -30,7 +30,11 @@ Current implementation:
   for current scoring alert types;
 - an env-driven SMTP email delivery foundation exists for supported immediate
   product alerts, with disabled-provider and failure outbox tracking;
-- digest-ready outbox grouping exists, but no scheduled digest sender exists;
+- bounded scheduled digest processing groups digest-ready product alerts by
+  user and processing window, rechecks current preferences, and records
+  tenant-owned batch outcomes;
+- authenticated delivery history exposes safe immediate-delivery and digest
+  batch status without recipient addresses or raw provider details;
 - first internal enrichment adapter exists for uploaded source-row inference;
 - controlled user-triggered dataset refresh/reprocessing exists through the
   worker job boundary;
@@ -46,7 +50,7 @@ Current implementation:
 - focused manual mapping repair exists for critical source-column mapping;
 - reusable import profiles exist for deterministic tenant-owned mapping reuse;
 - no portfolio automation, automated comparison recommendations, broad external
-  monitoring, SMS/push delivery, or scheduled digest delivery.
+  monitoring, SMS/push delivery, campaign messaging, or hidden digest retries.
 
 The current repo establishes the monorepo, auth, dataset foundation, first-pass
 scoring foundation, manual review surface, watchlist shortlist, portfolio
@@ -64,6 +68,10 @@ mapping profiles, but it is still not broad automated import tooling. Phase 26
 adds notification preference control and delivery-ready classification. Phase 27
 adds the first email delivery foundation for product alerts, but it does not
 introduce SMS, push, marketing messaging, or a broad provider platform.
+Phase 28 adds bounded digest batching, scheduled processing, send-time
+preference checks, duplicate-window protection, and owner-safe delivery history.
+It does not add campaigns, realtime messaging, shared policies, or a general
+notification automation platform.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -119,7 +127,8 @@ Manual-first sequence:
 18. reusable import profiles;
 19. notification preference control;
 20. email delivery foundation for supported product alerts;
-21. then broader automation.
+21. bounded digest delivery and owner-safe history;
+22. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.
@@ -263,6 +272,8 @@ Now:
   recommendation.
 - focused manual mapping repair for critical fields.
 - reusable import profiles for future uploads with matching source columns.
+- bounded scheduled digest email delivery for current scoring alerts.
+- owner-safe immediate-delivery and digest batch history.
 
 Later:
 
@@ -275,7 +286,8 @@ Later:
 - broader automatic recurring refresh;
 - additional external enrichment providers;
 - SMS/push alert delivery;
-- scheduled digest email delivery;
+- digest retry/rate-limit policy beyond the current one-attempt batches;
+- richer digest templates and user-configurable digest windows;
 - external worker orchestration;
 - portfolio automation;
 - AI or ML assistance.

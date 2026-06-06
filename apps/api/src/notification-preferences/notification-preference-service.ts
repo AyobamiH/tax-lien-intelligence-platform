@@ -129,6 +129,12 @@ export class NotificationPreferenceService {
     };
   }
 
+  public async isDigestDeliveryEnabled(userId: string, alertType: AlertType): Promise<boolean> {
+    const preferences = await this.findOrCreatePreferences(userId);
+    const rule = preferences.rules.find((candidate) => candidate.alertType === alertType) ?? defaultRuleFor(alertType);
+    return rule.enabled && rule.deliveryMode === "delivery_eligible" && rule.cadence === "digest";
+  }
+
   private async findOrCreatePreferences(userId: string): Promise<StoredNotificationPreferences> {
     const existing = await this.notificationPreferenceStore.findForUser(userId);
     if (existing) {
