@@ -1,5 +1,8 @@
 # Decision Handoff Architecture
 
+Phase 29 requires owner/admin workspace access for handoff and keeps the source
+and destination inside the same selected workspace compatibility tenant key.
+
 Phase 23 adds explicit action transitions from the comparison workspace into the
 existing watchlist and portfolio surfaces.
 

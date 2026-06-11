@@ -2,22 +2,23 @@
 
 Phase 6 adds the first decision workflow on top of scored records. Watchlist
 routes are authenticated, tenant-scoped, and only accept references to scored
-records owned by the authenticated user.
+records in the selected workspace.
 
 ## Security Model
 
 - All watchlist routes require `Authorization: Bearer <jwt-access-token>`.
 - The client never sends `userId`.
-- The API verifies the scored record belongs to the authenticated user before
+- The API verifies the scored record belongs to the selected workspace before
   creating a watchlist item.
+- Members can list; owners/admins can add or remove.
 - Duplicate adds are idempotent and do not create clutter.
-- Cross-user references return safe not-found errors.
+- Cross-workspace references are rejected safely.
 - Watchlist responses expose a denormalized score summary, flags, and reasoning;
   they do not expose another user's identifiers.
 
 ## `POST /watchlist`
 
-Adds a scored record to the authenticated user's watchlist.
+Adds a scored record to the selected workspace watchlist.
 
 ### Request
 
@@ -66,7 +67,7 @@ Duplicate adds return `200` with `alreadyExists: true` and the existing item.
 
 ## `GET /watchlist`
 
-Returns the authenticated user's watchlist items, sorted for comparison by
+Returns the selected workspace's watchlist items, sorted for comparison by
 investment quality and risk.
 
 ### Response `200`
@@ -79,7 +80,7 @@ investment quality and risk.
 
 ## `DELETE /watchlist/:watchlistItemId`
 
-Removes one watchlist item owned by the authenticated user.
+Removes one watchlist item in the selected workspace.
 
 ### Response `200`
 

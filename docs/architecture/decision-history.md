@@ -1,5 +1,8 @@
 # Decision History Architecture
 
+Phase 29 exposes decision history to active members of the selected workspace.
+History writes still occur only through owner/admin comparison mutations.
+
 Phase 22 adds a lightweight, tenant-owned decision history layer for the
 comparison workspace.
 

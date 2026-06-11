@@ -1,5 +1,9 @@
 # Watchlist Workflow Architecture
 
+Phase 29 makes watchlist data shared inside the selected workspace. Members can
+read; owners/admins can add or remove. Existing `userId` storage remains the
+workspace owner compatibility key.
+
 ## Scope
 
 Phase 6 introduces the first deliberate decision layer after scoring review. A

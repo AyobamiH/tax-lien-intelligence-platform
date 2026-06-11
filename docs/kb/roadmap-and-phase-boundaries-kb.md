@@ -916,6 +916,40 @@ Future expansion may include:
 - additional product alert sources after their contracts exist;
 - SMS/push only through separately designed opt-in channel phases.
 
+## Phase 29: Workspace And Team-Access Foundation
+
+Current status: implemented.
+
+Phase 29 includes:
+
+- workspace and workspace-membership models;
+- automatic personal owner-workspace bootstrap;
+- intentionally small `owner`, `admin`, and `member` role set;
+- authenticated workspace/member list, add-member, and role-update APIs;
+- direct addition of already registered users;
+- explicit `X-Workspace-Id` selection and active membership checks;
+- owner/admin mutations and member read-only access for core shared product
+  data;
+- workspace-aware datasets, scoring/jobs, import profiles, watchlist,
+  portfolio, comparison, decision history, and handoff;
+- compatibility tenant-key derivation that preserves existing records;
+- frontend workspace context, switching, member list, member addition, and role
+  controls;
+- cross-workspace, role-restriction, compatibility, API, and frontend tests.
+
+Phase 29 does not include:
+
+- comments, chat, or shared editing;
+- task assignment or approvals;
+- custom permission matrices;
+- billing/subscription management;
+- shared notification policy;
+- auction execution;
+- ML/AI collaboration helpers.
+
+Alerts, notification preferences/history, and saved views remain personal in
+this phase.
+
 ## Later Phases
 
 Later phases may include:
@@ -931,7 +965,7 @@ Later phases may include:
 - richer digest scheduling, templates, and explicit retry policy;
 - scheduled ingestion;
 - external worker deployment hardening;
-- team workflows;
+- richer collaboration workflows;
 - audit logs.
 
 Later phases depend on secure auth, tenant-scoped data, ingestion, scoring, and
@@ -967,7 +1001,8 @@ Dependency order matters:
 24. notification preferences and delivery foundation;
 25. email delivery and digest-ready outbox foundation;
 26. digest delivery workflow and owner-safe history;
-27. broader automation.
+27. workspace and team-access foundation;
+28. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

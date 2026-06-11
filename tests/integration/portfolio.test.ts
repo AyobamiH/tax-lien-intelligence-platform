@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { AuthService } from "../../apps/api/src/auth/auth-service.js";
 import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
 import { createApp } from "../../apps/api/src/app.js";
+import { createInMemoryWorkspaceService } from "../support/in-memory-workspace-store.js";
 import { DatasetService } from "../../apps/api/src/datasets/dataset-service.js";
 import type {
   CreateDatasetInput,
@@ -356,7 +357,15 @@ function createTestContext(): { app: ReturnType<typeof createApp>; workerProcess
   const workerProcessor = new WorkerJobProcessor(internalJobService, scoringService);
 
   return {
-    app: createApp({ authService, datasetService, internalJobService, scoringService, watchlistService, portfolioService }),
+    app: createApp({
+      authService,
+      datasetService,
+      internalJobService,
+      scoringService,
+      watchlistService,
+      portfolioService,
+      workspaceService: createInMemoryWorkspaceService(userStore),
+    }),
     workerProcessor,
   };
 }

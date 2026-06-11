@@ -42,6 +42,10 @@ for supported product alerts with env-driven SMTP config, outbox tracking, and
 digest-ready grouping. Phase 28 adds bounded scheduled digest processing,
 tenant-owned digest batch records, send-time preference checks, and an
 authenticated delivery history surface.
+Phase 29 adds the first company-ready workspace layer with persistent
+memberships, minimal owner/admin/member roles, shared operating-data access,
+and a lightweight workspace management surface. It is not a full collaboration
+suite.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -79,7 +83,9 @@ Current evidence:
   can send immediate email when preferences and SMTP config allow it;
 - supported digest alerts can be grouped into bounded scheduled email batches,
   with owner-safe delivery and batch history in the app;
-- architecture docs say every future user-owned document must include `userId`.
+- workspace members can deliberately share the core review/decision operating
+  context with role-aware access while personal notification/settings data
+  remains private.
 
 ## What This SaaS Is
 
@@ -97,7 +103,7 @@ The intended product loop is:
 5. the system reports import readiness and scoring suitability;
 6. the user can repair critical field mappings when the import is weak or
    blocked;
-7. dataset/source rows are stored under that user's tenant boundary;
+7. dataset/source rows are stored under the selected workspace boundary;
 8. the scoring engine evaluates opportunity quality and risk;
 9. the user reviews scored rows with explanations and warnings;
 10. the user adds promising items to a watchlist;
@@ -116,7 +122,8 @@ worker-driven scoring execution, source-row enrichment, and controlled refresh
 exist. Bounded scheduled maintenance groundwork now exists. One
 Maricopa-style county import adapter exists. Browser CSV upload and import
 readiness guidance now exist. Focused manual field mapping repair now exists.
-Reusable import profiles and the comparison workspace now exist. Broad county
+Reusable import profiles, comparison, and the workspace-access foundation now
+exist. Broad county
 coverage, live county sync, full spreadsheet editing, collaboration, rich
 decision history, ML mapping suggestions, SMS/push alert delivery, user-facing
 scheduler policy controls, broader automatic refresh, advanced digest
@@ -225,12 +232,13 @@ Current implementation:
   context;
 - enrichment now records adapter outcomes, fallback state, and freshness for
   future reprocessing readiness;
-- controlled refresh/reprocessing now exists for user-owned datasets;
+- controlled refresh/reprocessing now exists for workspace-shared datasets;
 - one Maricopa-style county import adapter now exists for safer upload-time
   mapping of common county headers;
 - scoring job outcomes create in-app alerts;
 - no standalone parcel/lien schema;
-- no collaboration, final investment decision, auction, or accounting workflow.
+- no comments/chat, shared editing, task/approval collaboration, final
+  investment decision, auction, or accounting workflow.
 
 ## Trust Philosophy
 
@@ -301,7 +309,8 @@ Near-term non-goals:
 - portfolio analytics before basic portfolio status tracking earns them;
 - broad automation before ingestion and scoring are reliable;
 - external automation before internal job boundaries are safe;
-- multi-role enterprise admin before single-tenant user workflows are secure.
+- custom enterprise administration before the minimal workspace roles are
+  proven secure.
 
 ## Long-Term Direction
 

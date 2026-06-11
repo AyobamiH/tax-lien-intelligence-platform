@@ -1,5 +1,9 @@
 # Dataset Foundation Architecture
 
+Phase 29 places dataset routes behind selected-workspace membership and role
+checks. Existing dataset `userId` values remain the workspace owner
+compatibility tenant key; members can read and owners/admins can mutate.
+
 ## Scope
 
 Phase 3 adds the first tenant-owned dataset layer. It is manual-first and

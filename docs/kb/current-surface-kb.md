@@ -66,6 +66,10 @@ It shows:
 - dedicated delivery history route using `#/delivery-history`;
 - immediate email and digest batch status, attempts, suppressions, failures,
   provider-disabled state, and safe related-dataset navigation;
+- workspace context and role visibility in the app header;
+- dedicated workspace management route using `#/workspace`;
+- active member list, workspace switching, direct registered-user addition,
+  and owner-only role controls;
 - loading, empty, and error states.
 
 This is the first real user-facing review and decision-tracking workflow. It is
@@ -80,6 +84,11 @@ The current API surface is minimal:
 - `POST /auth/register`
 - `POST /auth/login`
 - `GET /auth/me`
+- `GET /workspaces`
+- `GET /workspaces/current`
+- `GET /workspaces/current/members`
+- `POST /workspaces/current/members`
+- `PATCH /workspaces/current/members/:membershipId`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -276,23 +285,22 @@ suggestion engine, live sync, or ETL rule builder.
 
 ## Security Implications
 
-The current browser surface now handles authenticated user-owned upload and
-review data.
-Security risk shifts toward protecting the token boundary, API authorization,
-tenant-owned dataset/score queries, and file upload behavior. Risk increases
+The current browser surface now handles authenticated workspace-shared upload
+and review data plus personal messaging/settings data. Security risk shifts
+toward protecting the token boundary, selected-workspace membership,
+role-aware authorization, tenant-key derivation, and file upload behavior.
+Risk increases
 further when the repo adds:
 
 - batch upload or raw file persistence workflows;
 - alert or automation workflows.
 
-The watchlist is now user-owned decision data and has its own backend ownership
-checks. Portfolio tracking and portfolio summaries are also user-owned decision
-data and have backend ownership checks. Comparison items, decision notes,
-lightweight decision history, and decision handoff events are also user-owned
-decision data and have backend ownership checks.
-Internal jobs are user-owned
-operational metadata and have backend ownership checks. Future changes must
-preserve these boundaries.
+Datasets, scores/jobs, watchlist, portfolio, comparison, decision history, and
+handoff are shared only inside a verified workspace. Owners/admins can mutate;
+members are read-only. Existing record `userId` values remain the workspace
+owner compatibility key and are never client supplied. Alerts, notification
+settings/history, and saved views remain personal. Future changes must preserve
+both boundaries.
 
 Alerts are now user-owned monitoring records. They expose safe summaries only and
 must not become raw logs or stack-trace displays. Future current-surface updates

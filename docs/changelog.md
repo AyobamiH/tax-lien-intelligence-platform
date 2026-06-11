@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-06-11
+
+- Implemented Phase 29 workspace/team-access foundation with persistent
+  workspace and membership models, minimal owner/admin/member roles, automatic
+  personal-workspace bootstrap, and direct membership creation for registered
+  users.
+- Added `X-Workspace-Id` membership resolution and role-aware access for
+  datasets, scoring/jobs, import profiles, watchlist, portfolio, comparison,
+  decision history, and handoff while preserving legacy records through the
+  workspace owner's compatibility tenant key.
+- Added authenticated workspace/member APIs and a lightweight frontend
+  workspace surface with context, role, member list, workspace switching,
+  member addition, and owner-only role controls.
+- Added tests for bootstrap, compatibility, shared reads, member write denial,
+  cross-workspace rejection, role assignment, admin restrictions, API headers,
+  and frontend role presentation.
+- Kept alerts, notification preferences/history, and saved views personal, and
+  kept comments, chat, shared editing, tasks, approvals, custom permissions,
+  billing, auction execution, and ML/AI collaboration out of scope.
+
 ## 2026-06-06
 
 - Implemented Phase 28 digest delivery with tenant-owned digest batches,

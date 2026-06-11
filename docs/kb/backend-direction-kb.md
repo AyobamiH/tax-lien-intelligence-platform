@@ -24,6 +24,11 @@ Current implementation:
 - password hashing;
 - JWT issuance and verification;
 - auth middleware;
+- workspace and workspace-membership models;
+- personal owner-workspace bootstrap;
+- workspace/member list, add-member, and role-update APIs;
+- selected-workspace membership middleware and explicit read/write/member-role
+  checks;
 - global API error handling;
 - dataset model;
 - authenticated dataset upload/list/detail routes;
@@ -92,6 +97,8 @@ Current implementation:
 - server-side comparison decision/note history capture;
 - explicit comparison handoff routes for watchlist and portfolio;
 - server-side handoff history capture with destination linkage metadata;
+- workspace-aware access for datasets, scoring/jobs, import profiles,
+  watchlist, portfolio, comparison, decision history, and handoff;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -106,7 +113,8 @@ Current implementation:
 The backend should become the trusted boundary for:
 
 - authentication;
-- tenant identity;
+- workspace and personal tenant identity;
+- membership and role authorization;
 - dataset ingestion;
 - validation;
 - normalized storage;
@@ -693,7 +701,8 @@ Backend implementation order should stay disciplined:
 24. notification preferences and delivery foundation: implemented in Phase 26;
 25. email delivery and digest-ready outbox foundation: implemented in Phase 27;
 26. scheduled digest processing and delivery history: implemented in Phase 28;
-27. later external automation.
+27. workspace and team-access foundation: implemented in Phase 29;
+28. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -702,7 +711,7 @@ Do not introduce automation before the manual workflow is correct.
 Avoid:
 
 - generic distributed job systems before the current worker boundary needs them;
-- complex roles before single-user tenancy is secure;
+- custom permission matrices before the minimal workspace roles earn them;
 - admin APIs before audit/security controls;
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
@@ -716,7 +725,7 @@ Every backend feature must include:
 
 - auth decision;
 - validation schema;
-- ownership check if user-owned;
+- workspace membership/role check if shared, or user ownership check if personal;
 - tests for invalid input;
 - tests for unauthorized access;
 - docs;

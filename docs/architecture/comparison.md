@@ -1,5 +1,9 @@
 # Comparison Workspace Architecture
 
+Phase 29 distinguishes the tenant workspace from the existing default
+comparison collection. Comparison data is shared inside the selected tenant
+workspace; members can read and owners/admins can mutate.
+
 Phase 21 introduces the comparison workspace and lightweight decision notes.
 This is the first explicit side-by-side decision surface after watchlist and
 portfolio tracking.

@@ -1,26 +1,25 @@
 # Scoring API
 
-Phase 4 adds the first explainable scoring foundation. Scoring routes are
-authenticated, tenant-scoped, and operate only on datasets owned by the
-authenticated user.
+Phase 4 adds the first explainable scoring foundation. Phase 29 makes scoring
+routes workspace-aware: members may read and owners/admins may start score or
+refresh jobs.
 
 ## Security Model
 
 - All scoring routes require `Authorization: Bearer <jwt-access-token>`.
-- Dataset ownership is checked before scoring or score retrieval.
+- Selected-workspace membership is checked before scoring or score retrieval.
 - The client cannot submit trusted score values.
 - Scored records are derived server-side from stored dataset source rows after
   normalization and enrichment.
 - If a dataset has manual or import-profile mappings, the worker applies them
   as a derived overlay before normalization. Stored source rows are not
   rewritten.
-- Cross-user access returns `dataset_not_found` rather than revealing another
-  user's dataset exists.
+- Cross-workspace access is rejected before dataset lookup.
 - Scoring explanations are user-visible summaries, not raw processing internals.
 
 ## `POST /datasets/:datasetId/score`
 
-Enqueues first-pass scoring for a user-owned dataset through the internal job
+Enqueues first-pass scoring for a workspace-shared dataset through the internal job
 execution layer.
 
 Phase 10 moves score execution out of the request lifecycle. The route now
@@ -58,7 +57,7 @@ to retrieve scores after the worker marks the job completed.
 
 ## `POST /datasets/:datasetId/refresh`
 
-Queues a controlled refresh/reprocessing job for a user-owned dataset. Refresh
+Queues a controlled refresh/reprocessing job for a workspace-shared dataset. Refresh
 means the worker reruns normalization, enrichment orchestration, and scoring for
 the stored dataset source rows, then replaces the current scored-record set for
 that dataset by source row. Existing watchlist and portfolio records retain
@@ -114,7 +113,7 @@ creating another one.
 
 ## `GET /datasets/:datasetId/scoring-status`
 
-Returns compact scoring/refresh status for a user-owned dataset.
+Returns compact scoring/refresh status for a workspace-shared dataset.
 
 ### Response `200`
 
@@ -164,7 +163,7 @@ Supported status values:
 
 ## `GET /datasets/:datasetId/scores`
 
-Returns stored scored records for a user-owned dataset.
+Returns stored scored records for a workspace-shared dataset.
 
 ### Response `200`
 
@@ -273,7 +272,7 @@ Possible scoring errors:
 - `dataset_not_found`
 - `score_no_source_rows`
 
-Errors discovered before enqueue, such as invalid dataset ids or cross-user
+Errors discovered before enqueue, such as invalid dataset ids or cross-workspace
 dataset access, return immediately. Errors discovered by the worker after enqueue
 are recorded on the job as safe failure metadata.
 

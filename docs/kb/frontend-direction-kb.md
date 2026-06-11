@@ -56,6 +56,9 @@ Current implementation:
 - notification preferences route with controls for current scoring alert types,
   enabled state, in-app-only versus email-capable handling, and timing;
 - delivery history route with safe immediate and digest outcomes;
+- workspace context, selected role, and read-only visibility in the header;
+- workspace management route with member list, workspace selection,
+  registered-user addition, and owner-only role controls;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -72,7 +75,8 @@ Its job is to:
 - help users filter and inspect records;
 - preserve watchlist and decision context;
 - communicate risk without hype;
-- keep tenant-owned data private to the signed-in user.
+- keep shared operating data inside the selected verified workspace and
+  personal settings private to the signed-in user.
 
 ## Future Page Inventory
 
@@ -102,7 +106,8 @@ Current and future page direction:
 - implemented: alerts monitoring surface;
 - implemented: notification preferences surface;
 - implemented: delivery history surface;
-- future: account/settings page.
+- implemented: lightweight workspace/account-management surface;
+- future: broader personal account/settings page.
 
 ## Page Responsibilities
 
@@ -193,7 +198,7 @@ Implemented comparison:
 
 Future comparison expansion:
 
-- multiple named workspaces;
+- multiple named comparison collections inside a workspace;
 - richer decision history beyond the current lightweight timeline;
 - collaboration;
 - legal-grade audit trails;

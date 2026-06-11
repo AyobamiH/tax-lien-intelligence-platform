@@ -32,7 +32,19 @@ import type {
   SavedViewResponse,
   ScoredRecordResponse,
   WatchlistItemResponse,
+  WorkspaceRole,
 } from "@tax-lien/types";
+
+export function workspaceRoleLabel(role: WorkspaceRole): string {
+  switch (role) {
+    case "owner":
+      return "Owner";
+    case "admin":
+      return "Admin";
+    case "member":
+      return "Member";
+  }
+}
 
 export type ScoreFilter = "all" | "flagged" | "strong" | "weak";
 export type PortfolioReviewFilter = "all" | "active" | PortfolioStatus;

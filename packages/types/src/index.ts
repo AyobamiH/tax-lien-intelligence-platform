@@ -39,6 +39,69 @@ export interface AuthenticatedPrincipal {
   email: string;
 }
 
+export type WorkspaceRole = "owner" | "admin" | "member";
+export type WorkspaceMembershipStatus = "active";
+
+export interface WorkspacePermissions {
+  canReadSharedData: boolean;
+  canManageSharedData: boolean;
+  canManageMembers: boolean;
+  canManageRoles: boolean;
+}
+
+export interface WorkspaceResponse {
+  id: string;
+  name: string;
+  role: WorkspaceRole;
+  isDefault: boolean;
+  memberCount: number;
+  permissions: WorkspacePermissions;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceMemberResponse {
+  id: string;
+  userId: string;
+  email: string;
+  role: WorkspaceRole;
+  status: WorkspaceMembershipStatus;
+  isDefault: boolean;
+  joinedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceListResponse {
+  workspaces: WorkspaceResponse[];
+  currentWorkspaceId: string;
+}
+
+export interface CurrentWorkspaceResponse {
+  workspace: WorkspaceResponse;
+}
+
+export interface WorkspaceMembersResponse {
+  members: WorkspaceMemberResponse[];
+}
+
+export interface AddWorkspaceMemberRequest {
+  email: string;
+  role: Exclude<WorkspaceRole, "owner">;
+}
+
+export interface AddWorkspaceMemberResponse {
+  member: WorkspaceMemberResponse;
+}
+
+export interface UpdateWorkspaceMemberRoleRequest {
+  role: Exclude<WorkspaceRole, "owner">;
+}
+
+export interface UpdateWorkspaceMemberRoleResponse {
+  member: WorkspaceMemberResponse;
+}
+
 export type DatasetStatus = "validated";
 export type DatasetSourceType = "manual_csv";
 export type DatasetImportAdapterId = "generic_csv" | "maricopa_tax_lien_v1";

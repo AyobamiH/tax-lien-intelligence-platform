@@ -65,6 +65,7 @@ import {
   summarizePortfolioForReview,
   summarizeScores,
   topReadinessIssues,
+  workspaceRoleLabel,
 } from "../../apps/web/src/review-model.js";
 
 function scoredRecord(overrides: Partial<ScoredRecordResponse>): ScoredRecordResponse {
@@ -297,6 +298,12 @@ function datasetResponse(overrides: Partial<DatasetResponse>): DatasetResponse {
 }
 
 describe("review model helpers", () => {
+  it("presents the intentionally small workspace role set clearly", () => {
+    expect(workspaceRoleLabel("owner")).toBe("Owner");
+    expect(workspaceRoleLabel("admin")).toBe("Admin");
+    expect(workspaceRoleLabel("member")).toBe("Member");
+  });
+
   it("sorts scored records by strongest investment score, then lower risk", () => {
     const weak = scoredRecord({ id: "weak", investmentScore: 25, riskScore: 80, sourceRowNumber: 3 });
     const strongerHigherRisk = scoredRecord({ id: "strong-riskier", investmentScore: 75, riskScore: 40 });

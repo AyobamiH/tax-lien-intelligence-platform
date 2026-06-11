@@ -145,6 +145,19 @@ export {
 } from "./models/saved-view.js";
 export { UserModel, type UserDocument, type UserRecord } from "./models/user.js";
 export {
+  WorkspaceModel,
+  type WorkspaceDocument,
+  type WorkspaceRecord,
+} from "./models/workspace.js";
+export {
+  WorkspaceMembershipModel,
+  workspaceMembershipRoles,
+  type WorkspaceMembershipDocument,
+  type WorkspaceMembershipRecord,
+  type WorkspaceMembershipRoleRecord,
+  type WorkspaceMembershipStatusRecord,
+} from "./models/workspace-membership.js";
+export {
   WatchlistItemModel,
   type WatchlistItemDocument,
   type WatchlistItemRecord,

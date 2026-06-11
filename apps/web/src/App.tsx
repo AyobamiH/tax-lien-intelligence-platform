@@ -23,9 +23,13 @@ import type {
   SavedViewResponse,
   ScoredRecordResponse,
   WatchlistItemResponse,
+  WorkspaceMemberResponse,
+  WorkspaceResponse,
+  WorkspaceRole,
 } from "@tax-lien/types";
 import {
   ApiClientError,
+  addWorkspaceMember,
   addComparisonItem,
   addPortfolioItem,
   addWatchlistItem,
@@ -51,6 +55,8 @@ import {
   listPortfolio,
   listSavedViews,
   listWatchlist,
+  listWorkspaceMembers,
+  listWorkspaces,
   login,
   markAlertRead,
   markAllAlertsRead,
@@ -62,9 +68,11 @@ import {
   saveDatasetImportProfile,
   saveDatasetManualMapping,
   scoreDataset,
+  setActiveWorkspaceId,
   updateComparisonItem,
   updateNotificationPreferences,
   updatePortfolioItemStatus,
+  updateWorkspaceMemberRole,
 } from "./api";
 import {
   alertSeverityClassName,
@@ -120,6 +128,7 @@ import {
   type ScoreFilter,
   summarizeScores,
   topReadinessIssues,
+  workspaceRoleLabel,
 } from "./review-model";
 
 const authStorageKey = "tax-lien-review-session";
@@ -132,7 +141,8 @@ type PageState =
   | { name: "comparison" }
   | { name: "alerts" }
   | { name: "notifications" }
-  | { name: "delivery-history" };
+  | { name: "delivery-history" }
+  | { name: "workspace" };
 
 type AuthMode = "login" | "register";
 
@@ -213,6 +223,16 @@ interface NotificationDeliveryHistoryState {
   error: string | null;
 }
 
+interface WorkspaceState {
+  workspaces: WorkspaceResponse[];
+  current: WorkspaceResponse | null;
+  members: WorkspaceMemberResponse[];
+  isLoading: boolean;
+  error: string | null;
+  success: string | null;
+  actionId: string | null;
+}
+
 function App() {
   const [session, setSession] = useState<StoredSession | null>(() => loadStoredSession());
   const [page, setPage] = useState<PageState>(() => readRoute());
@@ -273,6 +293,15 @@ function App() {
       isLoading: false,
       error: null,
     });
+  const [workspace, setWorkspace] = useState<WorkspaceState>({
+    workspaces: [],
+    current: null,
+    members: [],
+    isLoading: false,
+    error: null,
+    success: null,
+    actionId: null,
+  });
   const authToken = session?.token ?? null;
 
   useEffect(() => {
@@ -293,6 +322,24 @@ function App() {
 
     void refreshSession(session.token, setSession);
   }, [session?.token]);
+
+  useEffect(() => {
+    if (!authToken) {
+      setActiveWorkspaceId(null);
+      setWorkspace({
+        workspaces: [],
+        current: null,
+        members: [],
+        isLoading: false,
+        error: null,
+        success: null,
+        actionId: null,
+      });
+      return;
+    }
+
+    void refreshWorkspaceContext(authToken);
+  }, [authToken]);
 
   useEffect(() => {
     if (!authToken) {
@@ -368,6 +415,138 @@ function App() {
       })
       .finally(() => setDatasetsLoading(false));
   }, [authToken]);
+
+  async function refreshWorkspaceContext(token: string, workspaceId?: string): Promise<boolean> {
+    setWorkspace((current) => ({ ...current, isLoading: true, error: null, success: null }));
+    setActiveWorkspaceId(workspaceId ?? null);
+
+    try {
+      const result = await listWorkspaces(token);
+      const selectedId = workspaceId ?? result.currentWorkspaceId;
+      setActiveWorkspaceId(selectedId);
+      const membersResult = await listWorkspaceMembers(token);
+      const current = result.workspaces.find((candidate) => candidate.id === selectedId) ?? null;
+      setWorkspace({
+        workspaces: result.workspaces,
+        current,
+        members: membersResult.members,
+        isLoading: false,
+        error: null,
+        success: null,
+        actionId: null,
+      });
+      return true;
+    } catch (error: unknown) {
+      setWorkspace((current) => ({
+        ...current,
+        isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+      return false;
+    }
+  }
+
+  async function switchWorkspace(workspaceId: string): Promise<boolean> {
+    if (!session) {
+      return false;
+    }
+    if (workspaceId === workspace.current?.id) {
+      return true;
+    }
+
+    if (!(await refreshWorkspaceContext(session.token, workspaceId))) {
+      return false;
+    }
+    setDatasetsLoading(true);
+    setDatasetsError(null);
+    try {
+      const result = await listDatasets(session.token);
+      setDatasets(result.datasets);
+      await Promise.all([
+        refreshWatchlist(session.token),
+        refreshPortfolio(session.token),
+        refreshComparison(session.token),
+      ]);
+      navigate({ name: "datasets" }, setPage);
+      return true;
+    } catch (error: unknown) {
+      setDatasetsError(errorMessage(error));
+      return false;
+    } finally {
+      setDatasetsLoading(false);
+    }
+  }
+
+  async function createWorkspaceMember(
+    email: string,
+    role: Exclude<WorkspaceRole, "owner">,
+  ): Promise<void> {
+    if (!session) {
+      return;
+    }
+    setWorkspace((current) => ({ ...current, actionId: "add", error: null, success: null }));
+    try {
+      const result = await addWorkspaceMember(session.token, email, role);
+      setWorkspace((current) => ({
+        ...current,
+        members: [...current.members, result.member],
+        current: current.current
+          ? { ...current.current, memberCount: current.current.memberCount + 1 }
+          : null,
+        actionId: null,
+        success: `${result.member.email} was added to this workspace.`,
+      }));
+    } catch (error: unknown) {
+      setWorkspace((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+    }
+  }
+
+  async function changeWorkspaceMemberRole(
+    membershipId: string,
+    role: Exclude<WorkspaceRole, "owner">,
+  ): Promise<void> {
+    if (!session) {
+      return;
+    }
+    setWorkspace((current) => ({ ...current, actionId: membershipId, error: null, success: null }));
+    try {
+      const result = await updateWorkspaceMemberRole(session.token, membershipId, role);
+      setWorkspace((current) => ({
+        ...current,
+        members: current.members.map((member) =>
+          member.id === result.member.id ? result.member : member,
+        ),
+        actionId: null,
+        success: `${result.member.email} is now ${result.member.role}.`,
+      }));
+    } catch (error: unknown) {
+      setWorkspace((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+    }
+  }
+
+  async function openPersonalDataset(datasetId: string): Promise<void> {
+    if (!session) {
+      return;
+    }
+    const personalWorkspace = workspace.workspaces.find((candidate) => candidate.isDefault);
+    if (personalWorkspace && personalWorkspace.id !== workspace.current?.id) {
+      if (!(await switchWorkspace(personalWorkspace.id))) {
+        return;
+      }
+    }
+    navigate({ name: "dataset", datasetId }, setPage);
+  }
 
   useEffect(() => {
     if (!authToken) {
@@ -1138,9 +1317,19 @@ function App() {
         portfolioCount={portfolio.items.length}
         comparisonCount={comparison.items.length}
         unreadAlertCount={alerts.unreadCount}
+        workspace={workspace}
         onNavigate={(nextPage) => navigate(nextPage, setPage)}
+        onWorkspaceChange={(workspaceId) => void switchWorkspace(workspaceId)}
         onSignOut={handleSignOut}
       />
+      {workspace.current && !workspace.current.permissions.canManageSharedData ? (
+        <div className="border-b border-amber-200 bg-amber-50">
+          <p className="mx-auto max-w-7xl px-4 py-2 text-sm text-amber-900">
+            You have read-only member access in {workspace.current.name}. Owners and admins manage shared
+            datasets and decisions.
+          </p>
+        </div>
+      ) : null}
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[320px_1fr]">
         <DatasetListPanel
           datasets={datasets}
@@ -1255,7 +1444,7 @@ function App() {
             onRetry={() => void refreshAlerts(session.token)}
             onMarkRead={(alertId) => void markOneAlertRead(alertId)}
             onMarkAllRead={() => void markEveryAlertRead()}
-            onOpenDataset={(datasetId) => navigate({ name: "dataset", datasetId }, setPage)}
+            onOpenDataset={(datasetId) => void openPersonalDataset(datasetId)}
           />
         ) : page.name === "notifications" ? (
           <NotificationPreferencesPage
@@ -1267,7 +1456,15 @@ function App() {
           <NotificationDeliveryHistoryPage
             state={notificationDeliveryHistory}
             onRetry={() => void refreshNotificationDeliveryHistory(session.token)}
-            onOpenDataset={(datasetId) => navigate({ name: "dataset", datasetId }, setPage)}
+            onOpenDataset={(datasetId) => void openPersonalDataset(datasetId)}
+          />
+        ) : page.name === "workspace" ? (
+          <WorkspacePage
+            state={workspace}
+            currentUserId={session.user.id}
+            onRetry={() => void refreshWorkspaceContext(session.token, workspace.current?.id)}
+            onAddMember={(email, role) => void createWorkspaceMember(email, role)}
+            onRoleChange={(membershipId, role) => void changeWorkspaceMemberRole(membershipId, role)}
           />
         ) : (
           <ReviewHome
@@ -1320,7 +1517,7 @@ function AuthScreen({ onSignedIn }: { onSignedIn: (session: StoredSession) => vo
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-ink/75">
             Upload datasets, run scoring, and review records through authenticated tenant-scoped workflows.
-            The browser shows only the signed-in user's data.
+            The browser shows only personal data or workspaces where the signed-in user is an active member.
           </p>
         </div>
         <form onSubmit={(event) => void submit(event)} className="border border-line bg-white p-5 shadow-sm">
@@ -1385,7 +1582,9 @@ function AppHeader({
   portfolioCount,
   comparisonCount,
   unreadAlertCount,
+  workspace,
   onNavigate,
+  onWorkspaceChange,
   onSignOut,
 }: {
   user: AuthUserResponse;
@@ -1394,15 +1593,27 @@ function AppHeader({
   portfolioCount: number;
   comparisonCount: number;
   unreadAlertCount: number;
+  workspace: WorkspaceState;
   onNavigate: (page: PageState) => void;
+  onWorkspaceChange: (workspaceId: string) => void;
   onSignOut: () => void;
 }) {
   return (
     <header className="border-b border-line bg-white">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-        <div>
+        <div className="min-w-[220px]">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-pine">Tax Lien Intelligence</p>
           <h1 className="text-xl font-semibold">Dataset Review</h1>
+          {workspace.current ? (
+            <button
+              type="button"
+              onClick={() => onNavigate({ name: "workspace" })}
+              className="mt-1 text-left text-xs font-medium text-ink/70 hover:text-pine"
+            >
+              {workspace.current.name} · {workspaceRoleLabel(workspace.current.role)}
+              {!workspace.current.permissions.canManageSharedData ? " · Read only" : ""}
+            </button>
+          ) : null}
         </div>
         <nav className="flex flex-wrap items-center gap-2 text-sm">
           <button
@@ -1458,8 +1669,31 @@ function AppHeader({
           >
             Delivery History
           </button>
+          <button
+            type="button"
+            onClick={() => onNavigate({ name: "workspace" })}
+            className={`border border-line px-3 py-2 font-medium ${
+              page.name === "workspace" ? "bg-field" : "bg-white"
+            }`}
+          >
+            Workspace
+          </button>
         </nav>
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex flex-wrap items-center justify-end gap-3 text-sm">
+          {workspace.workspaces.length > 1 && workspace.current ? (
+            <select
+              aria-label="Current workspace"
+              value={workspace.current.id}
+              onChange={(event) => onWorkspaceChange(event.target.value)}
+              className="max-w-[220px] border border-line bg-white px-3 py-2"
+            >
+              {workspace.workspaces.map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>
+                  {candidate.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
           <span className="max-w-[220px] truncate text-ink/70">{user.email}</span>
           <button type="button" onClick={onSignOut} className="border border-line px-3 py-2 font-medium">
             Sign out
@@ -4405,6 +4639,174 @@ function NotificationPreferencesPage({
   );
 }
 
+function WorkspacePage({
+  state,
+  currentUserId,
+  onRetry,
+  onAddMember,
+  onRoleChange,
+}: {
+  state: WorkspaceState;
+  currentUserId: string;
+  onRetry: () => void;
+  onAddMember: (email: string, role: Exclude<WorkspaceRole, "owner">) => void;
+  onRoleChange: (membershipId: string, role: Exclude<WorkspaceRole, "owner">) => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<Exclude<WorkspaceRole, "owner">>("member");
+
+  if (state.isLoading && !state.current) {
+    return <PanelMessage label="Resolving workspace membership and access context..." />;
+  }
+
+  if (!state.current) {
+    return <PanelError message={state.error ?? "The current workspace could not be resolved."} onRetry={onRetry} />;
+  }
+
+  const canAddMembers = state.current.permissions.canManageMembers;
+  const canManageRoles = state.current.permissions.canManageRoles;
+
+  return (
+    <section className="min-w-0">
+      <div className="border-b border-line pb-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Account Management</p>
+        <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold">{state.current.name}</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+              Shared datasets, scoring, watchlist, portfolio, comparison, and decision history use this
+              workspace. Personal alerts, delivery history, notification preferences, and saved views remain
+              private to each user.
+            </p>
+          </div>
+          <span className="border border-line bg-white px-3 py-2 text-sm font-semibold">
+            {workspaceRoleLabel(state.current.role)}
+            {!state.current.permissions.canManageSharedData ? " · Read only" : ""}
+          </span>
+        </div>
+      </div>
+
+      {state.error ? (
+        <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{state.error}</div>
+      ) : null}
+      {state.success ? (
+        <div className="mt-4 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          {state.success}
+        </div>
+      ) : null}
+
+      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+        <Metric label="Members" value={String(state.current.memberCount)} />
+        <Metric label="Your role" value={workspaceRoleLabel(state.current.role)} />
+        <Metric
+          label="Shared data"
+          value={state.current.permissions.canManageSharedData ? "Read and write" : "Read only"}
+        />
+      </div>
+
+      {canAddMembers ? (
+        <form
+          className="mt-6 flex flex-wrap items-end gap-3 border-y border-line bg-white py-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const normalizedEmail = email.trim();
+            if (!normalizedEmail) {
+              return;
+            }
+            onAddMember(normalizedEmail, role);
+            setEmail("");
+          }}
+        >
+          <label className="min-w-[240px] flex-1 text-sm font-semibold">
+            Registered user email
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              className="mt-2 w-full border border-line px-3 py-2 font-normal"
+              placeholder="colleague@example.com"
+            />
+          </label>
+          {state.current.role === "owner" ? (
+            <label className="text-sm font-semibold">
+              Role
+              <select
+                value={role}
+                onChange={(event) => setRole(event.target.value as Exclude<WorkspaceRole, "owner">)}
+                className="mt-2 block border border-line bg-white px-3 py-2 font-normal"
+              >
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+              </select>
+            </label>
+          ) : null}
+          <button
+            type="submit"
+            disabled={state.actionId === "add"}
+            className="bg-pine px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {state.actionId === "add" ? "Adding" : "Add member"}
+          </button>
+        </form>
+      ) : (
+        <div className="mt-6 border-y border-line py-4 text-sm text-ink/70">
+          Member management is limited to workspace owners and administrators.
+        </div>
+      )}
+
+      <div className="mt-6 overflow-x-auto border border-line bg-white">
+        <table className="w-full min-w-[680px] border-collapse text-left text-sm">
+          <thead className="bg-field text-xs uppercase tracking-[0.08em] text-ink/65">
+            <tr>
+              <th className="px-4 py-3">Member</th>
+              <th className="px-4 py-3">Role</th>
+              <th className="px-4 py-3">Access</th>
+              <th className="px-4 py-3">Joined</th>
+            </tr>
+          </thead>
+          <tbody>
+            {state.members.map((member) => (
+              <tr key={member.id} className="border-t border-line">
+                <td className="px-4 py-3">
+                  <p className="font-medium">{member.email}</p>
+                  <p className="mt-1 text-xs text-ink/60">
+                    {member.userId === currentUserId ? "You" : "Active member"}
+                  </p>
+                </td>
+                <td className="px-4 py-3">
+                  {canManageRoles && member.role !== "owner" ? (
+                    <select
+                      value={member.role}
+                      disabled={state.actionId === member.id}
+                      onChange={(event) =>
+                        onRoleChange(
+                          member.id,
+                          event.target.value as Exclude<WorkspaceRole, "owner">,
+                        )
+                      }
+                      className="border border-line bg-white px-3 py-2 disabled:opacity-60"
+                    >
+                      <option value="member">Member</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  ) : (
+                    <span className="font-semibold">{workspaceRoleLabel(member.role)}</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 text-ink/70">
+                  {member.role === "member" ? "Shared data: read only" : "Shared data: read and write"}
+                </td>
+                <td className="px-4 py-3 text-ink/70">{formatDateTime(member.joinedAt)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 function ScoreTable({
   scores,
   totalCount,
@@ -4983,6 +5385,8 @@ function navigate(page: PageState, setPage: (page: PageState) => void): void {
               ? "#/notifications"
               : page.name === "delivery-history"
                 ? "#/delivery-history"
+                : page.name === "workspace"
+                  ? "#/workspace"
                 : `#/datasets/${page.datasetId}`;
   window.history.pushState(null, "", hash);
   setPage(page);
@@ -5011,6 +5415,10 @@ function readRoute(): PageState {
 
   if (window.location.hash === "#/delivery-history") {
     return { name: "delivery-history" };
+  }
+
+  if (window.location.hash === "#/workspace") {
+    return { name: "workspace" };
   }
 
   const match = window.location.hash.match(/^#\/datasets\/([^/]+)$/);

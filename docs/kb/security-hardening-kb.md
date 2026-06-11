@@ -381,11 +381,14 @@ Future:
 
 ### Tenancy Enforcement
 
-Every user-owned model must include `userId`.
+Phase 29 introduces explicit workspaces and memberships. Shared product routes
+must authenticate the user, verify active membership in the selected workspace,
+check the required role, and only then derive the workspace owner's existing
+`userId` compatibility tenant key.
 
-Every query must scope to authenticated `userId`.
-
-Every user-owned endpoint must test cross-user access attempts.
+Personal records must still scope directly to the authenticated `userId`.
+Workspace-shared endpoints must test cross-workspace access and role-restricted
+mutations; personal endpoints must continue testing cross-user access.
 
 ### API Authorization
 
@@ -418,18 +421,21 @@ build success.
 
 ## 5. Multi-Tenant Security Model
 
-Must be scoped by `userId`:
+Workspace-shared through verified membership:
 
 - datasets;
-- parcels;
 - scores;
 - watchlist items;
 - portfolio records;
 - internal jobs;
-- alerts;
-- upload logs;
-- automation jobs;
 - user decisions.
+
+Personal user-scoped data:
+
+- alerts;
+- notification preferences;
+- delivery and digest history;
+- saved views.
 
 Must never cross tenant boundaries:
 
@@ -444,7 +450,10 @@ Must never cross tenant boundaries:
 Future queries must:
 
 - derive user from auth context;
-- include ownership filter;
+- verify selected-workspace membership when data is shared;
+- enforce owner/admin write and member read-only rules;
+- derive the compatibility tenant key server-side;
+- include direct user ownership filters for personal data;
 - reject cross-user references;
 - avoid client-supplied ownership.
 
@@ -453,6 +462,9 @@ Tests must include:
 - user A cannot read user B records;
 - user A cannot update user B records;
 - user A cannot watchlist user B parcel;
+- a non-member cannot select another workspace;
+- a member cannot mutate workspace-shared data;
+- an admin cannot assign administrators or change roles;
 - user A cannot track or update user B portfolio records;
 - user A cannot compare, update, or delete user B comparison records;
 - user A cannot read user B job records;

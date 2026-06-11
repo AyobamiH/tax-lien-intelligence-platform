@@ -2,16 +2,24 @@ import { Router } from "express";
 import type { AuthService } from "../auth/auth-service.js";
 import { ApiError } from "../errors/api-error.js";
 import { requireAuth } from "../middleware/auth.js";
+import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import type { ScoringService } from "../scoring/scoring-service.js";
+import type { WorkspaceService } from "../workspaces/workspace-service.js";
 
-export function createScoringRouter(authService: AuthService, scoringService: ScoringService): Router {
+export function createScoringRouter(
+  authService: AuthService,
+  scoringService: ScoringService,
+  workspaceService: WorkspaceService,
+): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
+  const requireWorkspaceRead = requireWorkspaceAccess(workspaceService, "read");
+  const requireWorkspaceWrite = requireWorkspaceAccess(workspaceService, "write");
 
-  router.post("/:datasetId/score", requireAuthenticatedUser, async (request, response, next) => {
+  router.post("/:datasetId/score", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const datasetId = request.params.datasetId;
@@ -19,16 +27,16 @@ export function createScoringRouter(authService: AuthService, scoringService: Sc
         throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
       }
 
-      response.status(202).json(await scoringService.scoreDataset(datasetId, request.auth.userId));
+      response.status(202).json(await scoringService.scoreDataset(datasetId, request.workspace.tenantUserId));
     } catch (error) {
       next(error);
     }
   });
 
-  router.post("/:datasetId/refresh", requireAuthenticatedUser, async (request, response, next) => {
+  router.post("/:datasetId/refresh", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const datasetId = request.params.datasetId;
@@ -36,16 +44,16 @@ export function createScoringRouter(authService: AuthService, scoringService: Sc
         throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
       }
 
-      response.status(202).json(await scoringService.refreshDataset(datasetId, request.auth.userId));
+      response.status(202).json(await scoringService.refreshDataset(datasetId, request.workspace.tenantUserId));
     } catch (error) {
       next(error);
     }
   });
 
-  router.get("/:datasetId/scoring-status", requireAuthenticatedUser, async (request, response, next) => {
+  router.get("/:datasetId/scoring-status", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const datasetId = request.params.datasetId;
@@ -53,16 +61,16 @@ export function createScoringRouter(authService: AuthService, scoringService: Sc
         throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
       }
 
-      response.status(200).json(await scoringService.getScoringStatus(datasetId, request.auth.userId));
+      response.status(200).json(await scoringService.getScoringStatus(datasetId, request.workspace.tenantUserId));
     } catch (error) {
       next(error);
     }
   });
 
-  router.get("/:datasetId/scores", requireAuthenticatedUser, async (request, response, next) => {
+  router.get("/:datasetId/scores", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const datasetId = request.params.datasetId;
@@ -70,7 +78,7 @@ export function createScoringRouter(authService: AuthService, scoringService: Sc
         throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
       }
 
-      response.status(200).json(await scoringService.listScores(datasetId, request.auth.userId));
+      response.status(200).json(await scoringService.listScores(datasetId, request.workspace.tenantUserId));
     } catch (error) {
       next(error);
     }

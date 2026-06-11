@@ -1,5 +1,9 @@
 # Internal Job Architecture
 
+Phase 29 allows active workspace members to read jobs for shared core
+workflows. Job persistence keeps the workspace owner's compatibility `userId`;
+the API derives it only after membership verification.
+
 Phase 8 introduced automation-ready job plumbing. Phase 9 added in-app alerts
 from selected job outcomes. Phase 10 adds a dedicated local worker execution
 boundary and minimal scheduler foundation. Phase 14 adds controlled dataset

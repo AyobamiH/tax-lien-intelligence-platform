@@ -16,6 +16,7 @@ import type {
 } from "../../apps/api/src/datasets/import-profile-store.js";
 import { maxDatasetUploadBytes } from "../../apps/api/src/datasets/csv-parser.js";
 import { createApp } from "../../apps/api/src/app.js";
+import { createInMemoryWorkspaceService } from "../support/in-memory-workspace-store.js";
 
 const testJwtSecret = "test-dataset-secret-that-is-long-enough-for-jwt";
 
@@ -177,7 +178,11 @@ function createTestContext(): {
   const datasetService = new DatasetService(datasetStore, importProfileStore);
 
   return {
-    app: createApp({ authService, datasetService }),
+    app: createApp({
+      authService,
+      datasetService,
+      workspaceService: createInMemoryWorkspaceService(userStore),
+    }),
     datasetStore,
     importProfileStore,
   };

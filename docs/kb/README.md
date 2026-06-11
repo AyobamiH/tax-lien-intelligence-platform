@@ -81,6 +81,9 @@ records the current implementation state:
   exist for supported product alerts.
 - bounded scheduled digest processing, tenant-owned digest batches, and
   authenticated owner-safe delivery history exist for supported product alerts.
+- workspace and membership models, minimal roles, personal-workspace
+  bootstrap, role-aware shared core-data access, and a workspace management
+  surface exist.
 - comparison API, side-by-side workspace, and lightweight decision notes exist.
 - lightweight comparison decision history exists.
 - explicit comparison handoff into watchlist/portfolio exists.
@@ -98,6 +101,7 @@ records the current implementation state:
 - notification preference model exists.
 - notification delivery outbox model exists.
 - notification digest batch model exists.
+- workspace and workspace-membership models exist.
 - comparison item model exists.
 - shared types exist.
 - scoring package is a real first-pass deterministic engine.
@@ -134,7 +138,7 @@ delivery history, env-driven SMTP config that is disabled by default, and
 notification delivery tests. It now has tenant-owned internal job records for
 scoring, controlled refresh/reprocessing, scheduled maintenance policy gates,
 and cross-user job tests. It does not yet have standalone parcel models, rate
-limiting, user-facing scheduler controls, collaboration, auction execution,
+limiting, user-facing scheduler controls, full collaboration, auction execution,
 external automation, or full
 cross-user tests for future resource types because those workflows do not exist
 yet.

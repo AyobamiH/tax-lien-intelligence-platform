@@ -5,9 +5,10 @@
 This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
-It does not define every database schema. User, dataset, scored-record,
-internal job, alert, import profile, watchlist item, portfolio item, and comparison item schemas now exist; a
-standalone parcel schema does not.
+It does not define every database schema. User, workspace, membership, dataset,
+scored-record, internal job, alert, import profile, watchlist item, portfolio
+item, and comparison item schemas now exist; a standalone parcel schema does
+not.
 When schemas are added, this file must be updated to reflect actual fields and
 ownership rules.
 
@@ -16,6 +17,8 @@ ownership rules.
 Current implementation:
 
 - user model exists for authentication;
+- workspace and workspace-membership models exist;
+- personal owner workspaces bootstrap on first workspace-aware access;
 - dataset model exists for authenticated manual CSV uploads;
 - dataset import summary metadata exists for generic fallback or the current
   Maricopa-style county import adapter;
@@ -32,8 +35,8 @@ Current implementation:
 - portfolio item model exists for user-owned tracked decisions/status;
 - comparison item model exists for user-owned side-by-side review and
   lightweight decision notes;
-- frontend review surface exposes user-owned datasets and scored records through
-  authenticated API calls;
+- frontend review surface exposes workspace-shared datasets and scored records
+  through authenticated, membership-checked API calls;
 - frontend watchlist surface exposes user-owned shortlisted scored records;
 - frontend portfolio surface exposes user-owned tracked records and status;
 - frontend comparison surface exposes user-owned comparison candidates,
@@ -47,9 +50,10 @@ Current implementation:
 
 Current documentation direction:
 
-- every future user-facing document must include `userId`;
-- every query must enforce user ownership;
-- authentication exists and provides the user identity boundary;
+- workspace-shared routes must verify membership and role before deriving the
+  workspace owner's compatibility `userId`;
+- personal records still enforce direct authenticated user ownership;
+- authentication establishes identity and membership establishes shared access;
 - dataset upload now uses auth and tenant ownership;
 - first-pass scoring uses lightweight normalization plus internal enrichment and
   remains conservative.
@@ -64,11 +68,18 @@ Current documentation direction:
 
 ## Core Domain Concepts
 
+### Workspace
+
+A workspace is the selected tenant operating context. It has one owner and
+active owner/admin/member memberships. Owners/admins can mutate shared core
+data; members are read-only. This is an access foundation, not comments, tasks,
+approvals, billing, or full collaboration.
+
 ### Dataset
 
-A dataset is a user-uploaded county parcel or tax lien CSV file. Current dataset
-records store metadata, ownership, status, row/column counts, headers, and a
-validation summary.
+A dataset is a workspace-shared county parcel or tax lien CSV file. Current
+dataset records store metadata, compatibility ownership, status, row/column
+counts, headers, and a validation summary.
 
 Current status: implemented as a manual CSV dataset foundation. Sanitized source
 rows are stored internally for scoring, but public dataset responses expose only
@@ -184,14 +195,13 @@ payloads, stack traces, or uploaded source rows.
 
 ## Multi-Tenant Rule
 
-Every future user-owned data model must include:
+Shared data requests must authenticate the user, verify active membership in
+the selected workspace, enforce the role, and derive the workspace owner's
+compatibility tenant key server-side. Personal requests continue to filter by
+the authenticated user's `userId`.
 
-`userId`
-
-Every query serving user data must filter by the authenticated user's `userId`.
-
-Cross-user access must be blocked at the service/query layer and covered by
-tests.
+Cross-workspace and cross-user access must be blocked at the service/query layer
+and covered by tests.
 
 ## User-Owned Data
 

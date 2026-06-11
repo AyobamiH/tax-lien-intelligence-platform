@@ -1,5 +1,8 @@
 # Portfolio Tracking Architecture
 
+Phase 29 makes portfolio data and summaries shared inside the selected
+workspace. Members can read; owners/admins can add, change status, or remove.
+
 Phase 7 introduces the first post-shortlist operating layer. A portfolio item
 represents a scored record that the authenticated user is actively tracking as a
 decision or position candidate. Phase 24 adds an operational portfolio summary

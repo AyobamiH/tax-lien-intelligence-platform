@@ -20,6 +20,18 @@ Current shared types in `packages/types`:
 - `AuthSuccessResponse`;
 - `AuthMeResponse`;
 - `AuthenticatedPrincipal`.
+- `WorkspaceRole`;
+- `WorkspaceMembershipStatus`;
+- `WorkspacePermissions`;
+- `WorkspaceResponse`;
+- `WorkspaceMemberResponse`;
+- `WorkspaceListResponse`;
+- `CurrentWorkspaceResponse`;
+- `WorkspaceMembersResponse`;
+- `AddWorkspaceMemberRequest`;
+- `AddWorkspaceMemberResponse`;
+- `UpdateWorkspaceMemberRoleRequest`;
+- `UpdateWorkspaceMemberRoleResponse`.
 - `DatasetStatus`;
 - `DatasetSourceType`;
 - `DatasetImportAdapterId`;
@@ -682,6 +694,10 @@ possible or explicitly versioned.
 - Do not let API responses grow undocumented fields that UI depends on silently.
 - Do not let package types describe future fields as current response fields.
 - Do not add client-supplied `userId` to create/update DTOs for user-owned data.
+- Do not add client-supplied compatibility tenant keys to workspace-shared
+  resource DTOs; derive them from verified workspace membership.
+- Keep the `owner`/`admin`/`member` role set explicit and do not smuggle a
+  custom permission language into shared contracts.
 - Do not represent scoring as a single number once explainable scoring exists.
 - Do not treat alert metadata as a raw logging or diagnostic payload.
 - Do not let enrichment contracts imply external verification when enrichment is
@@ -704,6 +720,7 @@ Shared contracts must not expose:
 - raw internal errors;
 - raw alert/job internals;
 - another user's identifiers;
+- workspace owner compatibility keys or membership internals beyond safe ids;
 - admin-only fields;
 - server-derived trust fields as client-writable inputs.
 

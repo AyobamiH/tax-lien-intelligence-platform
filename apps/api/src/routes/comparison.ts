@@ -5,7 +5,9 @@ import { comparisonDecisions, type ComparisonService } from "../comparison/compa
 import { ApiError } from "../errors/api-error.js";
 import { toValidationError } from "../errors/error-handler.js";
 import { requireAuth } from "../middleware/auth.js";
+import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import { portfolioStatuses } from "../portfolio/portfolio-service.js";
+import type { WorkspaceService } from "../workspaces/workspace-service.js";
 
 const comparisonDecisionSchema = z.enum(comparisonDecisions);
 const portfolioStatusSchema = z.enum(portfolioStatuses);
@@ -27,14 +29,20 @@ const handoffToPortfolioSchema = z.object({
   status: portfolioStatusSchema.optional(),
 });
 
-export function createComparisonRouter(authService: AuthService, comparisonService: ComparisonService): Router {
+export function createComparisonRouter(
+  authService: AuthService,
+  comparisonService: ComparisonService,
+  workspaceService: WorkspaceService,
+): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
+  const requireWorkspaceRead = requireWorkspaceAccess(workspaceService, "read");
+  const requireWorkspaceWrite = requireWorkspaceAccess(workspaceService, "write");
 
-  router.post("/", requireAuthenticatedUser, async (request, response, next) => {
+  router.post("/", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const parsed = addComparisonItemSchema.safeParse(request.body);
@@ -42,7 +50,7 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
         throw toValidationError();
       }
 
-      const result = await comparisonService.addItem(request.auth.userId, {
+      const result = await comparisonService.addItem(request.workspace.tenantUserId, {
         ...(parsed.data.scoredRecordId ? { scoredRecordId: parsed.data.scoredRecordId } : {}),
         ...(parsed.data.watchlistItemId ? { watchlistItemId: parsed.data.watchlistItemId } : {}),
         ...(parsed.data.portfolioItemId ? { portfolioItemId: parsed.data.portfolioItemId } : {}),
@@ -53,22 +61,22 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
     }
   });
 
-  router.get("/", requireAuthenticatedUser, async (request, response, next) => {
+  router.get("/", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
-      response.status(200).json(await comparisonService.listItems(request.auth.userId));
+      response.status(200).json(await comparisonService.listItems(request.workspace.tenantUserId));
     } catch (error) {
       next(error);
     }
   });
 
-  router.get("/:comparisonItemId/history", requireAuthenticatedUser, async (request, response, next) => {
+  router.get("/:comparisonItemId/history", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const comparisonItemId = request.params.comparisonItemId;
@@ -76,16 +84,16 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
         throw new ApiError(400, "comparison_invalid_item_id", "Comparison item id is invalid.");
       }
 
-      response.status(200).json(await comparisonService.listHistory(request.auth.userId, comparisonItemId));
+      response.status(200).json(await comparisonService.listHistory(request.workspace.tenantUserId, comparisonItemId));
     } catch (error) {
       next(error);
     }
   });
 
-  router.post("/:comparisonItemId/handoff/watchlist", requireAuthenticatedUser, async (request, response, next) => {
+  router.post("/:comparisonItemId/handoff/watchlist", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const comparisonItemId = request.params.comparisonItemId;
@@ -93,17 +101,17 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
         throw new ApiError(400, "comparison_invalid_item_id", "Comparison item id is invalid.");
       }
 
-      const result = await comparisonService.handoffToWatchlist(request.auth.userId, comparisonItemId);
+      const result = await comparisonService.handoffToWatchlist(request.workspace.tenantUserId, comparisonItemId);
       response.status(result.alreadyExists ? 200 : 201).json(result);
     } catch (error) {
       next(error);
     }
   });
 
-  router.post("/:comparisonItemId/handoff/portfolio", requireAuthenticatedUser, async (request, response, next) => {
+  router.post("/:comparisonItemId/handoff/portfolio", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const comparisonItemId = request.params.comparisonItemId;
@@ -116,7 +124,7 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
         throw toValidationError();
       }
 
-      const result = await comparisonService.handoffToPortfolio(request.auth.userId, comparisonItemId, {
+      const result = await comparisonService.handoffToPortfolio(request.workspace.tenantUserId, comparisonItemId, {
         ...(parsed.data.status ? { status: parsed.data.status } : {}),
       });
       response.status(result.alreadyExists ? 200 : 201).json(result);
@@ -125,10 +133,10 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
     }
   });
 
-  router.patch("/:comparisonItemId", requireAuthenticatedUser, async (request, response, next) => {
+  router.patch("/:comparisonItemId", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const comparisonItemId = request.params.comparisonItemId;
@@ -149,16 +157,18 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
         update.note = parsed.data.note ?? null;
       }
 
-      response.status(200).json(await comparisonService.updateItem(request.auth.userId, comparisonItemId, update));
+      response.status(200).json(
+        await comparisonService.updateItem(request.workspace.tenantUserId, comparisonItemId, update),
+      );
     } catch (error) {
       next(error);
     }
   });
 
-  router.delete("/:comparisonItemId", requireAuthenticatedUser, async (request, response, next) => {
+  router.delete("/:comparisonItemId", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const comparisonItemId = request.params.comparisonItemId;
@@ -166,7 +176,7 @@ export function createComparisonRouter(authService: AuthService, comparisonServi
         throw new ApiError(400, "comparison_invalid_item_id", "Comparison item id is invalid.");
       }
 
-      response.status(200).json(await comparisonService.deleteItem(request.auth.userId, comparisonItemId));
+      response.status(200).json(await comparisonService.deleteItem(request.workspace.tenantUserId, comparisonItemId));
     } catch (error) {
       next(error);
     }

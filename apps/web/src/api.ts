@@ -46,10 +46,16 @@ import type {
   UpdateNotificationPreferencesRequest,
   UpdateNotificationPreferencesResponse,
   UpdatePortfolioItemResponse,
+  UpdateWorkspaceMemberRoleResponse,
   WatchlistListResponse,
+  WorkspaceListResponse,
+  WorkspaceMembersResponse,
+  AddWorkspaceMemberResponse,
+  WorkspaceRole,
 } from "@tax-lien/types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
+let activeWorkspaceId: string | null = null;
 
 export interface AuthCredentials {
   email: string;
@@ -91,6 +97,45 @@ export async function getCurrentUser(token: string): Promise<AuthMeResponse> {
   return requestJson<AuthMeResponse>("/auth/me", {
     token,
   });
+}
+
+export function setActiveWorkspaceId(workspaceId: string | null): void {
+  activeWorkspaceId = workspaceId;
+}
+
+export async function listWorkspaces(token: string): Promise<WorkspaceListResponse> {
+  return requestJson<WorkspaceListResponse>("/workspaces", { token });
+}
+
+export async function listWorkspaceMembers(token: string): Promise<WorkspaceMembersResponse> {
+  return requestJson<WorkspaceMembersResponse>("/workspaces/current/members", { token });
+}
+
+export async function addWorkspaceMember(
+  token: string,
+  email: string,
+  role: Exclude<WorkspaceRole, "owner">,
+): Promise<AddWorkspaceMemberResponse> {
+  return requestJson<AddWorkspaceMemberResponse>("/workspaces/current/members", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ email, role }),
+  });
+}
+
+export async function updateWorkspaceMemberRole(
+  token: string,
+  membershipId: string,
+  role: Exclude<WorkspaceRole, "owner">,
+): Promise<UpdateWorkspaceMemberRoleResponse> {
+  return requestJson<UpdateWorkspaceMemberRoleResponse>(
+    `/workspaces/current/members/${encodeURIComponent(membershipId)}`,
+    {
+      method: "PATCH",
+      token,
+      body: JSON.stringify({ role }),
+    },
+  );
 }
 
 export async function listDatasets(token: string): Promise<DatasetListResponse> {
@@ -448,6 +493,9 @@ async function requestJson<TResponse>(path: string, options: JsonRequestOptions 
 
   if (options.token) {
     headers.set("Authorization", `Bearer ${options.token}`);
+    if (activeWorkspaceId) {
+      headers.set("X-Workspace-Id", activeWorkspaceId);
+    }
   }
 
   const requestInit: RequestInit = {
@@ -476,6 +524,9 @@ async function requestFormData<TResponse>(path: string, options: FormDataRequest
     Accept: "application/json",
     Authorization: `Bearer ${options.token}`,
   });
+  if (activeWorkspaceId) {
+    headers.set("X-Workspace-Id", activeWorkspaceId);
+  }
 
   const response = await fetch(`${apiBaseUrl}${path}`, {
     method: options.method,

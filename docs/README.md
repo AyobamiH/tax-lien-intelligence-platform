@@ -34,6 +34,7 @@ before writing specs, prompts, or implementation plans.
 - [Alerts And Monitoring Architecture](architecture/alerts.md)
 - [Notification Preferences And Email Delivery Foundation](architecture/notification-preferences.md)
 - [Digest Delivery And History Architecture](architecture/digest-delivery.md)
+- [Workspaces And Tenancy Architecture](architecture/workspaces-and-tenancy.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
@@ -51,6 +52,7 @@ before writing specs, prompts, or implementation plans.
 - [Portfolio API](api/portfolio.md)
 - [Comparison API](api/comparison.md)
 - [Saved Views API](api/saved-views.md)
+- [Workspaces API](api/workspaces.md)
 
 ## Decisions
 

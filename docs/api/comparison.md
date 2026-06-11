@@ -1,8 +1,8 @@
 # Comparison API
 
-Phase 21 adds a tenant-owned comparison workspace for lightweight decision
-review. The comparison workspace is an authenticated, user-private layer above
-scored records, watchlist items, and portfolio items.
+Phase 21 adds a comparison surface for lightweight decision review. Phase 29
+makes it shared inside the selected workspace with member read access and
+owner/admin mutation access.
 
 The comparison API does not execute auctions, send notifications, or make
 investment recommendations. It stores the user's selected comparison candidates,
@@ -14,17 +14,19 @@ the handoff endpoint.
 ## Security Model
 
 - All comparison routes require `Authorization: Bearer <jwt-access-token>`.
+- Selected-workspace membership and role are checked before service lookup.
 - A comparison item can be created from exactly one owned `scoredRecordId`, one
   owned `watchlistItemId`, or one owned `portfolioItemId`.
 - The server derives `userId`, workspace id, dataset id, scored record id, and
   score snapshot fields.
 - The browser cannot submit score values, ownership fields, source snapshots, or
   workspace ownership.
-- List, update, and delete operations are scoped to the authenticated user.
+- List operations are scoped to the selected workspace; updates and deletes
+  require owner/admin.
 - History retrieval is scoped to an owned comparison item. Deleted or stale
   comparison item ids return `comparison_item_not_found`.
 - Handoff actions are scoped to an owned comparison item and create or reuse the
-  destination watchlist/portfolio record for the same authenticated user.
+  destination watchlist/portfolio record for the same selected workspace.
 
 ## Decision States
 
@@ -96,7 +98,7 @@ comparison item with `alreadyExists: true`.
 
 ## `GET /comparison`
 
-Returns the authenticated user's default comparison workspace items.
+Returns the selected tenant workspace's default comparison collection.
 
 Response:
 
@@ -185,7 +187,7 @@ internal processing details, or rich diffs.
 
 ## `POST /comparison/:comparisonItemId/handoff/watchlist`
 
-Explicitly sends one owned comparison item into the authenticated user's
+Explicitly sends one workspace comparison item into the selected workspace's
 watchlist. The destination is duplicate-safe by scored record.
 
 Response:
@@ -223,7 +225,7 @@ The real `item` uses the full watchlist item response shape documented in
 
 ## `POST /comparison/:comparisonItemId/handoff/portfolio`
 
-Explicitly sends one owned comparison item into the authenticated user's
+Explicitly sends one workspace comparison item into the selected workspace's
 portfolio tracking surface. The destination is duplicate-safe by scored record.
 
 Optional request body:
@@ -273,7 +275,7 @@ The real `item` uses the full portfolio item response shape documented in
 
 ## `DELETE /comparison/:comparisonItemId`
 
-Removes one comparison item owned by the authenticated user.
+Removes one comparison item in the selected workspace.
 
 Response:
 

@@ -27,9 +27,11 @@ automation will plug into.
 ## Security Model
 
 - Job detail routes require `Authorization: Bearer <jwt-access-token>`.
-- Job records are scoped by `userId`.
+- Job detail uses the selected workspace's server-derived compatibility tenant
+  key after membership verification.
+- Any active member may read workspace job status.
 - The client never sends `userId`.
-- Cross-user job reads return safe not-found errors.
+- Cross-workspace job reads are rejected safely.
 - Job errors expose stable safe codes/messages, not raw internals.
 - Job summaries are intentionally small and user-safe.
 
@@ -65,7 +67,7 @@ Supported target entity types:
 
 ## `GET /jobs/:jobId`
 
-Returns one job owned by the authenticated user.
+Returns one job in the selected workspace.
 
 ### Response `200`
 

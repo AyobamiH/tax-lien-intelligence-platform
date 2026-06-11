@@ -4,8 +4,10 @@ import type { AuthService } from "../auth/auth-service.js";
 import { ApiError } from "../errors/api-error.js";
 import { toValidationError } from "../errors/error-handler.js";
 import { requireAuth } from "../middleware/auth.js";
+import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import type { PortfolioService } from "../portfolio/portfolio-service.js";
 import { portfolioStatuses } from "../portfolio/portfolio-service.js";
+import type { WorkspaceService } from "../workspaces/workspace-service.js";
 
 const portfolioStatusSchema = z.enum(portfolioStatuses);
 
@@ -19,14 +21,20 @@ const updatePortfolioItemSchema = z.object({
   status: portfolioStatusSchema,
 });
 
-export function createPortfolioRouter(authService: AuthService, portfolioService: PortfolioService): Router {
+export function createPortfolioRouter(
+  authService: AuthService,
+  portfolioService: PortfolioService,
+  workspaceService: WorkspaceService,
+): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
+  const requireWorkspaceRead = requireWorkspaceAccess(workspaceService, "read");
+  const requireWorkspaceWrite = requireWorkspaceAccess(workspaceService, "write");
 
-  router.post("/", requireAuthenticatedUser, async (request, response, next) => {
+  router.post("/", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const parsed = addPortfolioItemSchema.safeParse(request.body);
@@ -34,7 +42,7 @@ export function createPortfolioRouter(authService: AuthService, portfolioService
         throw toValidationError();
       }
 
-      const result = await portfolioService.addItem(request.auth.userId, {
+      const result = await portfolioService.addItem(request.workspace.tenantUserId, {
         ...(parsed.data.scoredRecordId ? { scoredRecordId: parsed.data.scoredRecordId } : {}),
         ...(parsed.data.watchlistItemId ? { watchlistItemId: parsed.data.watchlistItemId } : {}),
         ...(parsed.data.status ? { status: parsed.data.status } : {}),
@@ -45,34 +53,34 @@ export function createPortfolioRouter(authService: AuthService, portfolioService
     }
   });
 
-  router.get("/", requireAuthenticatedUser, async (request, response, next) => {
+  router.get("/", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
-      response.status(200).json(await portfolioService.listItems(request.auth.userId));
+      response.status(200).json(await portfolioService.listItems(request.workspace.tenantUserId));
     } catch (error) {
       next(error);
     }
   });
 
-  router.get("/summary", requireAuthenticatedUser, async (request, response, next) => {
+  router.get("/summary", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
-      response.status(200).json(await portfolioService.getSummary(request.auth.userId));
+      response.status(200).json(await portfolioService.getSummary(request.workspace.tenantUserId));
     } catch (error) {
       next(error);
     }
   });
 
-  router.get("/:portfolioItemId", requireAuthenticatedUser, async (request, response, next) => {
+  router.get("/:portfolioItemId", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const portfolioItemId = request.params.portfolioItemId;
@@ -80,16 +88,16 @@ export function createPortfolioRouter(authService: AuthService, portfolioService
         throw new ApiError(400, "portfolio_invalid_item_id", "Portfolio item id is invalid.");
       }
 
-      response.status(200).json(await portfolioService.getItem(request.auth.userId, portfolioItemId));
+      response.status(200).json(await portfolioService.getItem(request.workspace.tenantUserId, portfolioItemId));
     } catch (error) {
       next(error);
     }
   });
 
-  router.patch("/:portfolioItemId", requireAuthenticatedUser, async (request, response, next) => {
+  router.patch("/:portfolioItemId", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const portfolioItemId = request.params.portfolioItemId;
@@ -103,17 +111,17 @@ export function createPortfolioRouter(authService: AuthService, portfolioService
       }
 
       response.status(200).json(
-        await portfolioService.updateStatus(request.auth.userId, portfolioItemId, parsed.data.status),
+        await portfolioService.updateStatus(request.workspace.tenantUserId, portfolioItemId, parsed.data.status),
       );
     } catch (error) {
       next(error);
     }
   });
 
-  router.delete("/:portfolioItemId", requireAuthenticatedUser, async (request, response, next) => {
+  router.delete("/:portfolioItemId", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.auth) {
-        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
       const portfolioItemId = request.params.portfolioItemId;
@@ -121,7 +129,7 @@ export function createPortfolioRouter(authService: AuthService, portfolioService
         throw new ApiError(400, "portfolio_invalid_item_id", "Portfolio item id is invalid.");
       }
 
-      response.status(200).json(await portfolioService.deleteItem(request.auth.userId, portfolioItemId));
+      response.status(200).json(await portfolioService.deleteItem(request.workspace.tenantUserId, portfolioItemId));
     } catch (error) {
       next(error);
     }

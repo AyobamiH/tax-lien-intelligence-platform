@@ -6,7 +6,10 @@ authenticated and tenant-scoped.
 ## Security Model
 
 - All dataset routes require `Authorization: Bearer <jwt-access-token>`.
-- Dataset ownership is derived from the authenticated token.
+- Dataset access is derived from the authenticated user plus the selected
+  `X-Workspace-Id`; omitted selection uses the personal default workspace.
+- Active members can read. Only owners/admins can upload or change mappings and
+  profiles.
 - The API does not trust a client-supplied `userId`.
 - Uploads are limited to 1 MiB.
 - Uploads are parsed from memory with controlled row, column, and record-size
@@ -23,9 +26,9 @@ authenticated and tenant-scoped.
 - Manual mapping responses expose dataset-specific target-to-source-column
   repair metadata only. They do not expose raw row values or mutate stored
   source rows.
-- Import profile responses expose tenant-owned reusable mapping rules and safe
-  applicability metadata only. Profiles are never shared across users, and
-  profile reuse is deterministic header matching, not ML-based classification.
+- Import profile responses expose workspace-shared reusable mapping rules and
+  safe applicability metadata only. Profile reuse stays inside the selected
+  workspace and is deterministic header matching, not ML-based classification.
 
 ## `POST /datasets`
 
@@ -139,7 +142,7 @@ sourceLabel=County May file
 
 ## `GET /datasets`
 
-Lists datasets owned by the authenticated user.
+Lists datasets in the selected workspace.
 
 ### Response `200`
 
@@ -198,10 +201,9 @@ Lists datasets owned by the authenticated user.
 
 ## `GET /datasets/:datasetId`
 
-Returns one dataset owned by the authenticated user.
+Returns one dataset in the selected workspace.
 
-Cross-user access returns `dataset_not_found` rather than revealing that another
-user's dataset exists.
+Cross-workspace access is rejected without revealing another workspace's data.
 
 ### Response `200`
 
@@ -311,10 +313,10 @@ source rows, parser internals, or a manual field-mapping editor.
 
 ## `GET /datasets/:datasetId/mapping`
 
-Returns the current mapping repair context for a dataset owned by the
-authenticated user.
+Returns the current mapping repair context for a dataset in the selected
+workspace.
 
-Cross-user access returns `dataset_not_found`.
+Cross-workspace access is rejected safely.
 
 ### Response `200`
 
@@ -455,7 +457,7 @@ do not rewrite stored source rows and they are not a full spreadsheet editor.
 
 ## `GET /datasets/import-profiles`
 
-Lists reusable import profiles owned by the authenticated user.
+Lists reusable import profiles in the selected workspace.
 
 Profiles are private tenant configuration. They contain mapping rules and
 header-shape applicability metadata, not raw uploaded row values.
@@ -499,7 +501,7 @@ header-shape applicability metadata, not raw uploaded row values.
 
 Saves the current dataset mapping as a reusable import profile.
 
-The dataset must belong to the authenticated user, must have saved mappings,
+The dataset must belong to the selected workspace, must have saved mappings,
 and the saved mappings must make the dataset scoring-ready. This prevents a
 weak or blocked repair from becoming reusable configuration.
 
@@ -546,7 +548,7 @@ dataset source label or filename.
 
 Applies a reusable import profile to an owned dataset after user confirmation.
 
-The profile must belong to the authenticated user and all profile source
+The profile must belong to the selected workspace and all profile source
 columns must be present unambiguously in the dataset headers. Applying a profile
 updates the dataset mapping overlay, re-evaluates readiness, and returns the
 updated dataset response.

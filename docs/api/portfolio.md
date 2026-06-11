@@ -2,7 +2,7 @@
 
 Phase 7 adds portfolio/status tracking as the first post-shortlist operating
 layer. Portfolio routes are authenticated, tenant-scoped, and only accept
-references to scored records or watchlist items owned by the authenticated user.
+references to scored records or watchlist items in the selected workspace.
 Phase 24 adds a portfolio summary endpoint for operational review.
 
 The portfolio is not an accounting, brokerage, auction, or return-tracking
@@ -13,15 +13,16 @@ operational visibility, not financial analytics.
 ## Security Model
 
 - All portfolio routes require `Authorization: Bearer <jwt-access-token>`.
+- Active members can read; owners/admins can add, update, or remove.
 - The client never sends `userId`.
 - A portfolio item can be created from exactly one owned `scoredRecordId` or one
   owned `watchlistItemId`.
-- Cross-user source references return safe not-found errors.
+- Cross-workspace source references are rejected safely.
 - Duplicate adds for the same scored record are idempotent.
 - Status changes are limited to the supported portfolio status enum.
 - Portfolio responses expose denormalized score context, flags, and reasoning
-  for the signed-in user only.
-- Portfolio summaries aggregate only the signed-in user's portfolio records and
+  for the selected workspace only.
+- Portfolio summaries aggregate only the selected workspace's portfolio records and
   do not expose `userId`, raw dataset rows, or cross-tenant activity.
 
 ## Portfolio Statuses
@@ -105,7 +106,7 @@ Duplicate adds return `200` with `alreadyExists: true` and the existing item.
 
 ## `GET /portfolio`
 
-Returns the authenticated user's portfolio items.
+Returns the selected workspace's portfolio items.
 
 ### Response `200`
 
@@ -205,7 +206,7 @@ the endpoint into raw source-row or analytics export.
 
 ## `GET /portfolio/:portfolioItemId`
 
-Returns one portfolio item owned by the authenticated user.
+Returns one portfolio item in the selected workspace.
 
 ### Response `200`
 
@@ -249,7 +250,7 @@ The real response uses the same full portfolio item shape returned by
 
 ## `DELETE /portfolio/:portfolioItemId`
 
-Removes one portfolio item owned by the authenticated user.
+Removes one portfolio item in the selected workspace.
 
 ### Response `200`
 

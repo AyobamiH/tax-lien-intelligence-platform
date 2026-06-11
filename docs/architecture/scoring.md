@@ -1,5 +1,9 @@
 # Scoring Foundation Architecture
 
+Phase 29 makes scoring and scoring-status access workspace-aware. Active
+members can read results/status; only owners/admins can start scoring or
+refresh. The worker continues using the derived owner compatibility tenant key.
+
 ## Scope
 
 Phase 4 introduces the first real scoring layer. It converts stored dataset

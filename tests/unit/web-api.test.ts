@@ -15,9 +15,12 @@ import {
   listImportProfiles,
   listNotificationDeliveryHistory,
   listSavedViews,
+  listWorkspaceMembers,
+  listWorkspaces,
   removeComparisonItem,
   saveDatasetImportProfile,
   saveDatasetManualMapping,
+  setActiveWorkspaceId,
   updateComparisonItem,
   updateNotificationPreferences,
 } from "../../apps/web/src/api.js";
@@ -26,10 +29,53 @@ const originalFetch = globalThis.fetch;
 
 afterEach(() => {
   globalThis.fetch = originalFetch;
+  setActiveWorkspaceId(null);
   vi.restoreAllMocks();
 });
 
 describe("web API client", () => {
+  it("loads workspace context and sends the selected workspace on authenticated requests", async () => {
+    const responses = [
+      {
+        workspaces: [
+          {
+            id: "workspace-1",
+            name: "Acme Workspace",
+            role: "admin",
+            isDefault: true,
+            memberCount: 2,
+            permissions: {
+              canReadSharedData: true,
+              canManageSharedData: true,
+              canManageMembers: true,
+              canManageRoles: false,
+            },
+            createdAt: "2026-06-11T00:00:00.000Z",
+            updatedAt: "2026-06-11T00:00:00.000Z",
+          },
+        ],
+        currentWorkspaceId: "workspace-1",
+      },
+      { members: [] },
+    ];
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(responses.shift()), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+
+    const list = await listWorkspaces("test-token");
+    setActiveWorkspaceId(list.currentWorkspaceId);
+    await listWorkspaceMembers("test-token");
+
+    const firstHeaders = fetchMock.mock.calls[0]?.[1]?.headers as Headers;
+    const secondHeaders = fetchMock.mock.calls[1]?.[1]?.headers as Headers;
+    expect(firstHeaders.get("X-Workspace-Id")).toBeNull();
+    expect(secondHeaders.get("X-Workspace-Id")).toBe("workspace-1");
+  });
+
   it("uploads datasets with multipart form data and bearer auth", async () => {
     const responsePayload = {
       dataset: {

@@ -63,6 +63,10 @@ Implemented today:
 - auth endpoints at `POST /auth/register`, `POST /auth/login`, and
   `GET /auth/me`;
 - user model in `packages/db`;
+- workspace and workspace-membership models in `packages/db`;
+- automatic personal owner-workspace bootstrap for existing and new users;
+- authenticated workspace/member APIs with owner/admin/member roles;
+- workspace membership and role middleware using `X-Workspace-Id`;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -110,6 +114,8 @@ Implemented today:
 - maintenance policy defaults to manual-only and only queues policy refreshes
   when explicit server policy and duplicate/suppression guards allow it;
 - authenticated job detail endpoint at `GET /jobs/:jobId`;
+- workspace-aware shared access for datasets, scoring/jobs, import profiles,
+  watchlist, portfolio, comparison, decision history, and handoff;
 - queued/running/completed/failed job lifecycle;
 - dedicated worker entrypoint for queued internal jobs;
 - worker-side job claiming and dataset scoring execution;
@@ -405,6 +411,11 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - tenant-owned notification digest batches are implemented and scoped to the
   batch owner.
 - tenant-owned comparison item records are implemented.
+- workspace access resolves the owner `userId` compatibility tenant key only
+  after membership and role checks, preserving all pre-Phase-29 core records.
+- alerts, notification preferences/delivery history, and saved views remain
+  personal user-scoped records in Phase 29.
+- cross-workspace rejection and role-restricted mutation tests are implemented.
 - tenant-owned parcel records are not yet implemented.
 
 Security cannot be considered complete until rate limits, production CORS

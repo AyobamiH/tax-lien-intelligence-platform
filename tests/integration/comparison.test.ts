@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../../apps/api/src/app.js";
+import { createInMemoryWorkspaceService } from "../support/in-memory-workspace-store.js";
 import { AuthService } from "../../apps/api/src/auth/auth-service.js";
 import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
 import { ComparisonService } from "../../apps/api/src/comparison/comparison-service.js";
@@ -389,7 +390,11 @@ function createTestContext(): {
   );
 
   return {
-    app: createApp({ authService, comparisonService }),
+    app: createApp({
+      authService,
+      comparisonService,
+      workspaceService: createInMemoryWorkspaceService(userStore),
+    }),
     scoredRecordStore,
     watchlistStore,
     portfolioStore,

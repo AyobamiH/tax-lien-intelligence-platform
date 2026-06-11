@@ -10,16 +10,17 @@ upload, first-pass explainable scoring, scored-results review, watchlist,
 portfolio/status tracking, comparison, decision history, decision handoff,
 saved operational views, internal jobs, alerts, worker/scheduler groundwork,
 enrichment, import repair, reusable import profiles, saved views, notification
-preferences, email delivery, and the Phase 28 digest processing and delivery
-history workflow:
+preferences, email delivery, digest processing/delivery history, and the Phase
+29 workspace and team-access foundation:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind review workspace
 - `apps/api`: Express, TypeScript, auth, dataset, scoring, internal jobs,
-  alerts, notification delivery, watchlist, portfolio, and comparison APIs
+  alerts, notification delivery, workspace membership, watchlist, portfolio,
+  and comparison APIs
 - `packages/db`: MongoDB connection plus user, dataset, scored-record,
   internal-job, alert, watchlist, portfolio, comparison, decision-history, and
   import-profile/saved-view/notification-preference/notification-delivery/
-  notification-digest-batch models
+  notification-digest-batch, workspace, and workspace-membership models
 - `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
@@ -29,6 +30,11 @@ Implemented API surfaces:
 - `POST /auth/register`
 - `POST /auth/login`
 - `GET /auth/me`
+- `GET /workspaces`
+- `GET /workspaces/current`
+- `GET /workspaces/current/members`
+- `POST /workspaces/current/members`
+- `PATCH /workspaces/current/members/:membershipId`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -76,6 +82,13 @@ send immediate email or be grouped into bounded scheduled digests. Users can
 review delivery and digest outcomes at `#/delivery-history`; otherwise the API
 records provider-disabled outbox state. SMS, push, campaigns, and marketing
 messaging are future work.
+
+Phase 29 uses an explicit `X-Workspace-Id` selection boundary. Existing users
+receive a personal owner workspace automatically. Datasets, scoring/jobs,
+watchlist, portfolio, comparison, and decision history can be shared with
+verified workspace members; owners/admins may mutate them and members are
+read-only. Alerts, notification settings/history, and saved views remain
+personal. This is a team-access foundation, not full collaboration.
 
 ## Local Development
 
