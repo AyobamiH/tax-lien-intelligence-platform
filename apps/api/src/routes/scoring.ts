@@ -5,11 +5,16 @@ import { requireAuth } from "../middleware/auth.js";
 import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import type { ScoringService } from "../scoring/scoring-service.js";
 import type { WorkspaceService } from "../workspaces/workspace-service.js";
+import {
+  recordWorkspaceActivitySafely,
+  type WorkspaceActivityService,
+} from "../workspace-activity/workspace-activity-service.js";
 
 export function createScoringRouter(
   authService: AuthService,
   scoringService: ScoringService,
   workspaceService: WorkspaceService,
+  activityService: WorkspaceActivityService,
 ): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
@@ -18,7 +23,7 @@ export function createScoringRouter(
 
   router.post("/:datasetId/score", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.workspace) {
+      if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
@@ -27,7 +32,20 @@ export function createScoringRouter(
         throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
       }
 
-      response.status(202).json(await scoringService.scoreDataset(datasetId, request.workspace.tenantUserId));
+      const result = await scoringService.scoreDataset(datasetId, request.workspace.tenantUserId);
+      await recordWorkspaceActivitySafely(activityService, {
+        workspaceId: request.workspace.workspaceId,
+        actorUserId: request.auth.userId,
+        eventType: "dataset_scoring_requested",
+        relatedEntityType: "job",
+        relatedEntityId: result.job.id,
+        metadata: {
+          datasetId: result.datasetId,
+          jobId: result.job.id,
+          requestKind: "score",
+        },
+      });
+      response.status(202).json(result);
     } catch (error) {
       next(error);
     }
@@ -35,7 +53,7 @@ export function createScoringRouter(
 
   router.post("/:datasetId/refresh", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.workspace) {
+      if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
@@ -44,7 +62,22 @@ export function createScoringRouter(
         throw new ApiError(400, "dataset_invalid_id", "Dataset id is invalid.");
       }
 
-      response.status(202).json(await scoringService.refreshDataset(datasetId, request.workspace.tenantUserId));
+      const result = await scoringService.refreshDataset(datasetId, request.workspace.tenantUserId);
+      if (result.requestStatus === "queued") {
+        await recordWorkspaceActivitySafely(activityService, {
+          workspaceId: request.workspace.workspaceId,
+          actorUserId: request.auth.userId,
+          eventType: "dataset_refresh_requested",
+          relatedEntityType: "job",
+          relatedEntityId: result.job.id,
+          metadata: {
+            datasetId: result.datasetId,
+            jobId: result.job.id,
+            requestKind: "refresh",
+          },
+        });
+      }
+      response.status(202).json(result);
     } catch (error) {
       next(error);
     }

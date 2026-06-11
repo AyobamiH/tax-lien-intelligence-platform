@@ -84,6 +84,8 @@ records the current implementation state:
 - workspace and membership models, minimal roles, personal-workspace
   bootstrap, role-aware shared core-data access, and a workspace management
   surface exist.
+- workspace activity persistence, member-safe actor attribution, filtered
+  retrieval, and a focused activity surface exist.
 - comparison API, side-by-side workspace, and lightweight decision notes exist.
 - lightweight comparison decision history exists.
 - explicit comparison handoff into watchlist/portfolio exists.
@@ -102,6 +104,7 @@ records the current implementation state:
 - notification delivery outbox model exists.
 - notification digest batch model exists.
 - workspace and workspace-membership models exist.
+- workspace-activity model exists.
 - comparison item model exists.
 - shared types exist.
 - scoring package is a real first-pass deterministic engine.

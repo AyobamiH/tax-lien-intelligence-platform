@@ -67,6 +67,9 @@ It shows:
 - immediate email and digest batch status, attempts, suppressions, failures,
   provider-disabled state, and safe related-dataset navigation;
 - workspace context and role visibility in the app header;
+- dedicated workspace activity route using `#/activity`;
+- recent meaningful activity with actor email, safe summary, timestamp,
+  category filters, and links to affected product surfaces;
 - dedicated workspace management route using `#/workspace`;
 - active member list, workspace switching, direct registered-user addition,
   and owner-only role controls;
@@ -89,6 +92,7 @@ The current API surface is minimal:
 - `GET /workspaces/current/members`
 - `POST /workspaces/current/members`
 - `PATCH /workspaces/current/members/:membershipId`
+- `GET /workspaces/current/activity`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -145,6 +149,7 @@ Documented in:
 - `docs/api/portfolio.md`
 - `docs/api/comparison.md`
 - `docs/api/saved-views.md`
+- `docs/api/workspaces.md`
 
 There is no standalone parcel API yet.
 
@@ -193,6 +198,7 @@ Real workflows now present:
 - env-driven immediate product-alert email for supported alerts when SMTP
   config is complete.
 - scheduled digest processing and owner-scoped delivery history.
+- workspace-shared recent activity for meaningful operational changes.
 
 Real workflows not present:
 
@@ -238,7 +244,8 @@ The current API cannot:
 - expose a user-facing scheduler console;
 - provide broad county adapter coverage or scraping;
 - provide a full spreadsheet transformation workflow;
-- manage collaboration or auction execution.
+- provide chat, comments, mentions, tasks, approvals, realtime collaboration,
+  compliance-grade audit exports, or auction execution.
 - run arbitrary saved-view query expressions or BI/report-builder workflows.
 - send SMS/push alerts or realtime notifications.
 
@@ -301,6 +308,11 @@ members are read-only. Existing record `userId` values remain the workspace
 owner compatibility key and are never client supplied. Alerts, notification
 settings/history, and saved views remain personal. Future changes must preserve
 both boundaries.
+
+Workspace activity is also shared only inside verified membership. It contains
+server-derived summaries and member-visible actor identity, never note text,
+raw errors, source rows, or personal notification activity. It is operational
+history, not a guarantee of immutable audit completeness.
 
 Alerts are now user-owned monitoring records. They expose safe summaries only and
 must not become raw logs or stack-trace displays. Future current-surface updates

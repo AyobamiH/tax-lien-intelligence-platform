@@ -158,6 +158,15 @@ export {
   type WorkspaceMembershipStatusRecord,
 } from "./models/workspace-membership.js";
 export {
+  WorkspaceActivityModel,
+  type WorkspaceActivityCategoryRecord,
+  type WorkspaceActivityDocument,
+  type WorkspaceActivityEventTypeRecord,
+  type WorkspaceActivityMetadataRecord,
+  type WorkspaceActivityRecord,
+  type WorkspaceActivityRelatedEntityTypeRecord,
+} from "./models/workspace-activity.js";
+export {
   WatchlistItemModel,
   type WatchlistItemDocument,
   type WatchlistItemRecord,

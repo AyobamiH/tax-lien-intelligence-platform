@@ -3,6 +3,7 @@ import request from "supertest";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../../apps/api/src/app.js";
 import { createInMemoryWorkspaceService } from "../support/in-memory-workspace-store.js";
+import { createInMemoryWorkspaceActivityService } from "../support/in-memory-workspace-activity-store.js";
 import { AuthService } from "../../apps/api/src/auth/auth-service.js";
 import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
 import { ComparisonService } from "../../apps/api/src/comparison/comparison-service.js";
@@ -394,6 +395,7 @@ function createTestContext(): {
       authService,
       comparisonService,
       workspaceService: createInMemoryWorkspaceService(userStore),
+      workspaceActivityService: createInMemoryWorkspaceActivityService(userStore),
     }),
     scoredRecordStore,
     watchlistStore,

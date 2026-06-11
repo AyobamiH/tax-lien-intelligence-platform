@@ -6,6 +6,11 @@ import { ApiError } from "../errors/api-error.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import type { WorkspaceService } from "../workspaces/workspace-service.js";
+import type { WorkspaceActivityCategory } from "@tax-lien/types";
+import {
+  recordWorkspaceActivitySafely,
+  type WorkspaceActivityService,
+} from "../workspace-activity/workspace-activity-service.js";
 
 const memberRoleSchema = z.enum(["admin", "member"]);
 const addMemberSchema = z.object({
@@ -13,8 +18,16 @@ const addMemberSchema = z.object({
   role: memberRoleSchema,
 });
 const updateMemberRoleSchema = z.object({ role: memberRoleSchema });
+const activityQuerySchema = z.object({
+  category: z.enum(["data", "decisions", "portfolio", "members"]).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
 
-export function createWorkspaceRouter(authService: AuthService, workspaceService: WorkspaceService): Router {
+export function createWorkspaceRouter(
+  authService: AuthService,
+  workspaceService: WorkspaceService,
+  activityService: WorkspaceActivityService,
+): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
   const requireWorkspaceRead = requireWorkspaceAccess(workspaceService, "read");
@@ -64,6 +77,28 @@ export function createWorkspaceRouter(authService: AuthService, workspaceService
     }
   });
 
+  router.get("/current/activity", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
+    try {
+      if (!request.workspace) {
+        throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
+      }
+      const parsed = activityQuerySchema.safeParse(request.query);
+      if (!parsed.success) {
+        throw new ApiError(400, "workspace_activity_invalid_query", "Workspace activity query is invalid.");
+      }
+      response.status(200).json(
+        await activityService.list(request.workspace.workspaceId, {
+          ...(parsed.data.category
+            ? { category: parsed.data.category as WorkspaceActivityCategory }
+            : {}),
+          ...(parsed.data.limit ? { limit: parsed.data.limit } : {}),
+        }),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post(
     "/current/members",
     requireAuthenticatedUser,
@@ -74,14 +109,25 @@ export function createWorkspaceRouter(authService: AuthService, workspaceService
           throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
         }
         const payload = parseRequestBody(addMemberSchema, request.body);
-        response.status(201).json(
-          await workspaceService.addMember(
-            request.auth.userId,
-            request.workspace,
-            payload.email,
-            payload.role,
-          ),
+        const result = await workspaceService.addMember(
+          request.auth.userId,
+          request.workspace,
+          payload.email,
+          payload.role,
         );
+        await recordWorkspaceActivitySafely(activityService, {
+          workspaceId: request.workspace.workspaceId,
+          actorUserId: request.auth.userId,
+          eventType: "workspace_member_added",
+          relatedEntityType: "workspace_membership",
+          relatedEntityId: result.member.id,
+          metadata: {
+            memberUserId: result.member.userId,
+            memberEmail: result.member.email,
+            role: result.member.role === "owner" ? "member" : result.member.role,
+          },
+        });
+        response.status(201).json(result);
       } catch (error) {
         next(error);
       }
@@ -94,7 +140,7 @@ export function createWorkspaceRouter(authService: AuthService, workspaceService
     requireRoleManagement,
     async (request, response, next) => {
       try {
-        if (!request.workspace) {
+        if (!request.auth || !request.workspace) {
           throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
         }
         const membershipId = request.params.membershipId;
@@ -102,9 +148,25 @@ export function createWorkspaceRouter(authService: AuthService, workspaceService
           throw new ApiError(400, "workspace_invalid_membership_id", "Workspace membership id is invalid.");
         }
         const payload = parseRequestBody(updateMemberRoleSchema, request.body);
-        response.status(200).json(
-          await workspaceService.updateMemberRole(request.workspace, membershipId, payload.role),
-        );
+        const members = await workspaceService.listMembers(request.workspace);
+        const previousMember = members.members.find((member) => member.id === membershipId);
+        const result = await workspaceService.updateMemberRole(request.workspace, membershipId, payload.role);
+        if (previousMember && previousMember.role !== result.member.role && previousMember.role !== "owner") {
+          await recordWorkspaceActivitySafely(activityService, {
+            workspaceId: request.workspace.workspaceId,
+            actorUserId: request.auth.userId,
+            eventType: "workspace_member_role_changed",
+            relatedEntityType: "workspace_membership",
+            relatedEntityId: result.member.id,
+            metadata: {
+              memberUserId: result.member.userId,
+              memberEmail: result.member.email,
+              previousRole: previousMember.role,
+              role: result.member.role === "owner" ? "member" : result.member.role,
+            },
+          });
+        }
+        response.status(200).json(result);
       } catch (error) {
         next(error);
       }

@@ -48,6 +48,10 @@ Current repo protections:
 - auth middleware for protected routes;
 - safe auth responses that do not return password hashes;
 - tests for common auth failure modes;
+- explicit workspace and membership persistence;
+- selected-workspace membership and minimal role checks;
+- workspace-owned activity persistence with server-derived summaries;
+- cross-workspace activity rejection and actor-attribution tests;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
 - browser upload flow that uses the authenticated dataset upload endpoint;
@@ -390,14 +394,32 @@ Personal records must still scope directly to the authenticated `userId`.
 Workspace-shared endpoints must test cross-workspace access and role-restricted
 mutations; personal endpoints must continue testing cross-user access.
 
+Workspace activity is queried by the verified selected workspace id, never a
+client-supplied tenant key passed directly into the store. Actor identity comes
+from the authenticated principal and server-side user lookup. Only the email
+already visible in the member list is exposed; notes, raw failures, source
+rows, and personal notification state are excluded.
+
 ### API Authorization
 
 Authorization must be server-side. The frontend can hide controls for usability,
 but security must live in backend checks.
 
-### Auditability
+### Operational History And Future Auditability
 
-Future audit records should exist for sensitive events:
+Current Phase 30 workspace activity records a bounded set of meaningful shared
+events:
+
+- dataset uploads;
+- score/refresh requests;
+- comparison decision changes and successful handoffs;
+- portfolio status changes;
+- membership and role changes.
+
+These records are best-effort operational history. They are not immutable,
+transactional, retention-guaranteed, or compliance-grade.
+
+Future audit records may still be needed for sensitive events such as:
 
 - login failures if needed;
 - uploads;
@@ -429,6 +451,7 @@ Workspace-shared through verified membership:
 - portfolio records;
 - internal jobs;
 - user decisions.
+- bounded workspace activity.
 
 Personal user-scoped data:
 
@@ -445,6 +468,7 @@ Must never cross tenant boundaries:
 - reasoning;
 - watchlists;
 - decision notes;
+- workspace activity and actor attribution;
 - in-app alerts.
 
 Future queries must:
@@ -465,6 +489,8 @@ Tests must include:
 - a non-member cannot select another workspace;
 - a member cannot mutate workspace-shared data;
 - an admin cannot assign administrators or change roles;
+- a non-member cannot read another workspace's activity;
+- activity filters cannot bypass the verified workspace scope;
 - user A cannot track or update user B portfolio records;
 - user A cannot compare, update, or delete user B comparison records;
 - user A cannot read user B job records;

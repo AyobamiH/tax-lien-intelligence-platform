@@ -33,6 +33,8 @@ import type {
   ScoredRecordResponse,
   WatchlistItemResponse,
   WorkspaceRole,
+  WorkspaceActivityCategory,
+  WorkspaceActivityResponse,
 } from "@tax-lien/types";
 
 export function workspaceRoleLabel(role: WorkspaceRole): string {
@@ -43,6 +45,77 @@ export function workspaceRoleLabel(role: WorkspaceRole): string {
       return "Admin";
     case "member":
       return "Member";
+  }
+}
+
+export type WorkspaceActivityDestination =
+  | { surface: "dataset"; datasetId: string }
+  | { surface: "comparison" }
+  | { surface: "watchlist" }
+  | { surface: "portfolio" }
+  | { surface: "workspace" }
+  | null;
+
+export function workspaceActivityCategoryLabel(category: WorkspaceActivityCategory | "all"): string {
+  switch (category) {
+    case "all":
+      return "All";
+    case "data":
+      return "Data";
+    case "decisions":
+      return "Decisions";
+    case "portfolio":
+      return "Portfolio";
+    case "members":
+      return "Members";
+  }
+}
+
+export function workspaceActivityDestination(
+  activity: WorkspaceActivityResponse,
+): WorkspaceActivityDestination {
+  const datasetId = activity.metadata?.datasetId;
+  if (
+    datasetId &&
+    (activity.eventType === "dataset_uploaded" ||
+      activity.eventType === "dataset_scoring_requested" ||
+      activity.eventType === "dataset_refresh_requested")
+  ) {
+    return { surface: "dataset", datasetId };
+  }
+
+  switch (activity.eventType) {
+    case "comparison_decision_changed":
+      return { surface: "comparison" };
+    case "comparison_handoff_to_watchlist":
+      return { surface: "watchlist" };
+    case "comparison_handoff_to_portfolio":
+    case "portfolio_status_changed":
+      return { surface: "portfolio" };
+    case "workspace_member_added":
+    case "workspace_member_role_changed":
+      return { surface: "workspace" };
+    case "dataset_uploaded":
+    case "dataset_scoring_requested":
+    case "dataset_refresh_requested":
+      return null;
+  }
+}
+
+export function workspaceActivityDestinationLabel(
+  destination: Exclude<WorkspaceActivityDestination, null>,
+): string {
+  switch (destination.surface) {
+    case "dataset":
+      return "Open dataset";
+    case "comparison":
+      return "Open comparison";
+    case "watchlist":
+      return "Open watchlist";
+    case "portfolio":
+      return "Open portfolio";
+    case "workspace":
+      return "Open workspace";
   }
 }
 

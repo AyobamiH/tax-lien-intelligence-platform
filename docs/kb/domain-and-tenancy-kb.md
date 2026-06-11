@@ -5,7 +5,7 @@
 This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
-It does not define every database schema. User, workspace, membership, dataset,
+It does not define every database schema. User, workspace, membership, activity, dataset,
 scored-record, internal job, alert, import profile, watchlist item, portfolio
 item, and comparison item schemas now exist; a standalone parcel schema does
 not.
@@ -18,6 +18,7 @@ Current implementation:
 
 - user model exists for authentication;
 - workspace and workspace-membership models exist;
+- workspace-activity model exists;
 - personal owner workspaces bootstrap on first workspace-aware access;
 - dataset model exists for authenticated manual CSV uploads;
 - dataset import summary metadata exists for generic fallback or the current
@@ -37,6 +38,7 @@ Current implementation:
   lightweight decision notes;
 - frontend review surface exposes workspace-shared datasets and scored records
   through authenticated, membership-checked API calls;
+- frontend activity surface exposes bounded member-attributed workspace events;
 - frontend watchlist surface exposes user-owned shortlisted scored records;
 - frontend portfolio surface exposes user-owned tracked records and status;
 - frontend comparison surface exposes user-owned comparison candidates,
@@ -74,6 +76,17 @@ A workspace is the selected tenant operating context. It has one owner and
 active owner/admin/member memberships. Owners/admins can mutate shared core
 data; members are read-only. This is an access foundation, not comments, tasks,
 approvals, billing, or full collaboration.
+
+### Workspace Activity
+
+Workspace activity is workspace-owned operational context for a focused set of
+meaningful shared actions. It stores the verified actor, an allowlisted event
+type, a related entity, a server-derived summary, bounded metadata, and time.
+
+Current status: implemented for dataset upload, score/refresh requests,
+comparison decision/handoff, portfolio status, and membership changes. It does
+not store note text, raw errors, source rows, personal alerts, or arbitrary
+client-authored events. It is not immutable compliance audit infrastructure.
 
 ### Dataset
 

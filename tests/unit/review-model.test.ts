@@ -9,6 +9,7 @@ import type {
   PortfolioItemResponse,
   ScoredRecordResponse,
   WatchlistItemResponse,
+  WorkspaceActivityResponse,
 } from "@tax-lien/types";
 import {
   alertSeverityClassName,
@@ -65,6 +66,9 @@ import {
   summarizePortfolioForReview,
   summarizeScores,
   topReadinessIssues,
+  workspaceActivityCategoryLabel,
+  workspaceActivityDestination,
+  workspaceActivityDestinationLabel,
   workspaceRoleLabel,
 } from "../../apps/web/src/review-model.js";
 
@@ -302,6 +306,35 @@ describe("review model helpers", () => {
     expect(workspaceRoleLabel("owner")).toBe("Owner");
     expect(workspaceRoleLabel("admin")).toBe("Admin");
     expect(workspaceRoleLabel("member")).toBe("Member");
+  });
+
+  it("maps workspace activity categories and affected surfaces", () => {
+    const activity: WorkspaceActivityResponse = {
+      id: "activity-1",
+      workspaceId: "workspace-1",
+      actor: { userId: "user-1", email: "owner@example.com" },
+      category: "data",
+      eventType: "dataset_uploaded",
+      relatedEntityType: "dataset",
+      relatedEntityId: "dataset-1",
+      summary: "Uploaded dataset June sale.",
+      metadata: { datasetId: "dataset-1", datasetName: "June sale" },
+      occurredAt: "2026-06-11T12:00:00.000Z",
+    };
+
+    expect(workspaceActivityCategoryLabel("all")).toBe("All");
+    expect(workspaceActivityCategoryLabel("decisions")).toBe("Decisions");
+    const destination = workspaceActivityDestination(activity);
+    expect(destination).toEqual({ surface: "dataset", datasetId: "dataset-1" });
+    expect(destination && workspaceActivityDestinationLabel(destination)).toBe("Open dataset");
+    expect(
+      workspaceActivityDestination({
+        ...activity,
+        category: "members",
+        eventType: "workspace_member_added",
+        relatedEntityType: "workspace_membership",
+      }),
+    ).toEqual({ surface: "workspace" });
   });
 
   it("sorts scored records by strongest investment score, then lower risk", () => {

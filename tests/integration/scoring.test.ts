@@ -6,6 +6,7 @@ import { AuthService } from "../../apps/api/src/auth/auth-service.js";
 import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
 import { createApp } from "../../apps/api/src/app.js";
 import { createInMemoryWorkspaceService } from "../support/in-memory-workspace-store.js";
+import { createInMemoryWorkspaceActivityService } from "../support/in-memory-workspace-activity-store.js";
 import { DatasetService } from "../../apps/api/src/datasets/dataset-service.js";
 import type {
   CreateDatasetInput,
@@ -261,6 +262,7 @@ function createTestContext(options: { enrichmentService?: EnrichmentService; mai
       scoringService,
       alertService,
       workspaceService: createInMemoryWorkspaceService(userStore),
+      workspaceActivityService: createInMemoryWorkspaceActivityService(userStore),
     }),
     datasetStore,
     scoredRecordStore,

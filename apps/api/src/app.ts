@@ -40,6 +40,8 @@ import { createWatchlistService } from "./watchlist/factory.js";
 import type { WatchlistService } from "./watchlist/watchlist-service.js";
 import { createWorkspaceService } from "./workspaces/factory.js";
 import type { WorkspaceService } from "./workspaces/workspace-service.js";
+import { createWorkspaceActivityService } from "./workspace-activity/factory.js";
+import type { WorkspaceActivityService } from "./workspace-activity/workspace-activity-service.js";
 
 export interface AppDependencies {
   authService?: AuthService;
@@ -54,6 +56,7 @@ export interface AppDependencies {
   comparisonService?: ComparisonService;
   savedViewService?: SavedViewService;
   workspaceService?: WorkspaceService;
+  workspaceActivityService?: WorkspaceActivityService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -73,6 +76,8 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const comparisonService = dependencies.comparisonService ?? createComparisonService();
   const savedViewService = dependencies.savedViewService ?? createSavedViewService();
   const workspaceService = dependencies.workspaceService ?? createWorkspaceService();
+  const workspaceActivityService =
+    dependencies.workspaceActivityService ?? createWorkspaceActivityService();
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -90,16 +95,16 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   });
 
   app.use("/auth", createAuthRouter(authService));
-  app.use("/workspaces", createWorkspaceRouter(authService, workspaceService));
-  app.use("/datasets", createDatasetRouter(authService, datasetService, workspaceService));
-  app.use("/datasets", createScoringRouter(authService, scoringService, workspaceService));
+  app.use("/workspaces", createWorkspaceRouter(authService, workspaceService, workspaceActivityService));
+  app.use("/datasets", createDatasetRouter(authService, datasetService, workspaceService, workspaceActivityService));
+  app.use("/datasets", createScoringRouter(authService, scoringService, workspaceService, workspaceActivityService));
   app.use("/jobs", createInternalJobRouter(authService, internalJobService, workspaceService));
   app.use("/alerts", createAlertRouter(authService, alertService));
   app.use("/notification-deliveries", createNotificationDeliveryRouter(authService, notificationDeliveryService));
   app.use("/notification-preferences", createNotificationPreferenceRouter(authService, notificationPreferenceService));
   app.use("/watchlist", createWatchlistRouter(authService, watchlistService, workspaceService));
-  app.use("/portfolio", createPortfolioRouter(authService, portfolioService, workspaceService));
-  app.use("/comparison", createComparisonRouter(authService, comparisonService, workspaceService));
+  app.use("/portfolio", createPortfolioRouter(authService, portfolioService, workspaceService, workspaceActivityService));
+  app.use("/comparison", createComparisonRouter(authService, comparisonService, workspaceService, workspaceActivityService));
   app.use("/saved-views", createSavedViewRouter(authService, savedViewService));
 
   app.use(notFoundHandler);

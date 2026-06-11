@@ -35,6 +35,7 @@ before writing specs, prompts, or implementation plans.
 - [Notification Preferences And Email Delivery Foundation](architecture/notification-preferences.md)
 - [Digest Delivery And History Architecture](architecture/digest-delivery.md)
 - [Workspaces And Tenancy Architecture](architecture/workspaces-and-tenancy.md)
+- [Workspace Activity Architecture](architecture/workspace-activity.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 

@@ -51,6 +51,8 @@ import type {
   WorkspaceListResponse,
   WorkspaceMembersResponse,
   AddWorkspaceMemberResponse,
+  WorkspaceActivityCategory,
+  WorkspaceActivityListResponse,
   WorkspaceRole,
 } from "@tax-lien/types";
 
@@ -109,6 +111,14 @@ export async function listWorkspaces(token: string): Promise<WorkspaceListRespon
 
 export async function listWorkspaceMembers(token: string): Promise<WorkspaceMembersResponse> {
   return requestJson<WorkspaceMembersResponse>("/workspaces/current/members", { token });
+}
+
+export async function listWorkspaceActivity(
+  token: string,
+  category?: WorkspaceActivityCategory,
+): Promise<WorkspaceActivityListResponse> {
+  const query = category ? `?category=${encodeURIComponent(category)}` : "";
+  return requestJson<WorkspaceActivityListResponse>(`/workspaces/current/activity${query}`, { token });
 }
 
 export async function addWorkspaceMember(

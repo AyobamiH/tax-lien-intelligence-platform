@@ -64,9 +64,11 @@ Implemented today:
   `GET /auth/me`;
 - user model in `packages/db`;
 - workspace and workspace-membership models in `packages/db`;
+- workspace-activity model in `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
 - authenticated workspace/member APIs with owner/admin/member roles;
 - workspace membership and role middleware using `X-Workspace-Id`;
+- authenticated workspace activity retrieval with category filtering;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -116,6 +118,8 @@ Implemented today:
 - authenticated job detail endpoint at `GET /jobs/:jobId`;
 - workspace-aware shared access for datasets, scoring/jobs, import profiles,
   watchlist, portfolio, comparison, decision history, and handoff;
+- workspace-scoped operational activity for meaningful dataset, score/refresh
+  request, comparison, portfolio-status, and membership actions;
 - queued/running/completed/failed job lifecycle;
 - dedicated worker entrypoint for queued internal jobs;
 - worker-side job claiming and dataset scoring execution;
@@ -223,6 +227,8 @@ Implemented today:
 - environment parsing with `zod`;
 - Mongo connection helper using Mongoose;
 - frontend review workspace;
+- frontend `#/activity` surface with actor, summary, timestamp, category
+  filters, and affected-surface navigation;
 - Tailwind setup;
 - shared health/error/runtime types;
 - local MongoDB docker-compose;
@@ -416,6 +422,10 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - alerts, notification preferences/delivery history, and saved views remain
   personal user-scoped records in Phase 29.
 - cross-workspace rejection and role-restricted mutation tests are implemented.
+- workspace activity actor attribution, empty feed, filtering, summary,
+  navigation, and cross-workspace rejection tests are implemented.
+- workspace activity is best-effort operational history, not immutable audit
+  infrastructure; comparison item history remains separately implemented.
 - tenant-owned parcel records are not yet implemented.
 
 Security cannot be considered complete until rate limits, production CORS

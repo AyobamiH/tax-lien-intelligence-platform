@@ -2,6 +2,22 @@
 
 ## 2026-06-11
 
+- Implemented Phase 30 workspace activity with a workspace-scoped activity
+  model, safe actor email snapshots, bounded metadata, server-derived summaries,
+  category filtering, and membership-protected retrieval.
+- Added focused events for dataset upload, score/refresh requests, comparison
+  decision changes and successful handoffs, portfolio status changes, member
+  additions, and member role changes. No-op refreshes, duplicate handoffs, note
+  text, raw errors, and read interactions are not recorded.
+- Added a calm `#/activity` frontend surface with actor, summary, timestamp,
+  category tabs, loading/empty/error states, and navigation to affected
+  datasets, comparison, watchlist, portfolio, or workspace management.
+- Added tests for all supported event types, actor attribution, empty feeds,
+  category filtering, cross-workspace rejection, API headers, safe summaries,
+  and frontend navigation helpers.
+- Kept item-level comparison history intact and kept chat, comments, mentions,
+  tasks, approvals, realtime collaboration, and compliance-grade audit logging
+  out of scope.
 - Implemented Phase 29 workspace/team-access foundation with persistent
   workspace and membership models, minimal owner/admin/member roles, automatic
   personal-workspace bootstrap, and direct membership creation for registered

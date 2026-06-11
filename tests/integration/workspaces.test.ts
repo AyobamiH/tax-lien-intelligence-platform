@@ -20,6 +20,10 @@ import {
   InMemoryWorkspaceMembershipStore,
   InMemoryWorkspaceStore,
 } from "../support/in-memory-workspace-store.js";
+import {
+  createInMemoryWorkspaceActivityService,
+  InMemoryWorkspaceActivityStore,
+} from "../support/in-memory-workspace-activity-store.js";
 
 const testJwtSecret = "test-workspace-secret-that-is-long-enough-for-jwt";
 
@@ -102,14 +106,18 @@ function createTestContext() {
     passwordSaltRounds: 4,
   });
   const datasetStore = new InMemoryDatasetStore();
+  const activityStore = new InMemoryWorkspaceActivityStore();
+  const workspaceActivityService = createInMemoryWorkspaceActivityService(userStore, activityStore);
 
   return {
     app: createApp({
       authService,
       workspaceService,
+      workspaceActivityService,
       datasetService: new DatasetService(datasetStore, new EmptyImportProfileStore()),
     }),
     workspaceService,
+    workspaceActivityService,
   };
 }
 
@@ -266,5 +274,105 @@ describe("workspace and team access", () => {
       .send({ role: "member" })
       .expect(400);
     expect(invalidMembership.body.error.code).toBe("workspace_invalid_membership_id");
+  });
+
+  it("returns a member-visible workspace activity feed with actor attribution and safe filtering", async () => {
+    const { app } = createTestContext();
+    const owner = await register(app, "owner@example.com");
+    const member = await register(app, "member@example.com");
+    const outsider = await register(app, "outsider@example.com");
+
+    const current = await request(app)
+      .get("/workspaces/current")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+    const workspaceId = current.body.workspace.id as string;
+
+    const empty = await request(app)
+      .get("/workspaces/current/activity")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(empty.body).toEqual({ activities: [] });
+
+    const dataset = await request(app)
+      .post("/datasets")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .field("sourceLabel", "County June sale")
+      .attach("file", Buffer.from("parcel_id,lien_amount\nA-100,1000\n"), "county.csv")
+      .expect(201);
+
+    const added = await request(app)
+      .post("/workspaces/current/members")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ email: "member@example.com", role: "member" })
+      .expect(201);
+
+    await request(app)
+      .patch(`/workspaces/current/members/${added.body.member.id as string}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ role: "admin" })
+      .expect(200);
+
+    const memberFeed = await request(app)
+      .get("/workspaces/current/activity")
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+
+    expect(memberFeed.body.activities).toHaveLength(3);
+    expect(memberFeed.body.activities.map((activity: { eventType: string }) => activity.eventType)).toEqual([
+      "workspace_member_role_changed",
+      "workspace_member_added",
+      "dataset_uploaded",
+    ]);
+    expect(memberFeed.body.activities[0]).toMatchObject({
+      workspaceId,
+      actor: {
+        userId: owner.userId,
+        email: "owner@example.com",
+      },
+      category: "members",
+      summary: "Changed member@example.com from member to admin.",
+    });
+    expect(memberFeed.body.activities[2]).toMatchObject({
+      relatedEntityType: "dataset",
+      relatedEntityId: dataset.body.dataset.id,
+      summary: "Uploaded dataset County June sale.",
+      metadata: {
+        datasetId: dataset.body.dataset.id,
+        datasetName: "County June sale",
+      },
+    });
+
+    const dataOnly = await request(app)
+      .get("/workspaces/current/activity?category=data&limit=1")
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(dataOnly.body.activities).toHaveLength(1);
+    expect(dataOnly.body.activities[0].eventType).toBe("dataset_uploaded");
+
+    const outsiderRead = await request(app)
+      .get("/workspaces/current/activity")
+      .set("Authorization", `Bearer ${outsider.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(403);
+    expect(outsiderRead.body.error.code).toBe("workspace_access_denied");
+  });
+
+  it("rejects malformed workspace activity filters", async () => {
+    const { app } = createTestContext();
+    const owner = await register(app, "owner@example.com");
+
+    const response = await request(app)
+      .get("/workspaces/current/activity?category=everything")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(400);
+
+    expect(response.body.error.code).toBe("workspace_activity_invalid_query");
   });
 });

@@ -8,6 +8,10 @@ import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import type { PortfolioService } from "../portfolio/portfolio-service.js";
 import { portfolioStatuses } from "../portfolio/portfolio-service.js";
 import type { WorkspaceService } from "../workspaces/workspace-service.js";
+import {
+  recordWorkspaceActivitySafely,
+  type WorkspaceActivityService,
+} from "../workspace-activity/workspace-activity-service.js";
 
 const portfolioStatusSchema = z.enum(portfolioStatuses);
 
@@ -25,6 +29,7 @@ export function createPortfolioRouter(
   authService: AuthService,
   portfolioService: PortfolioService,
   workspaceService: WorkspaceService,
+  activityService: WorkspaceActivityService,
 ): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
@@ -33,7 +38,7 @@ export function createPortfolioRouter(
 
   router.post("/", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.workspace) {
+      if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
@@ -96,7 +101,7 @@ export function createPortfolioRouter(
 
   router.patch("/:portfolioItemId", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.workspace) {
+      if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
@@ -110,9 +115,27 @@ export function createPortfolioRouter(
         throw toValidationError();
       }
 
-      response.status(200).json(
-        await portfolioService.updateStatus(request.workspace.tenantUserId, portfolioItemId, parsed.data.status),
+      const previous = await portfolioService.getItem(request.workspace.tenantUserId, portfolioItemId);
+      const result = await portfolioService.updateStatus(
+        request.workspace.tenantUserId,
+        portfolioItemId,
+        parsed.data.status,
       );
+      if (previous.item.status !== result.item.status) {
+        await recordWorkspaceActivitySafely(activityService, {
+          workspaceId: request.workspace.workspaceId,
+          actorUserId: request.auth.userId,
+          eventType: "portfolio_status_changed",
+          relatedEntityType: "portfolio_item",
+          relatedEntityId: result.item.id,
+          metadata: {
+            datasetId: result.item.datasetId,
+            previousStatus: previous.item.status,
+            newStatus: result.item.status,
+          },
+        });
+      }
+      response.status(200).json(result);
     } catch (error) {
       next(error);
     }

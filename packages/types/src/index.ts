@@ -102,6 +102,64 @@ export interface UpdateWorkspaceMemberRoleResponse {
   member: WorkspaceMemberResponse;
 }
 
+export type WorkspaceActivityCategory = "data" | "decisions" | "portfolio" | "members";
+export type WorkspaceActivityEventType =
+  | "dataset_uploaded"
+  | "dataset_scoring_requested"
+  | "dataset_refresh_requested"
+  | "comparison_decision_changed"
+  | "comparison_handoff_to_watchlist"
+  | "comparison_handoff_to_portfolio"
+  | "portfolio_status_changed"
+  | "workspace_member_added"
+  | "workspace_member_role_changed";
+export type WorkspaceActivityRelatedEntityType =
+  | "dataset"
+  | "job"
+  | "comparison_item"
+  | "watchlist_item"
+  | "portfolio_item"
+  | "workspace_membership";
+
+export interface WorkspaceActivityActor {
+  userId: string;
+  email: string;
+}
+
+export interface WorkspaceActivityMetadata {
+  datasetId?: string;
+  datasetName?: string;
+  jobId?: string;
+  requestKind?: "score" | "refresh";
+  previousDecision?: ComparisonDecision;
+  newDecision?: ComparisonDecision;
+  targetEntityType?: "watchlist_item" | "portfolio_item";
+  targetEntityId?: string;
+  previousStatus?: PortfolioStatus;
+  newStatus?: PortfolioStatus;
+  memberUserId?: string;
+  memberEmail?: string;
+  previousRole?: Exclude<WorkspaceRole, "owner">;
+  role?: Exclude<WorkspaceRole, "owner">;
+}
+
+export interface WorkspaceActivityResponse {
+  id: string;
+  workspaceId: string;
+  actor: WorkspaceActivityActor;
+  category: WorkspaceActivityCategory;
+  eventType: WorkspaceActivityEventType;
+  relatedEntityType: WorkspaceActivityRelatedEntityType;
+  relatedEntityId: string;
+  summary: string;
+  metadata?: WorkspaceActivityMetadata;
+  occurredAt: string;
+}
+
+export interface WorkspaceActivityListResponse {
+  activities: WorkspaceActivityResponse[];
+}
+
 export type DatasetStatus = "validated";
 export type DatasetSourceType = "manual_csv";
 export type DatasetImportAdapterId = "generic_csv" | "maricopa_tax_lien_v1";

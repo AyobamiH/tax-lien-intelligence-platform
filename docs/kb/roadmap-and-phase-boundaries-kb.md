@@ -950,6 +950,37 @@ Phase 29 does not include:
 Alerts, notification preferences/history, and saved views remain personal in
 this phase.
 
+## Phase 30: Workspace Activity And Member-Aware History
+
+Current status: implemented.
+
+Phase 30 includes:
+
+- workspace-owned activity model with actor attribution;
+- focused allowlisted events for dataset upload, score/refresh request,
+  comparison decision/handoff, portfolio status, and membership changes;
+- server-derived bounded summaries and metadata;
+- membership-protected recent activity retrieval;
+- optional data/decisions/portfolio/members filtering;
+- frontend `#/activity` list with actor, summary, timestamp, loading/empty/error
+  states, and affected-surface navigation;
+- tests for all supported event types, attribution, empty feeds, filtering,
+  cross-workspace rejection, API behavior, and frontend navigation.
+
+Phase 30 does not include:
+
+- chat, comments, mentions, reactions, or presence;
+- task assignment or approvals;
+- realtime websocket updates;
+- arbitrary client-created events;
+- immutable retention or compliance-grade audit guarantees;
+- auction execution;
+- ML/AI collaboration helpers.
+
+Comparison item history remains the detailed local timeline for decision/note
+changes and handoffs. Workspace activity is a broader, shallower operational
+summary and intentionally omits note text.
+
 ## Later Phases
 
 Later phases may include:
@@ -966,7 +997,7 @@ Later phases may include:
 - scheduled ingestion;
 - external worker deployment hardening;
 - richer collaboration workflows;
-- audit logs.
+- compliance-grade audit logging if product/legal requirements justify it.
 
 Later phases depend on secure auth, tenant-scoped data, ingestion, scoring, and
 watchlists being stable.
@@ -1002,7 +1033,8 @@ Dependency order matters:
 25. email delivery and digest-ready outbox foundation;
 26. digest delivery workflow and owner-safe history;
 27. workspace and team-access foundation;
-28. broader automation.
+28. workspace activity and member-aware history;
+29. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

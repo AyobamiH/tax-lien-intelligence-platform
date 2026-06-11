@@ -59,6 +59,8 @@ Current implementation:
 - workspace context, selected role, and read-only visibility in the header;
 - workspace management route with member list, workspace selection,
   registered-user addition, and owner-only role controls;
+- workspace activity route with category tabs, actor attribution, timestamps,
+  empty/error/loading states, and affected-surface navigation;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -107,6 +109,7 @@ Current and future page direction:
 - implemented: notification preferences surface;
 - implemented: delivery history surface;
 - implemented: lightweight workspace/account-management surface;
+- implemented: focused workspace activity surface;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities
@@ -230,6 +233,16 @@ Implemented delivery history:
 - show digest batch item counts and attempts;
 - show safe failure messages without raw provider errors or recipient emails;
 - provide useful loading, empty, and error states.
+
+Implemented workspace activity:
+
+- show only meaningful shared operational actions;
+- identify the member who performed the action;
+- show a concise server-derived summary and occurrence time;
+- filter by data, decisions, portfolio, or membership;
+- navigate to the affected dataset or shared surface where useful;
+- avoid social-feed styling, comments, reactions, presence, or notification
+  wall behavior.
 
 Implemented scoring execution visibility:
 

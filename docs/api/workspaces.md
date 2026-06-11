@@ -58,9 +58,55 @@ Owner-only role update for a non-owner membership.
 
 The owner role cannot be assigned or changed through this route.
 
+## `GET /workspaces/current/activity`
+
+Returns recent meaningful activity for the selected workspace. Any active
+member may read the feed.
+
+Optional query parameters:
+
+- `category`: `data`, `decisions`, `portfolio`, or `members`;
+- `limit`: integer from 1 to 100; defaults to 30.
+
+Example response:
+
+```json
+{
+  "activities": [
+    {
+      "id": "activity-id",
+      "workspaceId": "workspace-id",
+      "actor": {
+        "userId": "user-id",
+        "email": "analyst@example.com"
+      },
+      "category": "data",
+      "eventType": "dataset_uploaded",
+      "relatedEntityType": "dataset",
+      "relatedEntityId": "dataset-id",
+      "summary": "Uploaded dataset June county sale.",
+      "metadata": {
+        "datasetId": "dataset-id",
+        "datasetName": "June county sale"
+      },
+      "occurredAt": "2026-06-11T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+The API never accepts summary text from the client. Summaries are derived from
+allowlisted event metadata. The feed does not expose notes, raw source rows,
+stack traces, provider payloads, password/auth events, or another workspace's
+activity.
+
 ## Workspace-Aware Product Routes
 
 The selected workspace applies to dataset, scoring, job, watchlist, portfolio,
 and comparison routes. `owner` and `admin` may mutate these resources;
 `member` is read-only. Alerts, notification settings/history, and saved views
 remain personal and ignore workspace ownership in Phase 29.
+
+Workspace activity is shared operational context in Phase 30. It complements
+comparison item history; it does not replace that item-level timeline and is
+not a compliance-grade audit API.

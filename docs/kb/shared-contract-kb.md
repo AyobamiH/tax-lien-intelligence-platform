@@ -32,6 +32,13 @@ Current shared types in `packages/types`:
 - `AddWorkspaceMemberResponse`;
 - `UpdateWorkspaceMemberRoleRequest`;
 - `UpdateWorkspaceMemberRoleResponse`.
+- `WorkspaceActivityCategory`;
+- `WorkspaceActivityEventType`;
+- `WorkspaceActivityRelatedEntityType`;
+- `WorkspaceActivityActor`;
+- `WorkspaceActivityMetadata`;
+- `WorkspaceActivityResponse`;
+- `WorkspaceActivityListResponse`.
 - `DatasetStatus`;
 - `DatasetSourceType`;
 - `DatasetImportAdapterId`;
@@ -583,6 +590,29 @@ Portfolio summaries are dashboard contracts. They must not become raw source-row
 exports, accounting ledgers, P&L objects, broad analytics payloads, or
 cross-tenant activity feeds.
 
+## Workspace Activity Contract
+
+Current workspace activity contracts include:
+
+- workspace-scoped activity id;
+- actor user id and member-visible email;
+- category: `data`, `decisions`, `portfolio`, or `members`;
+- allowlisted event type;
+- related entity type/id;
+- server-derived summary;
+- bounded optional metadata for navigation/rendering;
+- occurrence timestamp;
+- list response.
+
+Clients may request a category filter but cannot create events or submit
+summary text. Metadata must not contain notes, raw rows, raw errors, provider
+payloads, secrets, compatibility tenant keys, or arbitrary objects. Empty feeds
+return an empty `activities` array.
+
+Workspace activity is broader than comparison item history but shallower. It
+must not be represented as chat, a notification inbox, or a legal/compliance
+audit contract.
+
 ## Saved View Contract
 
 Current saved-view contracts include:
@@ -698,6 +728,8 @@ possible or explicitly versioned.
   resource DTOs; derive them from verified workspace membership.
 - Keep the `owner`/`admin`/`member` role set explicit and do not smuggle a
   custom permission language into shared contracts.
+- Keep workspace activity enums and metadata allowlisted; do not accept
+  client-authored summaries or general event payloads.
 - Do not represent scoring as a single number once explainable scoring exists.
 - Do not treat alert metadata as a raw logging or diagnostic payload.
 - Do not let enrichment contracts imply external verification when enrichment is

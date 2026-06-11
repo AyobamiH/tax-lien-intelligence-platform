@@ -9,6 +9,10 @@ import { ApiError } from "../errors/api-error.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import type { WorkspaceService } from "../workspaces/workspace-service.js";
+import {
+  recordWorkspaceActivitySafely,
+  type WorkspaceActivityService,
+} from "../workspace-activity/workspace-activity-service.js";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -34,6 +38,7 @@ export function createDatasetRouter(
   authService: AuthService,
   datasetService: DatasetService,
   workspaceService: WorkspaceService,
+  activityService: WorkspaceActivityService,
 ): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
@@ -42,7 +47,7 @@ export function createDatasetRouter(
 
   router.post("/", requireAuthenticatedUser, requireWorkspaceWrite, upload.single("file"), async (request, response, next) => {
     try {
-      if (!request.workspace) {
+      if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
@@ -56,6 +61,17 @@ export function createDatasetRouter(
         sourceLabel: typeof request.body.sourceLabel === "string" ? request.body.sourceLabel : undefined,
       });
 
+      await recordWorkspaceActivitySafely(activityService, {
+        workspaceId: request.workspace.workspaceId,
+        actorUserId: request.auth.userId,
+        eventType: "dataset_uploaded",
+        relatedEntityType: "dataset",
+        relatedEntityId: result.dataset.id,
+        metadata: {
+          datasetId: result.dataset.id,
+          datasetName: result.dataset.sourceLabel ?? result.dataset.originalFilename,
+        },
+      });
       response.status(201).json(result);
     } catch (error) {
       next(error);

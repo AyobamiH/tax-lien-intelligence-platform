@@ -26,6 +26,8 @@ import type {
   WorkspaceMemberResponse,
   WorkspaceResponse,
   WorkspaceRole,
+  WorkspaceActivityCategory,
+  WorkspaceActivityResponse,
 } from "@tax-lien/types";
 import {
   ApiClientError,
@@ -56,6 +58,7 @@ import {
   listSavedViews,
   listWatchlist,
   listWorkspaceMembers,
+  listWorkspaceActivity,
   listWorkspaces,
   login,
   markAlertRead,
@@ -128,6 +131,9 @@ import {
   type ScoreFilter,
   summarizeScores,
   topReadinessIssues,
+  workspaceActivityCategoryLabel,
+  workspaceActivityDestination,
+  workspaceActivityDestinationLabel,
   workspaceRoleLabel,
 } from "./review-model";
 
@@ -142,6 +148,7 @@ type PageState =
   | { name: "alerts" }
   | { name: "notifications" }
   | { name: "delivery-history" }
+  | { name: "activity" }
   | { name: "workspace" };
 
 type AuthMode = "login" | "register";
@@ -233,6 +240,13 @@ interface WorkspaceState {
   actionId: string | null;
 }
 
+interface WorkspaceActivityState {
+  activities: WorkspaceActivityResponse[];
+  category: WorkspaceActivityCategory | "all";
+  isLoading: boolean;
+  error: string | null;
+}
+
 function App() {
   const [session, setSession] = useState<StoredSession | null>(() => loadStoredSession());
   const [page, setPage] = useState<PageState>(() => readRoute());
@@ -302,6 +316,12 @@ function App() {
     success: null,
     actionId: null,
   });
+  const [workspaceActivity, setWorkspaceActivity] = useState<WorkspaceActivityState>({
+    activities: [],
+    category: "all",
+    isLoading: false,
+    error: null,
+  });
   const authToken = session?.token ?? null;
 
   useEffect(() => {
@@ -334,6 +354,12 @@ function App() {
         error: null,
         success: null,
         actionId: null,
+      });
+      setWorkspaceActivity({
+        activities: [],
+        category: "all",
+        isLoading: false,
+        error: null,
       });
       return;
     }
@@ -449,6 +475,38 @@ function App() {
     }
   }
 
+  async function refreshWorkspaceActivity(
+    token: string,
+    category: WorkspaceActivityCategory | "all" = workspaceActivity.category,
+  ): Promise<void> {
+    setWorkspaceActivity((current) => ({
+      ...current,
+      activities: current.category === category ? current.activities : [],
+      category,
+      isLoading: true,
+      error: null,
+    }));
+    try {
+      const result = await listWorkspaceActivity(token, category === "all" ? undefined : category);
+      setWorkspaceActivity({
+        activities: result.activities,
+        category,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error: unknown) {
+      setWorkspaceActivity((current) => ({
+        ...current,
+        category,
+        isLoading: false,
+        error: errorMessage(error),
+      }));
+      if (isAuthError(error)) {
+        clearSession(setSession);
+      }
+    }
+  }
+
   async function switchWorkspace(workspaceId: string): Promise<boolean> {
     if (!session) {
       return false;
@@ -470,6 +528,12 @@ function App() {
         refreshPortfolio(session.token),
         refreshComparison(session.token),
       ]);
+      setWorkspaceActivity({
+        activities: [],
+        category: "all",
+        isLoading: false,
+        error: null,
+      });
       navigate({ name: "datasets" }, setPage);
       return true;
     } catch (error: unknown) {
@@ -548,6 +612,31 @@ function App() {
     navigate({ name: "dataset", datasetId }, setPage);
   }
 
+  function openWorkspaceActivity(activity: WorkspaceActivityResponse): void {
+    const destination = workspaceActivityDestination(activity);
+    if (!destination) {
+      return;
+    }
+
+    switch (destination.surface) {
+      case "dataset":
+        navigate({ name: "dataset", datasetId: destination.datasetId }, setPage);
+        return;
+      case "comparison":
+        navigate({ name: "comparison" }, setPage);
+        return;
+      case "watchlist":
+        navigate({ name: "watchlist" }, setPage);
+        return;
+      case "portfolio":
+        navigate({ name: "portfolio" }, setPage);
+        return;
+      case "workspace":
+        navigate({ name: "workspace" }, setPage);
+        return;
+    }
+  }
+
   useEffect(() => {
     if (!authToken) {
       return;
@@ -561,6 +650,14 @@ function App() {
     void refreshNotificationPreferences(authToken);
     void refreshNotificationDeliveryHistory(authToken);
   }, [authToken]);
+
+  useEffect(() => {
+    if (!authToken || page.name !== "activity" || !workspace.current) {
+      return;
+    }
+
+    void refreshWorkspaceActivity(authToken, workspaceActivity.category);
+  }, [authToken, page.name, workspace.current?.id]);
 
   function handleSignedIn(nextSession: StoredSession): void {
     sessionStorage.setItem(authStorageKey, JSON.stringify(nextSession));
@@ -1458,6 +1555,14 @@ function App() {
             onRetry={() => void refreshNotificationDeliveryHistory(session.token)}
             onOpenDataset={(datasetId) => void openPersonalDataset(datasetId)}
           />
+        ) : page.name === "activity" ? (
+          <WorkspaceActivityPage
+            workspaceName={workspace.current?.name ?? "Workspace"}
+            state={workspaceActivity}
+            onCategoryChange={(category) => void refreshWorkspaceActivity(session.token, category)}
+            onRetry={() => void refreshWorkspaceActivity(session.token)}
+            onOpen={openWorkspaceActivity}
+          />
         ) : page.name === "workspace" ? (
           <WorkspacePage
             state={workspace}
@@ -1668,6 +1773,15 @@ function AppHeader({
             }`}
           >
             Delivery History
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate({ name: "activity" })}
+            className={`border border-line px-3 py-2 font-medium ${
+              page.name === "activity" ? "bg-field" : "bg-white"
+            }`}
+          >
+            Activity
           </button>
           <button
             type="button"
@@ -4639,6 +4753,107 @@ function NotificationPreferencesPage({
   );
 }
 
+function WorkspaceActivityPage({
+  workspaceName,
+  state,
+  onCategoryChange,
+  onRetry,
+  onOpen,
+}: {
+  workspaceName: string;
+  state: WorkspaceActivityState;
+  onCategoryChange: (category: WorkspaceActivityCategory | "all") => void;
+  onRetry: () => void;
+  onOpen: (activity: WorkspaceActivityResponse) => void;
+}) {
+  const categories: Array<WorkspaceActivityCategory | "all"> = [
+    "all",
+    "data",
+    "decisions",
+    "portfolio",
+    "members",
+  ];
+
+  return (
+    <section className="min-w-0">
+      <div className="border-b border-line pb-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Workspace Activity</p>
+        <h2 className="mt-1 text-2xl font-semibold">{workspaceName}</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+          Meaningful shared actions across datasets, decisions, portfolio tracking, and membership.
+        </p>
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Activity category">
+        {categories.map((category) => (
+          <button
+            key={category}
+            type="button"
+            role="tab"
+            aria-selected={state.category === category}
+            disabled={state.isLoading && state.category === category}
+            onClick={() => onCategoryChange(category)}
+            className={`border px-3 py-2 text-sm font-semibold disabled:opacity-60 ${
+              state.category === category ? "border-pine bg-pine text-white" : "border-line bg-white text-ink"
+            }`}
+          >
+            {workspaceActivityCategoryLabel(category)}
+          </button>
+        ))}
+      </div>
+
+      {state.error ? (
+        <div className="mt-5">
+          <PanelError message={state.error} onRetry={onRetry} />
+        </div>
+      ) : state.isLoading && state.activities.length === 0 ? (
+        <div className="mt-5">
+          <PanelMessage label="Loading recent workspace activity..." />
+        </div>
+      ) : state.activities.length === 0 ? (
+        <div className="mt-5 border-y border-line bg-white px-4 py-6">
+          <p className="font-semibold">No activity in this category yet.</p>
+          <p className="mt-2 text-sm leading-6 text-ink/70">
+            Important workspace actions will appear here after they occur.
+          </p>
+        </div>
+      ) : (
+        <ol className="mt-5 border-t border-line">
+          {state.activities.map((activity) => {
+            const destination = workspaceActivityDestination(activity);
+            return (
+              <li
+                key={activity.id}
+                className="grid gap-3 border-b border-line bg-white px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="font-semibold">{activity.actor.email}</span>
+                    <span className="text-xs font-semibold uppercase tracking-[0.08em] text-pine">
+                      {workspaceActivityCategoryLabel(activity.category)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm leading-6 text-ink/80">{activity.summary}</p>
+                  <p className="mt-1 text-xs text-ink/55">{formatDateTime(activity.occurredAt)}</p>
+                </div>
+                {destination ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpen(activity)}
+                    className="justify-self-start border border-line bg-white px-3 py-2 text-sm font-semibold sm:justify-self-end"
+                  >
+                    {workspaceActivityDestinationLabel(destination)}
+                  </button>
+                ) : null}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
+  );
+}
+
 function WorkspacePage({
   state,
   currentUserId,
@@ -5385,6 +5600,8 @@ function navigate(page: PageState, setPage: (page: PageState) => void): void {
               ? "#/notifications"
               : page.name === "delivery-history"
                 ? "#/delivery-history"
+                : page.name === "activity"
+                  ? "#/activity"
                 : page.name === "workspace"
                   ? "#/workspace"
                 : `#/datasets/${page.datasetId}`;
@@ -5415,6 +5632,10 @@ function readRoute(): PageState {
 
   if (window.location.hash === "#/delivery-history") {
     return { name: "delivery-history" };
+  }
+
+  if (window.location.hash === "#/activity") {
+    return { name: "activity" };
   }
 
   if (window.location.hash === "#/workspace") {

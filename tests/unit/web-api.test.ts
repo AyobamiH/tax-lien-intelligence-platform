@@ -16,6 +16,7 @@ import {
   listNotificationDeliveryHistory,
   listSavedViews,
   listWorkspaceMembers,
+  listWorkspaceActivity,
   listWorkspaces,
   removeComparisonItem,
   saveDatasetImportProfile,
@@ -74,6 +75,42 @@ describe("web API client", () => {
     const secondHeaders = fetchMock.mock.calls[1]?.[1]?.headers as Headers;
     expect(firstHeaders.get("X-Workspace-Id")).toBeNull();
     expect(secondHeaders.get("X-Workspace-Id")).toBe("workspace-1");
+  });
+
+  it("loads filtered workspace activity inside the selected workspace", async () => {
+    const responsePayload = {
+      activities: [
+        {
+          id: "activity-1",
+          workspaceId: "workspace-1",
+          actor: { userId: "user-1", email: "owner@example.com" },
+          category: "data",
+          eventType: "dataset_uploaded",
+          relatedEntityType: "dataset",
+          relatedEntityId: "dataset-1",
+          summary: "Uploaded dataset June sale.",
+          metadata: { datasetId: "dataset-1", datasetName: "June sale" },
+          occurredAt: "2026-06-11T12:00:00.000Z",
+        },
+      ],
+    };
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(responsePayload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    const result = await listWorkspaceActivity("test-token", "data");
+
+    expect(result).toEqual(responsePayload);
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("http://localhost:4000/workspaces/current/activity?category=data");
+    const headers = init.headers as Headers;
+    expect(headers.get("Authorization")).toBe("Bearer test-token");
+    expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

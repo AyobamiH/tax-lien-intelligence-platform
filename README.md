@@ -11,16 +11,17 @@ portfolio/status tracking, comparison, decision history, decision handoff,
 saved operational views, internal jobs, alerts, worker/scheduler groundwork,
 enrichment, import repair, reusable import profiles, saved views, notification
 preferences, email delivery, digest processing/delivery history, and the Phase
-29 workspace and team-access foundation:
+29 workspace/team-access foundation plus the Phase 30 workspace activity feed:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind review workspace
 - `apps/api`: Express, TypeScript, auth, dataset, scoring, internal jobs,
-  alerts, notification delivery, workspace membership, watchlist, portfolio,
-  and comparison APIs
+  alerts, notification delivery, workspace membership/activity, watchlist,
+  portfolio, and comparison APIs
 - `packages/db`: MongoDB connection plus user, dataset, scored-record,
   internal-job, alert, watchlist, portfolio, comparison, decision-history, and
   import-profile/saved-view/notification-preference/notification-delivery/
-  notification-digest-batch, workspace, and workspace-membership models
+  notification-digest-batch, workspace, workspace-membership, and
+  workspace-activity models
 - `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
@@ -35,6 +36,7 @@ Implemented API surfaces:
 - `GET /workspaces/current/members`
 - `POST /workspaces/current/members`
 - `PATCH /workspaces/current/members/:membershipId`
+- `GET /workspaces/current/activity`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -89,6 +91,12 @@ watchlist, portfolio, comparison, and decision history can be shared with
 verified workspace members; owners/admins may mutate them and members are
 read-only. Alerts, notification settings/history, and saved views remain
 personal. This is a team-access foundation, not full collaboration.
+
+Phase 30 adds a membership-protected workspace activity feed at `#/activity`.
+It records a focused set of successful dataset, scoring/refresh request,
+comparison decision/handoff, portfolio status, and membership actions with
+safe actor attribution. It is an operational awareness layer, not chat,
+realtime collaboration, or a compliance-grade audit log.
 
 ## Local Development
 

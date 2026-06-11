@@ -27,6 +27,7 @@ Current implementation:
 - workspace and workspace-membership models;
 - personal owner-workspace bootstrap;
 - workspace/member list, add-member, and role-update APIs;
+- workspace activity model, recorder, and membership-protected retrieval API;
 - selected-workspace membership middleware and explicit read/write/member-role
   checks;
 - global API error handling;
@@ -99,6 +100,7 @@ Current implementation:
 - server-side handoff history capture with destination linkage metadata;
 - workspace-aware access for datasets, scoring/jobs, import profiles,
   watchlist, portfolio, comparison, decision history, and handoff;
+- focused actor-attributed activity capture for meaningful shared actions;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -128,7 +130,8 @@ The backend should become the trusted boundary for:
 - saved operational view persistence;
 - in-app alert persistence;
 - notification preference persistence;
-- future audit events;
+- workspace operational activity persistence;
+- future compliance-grade audit events;
 - security enforcement.
 
 The backend must not rely on frontend behavior for authorization.
@@ -702,7 +705,8 @@ Backend implementation order should stay disciplined:
 25. email delivery and digest-ready outbox foundation: implemented in Phase 27;
 26. scheduled digest processing and delivery history: implemented in Phase 28;
 27. workspace and team-access foundation: implemented in Phase 29;
-28. later external automation.
+28. workspace activity and member-aware history: implemented in Phase 30;
+29. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -713,6 +717,7 @@ Avoid:
 - generic distributed job systems before the current worker boundary needs them;
 - custom permission matrices before the minimal workspace roles earn them;
 - admin APIs before audit/security controls;
+- treating best-effort workspace activity as immutable compliance evidence;
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
   separate financial analytics phase.

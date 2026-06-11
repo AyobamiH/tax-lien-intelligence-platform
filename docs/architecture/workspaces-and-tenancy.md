@@ -45,6 +45,11 @@ This preserves every existing record and avoids an unsafe bulk ownership
 migration. A later migration may add explicit `workspaceId` fields after the
 workspace boundary has earned operational confidence.
 
+Phase 30 activity records are explicitly workspace-owned from creation and do
+not use the legacy owner `userId` compatibility key. This gives the shared
+awareness layer a direct tenant boundary while core pre-workspace records
+continue using the compatibility approach.
+
 ## Workspace Selection
 
 Clients may send `X-Workspace-Id` on authenticated requests. If omitted, the
@@ -77,6 +82,12 @@ Still personal:
 - notification delivery and digest history;
 - saved views.
 
+Workspace-shared operational context added in Phase 30:
+
+- bounded recent activity for meaningful shared actions;
+- actor attribution using member-visible identity;
+- links back to affected shared surfaces.
+
 Personal surfaces remain user-scoped because notification routing and saved
 attention preferences are individual settings in this phase.
 
@@ -91,3 +102,7 @@ email invitation token or pending invitation lifecycle yet.
 Phase 29 does not add comments, chat, concurrent editing, task assignment,
 approvals, custom roles, billing, shared notification policy, auction
 execution, or ML/AI collaboration features.
+
+Phase 30 does not change those boundaries. Its activity feed is not an
+immutable audit system and does not expose comparison notes or personal
+notification activity.

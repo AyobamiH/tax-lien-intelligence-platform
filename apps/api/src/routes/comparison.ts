@@ -8,6 +8,10 @@ import { requireAuth } from "../middleware/auth.js";
 import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import { portfolioStatuses } from "../portfolio/portfolio-service.js";
 import type { WorkspaceService } from "../workspaces/workspace-service.js";
+import {
+  recordWorkspaceActivitySafely,
+  type WorkspaceActivityService,
+} from "../workspace-activity/workspace-activity-service.js";
 
 const comparisonDecisionSchema = z.enum(comparisonDecisions);
 const portfolioStatusSchema = z.enum(portfolioStatuses);
@@ -33,6 +37,7 @@ export function createComparisonRouter(
   authService: AuthService,
   comparisonService: ComparisonService,
   workspaceService: WorkspaceService,
+  activityService: WorkspaceActivityService,
 ): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
@@ -41,7 +46,7 @@ export function createComparisonRouter(
 
   router.post("/", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.workspace) {
+      if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
@@ -92,7 +97,7 @@ export function createComparisonRouter(
 
   router.post("/:comparisonItemId/handoff/watchlist", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.workspace) {
+      if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
@@ -102,6 +107,20 @@ export function createComparisonRouter(
       }
 
       const result = await comparisonService.handoffToWatchlist(request.workspace.tenantUserId, comparisonItemId);
+      if (!result.alreadyExists) {
+        await recordWorkspaceActivitySafely(activityService, {
+          workspaceId: request.workspace.workspaceId,
+          actorUserId: request.auth.userId,
+          eventType: "comparison_handoff_to_watchlist",
+          relatedEntityType: "comparison_item",
+          relatedEntityId: comparisonItemId,
+          metadata: {
+            datasetId: result.item.datasetId,
+            targetEntityType: "watchlist_item",
+            targetEntityId: result.item.id,
+          },
+        });
+      }
       response.status(result.alreadyExists ? 200 : 201).json(result);
     } catch (error) {
       next(error);
@@ -110,7 +129,7 @@ export function createComparisonRouter(
 
   router.post("/:comparisonItemId/handoff/portfolio", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.workspace) {
+      if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
@@ -127,6 +146,20 @@ export function createComparisonRouter(
       const result = await comparisonService.handoffToPortfolio(request.workspace.tenantUserId, comparisonItemId, {
         ...(parsed.data.status ? { status: parsed.data.status } : {}),
       });
+      if (!result.alreadyExists) {
+        await recordWorkspaceActivitySafely(activityService, {
+          workspaceId: request.workspace.workspaceId,
+          actorUserId: request.auth.userId,
+          eventType: "comparison_handoff_to_portfolio",
+          relatedEntityType: "comparison_item",
+          relatedEntityId: comparisonItemId,
+          metadata: {
+            datasetId: result.item.datasetId,
+            targetEntityType: "portfolio_item",
+            targetEntityId: result.item.id,
+          },
+        });
+      }
       response.status(result.alreadyExists ? 200 : 201).json(result);
     } catch (error) {
       next(error);
@@ -135,7 +168,7 @@ export function createComparisonRouter(
 
   router.patch("/:comparisonItemId", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
-      if (!request.workspace) {
+      if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
       }
 
@@ -157,9 +190,29 @@ export function createComparisonRouter(
         update.note = parsed.data.note ?? null;
       }
 
-      response.status(200).json(
-        await comparisonService.updateItem(request.workspace.tenantUserId, comparisonItemId, update),
+      const previous = (await comparisonService.listItems(request.workspace.tenantUserId)).items.find(
+        (item) => item.id === comparisonItemId,
       );
+      const result = await comparisonService.updateItem(
+        request.workspace.tenantUserId,
+        comparisonItemId,
+        update,
+      );
+      if (previous && previous.decision !== result.item.decision) {
+        await recordWorkspaceActivitySafely(activityService, {
+          workspaceId: request.workspace.workspaceId,
+          actorUserId: request.auth.userId,
+          eventType: "comparison_decision_changed",
+          relatedEntityType: "comparison_item",
+          relatedEntityId: result.item.id,
+          metadata: {
+            datasetId: result.item.datasetId,
+            previousDecision: previous.decision,
+            newDecision: result.item.decision,
+          },
+        });
+      }
+      response.status(200).json(result);
     } catch (error) {
       next(error);
     }

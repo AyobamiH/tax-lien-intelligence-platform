@@ -46,6 +46,9 @@ Phase 29 adds the first company-ready workspace layer with persistent
 memberships, minimal owner/admin/member roles, shared operating-data access,
 and a lightweight workspace management surface. It is not a full collaboration
 suite.
+Phase 30 adds a focused workspace activity feed so members can see meaningful
+recent shared actions, who performed them, when they occurred, and where to
+continue. It is not chat or compliance-grade audit tooling.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -86,6 +89,9 @@ Current evidence:
 - workspace members can deliberately share the core review/decision operating
   context with role-aware access while personal notification/settings data
   remains private.
+- workspace members can review bounded operational activity across datasets,
+  decisions, portfolio status, and membership without exposing notes or raw
+  system internals.
 
 ## What This SaaS Is
 
@@ -124,8 +130,8 @@ Maricopa-style county import adapter exists. Browser CSV upload and import
 readiness guidance now exist. Focused manual field mapping repair now exists.
 Reusable import profiles, comparison, and the workspace-access foundation now
 exist. Broad county
-coverage, live county sync, full spreadsheet editing, collaboration, rich
-decision history, ML mapping suggestions, SMS/push alert delivery, user-facing
+coverage, live county sync, full spreadsheet editing, comments/realtime
+collaboration, compliance audit tooling, ML mapping suggestions, SMS/push alert delivery, user-facing
 scheduler policy controls, broader automatic refresh, advanced digest
 scheduling/templates/retries, and richer automation remain future direction.
 
@@ -239,6 +245,8 @@ Current implementation:
 - no standalone parcel/lien schema;
 - no comments/chat, shared editing, task/approval collaboration, final
   investment decision, auction, or accounting workflow.
+- workspace activity exists as a bounded shared-awareness feed, not an
+  immutable audit trail.
 
 ## Trust Philosophy
 

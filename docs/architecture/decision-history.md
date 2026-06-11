@@ -38,7 +38,6 @@ Not implemented:
 
 - full compliance/legal audit logging;
 - immutable append-only infrastructure guarantees;
-- collaboration/team activity feeds;
 - approval workflows;
 - task/project management;
 - rich diffs;
@@ -97,8 +96,12 @@ user. If the item is missing, deleted, or belongs to another user, the route
 returns `comparison_item_not_found`.
 
 This keeps history retrieval aligned with the same tenant boundary as the
-comparison workspace. It also avoids creating a broad global activity endpoint
-before the product has a proven need for one.
+comparison workspace.
+
+Phase 30 adds a separate membership-protected workspace activity endpoint for
+broader shared awareness. It summarizes decision changes and handoffs without
+copying note snapshots. Item-level decision history remains the detailed source
+for one comparison record.
 
 ## Frontend Surface
 
@@ -136,7 +139,7 @@ intent and changing diligence context.
 Future contributors should avoid:
 
 - treating this as legal-grade audit infrastructure;
-- exposing history through a broad unscoped activity feed;
+- exposing history through an unscoped or cross-workspace activity feed;
 - accepting client-created history events;
 - adding rich text or diffs without sanitization and storage rules;
 - mixing collaboration comments into the history model;
