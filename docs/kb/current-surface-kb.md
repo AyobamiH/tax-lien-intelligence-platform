@@ -60,7 +60,7 @@ It shows:
 - dedicated alerts route using `#/alerts`;
 - unread alert count and alert read/read-all actions;
 - dedicated notification preferences route using `#/notifications`;
-- notification controls for supported scoring alert types, enabled state,
+- notification controls for supported scoring and discussion alert types, enabled state,
   in-app-only versus email-capable handling, and immediate versus digest-ready
   timing;
 - dedicated delivery history route using `#/delivery-history`;
@@ -73,6 +73,8 @@ It shows:
 - contextual workspace discussion on dataset, comparison item, watchlist item,
   and portfolio item detail with actor, timestamp, create, and author-delete
   states;
+- per-thread unread discussion counts, explicit read clearing, and
+  workspace-aware discussion alert navigation;
 - dedicated workspace management route using `#/workspace`;
 - active member list, workspace switching, direct registered-user addition,
   and owner-only role controls;
@@ -98,6 +100,7 @@ The current API surface is minimal:
 - `GET /workspaces/current/activity`
 - `GET /comments/:entityType/:entityId`
 - `POST /comments/:entityType/:entityId`
+- `PATCH /comments/:entityType/:entityId/read`
 - `DELETE /comments/:commentId`
 - `POST /datasets`
 - `GET /datasets`
@@ -194,27 +197,29 @@ Real workflows now present:
 - saved portfolio views and built-in attention queues for reusable operational
   work slices.
 - comparison workspace, decision state, and lightweight notes.
-- in-app alert review for scoring completions and failures.
-- notification preference management for current scoring alert types.
+- in-app alert review for scoring outcomes and bounded workspace discussion.
+- notification preference management for scoring and discussion alert types.
 - import readiness review before relying on score output.
 - focused import repair before rerunning readiness/scoring.
 - deterministic import profile reuse for repeated upload shapes.
 - deterministic saved views for repeated portfolio review filters.
 - notification preferences for controlling in-app-only versus email-capable
-  scoring alerts.
+  scoring and discussion alerts.
 - env-driven immediate product-alert email for supported alerts when SMTP
   config is complete.
 - scheduled digest processing and owner-scoped delivery history.
 - workspace-shared recent activity for meaningful operational changes.
 - workspace-shared, entity-linked plain-text comments for bounded operational
   discussion.
+- member-specific unread discussion attention with one alert per unread cycle.
 
 Real workflows not present:
 
 - settings;
 - SMS/push alert delivery;
 - realtime alerts.
-- realtime chat, rich text, mentions, attachments, and comment notifications.
+- realtime chat, rich text, mentions, attachments, push/SMS, and realtime
+  comment delivery.
 
 ## Current Visual Signals
 

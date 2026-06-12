@@ -1001,8 +1001,9 @@ Phase 31 includes:
 Phase 31 does not include:
 
 - realtime chat or websocket delivery;
-- rich text, mentions, notifications, attachments, reactions, or nested
-  replies;
+- rich text, mentions, attachments, reactions, or nested replies;
+- realtime or unbounded notification delivery; Phase 32 adds only bounded
+  personal alerts;
 - comment editing or admin moderation overrides;
 - task assignment, approvals, or shared editing;
 - activity-feed events for comment creation;
@@ -1010,6 +1011,37 @@ Phase 31 does not include:
 
 Comments are contextual workspace discussion, not an audit log or a replacement
 for the broader Phase 30 operational activity feed.
+
+## Phase 32: Comment Notification And Discussion Attention
+
+Current status: implemented.
+
+Phase 32 includes:
+
+- per-user, workspace-scoped unread counts for supported comment threads;
+- explicit mark-read API and frontend controls;
+- peer-only alert generation with no self-notification;
+- one alert per read-to-unread cycle while later comments still increment the
+  unread count;
+- `workspace_comment_added` notification preferences;
+- optional immediate/digest email eligibility through the existing outbox and
+  scheduler;
+- workspace-aware alert navigation;
+- comment-body exclusion from alerts, email, and digest payloads;
+- tenancy, preference, delivery, API, and frontend helper tests.
+
+Phase 32 does not include:
+
+- realtime websocket chat, typing, or presence;
+- mentions, reactions, attachments, rich text, or nested replies;
+- a team inbox or shared notification policy;
+- push/SMS;
+- tasks, assignments, approvals, or auction execution;
+- AI summaries or collaboration helpers.
+
+The alert record remains personal to the recipient. The thread and its
+discussion attention remain bounded by the verified workspace and related
+entity access checks.
 
 ## Later Phases
 
@@ -1065,7 +1097,8 @@ Dependency order matters:
 27. workspace and team-access foundation;
 28. workspace activity and member-aware history;
 29. workspace comments and discussion threads;
-30. broader automation.
+30. comment notification and discussion attention;
+31. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

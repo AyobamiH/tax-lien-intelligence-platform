@@ -66,12 +66,15 @@ Implemented today:
 - workspace and workspace-membership models in `packages/db`;
 - workspace-activity model in `packages/db`;
 - workspace-comment model in `packages/db`;
+- discussion-attention model in `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
 - authenticated workspace/member APIs with owner/admin/member roles;
 - workspace membership and role middleware using `X-Workspace-Id`;
 - authenticated workspace activity retrieval with category filtering;
-- authenticated workspace comment list/create/delete routes with target access
-  checks and author-only deletion;
+- authenticated workspace comment list/create/read-state/delete routes with
+  target access checks and author-only deletion;
+- peer-only discussion alerts with per-user workspace unread counts and
+  one-alert-per-unread-cycle behavior;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -187,7 +190,8 @@ Implemented today:
 - authenticated notification preference endpoints at
   `GET /notification-preferences` and `PATCH /notification-preferences`;
 - provider-agnostic delivery preparation on job-generated alerts;
-- preference-driven suppression/classification for current scoring alert types;
+- preference-driven suppression/classification for supported scoring and
+  workspace-discussion alert types;
 - SMTP-backed email delivery boundary for supported immediate product alerts
   when env config is complete;
 - provider-disabled, failed, sent, in-app-only, suppressed, and digest-ready
@@ -353,6 +357,8 @@ Current tests cover:
 - notification preference default retrieval/update behavior;
 - invalid notification preference payload rejection;
 - preference-driven alert suppression and delivery classification.
+- workspace discussion unread/read cycles, self-notification exclusion,
+  preference-aware alert delivery, and cross-workspace read rejection.
 - email delivery success, disabled config, provider failure, duplicate-send
   avoidance, digest-ready grouping, owner-safe recipient resolution, and email
   content generation.
@@ -418,7 +424,7 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - tenant-owned saved views are implemented and applied only over owned
   portfolio/comparison records.
 - tenant-owned notification preferences are implemented and affect only the
-  authenticated user's generated scoring alerts.
+  authenticated user's generated scoring and workspace-discussion alerts.
 - tenant-owned notification delivery records are implemented and scoped to the
   alert owner.
 - tenant-owned notification digest batches are implemented and scoped to the
@@ -433,6 +439,8 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
   navigation, and cross-workspace rejection tests are implemented.
 - workspace activity is best-effort operational history, not immutable audit
   infrastructure; comparison item history remains separately implemented.
+- discussion attention is user-specific and workspace-specific; comment alerts
+  remain personal and never contain comment body text.
 - tenant-owned parcel records are not yet implemented.
 
 Security cannot be considered complete until rate limits, production CORS

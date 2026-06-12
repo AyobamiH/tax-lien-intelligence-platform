@@ -1,9 +1,14 @@
 import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 
-export type AlertTypeRecord = "scoring_job_completed" | "scoring_job_failed";
+export type AlertTypeRecord = "scoring_job_completed" | "scoring_job_failed" | "workspace_comment_added";
 export type AlertSeverityRecord = "info" | "error";
 export type AlertStatusRecord = "unread" | "read";
-export type AlertRelatedEntityTypeRecord = "dataset" | "job";
+export type AlertRelatedEntityTypeRecord =
+  | "dataset"
+  | "job"
+  | "comparison_item"
+  | "watchlist_item"
+  | "portfolio_item";
 
 export interface AlertMetadataRecord {
   jobId?: string;
@@ -11,6 +16,10 @@ export interface AlertMetadataRecord {
   scoredRecordCount?: number;
   errorCode?: string;
   requestKind?: "score" | "refresh" | "policy_refresh" | "maintenance_scan";
+  workspaceId?: string;
+  commentId?: string;
+  commentActorUserId?: string;
+  commentActorEmail?: string;
 }
 
 export interface AlertDeliveryPreparationPayloadRecord {
@@ -55,6 +64,10 @@ const alertMetadataSchema = new Schema<AlertMetadataRecord>(
     scoredRecordCount: { type: Number, min: 0 },
     errorCode: { type: String, trim: true, maxlength: 120 },
     requestKind: { type: String, enum: ["score", "refresh", "policy_refresh", "maintenance_scan"] },
+    workspaceId: { type: String, trim: true },
+    commentId: { type: String, trim: true },
+    commentActorUserId: { type: String, trim: true },
+    commentActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
   },
   {
     _id: false,
@@ -66,7 +79,10 @@ const alertDeliveryPreparationPayloadSchema = new Schema<AlertDeliveryPreparatio
   {
     subject: { type: String, required: true, trim: true, maxlength: 160 },
     summary: { type: String, required: true, trim: true, maxlength: 500 },
-    relatedEntityType: { type: String, enum: ["dataset", "job"] },
+    relatedEntityType: {
+      type: String,
+      enum: ["dataset", "job", "comparison_item", "watchlist_item", "portfolio_item"],
+    },
     relatedEntityId: { type: String, trim: true },
     metadata: {
       type: alertMetadataSchema,
@@ -84,7 +100,7 @@ const alertDeliveryPreparationSchema = new Schema<AlertDeliveryPreparationRecord
   {
     alertType: {
       type: String,
-      enum: ["scoring_job_completed", "scoring_job_failed"],
+      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added"],
       required: true,
     },
     deliveryState: {
@@ -129,7 +145,7 @@ const alertSchema = new Schema<AlertRecord>(
     },
     type: {
       type: String,
-      enum: ["scoring_job_completed", "scoring_job_failed"],
+      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added"],
       required: true,
       index: true,
     },
@@ -154,7 +170,7 @@ const alertSchema = new Schema<AlertRecord>(
     },
     relatedEntityType: {
       type: String,
-      enum: ["dataset", "job"],
+      enum: ["dataset", "job", "comparison_item", "watchlist_item", "portfolio_item"],
       index: true,
     },
     relatedEntityId: {

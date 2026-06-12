@@ -275,6 +275,14 @@ export function mapNotificationDelivery(document: NotificationDeliveryDocument):
               : {}),
             ...(document.metadata.errorCode ? { errorCode: document.metadata.errorCode } : {}),
             ...(document.metadata.requestKind ? { requestKind: document.metadata.requestKind } : {}),
+            ...(document.metadata.workspaceId ? { workspaceId: document.metadata.workspaceId } : {}),
+            ...(document.metadata.commentId ? { commentId: document.metadata.commentId } : {}),
+            ...(document.metadata.commentActorUserId
+              ? { commentActorUserId: document.metadata.commentActorUserId }
+              : {}),
+            ...(document.metadata.commentActorEmail
+              ? { commentActorEmail: document.metadata.commentActorEmail }
+              : {}),
           },
         }
       : {}),

@@ -6,6 +6,8 @@ path. Phase 27 adds preference-aware email delivery/outbox handling for
 supported product alerts. Phase 28 adds bounded scheduled digest processing and
 owner-safe delivery history. Alerts still do not add SMS, push notifications,
 realtime websockets, external schedulers, campaigns, or broad alert automation.
+Phase 32 adds low-noise workspace comment attention alerts through the same
+personal alert boundary.
 
 ## Purpose
 
@@ -16,6 +18,7 @@ important outcomes visible to the user:
 - scoring failed;
 - records are ready for review;
 - a job needs attention.
+- a workspace discussion became unread for the current member.
 
 Alerts should reduce uncertainty without creating noisy social-style
 notifications.
@@ -31,6 +34,7 @@ Implemented:
 - `PATCH /alerts/:alertId/read`;
 - `PATCH /alerts/read-all`;
 - alert creation from `dataset_scoring` job completion and failure;
+- peer-only `workspace_comment_added` creation on the first unread transition;
 - notification preference classification for supported scoring alerts;
 - email outbox tracking for suppressed, in-app-only, digest-ready,
   digest-processing, provider-disabled, failed, and sent delivery outcomes;
@@ -40,7 +44,8 @@ Implemented:
 - frontend alerts route using `#/alerts`;
 - alert indicator in the app header and side navigation;
 - unread/read state;
-- links back to related datasets where safe;
+- workspace-aware links back to related datasets, comparison, watchlist, or
+  portfolio where safe;
 - alert integration and review-model tests.
 
 Not implemented:
@@ -72,20 +77,26 @@ Current metadata is intentionally small:
 - job id;
 - dataset id;
 - scored record count;
-- stable error code.
+- stable error code;
+- workspace id, comment id, and member-visible actor identity for discussion
+  alerts.
 
 Alerts must not store raw job payloads, uploaded source rows, stack traces,
 tokens, secrets, or provider payloads.
 
 ## Alert Sources
 
-Current alert sources are job lifecycle events from the internal job service:
+Current alert sources are:
 
 - completed `dataset_scoring` jobs create `scoring_job_completed`;
 - failed `dataset_scoring` jobs create `scoring_job_failed`.
+- peer comments create `workspace_comment_added` only when the recipient's
+  thread transitions from read to unread.
 
-Alert recording is attached to job outcome handling. The job record remains the
-source of execution truth; the alert is a user-facing visibility record.
+Job alert recording is attached to outcome handling. Comment alert recording is
+attached to the discussion-attention coordinator after comment persistence.
+The source record remains authoritative; the alert is a user-facing visibility
+record.
 
 ## Service Boundaries
 
@@ -135,6 +146,7 @@ The current frontend alerts surface is deliberately small:
 - recent alert list;
 - read/read-all controls;
 - related dataset navigation when available;
+- workspace-aware shared-record navigation for discussion alerts;
 - loading, empty, and error states.
 
 It is not an operations center or admin dashboard.

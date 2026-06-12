@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 import type { WorkspaceCommentEntityType } from "@tax-lien/types";
+import { AlertService } from "../../apps/api/src/alerts/alert-service.js";
 import { createApp } from "../../apps/api/src/app.js";
 import { AuthService } from "../../apps/api/src/auth/auth-service.js";
 import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
@@ -15,6 +16,7 @@ import {
   InMemoryWorkspaceMembershipStore,
   InMemoryWorkspaceStore,
 } from "../support/in-memory-workspace-store.js";
+import { InMemoryAlertStore } from "../support/in-memory-alert-store.js";
 
 const testJwtSecret = "test-comment-secret-that-is-long-enough-for-jwt";
 
@@ -45,9 +47,10 @@ class InMemoryUserStore implements UserStore {
 
 function createTestContext() {
   const userStore = new InMemoryUserStore();
+  const membershipStore = new InMemoryWorkspaceMembershipStore();
   const workspaceService = new WorkspaceService(
     new InMemoryWorkspaceStore(),
-    new InMemoryWorkspaceMembershipStore(),
+    membershipStore,
     userStore,
   );
   const authService = new AuthService(userStore, {
@@ -56,7 +59,14 @@ function createTestContext() {
     passwordSaltRounds: 4,
   });
   const targetAccess = new InMemoryWorkspaceCommentTargetAccess();
-  const workspaceCommentService = createInMemoryWorkspaceCommentService(userStore, targetAccess);
+  const alertStore = new InMemoryAlertStore();
+  const alertService = new AlertService(alertStore);
+  const workspaceCommentService = createInMemoryWorkspaceCommentService(
+    userStore,
+    membershipStore,
+    alertService,
+    targetAccess,
+  );
 
   return {
     app: createApp({
@@ -66,6 +76,7 @@ function createTestContext() {
       workspaceCommentService,
     }),
     targetAccess,
+    alertStore,
   };
 }
 
@@ -145,6 +156,13 @@ describe("workspace comments", () => {
 
       expect(memberList.body.comments).toHaveLength(1);
       expect(memberList.body.comments[0].canDelete).toBe(false);
+      expect(memberList.body.attention).toMatchObject({
+        workspaceId,
+        relatedEntityType: entityType,
+        relatedEntityId: entityId,
+        unreadCount: 1,
+        hasUnread: true,
+      });
     }
 
     const memberTargetId = new mongoose.Types.ObjectId().toString();
@@ -157,6 +175,73 @@ describe("workspace comments", () => {
       .expect(201);
     expect(memberCreated.body.comment.author.email).toBe("member@example.com");
     expect(memberCreated.body.comment.canDelete).toBe(true);
+  });
+
+  it("tracks peer unread attention and emits one alert per unread cycle without self-notification", async () => {
+    const { app, targetAccess, alertStore } = createTestContext();
+    const owner = await register(app, "owner@example.com");
+    const member = await register(app, "member@example.com");
+    const workspaceId = await currentWorkspaceId(app, owner.token);
+    await addMember(app, owner.token, workspaceId, "member@example.com");
+    const entityId = new mongoose.Types.ObjectId().toString();
+    targetAccess.allow("dataset", entityId, owner.userId);
+
+    for (const body of ["First review note.", "Second review note."]) {
+      const created = await request(app)
+        .post(`/comments/dataset/${entityId}`)
+        .set("Authorization", `Bearer ${owner.token}`)
+        .set("X-Workspace-Id", workspaceId)
+        .send({ body })
+        .expect(201);
+      expect(created.body.attention).toMatchObject({ unreadCount: 0, hasUnread: false });
+    }
+
+    const memberThread = await request(app)
+      .get(`/comments/dataset/${entityId}`)
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(memberThread.body.attention).toMatchObject({ unreadCount: 2, hasUnread: true });
+    expect(await alertStore.countUnreadForUser(member.userId)).toBe(1);
+    expect(await alertStore.countUnreadForUser(owner.userId)).toBe(0);
+    const firstAlert = (await alertStore.listAlertsForUser(member.userId))[0];
+    expect(firstAlert).toMatchObject({
+      type: "workspace_comment_added",
+      relatedEntityType: "dataset",
+      relatedEntityId: entityId,
+      metadata: {
+        workspaceId,
+        commentActorUserId: owner.userId,
+        commentActorEmail: "owner@example.com",
+      },
+    });
+    expect(JSON.stringify(firstAlert)).not.toContain("First review note");
+
+    const marked = await request(app)
+      .patch(`/comments/dataset/${entityId}/read`)
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(marked.body.attention).toMatchObject({ unreadCount: 0, hasUnread: false });
+    expect(await alertStore.countUnreadForUser(member.userId)).toBe(0);
+
+    await request(app)
+      .post(`/comments/dataset/${entityId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ body: "A new unread cycle." })
+      .expect(201);
+    expect(await alertStore.countUnreadForUser(member.userId)).toBe(1);
+
+    await request(app)
+      .post(`/comments/dataset/${entityId}`)
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ body: "Member follow-up." })
+      .expect(201);
+    expect(await alertStore.countUnreadForUser(member.userId)).toBe(1);
+    expect(await alertStore.listAlertsForUser(member.userId)).toHaveLength(2);
+    expect(await alertStore.countUnreadForUser(owner.userId)).toBe(1);
   });
 
   it("rejects invalid, stale, unsafe, empty, and oversized comment input", async () => {
@@ -256,6 +341,13 @@ describe("workspace comments", () => {
       .set("X-Workspace-Id", outsiderWorkspaceId)
       .expect(404);
     expect(outsiderPersonal.body.error.code).toBe("comment_target_not_found");
+
+    const outsiderReadDenied = await request(app)
+      .patch(`/comments/portfolio_item/${entityId}/read`)
+      .set("Authorization", `Bearer ${outsider.token}`)
+      .set("X-Workspace-Id", ownerWorkspaceId)
+      .expect(403);
+    expect(outsiderReadDenied.body.error.code).toBe("workspace_access_denied");
 
     const memberDelete = await request(app)
       .delete(`/comments/${commentId}`)

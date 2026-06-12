@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { AlertStatus } from "@tax-lien/types";
+import type { AlertStatus, WorkspaceCommentEntityType } from "@tax-lien/types";
 import type { AlertStore, CreateAlertInput, StoredAlert } from "../../apps/api/src/alerts/alert-store.js";
 
 export class InMemoryAlertStore implements AlertStore {
@@ -59,6 +59,31 @@ export class InMemoryAlertStore implements AlertStore {
       updatedCount += 1;
     }
 
+    return updatedCount;
+  }
+
+  public async markDiscussionAlertsReadForUser(
+    userId: string,
+    workspaceId: string,
+    relatedEntityType: WorkspaceCommentEntityType,
+    relatedEntityId: string,
+    readAt: Date,
+  ): Promise<number> {
+    let updatedCount = 0;
+    for (const alert of this.alertsById.values()) {
+      if (
+        alert.userId !== userId ||
+        alert.type !== "workspace_comment_added" ||
+        alert.status !== "unread" ||
+        alert.metadata?.workspaceId !== workspaceId ||
+        alert.relatedEntityType !== relatedEntityType ||
+        alert.relatedEntityId !== relatedEntityId
+      ) {
+        continue;
+      }
+      this.alertsById.set(alert.id, this.updateAlertStatus(alert, "read", readAt));
+      updatedCount += 1;
+    }
     return updatedCount;
   }
 

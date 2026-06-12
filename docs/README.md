@@ -37,6 +37,7 @@ before writing specs, prompts, or implementation plans.
 - [Workspaces And Tenancy Architecture](architecture/workspaces-and-tenancy.md)
 - [Workspace Activity Architecture](architecture/workspace-activity.md)
 - [Workspace Comments Architecture](architecture/workspace-comments.md)
+- [Comment Notification And Attention Architecture](architecture/comment-notifications.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 

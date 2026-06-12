@@ -20,6 +20,7 @@ import {
   listWorkspaceActivity,
   listWorkspaceComments,
   listWorkspaces,
+  markWorkspaceDiscussionRead,
   removeComparisonItem,
   deleteWorkspaceComment,
   saveDatasetImportProfile,
@@ -118,7 +119,16 @@ describe("web API client", () => {
 
   it("lists, creates, and deletes comments inside the selected workspace", async () => {
     const payloads = [
-      { comments: [] },
+      {
+        comments: [],
+        attention: {
+          workspaceId: "workspace-1",
+          relatedEntityType: "dataset",
+          relatedEntityId: "dataset-1",
+          unreadCount: 1,
+          hasUnread: true,
+        },
+      },
       {
         comment: {
           id: "comment-1",
@@ -130,6 +140,22 @@ describe("web API client", () => {
           canDelete: true,
           createdAt: "2026-06-12T10:00:00.000Z",
           updatedAt: "2026-06-12T10:00:00.000Z",
+        },
+        attention: {
+          workspaceId: "workspace-1",
+          relatedEntityType: "dataset",
+          relatedEntityId: "dataset-1",
+          unreadCount: 0,
+          hasUnread: false,
+        },
+      },
+      {
+        attention: {
+          workspaceId: "workspace-1",
+          relatedEntityType: "dataset",
+          relatedEntityId: "dataset-1",
+          unreadCount: 0,
+          hasUnread: false,
         },
       },
       { id: "comment-1", deleted: true },
@@ -145,15 +171,17 @@ describe("web API client", () => {
 
     await listWorkspaceComments("test-token", "dataset", "dataset-1");
     await createWorkspaceComment("test-token", "dataset", "dataset-1", "Review the missing values.");
+    await markWorkspaceDiscussionRead("test-token", "dataset", "dataset-1");
     await deleteWorkspaceComment("test-token", "comment-1");
 
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
       "http://localhost:4000/comments/dataset/dataset-1",
       "http://localhost:4000/comments/dataset/dataset-1",
+      "http://localhost:4000/comments/dataset/dataset-1/read",
       "http://localhost:4000/comments/comment-1",
     ]);
-    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual(["GET", "POST", "DELETE"]);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual(["GET", "POST", "PATCH", "DELETE"]);
     for (const [, init] of fetchMock.mock.calls) {
       const headers = init?.headers as Headers;
       expect(headers.get("Authorization")).toBe("Bearer test-token");

@@ -53,6 +53,22 @@ export function createWorkspaceCommentRouter(
     }
   });
 
+  router.patch(
+    "/:entityType/:entityId/read",
+    requireAuthenticatedUser,
+    requireWorkspaceRead,
+    async (request, response, next) => {
+      try {
+        const context = workspaceCommentContext(request);
+        const entityType = parseEntityType(request.params.entityType);
+        const entityId = parsePathId(request.params.entityId);
+        response.status(200).json(await commentService.markRead(context, entityType, entityId));
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
   router.delete("/:commentId", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
     try {
       if (!request.auth || !request.workspace) {

@@ -495,7 +495,8 @@ Current alert contracts include:
 Current alert types:
 
 - `scoring_job_completed`;
-- `scoring_job_failed`.
+- `scoring_job_failed`;
+- `workspace_comment_added`.
 
 Current alert metadata is limited to safe identifiers and summary values:
 
@@ -504,6 +505,8 @@ Current alert metadata is limited to safe identifiers and summary values:
 - scored record count;
 - stable error code.
 - request kind.
+- workspace id, comment id, and member-visible actor identity for discussion
+  alerts.
 
 Alert contracts must not expose raw job payloads, stack traces, source rows,
 tokens, secrets, provider responses, or another tenant's data. Email delivery
@@ -525,7 +528,8 @@ Current notification preference contracts include:
 - digest batch status and scheduler result contracts;
 - safe owner-facing delivery and digest history response contracts.
 
-Notification preferences cover only current scoring alert types. They must not
+Notification preferences cover supported scoring and workspace-discussion
+alert types. They must not
 become a broad messaging rules engine, marketing preference center, shared/team
 policy model, provider configuration payload, SMS/push contract, or realtime
 push contract without a separate product and security phase.
@@ -619,6 +623,23 @@ return an empty `activities` array.
 Workspace activity is broader than comparison item history but shallower. It
 must not be represented as chat, a notification inbox, or a legal/compliance
 audit contract.
+
+## Workspace Discussion Attention Contract
+
+Current discussion attention contracts include:
+
+- workspace id;
+- related entity type/id;
+- unread count and `hasUnread`;
+- optional last-read and latest-comment timestamps;
+- list/create responses that include the current member's attention state;
+- explicit mark-read response.
+
+Attention is keyed server-side by authenticated user, verified workspace, and
+thread. Clients never submit a user id or unread count. Comment alert payloads
+must not include comment body text, and alert state must not be treated as a
+replacement for the thread's explicit unread state. Marking a thread read also
+acknowledges matching personal discussion alerts.
 
 ## Saved View Contract
 

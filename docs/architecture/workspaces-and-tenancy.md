@@ -55,6 +55,11 @@ entity is independently checked through the compatibility tenant key before
 list or create, so the new collaboration record and the older core record must
 both resolve inside the selected workspace boundary.
 
+Phase 32 discussion-attention records are keyed by both member user id and
+workspace id. They are personal read state for a workspace-owned thread.
+Discussion alerts and delivery records remain personal to the recipient and
+carry a verified workspace id only for safe context and navigation.
+
 ## Workspace Selection
 
 Clients may send `X-Workspace-Id` on authenticated requests. If omitted, the
@@ -100,6 +105,13 @@ Workspace-shared contextual discussion added in Phase 31:
 - verified actor attribution;
 - member create access and author-only hard deletion.
 
+Personal workspace-bound attention added in Phase 32:
+
+- unread comment counts per member and thread;
+- explicit discussion read state;
+- peer-only, one-per-unread-cycle alerts;
+- preference-controlled optional email/digest delivery.
+
 Personal surfaces remain user-scoped because notification routing and saved
 attention preferences are individual settings in this phase.
 
@@ -119,3 +131,6 @@ Phase 31 adds bounded entity-linked comments only. It does not add chat,
 realtime updates, rich text, mentions, attachments, reactions, comment editing,
 tasks, approvals, or shared editing. The activity feed remains separate and is
 not an immutable audit system.
+
+Phase 32 adds bounded comment alerts, not shared notification policy, a team
+inbox, push/SMS, presence, or realtime messaging.

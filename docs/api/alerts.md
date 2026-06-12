@@ -10,6 +10,8 @@ job-generated alerts. Phase 27 adds SMTP-backed immediate email when env config
 is complete and digest-ready outbox records. Phase 28 adds scheduled digest
 processing and user-visible delivery history. SMS, push, realtime delivery, and
 marketing messaging are not implemented.
+Phase 32 adds preference-aware alerts for a workspace discussion's first unread
+transition.
 
 Current alert sources:
 
@@ -20,6 +22,8 @@ Current alert sources:
 - policy-created dataset refresh job completed or failed through the same
   scoring job alert types, with `requestKind: "policy_refresh"` metadata and a
   "Scheduled refresh" user-facing label.
+- a workspace peer adds a comment to a supported shared record while the
+  recipient has no unread comments on that thread.
 
 ## Security Model
 
@@ -29,7 +33,7 @@ Current alert sources:
 - Cross-user alert access returns safe not-found errors.
 - Alert metadata is intentionally small and safe for browser rendering.
 - Alert messages must not include stack traces, raw job internals, uploaded row
-  data, secrets, or another tenant's identifiers.
+  data, secrets, comment body text, or another tenant's identifiers.
 
 ## Alert Types
 
@@ -37,6 +41,7 @@ Supported alert types:
 
 - `scoring_job_completed`
 - `scoring_job_failed`
+- `workspace_comment_added`
 
 Supported severity values:
 
@@ -143,3 +148,8 @@ existing internal worker scheduler and delivery history is available to users.
 Phase 15 scheduled maintenance can create policy-refresh scoring alerts, and
 Phase 27 can deliver those as product-alert email when preferences and provider
 config allow it.
+
+Discussion alerts remain personal records even though the related comment is
+workspace-owned. They include the verified workspace id for safe navigation and
+never include comment body text. A member receives at most one discussion alert
+per unread cycle for a thread.

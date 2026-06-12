@@ -2,13 +2,19 @@ import mongoose from "mongoose";
 import type {
   CreateWorkspaceCommentResponse,
   DeleteWorkspaceCommentResponse,
+  MarkDiscussionReadResponse,
   WorkspaceCommentEntityType,
   WorkspaceCommentListResponse,
   WorkspaceCommentResponse,
 } from "@tax-lien/types";
 import type { UserStore } from "../auth/user-store.js";
+import {
+  emptyDiscussionAttentionResponse,
+  type DiscussionAttentionService,
+} from "../discussion-attention/discussion-attention-service.js";
 import { ApiError } from "../errors/api-error.js";
 import type { WorkspaceCommentTargetAccess } from "./comment-target-access.js";
+import type { WorkspaceCommentNotificationService } from "./workspace-comment-notification-service.js";
 import type {
   StoredWorkspaceComment,
   WorkspaceCommentStore,
@@ -28,6 +34,8 @@ export class WorkspaceCommentService {
     private readonly store: WorkspaceCommentStore,
     private readonly userStore: UserStore,
     private readonly targetAccess: WorkspaceCommentTargetAccess,
+    private readonly attentionService: DiscussionAttentionService,
+    private readonly notificationService: WorkspaceCommentNotificationService,
   ) {}
 
   public async list(
@@ -44,6 +52,12 @@ export class WorkspaceCommentService {
 
     return {
       comments: comments.map((comment) => toWorkspaceCommentResponse(comment, context.actorUserId)),
+      attention: await this.attentionService.get({
+        userId: context.actorUserId,
+        workspaceId: context.workspaceId,
+        relatedEntityType: entityType,
+        relatedEntityId: entityId,
+      }),
     };
   }
 
@@ -69,7 +83,53 @@ export class WorkspaceCommentService {
       body: normalizedBody,
     });
 
-    return { comment: toWorkspaceCommentResponse(comment, context.actorUserId) };
+    let attention = emptyDiscussionAttentionResponse({
+      workspaceId: context.workspaceId,
+      relatedEntityType: entityType,
+      relatedEntityId: entityId,
+      latestCommentAt: comment.createdAt,
+    });
+    try {
+      attention = await this.notificationService.recordCommentCreated({
+        workspaceId: context.workspaceId,
+        actorUserId: actor.id,
+        actorEmail: actor.email,
+        relatedEntityType: entityType,
+        relatedEntityId: entityId,
+        commentId: comment.id,
+        createdAt: comment.createdAt,
+      });
+    } catch {
+      // Comment persistence is authoritative; notification fan-out is best effort.
+    }
+
+    return {
+      comment: toWorkspaceCommentResponse(comment, context.actorUserId),
+      attention,
+    };
+  }
+
+  public async markRead(
+    context: WorkspaceCommentContext,
+    entityType: WorkspaceCommentEntityType,
+    entityId: string,
+  ): Promise<MarkDiscussionReadResponse> {
+    await this.assertTargetAccess(entityType, entityId, context.tenantUserId);
+    const latestComment = await this.store.findLatestComment({
+      workspaceId: context.workspaceId,
+      relatedEntityType: entityType,
+      relatedEntityId: entityId,
+    });
+
+    return {
+      attention: await this.notificationService.markDiscussionRead({
+        userId: context.actorUserId,
+        workspaceId: context.workspaceId,
+        relatedEntityType: entityType,
+        relatedEntityId: entityId,
+        ...(latestComment ? { latestCommentAt: latestComment.createdAt } : {}),
+      }),
+    };
   }
 
   public async delete(

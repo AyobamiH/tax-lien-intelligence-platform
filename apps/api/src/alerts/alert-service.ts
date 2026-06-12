@@ -10,6 +10,7 @@ import type {
   InternalJobTargetType,
   InternalJobType,
   MarkAllAlertsReadResponse,
+  WorkspaceCommentEntityType,
 } from "@tax-lien/types";
 import { ApiError } from "../errors/api-error.js";
 import type { NotificationDeliveryService } from "../notification-delivery/notification-delivery-service.js";
@@ -31,6 +32,16 @@ export interface JobAlertEvent {
   status: InternalJobStatus;
   summary?: InternalJobSummary;
   error?: InternalJobError;
+}
+
+export interface WorkspaceCommentAlertEvent {
+  recipientUserId: string;
+  workspaceId: string;
+  actorUserId: string;
+  actorEmail: string;
+  relatedEntityType: WorkspaceCommentEntityType;
+  relatedEntityId: string;
+  commentId: string;
 }
 
 export class AlertService implements JobAlertSink {
@@ -98,6 +109,27 @@ export class AlertService implements JobAlertSink {
     });
   }
 
+  public async recordWorkspaceCommentAdded(event: WorkspaceCommentAlertEvent): Promise<void> {
+    if (event.recipientUserId === event.actorUserId) {
+      return;
+    }
+
+    await this.createPreferenceAwareAlert({
+      userId: event.recipientUserId,
+      type: "workspace_comment_added",
+      severity: "info",
+      message: `${event.actorEmail} added discussion to ${workspaceCommentTargetLabel(event.relatedEntityType)}.`,
+      relatedEntityType: event.relatedEntityType,
+      relatedEntityId: event.relatedEntityId,
+      metadata: {
+        workspaceId: event.workspaceId,
+        commentId: event.commentId,
+        commentActorUserId: event.actorUserId,
+        commentActorEmail: event.actorEmail,
+      },
+    });
+  }
+
   private async createPreferenceAwareAlert(input: CreateAlertInput): Promise<void> {
     if (!this.notificationPreferenceService) {
       await this.createAlert(input);
@@ -146,6 +178,21 @@ export class AlertService implements JobAlertSink {
       updatedCount: await this.alertStore.markAllAlertsReadForUser(userId, new Date()),
     };
   }
+
+  public async markWorkspaceDiscussionAlertsRead(
+    userId: string,
+    workspaceId: string,
+    relatedEntityType: WorkspaceCommentEntityType,
+    relatedEntityId: string,
+  ): Promise<number> {
+    return this.alertStore.markDiscussionAlertsReadForUser(
+      userId,
+      workspaceId,
+      relatedEntityType,
+      relatedEntityId,
+      new Date(),
+    );
+  }
 }
 
 function jobActionLabel(requestKind: InternalJobRequestKind): string {
@@ -156,6 +203,19 @@ function jobActionLabel(requestKind: InternalJobRequestKind): string {
       return "Refresh";
     default:
       return "Scoring";
+  }
+}
+
+function workspaceCommentTargetLabel(entityType: WorkspaceCommentEntityType): string {
+  switch (entityType) {
+    case "dataset":
+      return "a dataset";
+    case "comparison_item":
+      return "a comparison item";
+    case "watchlist_item":
+      return "a watchlist item";
+    case "portfolio_item":
+      return "a portfolio item";
   }
 }
 

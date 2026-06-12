@@ -6,6 +6,8 @@ preference-aware immediate email for supported product alerts, Mongo-backed
 outbox tracking, SMTP transport wiring, and digest-ready batching records.
 Phase 28 adds scheduled digest processing, digest batch records, and
 authenticated user-visible delivery history.
+Phase 32 adds `workspace_comment_added` as a supported preference category while
+keeping its default in-app-only and digest-paced.
 
 Email delivery is disabled by default. It sends only when email delivery is
 enabled and required SMTP/sender env config is complete.
@@ -19,7 +21,8 @@ Implemented through Phase 28:
   `apps/api/src/notification-preferences`;
 - authenticated `GET /notification-preferences` and
   `PATCH /notification-preferences` routes;
-- explicit rules for `scoring_job_completed` and `scoring_job_failed`;
+- explicit rules for `scoring_job_completed`, `scoring_job_failed`, and
+  `workspace_comment_added`;
 - `enabled`, `deliveryMode`, and `cadence` controls;
 - job-alert suppression when a supported alert type is disabled;
 - provider-agnostic delivery-preparation payloads with safe metadata;
@@ -72,7 +75,7 @@ first retrieves preferences.
 
 ## Delivery Classification
 
-When scoring jobs generate alerts, the alert service asks the notification
+When a supported product event generates an alert, the alert service asks the notification
 preference service to classify the alert:
 
 - disabled rules suppress alert creation and write a suppressed outbox record;
@@ -86,7 +89,7 @@ preference service to classify the alert:
 The preparation payload contains a subject, summary, related entity ids, and
 bounded alert metadata such as job id, dataset id, request kind, record count,
 or error code. It deliberately avoids raw dataset rows, stack traces, provider
-configuration, or broad internal job payloads.
+configuration, comment body text, or broad internal job payloads.
 
 ## Email Delivery Boundary
 
@@ -114,6 +117,8 @@ timestamps.
 The unique source key is `alert:<alertId>` for created alerts and
 `job:<jobId>:<alertType>` for suppressed job alerts. This keeps repeated hooks
 from sending the same product alert more than once.
+Suppressed discussion events use
+`comment:<commentId>:<recipientUserId>:workspace_comment_added`.
 
 ## SMTP Configuration
 

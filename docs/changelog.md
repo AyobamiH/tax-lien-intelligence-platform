@@ -2,6 +2,22 @@
 
 ## 2026-06-12
 
+- Implemented Phase 32 comment notification workflow with per-member,
+  workspace-scoped discussion attention, unread counts, explicit read clearing,
+  and peer-only alert generation.
+- Added one-alert-per-unread-cycle noise control: later comments increment the
+  unread count without repeatedly alerting the same member, and authors never
+  notify themselves.
+- Added `workspace_comment_added` to personal notification preferences and the
+  existing email/digest delivery pipeline. The default remains enabled,
+  in-app-only, and comment body text is excluded from alerts and delivery
+  payloads.
+- Added unread indicators and read controls to supported discussion surfaces,
+  plus workspace-aware alert navigation to datasets, comparison, watchlist, and
+  portfolio.
+- Added tests for unread cycles, self-notification exclusion, cross-workspace
+  rejection, preference/digest integration, API behavior, and frontend
+  navigation/presentation helpers.
 - Implemented Phase 31 workspace comments with a workspace-owned comment model,
   verified actor attribution, bounded plain-text bodies, and entity access
   checks for datasets, comparison items, watchlist items, and portfolio items.

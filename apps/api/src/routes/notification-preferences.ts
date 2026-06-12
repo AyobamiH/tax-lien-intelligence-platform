@@ -9,6 +9,7 @@ import { ApiError } from "../errors/api-error.js";
 import { toValidationError } from "../errors/error-handler.js";
 import { requireAuth } from "../middleware/auth.js";
 import type { NotificationPreferenceService } from "../notification-preferences/notification-preference-service.js";
+import { notificationAlertTypes } from "../notification-preferences/notification-preference-service.js";
 
 const notificationPreferenceRuleSchema = z.object({
   alertType: z.string().min(1).max(80),
@@ -18,7 +19,7 @@ const notificationPreferenceRuleSchema = z.object({
 });
 
 const updateNotificationPreferencesSchema = z.object({
-  rules: z.array(notificationPreferenceRuleSchema).min(1).max(2),
+  rules: z.array(notificationPreferenceRuleSchema).min(1).max(notificationAlertTypes.length),
 });
 
 export function createNotificationPreferenceRouter(

@@ -52,6 +52,9 @@ continue. It is not chat or compliance-grade audit tooling.
 Phase 31 adds bounded, entity-linked workspace comments on datasets,
 comparison items, watchlist items, and portfolio items. It is a plain-text
 context layer, not chat, rich text, mentions, or realtime communication.
+Phase 32 adds per-member unread discussion attention and low-noise comment
+alerts through existing personal preferences and delivery infrastructure. It
+does not add a team inbox, realtime chat, push/SMS, or AI collaboration.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -97,6 +100,8 @@ Current evidence:
   system internals.
 - workspace members can discuss specific shared records with visible actor and
   timestamp context without leaving the product.
+- workspace members can see bounded unread discussion state and receive at most
+  one alert per unread cycle without exposing comment text in notifications.
 
 ## What This SaaS Is
 
@@ -134,7 +139,7 @@ exist. Bounded scheduled maintenance groundwork now exists. One
 Maricopa-style county import adapter exists. Browser CSV upload and import
 readiness guidance now exist. Focused manual field mapping repair now exists.
 Reusable import profiles, comparison, the workspace-access foundation, activity,
-and contextual comments now exist. Broad county
+contextual comments, and bounded discussion attention now exist. Broad county
 coverage, live county sync, full spreadsheet editing, realtime chat, rich-text
 collaboration, compliance audit tooling, ML mapping suggestions, SMS/push alert delivery, user-facing
 scheduler policy controls, broader automatic refresh, advanced digest
@@ -230,7 +235,8 @@ Current implementation:
 - portfolio dashboard summaries exist for operational review;
 - saved views exist for private reusable portfolio/comparison filters and
   built-in attention queues;
-- notification preferences exist for current scoring alert types;
+- notification preferences exist for scoring and workspace-discussion alert
+  types;
 - env-driven immediate email delivery exists for supported product alerts when
   SMTP config is complete;
 - side-by-side comparison with lightweight decision notes and decision history
@@ -247,6 +253,7 @@ Current implementation:
 - one Maricopa-style county import adapter now exists for safer upload-time
   mapping of common county headers;
 - scoring job outcomes create in-app alerts;
+- peer comments create bounded personal alerts and per-thread unread counts;
 - no standalone parcel/lien schema;
 - no chat, rich-text/realtime comments, shared editing, task/approval
   collaboration, final

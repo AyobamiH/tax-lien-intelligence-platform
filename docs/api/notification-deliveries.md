@@ -4,6 +4,10 @@ Phase 28 adds authenticated delivery history for immediate product-alert email,
 scheduled digest batches, suppressions, provider-disabled outcomes, and
 failures.
 
+Phase 32 discussion alerts may also appear here when a user explicitly makes
+`workspace_comment_added` delivery-eligible. Delivery summaries identify the
+workspace and related record but never include comment body text.
+
 All routes require `Authorization: Bearer <jwt-access-token>`.
 
 ## `GET /notification-deliveries`

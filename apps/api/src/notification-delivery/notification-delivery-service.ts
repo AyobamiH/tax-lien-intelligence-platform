@@ -424,6 +424,10 @@ export function buildNotificationEmailContent(input: {
     ...(metadata.requestKind ? [`Request: ${requestKindLabel(metadata.requestKind)}`] : []),
     ...(metadata.scoredRecordCount !== undefined ? [`Records scored: ${metadata.scoredRecordCount}`] : []),
     ...(metadata.errorCode ? [`Error code: ${metadata.errorCode}`] : []),
+    ...(metadata.workspaceId ? [`Workspace: ${metadata.workspaceId}`] : []),
+    ...(input.alert.relatedEntityType && input.alert.relatedEntityId
+      ? [`Record: ${relatedEntityLabel(input.alert.relatedEntityType)} ${input.alert.relatedEntityId}`]
+      : []),
     ...(input.appBaseUrl ? ["", `Open workspace: ${input.appBaseUrl}`] : []),
     "",
     "This is a product alert for your tax lien review workspace, not a marketing message.",
@@ -450,6 +454,10 @@ export function buildNotificationDigestEmailContent(input: {
       `   ${delivery.summary ?? "A product alert is ready for review."}`,
       ...(delivery.metadata?.datasetId ? [`   Dataset: ${delivery.metadata.datasetId}`] : []),
       ...(delivery.metadata?.jobId ? [`   Job: ${delivery.metadata.jobId}`] : []),
+      ...(delivery.metadata?.workspaceId ? [`   Workspace: ${delivery.metadata.workspaceId}`] : []),
+      ...(delivery.relatedEntityType && delivery.relatedEntityId
+        ? [`   Record: ${relatedEntityLabel(delivery.relatedEntityType)} ${delivery.relatedEntityId}`]
+        : []),
       "",
     ]),
     "You are receiving this digest because these alert categories are enabled for digest email in your notification preferences.",
@@ -529,6 +537,9 @@ function deliverySourceKeyForSuppressedInput(input: CreateAlertInput): string {
   if (input.metadata?.jobId) {
     return `job:${input.metadata.jobId}:${input.type}`;
   }
+  if (input.metadata?.commentId) {
+    return `comment:${input.metadata.commentId}:${input.userId}:${input.type}`;
+  }
 
   return `input:${input.userId}:${input.type}:${input.relatedEntityType ?? "none"}:${input.relatedEntityId ?? "none"}`;
 }
@@ -540,6 +551,10 @@ function sanitizeDeliveryMetadata(metadata: AlertMetadata | undefined): AlertMet
     ...(metadata?.scoredRecordCount !== undefined ? { scoredRecordCount: metadata.scoredRecordCount } : {}),
     ...(metadata?.errorCode ? { errorCode: metadata.errorCode } : {}),
     ...(metadata?.requestKind ? { requestKind: metadata.requestKind } : {}),
+    ...(metadata?.workspaceId ? { workspaceId: metadata.workspaceId } : {}),
+    ...(metadata?.commentId ? { commentId: metadata.commentId } : {}),
+    ...(metadata?.commentActorUserId ? { commentActorUserId: metadata.commentActorUserId } : {}),
+    ...(metadata?.commentActorEmail ? { commentActorEmail: metadata.commentActorEmail } : {}),
   };
 }
 
@@ -549,6 +564,23 @@ function alertTypeLabel(alertType: StoredAlert["type"]): string {
       return "Scoring completed";
     case "scoring_job_failed":
       return "Scoring failed";
+    case "workspace_comment_added":
+      return "New workspace discussion";
+  }
+}
+
+function relatedEntityLabel(entityType: NonNullable<StoredAlert["relatedEntityType"]>): string {
+  switch (entityType) {
+    case "dataset":
+      return "Dataset";
+    case "job":
+      return "Job";
+    case "comparison_item":
+      return "Comparison item";
+    case "watchlist_item":
+      return "Watchlist item";
+    case "portfolio_item":
+      return "Portfolio item";
   }
 }
 

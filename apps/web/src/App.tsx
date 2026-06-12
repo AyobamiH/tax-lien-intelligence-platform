@@ -10,6 +10,7 @@ import type {
   DatasetManualMappingTarget,
   DatasetResponse,
   DatasetScoringStatusResponse,
+  DiscussionAttentionResponse,
   InternalJobResponse,
   NotificationDeliveryHistoryItem,
   NotificationDigestBatchResponse,
@@ -68,6 +69,7 @@ import {
   login,
   markAlertRead,
   markAllAlertsRead,
+  markWorkspaceDiscussionRead,
   register,
   removeComparisonItem,
   removePortfolioItem,
@@ -84,6 +86,8 @@ import {
 } from "./api";
 import {
   alertSeverityClassName,
+  alertDestination,
+  alertDestinationLabel,
   alertTypeLabel,
   applyPortfolioSavedViewForReview,
   buildComparisonByPortfolioId,
@@ -96,6 +100,7 @@ import {
   comparisonDecisionLabel,
   comparisonDecisionOptions,
   decisionHistoryEventLabel,
+  discussionAttentionLabel,
   datasetImportPresentation,
   datasetNeedsImportRepair,
   datasetReadinessPresentation,
@@ -616,6 +621,42 @@ function App() {
       }
     }
     navigate({ name: "dataset", datasetId }, setPage);
+  }
+
+  async function openAlertRelated(alert: AlertResponse): Promise<void> {
+    const destination = alertDestination(alert);
+    if (!destination) {
+      return;
+    }
+
+    if (destination.workspaceId && destination.workspaceId !== workspace.current?.id) {
+      if (!(await switchWorkspace(destination.workspaceId))) {
+        return;
+      }
+    }
+
+    switch (destination.surface) {
+      case "dataset":
+        if (!destination.workspaceId) {
+          await openPersonalDataset(destination.entityId);
+        } else {
+          navigate({ name: "dataset", datasetId: destination.entityId }, setPage);
+        }
+        break;
+      case "comparison":
+        navigate({ name: "comparison" }, setPage);
+        break;
+      case "watchlist":
+        navigate({ name: "watchlist" }, setPage);
+        break;
+      case "portfolio":
+        navigate({ name: "portfolio" }, setPage);
+        break;
+    }
+
+    if (alert.status === "unread") {
+      void markOneAlertRead(alert.id);
+    }
   }
 
   function openWorkspaceActivity(activity: WorkspaceActivityResponse): void {
@@ -1549,7 +1590,7 @@ function App() {
             onRetry={() => void refreshAlerts(session.token)}
             onMarkRead={(alertId) => void markOneAlertRead(alertId)}
             onMarkAllRead={() => void markEveryAlertRead()}
-            onOpenDataset={(datasetId) => void openPersonalDataset(datasetId)}
+            onOpenRelated={(alert) => void openAlertRelated(alert)}
           />
         ) : page.name === "notifications" ? (
           <NotificationPreferencesPage
@@ -2972,7 +3013,7 @@ function AlertsPage({
   onRetry,
   onMarkRead,
   onMarkAllRead,
-  onOpenDataset,
+  onOpenRelated,
 }: {
   alerts: AlertResponse[];
   unreadCount: number;
@@ -2982,7 +3023,7 @@ function AlertsPage({
   onRetry: () => void;
   onMarkRead: (alertId: string) => void;
   onMarkAllRead: () => void;
-  onOpenDataset: (datasetId: string) => void;
+  onOpenRelated: (alert: AlertResponse) => void;
 }) {
   const sortedAlerts = useMemo(() => sortAlertsForReview(alerts), [alerts]);
   const failureCount = sortedAlerts.filter((alert) => alert.severity === "error").length;
@@ -2999,7 +3040,7 @@ function AlertsPage({
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-pine">Monitoring Layer</p>
             <h2 className="mt-1 text-2xl font-semibold">Alerts</h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/70">
-              Review important scoring job outcomes without exposing internal job payloads or stack traces.
+              Review important scoring outcomes and new workspace discussion without exposing private payloads.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -3027,7 +3068,7 @@ function AlertsPage({
         <div className="border border-line bg-white p-5">
           <h3 className="text-lg font-semibold">No alerts yet</h3>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
-            Scoring completions and scoring failures will appear here once jobs run.
+            Scoring outcomes and new workspace discussion will appear here when attention is needed.
           </p>
           {error ? <PanelError message={error} onRetry={onRetry} /> : null}
         </div>
@@ -3061,16 +3102,22 @@ function AlertsPage({
                       <DetailTerm label="Records" value={String(alert.metadata.scoredRecordCount)} />
                     ) : null}
                     {alert.metadata?.errorCode ? <DetailTerm label="Code" value={alert.metadata.errorCode} /> : null}
+                    {alert.metadata?.workspaceId ? (
+                      <DetailTerm label="Workspace" value={shortId(alert.metadata.workspaceId)} />
+                    ) : null}
+                    {alert.relatedEntityId ? (
+                      <DetailTerm label="Record" value={shortId(alert.relatedEntityId)} />
+                    ) : null}
                   </dl>
                 </div>
                 <div className="flex flex-wrap items-start justify-end gap-2">
-                  {alert.relatedEntityType === "dataset" && alert.relatedEntityId ? (
+                  {alertDestination(alert) && alert.relatedEntityType ? (
                     <button
                       type="button"
-                      onClick={() => onOpenDataset(alert.relatedEntityId as string)}
+                      onClick={() => onOpenRelated(alert)}
                       className="border border-line px-3 py-2 text-xs font-semibold"
                     >
-                      Open dataset
+                      {alertDestinationLabel(alert.relatedEntityType)}
                     </button>
                   ) : null}
                   {alert.status === "unread" ? (
@@ -5601,9 +5648,11 @@ function WorkspaceCommentThread({
   entityId: string;
 }) {
   const [comments, setComments] = useState<WorkspaceCommentResponse[]>([]);
+  const [attention, setAttention] = useState<DiscussionAttentionResponse | null>(null);
   const [body, setBody] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMarkingRead, setIsMarkingRead] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadVersion, setReloadVersion] = useState(0);
@@ -5611,6 +5660,7 @@ function WorkspaceCommentThread({
   useEffect(() => {
     let cancelled = false;
     setComments([]);
+    setAttention(null);
     setBody("");
     setIsLoading(true);
     setError(null);
@@ -5619,6 +5669,7 @@ function WorkspaceCommentThread({
       .then((result) => {
         if (!cancelled) {
           setComments(result.comments);
+          setAttention(result.attention);
         }
       })
       .catch((loadError: unknown) => {
@@ -5648,11 +5699,25 @@ function WorkspaceCommentThread({
     try {
       const result = await createWorkspaceComment(token, entityType, entityId, normalizedBody);
       setComments((current) => [...current, result.comment]);
+      setAttention(result.attention);
       setBody("");
     } catch (submitError: unknown) {
       setError(errorMessage(submitError));
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function markDiscussionRead(): Promise<void> {
+    setIsMarkingRead(true);
+    setError(null);
+    try {
+      const result = await markWorkspaceDiscussionRead(token, entityType, entityId);
+      setAttention(result.attention);
+    } catch (markError: unknown) {
+      setError(errorMessage(markError));
+    } finally {
+      setIsMarkingRead(false);
     }
   }
 
@@ -5676,10 +5741,32 @@ function WorkspaceCommentThread({
           <h4 className="text-sm font-semibold">Discussion</h4>
           <p className="mt-1 text-xs text-ink/60">Workspace comments for this record.</p>
         </div>
-        <span className="shrink-0 text-xs text-ink/55">
-          {isLoading ? "Loading" : `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`}
-        </span>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <span
+            className={`border px-2 py-1 text-xs font-semibold ${
+              attention?.hasUnread
+                ? "border-amber-200 bg-amber-50 text-amber-900"
+                : "border-line bg-field text-ink/65"
+            }`}
+          >
+            {isLoading ? "Loading" : discussionAttentionLabel(attention)}
+          </span>
+          <span className="text-xs text-ink/55">
+            {isLoading ? "" : `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`}
+          </span>
+        </div>
       </div>
+
+      {attention?.hasUnread ? (
+        <button
+          type="button"
+          disabled={isMarkingRead}
+          onClick={() => void markDiscussionRead()}
+          className="mt-3 border border-line bg-white px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isMarkingRead ? "Marking..." : "Mark discussion read"}
+        </button>
+      ) : null}
 
       {error ? (
         <div className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">

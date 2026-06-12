@@ -17,6 +17,7 @@ All routes require `Authorization: Bearer <jwt-access-token>`.
 
 - `scoring_job_completed`
 - `scoring_job_failed`
+- `workspace_comment_added`
 
 ## Preference Fields
 
@@ -53,6 +54,12 @@ Response `200`:
         "enabled": true,
         "deliveryMode": "delivery_eligible",
         "cadence": "immediate"
+      },
+      {
+        "alertType": "workspace_comment_added",
+        "enabled": true,
+        "deliveryMode": "in_app_only",
+        "cadence": "digest"
       }
     ],
     "createdAt": "2026-06-01T10:00:00.000Z",
@@ -106,7 +113,7 @@ Response `200` matches the `GET /notification-preferences` shape.
 
 ## Delivery Preparation And Email Outbox
 
-Job-generated alerts now receive an internal delivery classification:
+Supported product alerts now receive an internal delivery classification:
 
 - `suppressed` when disabled by preference;
 - `in_app_only` when the alert should remain in the app;
@@ -115,7 +122,7 @@ Job-generated alerts now receive an internal delivery classification:
 
 Delivery-preparation payloads are provider-agnostic and contain safe summaries
 plus bounded alert metadata. They do not include raw source rows, stack traces,
-or external provider details.
+comment body text, or external provider details.
 
 The delivery service writes outbox records for supported job alerts:
 

@@ -33,6 +33,7 @@ export interface ListWorkspaceCommentsInput {
 export interface WorkspaceCommentStore {
   createComment(input: CreateWorkspaceCommentInput): Promise<StoredWorkspaceComment>;
   listComments(input: ListWorkspaceCommentsInput): Promise<StoredWorkspaceComment[]>;
+  findLatestComment(input: ListWorkspaceCommentsInput): Promise<StoredWorkspaceComment | null>;
   findByIdInWorkspace(commentId: string, workspaceId: string): Promise<StoredWorkspaceComment | null>;
   deleteByIdInWorkspace(commentId: string, workspaceId: string): Promise<boolean>;
 }
@@ -49,6 +50,11 @@ export class MongoWorkspaceCommentStore implements WorkspaceCommentStore {
       .limit(maxWorkspaceCommentsPerThreadResponse)
       .exec();
     return documents.reverse().map(mapWorkspaceComment);
+  }
+
+  public async findLatestComment(input: ListWorkspaceCommentsInput): Promise<StoredWorkspaceComment | null> {
+    const document = await WorkspaceCommentModel.findOne(input).sort({ createdAt: -1, _id: -1 }).exec();
+    return document ? mapWorkspaceComment(document) : null;
   }
 
   public async findByIdInWorkspace(

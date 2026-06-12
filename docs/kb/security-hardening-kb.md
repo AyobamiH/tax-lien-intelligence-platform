@@ -59,6 +59,13 @@ Current repo protections:
 - comment queries scoped by workspace id, author-only hard deletion, and tests
   for cross-workspace, stale-target, invalid-id, unsafe-content, and role
   behavior;
+- discussion-attention records scoped by authenticated user, verified
+  workspace, entity type, and entity id;
+- peer-only comment alerts with self-notification exclusion and one alert per
+  unread cycle;
+- discussion alert/delivery metadata allowlists that exclude comment body text;
+- tests for unread accumulation/read clearing, cross-workspace read rejection,
+  preference-aware digest classification, and safe discussion payloads;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
 - browser upload flow that uses the authenticated dataset upload endpoint;

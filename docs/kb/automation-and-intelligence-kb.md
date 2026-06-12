@@ -27,7 +27,7 @@ Current implementation:
 - explicit user-driven comparison handoff exists;
 - in-app alert records exist for scoring job completion/failure;
 - notification preferences and provider-agnostic delivery classification exist
-  for current scoring alert types;
+  for supported scoring and workspace-discussion alert types;
 - an env-driven SMTP email delivery foundation exists for supported immediate
   product alerts, with disabled-provider and failure outbox tracking;
 - bounded scheduled digest processing groups digest-ready product alerts by
@@ -35,6 +35,9 @@ Current implementation:
   tenant-owned batch outcomes;
 - authenticated delivery history exposes safe immediate-delivery and digest
   batch status without recipient addresses or raw provider details;
+- workspace comments create bounded peer attention: unread counts accumulate
+  per thread while alerts are limited to one per unread cycle and exclude
+  comment body text;
 - first internal enrichment adapter exists for uploaded source-row inference;
 - controlled user-triggered dataset refresh/reprocessing exists through the
   worker job boundary;
@@ -72,6 +75,9 @@ Phase 28 adds bounded digest batching, scheduled processing, send-time
 preference checks, duplicate-window protection, and owner-safe delivery history.
 It does not add campaigns, realtime messaging, shared policies, or a general
 notification automation platform.
+Phase 32 reuses this delivery foundation for optional discussion alerts. It is
+not autonomous collaboration, realtime chat, mention intelligence, or
+AI-generated summarization.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -128,7 +134,8 @@ Manual-first sequence:
 19. notification preference control;
 20. email delivery foundation for supported product alerts;
 21. bounded digest delivery and owner-safe history;
-22. then broader automation.
+22. bounded discussion attention and optional delivery;
+23. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.

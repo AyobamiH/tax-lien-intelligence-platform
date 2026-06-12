@@ -185,6 +185,7 @@ export interface WorkspaceCommentResponse {
 
 export interface WorkspaceCommentListResponse {
   comments: WorkspaceCommentResponse[];
+  attention: DiscussionAttentionResponse;
 }
 
 export interface CreateWorkspaceCommentRequest {
@@ -193,11 +194,26 @@ export interface CreateWorkspaceCommentRequest {
 
 export interface CreateWorkspaceCommentResponse {
   comment: WorkspaceCommentResponse;
+  attention: DiscussionAttentionResponse;
 }
 
 export interface DeleteWorkspaceCommentResponse {
   id: string;
   deleted: true;
+}
+
+export interface DiscussionAttentionResponse {
+  workspaceId: string;
+  relatedEntityType: WorkspaceCommentEntityType;
+  relatedEntityId: string;
+  unreadCount: number;
+  hasUnread: boolean;
+  lastReadAt?: string;
+  latestCommentAt?: string;
+}
+
+export interface MarkDiscussionReadResponse {
+  attention: DiscussionAttentionResponse;
 }
 
 export type DatasetStatus = "validated";
@@ -584,10 +600,15 @@ export interface DatasetScoresResponse {
   scores: ScoredRecordResponse[];
 }
 
-export type AlertType = "scoring_job_completed" | "scoring_job_failed";
+export type AlertType = "scoring_job_completed" | "scoring_job_failed" | "workspace_comment_added";
 export type AlertSeverity = "info" | "error";
 export type AlertStatus = "unread" | "read";
-export type AlertRelatedEntityType = "dataset" | "job";
+export type AlertRelatedEntityType =
+  | "dataset"
+  | "job"
+  | "comparison_item"
+  | "watchlist_item"
+  | "portfolio_item";
 
 export interface AlertMetadata {
   jobId?: string;
@@ -595,6 +616,10 @@ export interface AlertMetadata {
   scoredRecordCount?: number;
   errorCode?: string;
   requestKind?: InternalJobRequestKind;
+  workspaceId?: string;
+  commentId?: string;
+  commentActorUserId?: string;
+  commentActorEmail?: string;
 }
 
 export interface AlertResponse {
@@ -697,7 +722,7 @@ export interface NotificationDeliveryPreparation {
     summary: string;
     relatedEntityType?: AlertRelatedEntityType;
     relatedEntityId?: string;
-    metadata: Pick<AlertMetadata, "jobId" | "datasetId" | "scoredRecordCount" | "errorCode" | "requestKind">;
+    metadata: AlertMetadata;
   };
 }
 

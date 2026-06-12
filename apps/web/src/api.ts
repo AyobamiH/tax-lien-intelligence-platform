@@ -32,6 +32,7 @@ import type {
   DeleteComparisonItemResponse,
   ImportProfileListResponse,
   JobDetailResponse,
+  MarkDiscussionReadResponse,
   MarkAllAlertsReadResponse,
   NotificationDeliveryHistoryResponse,
   NotificationPreferencesDetailResponse,
@@ -148,6 +149,20 @@ export async function createWorkspaceComment(
       method: "POST",
       token,
       body: JSON.stringify({ body }),
+    },
+  );
+}
+
+export async function markWorkspaceDiscussionRead(
+  token: string,
+  entityType: WorkspaceCommentEntityType,
+  entityId: string,
+): Promise<MarkDiscussionReadResponse> {
+  return requestJson<MarkDiscussionReadResponse>(
+    `/comments/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/read`,
+    {
+      method: "PATCH",
+      token,
     },
   );
 }

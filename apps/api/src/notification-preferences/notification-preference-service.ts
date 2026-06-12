@@ -20,7 +20,11 @@ import type {
   StoredNotificationPreferences,
 } from "./notification-preference-store.js";
 
-export const notificationAlertTypes = ["scoring_job_completed", "scoring_job_failed"] as const;
+export const notificationAlertTypes = [
+  "scoring_job_completed",
+  "scoring_job_failed",
+  "workspace_comment_added",
+] as const;
 export const notificationDeliveryModes = ["in_app_only", "delivery_eligible"] as const;
 export const notificationCadences = ["immediate", "digest"] as const;
 
@@ -54,6 +58,19 @@ const notificationCategories: NotificationPreferenceCategory[] = [
       enabled: true,
       deliveryMode: "delivery_eligible",
       cadence: "immediate",
+    },
+  },
+  {
+    alertType: "workspace_comment_added",
+    label: "Workspace discussion",
+    description: "A workspace member started new unread discussion on a shared record.",
+    supportsDelivery: true,
+    supportsDigest: true,
+    defaultRule: {
+      alertType: "workspace_comment_added",
+      enabled: true,
+      deliveryMode: "in_app_only",
+      cadence: "digest",
     },
   },
 ];
@@ -219,6 +236,8 @@ function notificationSubject(alertType: AlertType, severity: AlertSeverity): str
       return "Scoring completed";
     case "scoring_job_failed":
       return severity === "error" ? "Scoring failed" : "Scoring needs review";
+    case "workspace_comment_added":
+      return "New workspace discussion";
   }
 }
 
@@ -229,6 +248,10 @@ function sanitizeAlertMetadata(metadata: AlertMetadata | undefined): NonNullable
     ...(metadata?.scoredRecordCount !== undefined ? { scoredRecordCount: metadata.scoredRecordCount } : {}),
     ...(metadata?.errorCode ? { errorCode: metadata.errorCode } : {}),
     ...(metadata?.requestKind ? { requestKind: metadata.requestKind } : {}),
+    ...(metadata?.workspaceId ? { workspaceId: metadata.workspaceId } : {}),
+    ...(metadata?.commentId ? { commentId: metadata.commentId } : {}),
+    ...(metadata?.commentActorUserId ? { commentActorUserId: metadata.commentActorUserId } : {}),
+    ...(metadata?.commentActorEmail ? { commentActorEmail: metadata.commentActorEmail } : {}),
   };
 }
 

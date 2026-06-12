@@ -36,6 +36,11 @@ export {
   type DecisionHistoryTargetEntityTypeRecord,
 } from "./models/decision-history.js";
 export {
+  DiscussionAttentionModel,
+  type DiscussionAttentionDocument,
+  type DiscussionAttentionRecord,
+} from "./models/discussion-attention.js";
+export {
   DatasetModel,
   type DatasetDocument,
   type DatasetImportAdapterIdRecord,

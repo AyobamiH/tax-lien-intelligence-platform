@@ -1,5 +1,6 @@
 import type {
   AlertResponse,
+  AlertRelatedEntityType,
   AlertSeverity,
   AlertType,
   ComparisonDecision,
@@ -35,6 +36,7 @@ import type {
   WorkspaceRole,
   WorkspaceActivityCategory,
   WorkspaceActivityResponse,
+  DiscussionAttentionResponse,
 } from "@tax-lien/types";
 
 export function workspaceRoleLabel(role: WorkspaceRole): string {
@@ -761,7 +763,62 @@ export function alertTypeLabel(type: AlertType): string {
       return "Scoring completed";
     case "scoring_job_failed":
       return "Scoring failed";
+    case "workspace_comment_added":
+      return "Workspace discussion";
   }
+}
+
+export type AlertDestination =
+  | { surface: "dataset"; entityId: string; workspaceId?: string }
+  | { surface: "comparison"; workspaceId: string }
+  | { surface: "watchlist"; workspaceId: string }
+  | { surface: "portfolio"; workspaceId: string }
+  | null;
+
+export function alertDestination(alert: AlertResponse): AlertDestination {
+  if (!alert.relatedEntityType || !alert.relatedEntityId) {
+    return null;
+  }
+
+  const workspaceId = alert.metadata?.workspaceId;
+  switch (alert.relatedEntityType) {
+    case "dataset":
+      return {
+        surface: "dataset",
+        entityId: alert.relatedEntityId,
+        ...(workspaceId ? { workspaceId } : {}),
+      };
+    case "comparison_item":
+      return workspaceId ? { surface: "comparison", workspaceId } : null;
+    case "watchlist_item":
+      return workspaceId ? { surface: "watchlist", workspaceId } : null;
+    case "portfolio_item":
+      return workspaceId ? { surface: "portfolio", workspaceId } : null;
+    case "job":
+      return null;
+  }
+}
+
+export function alertDestinationLabel(entityType: AlertRelatedEntityType): string {
+  switch (entityType) {
+    case "dataset":
+      return "Open dataset";
+    case "comparison_item":
+      return "Open comparison";
+    case "watchlist_item":
+      return "Open watchlist";
+    case "portfolio_item":
+      return "Open portfolio";
+    case "job":
+      return "Open job";
+  }
+}
+
+export function discussionAttentionLabel(attention: DiscussionAttentionResponse | null): string {
+  if (!attention?.hasUnread) {
+    return "Up to date";
+  }
+  return `${attention.unreadCount} unread`;
 }
 
 export function notificationDeliveryModeLabel(mode: NotificationDeliveryMode): string {

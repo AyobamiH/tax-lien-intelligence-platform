@@ -51,6 +51,10 @@ const notificationDeliveryMetadataSchema = new Schema<AlertMetadataRecord>(
     scoredRecordCount: { type: Number, min: 0 },
     errorCode: { type: String, trim: true, maxlength: 120 },
     requestKind: { type: String, enum: ["score", "refresh", "policy_refresh", "maintenance_scan"] },
+    workspaceId: { type: String, trim: true },
+    commentId: { type: String, trim: true },
+    commentActorUserId: { type: String, trim: true },
+    commentActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
   },
   {
     _id: false,
@@ -83,7 +87,7 @@ const notificationDeliverySchema = new Schema<NotificationDeliveryRecord>(
     },
     alertType: {
       type: String,
-      enum: ["scoring_job_completed", "scoring_job_failed"],
+      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added"],
       required: true,
       index: true,
     },
@@ -135,7 +139,7 @@ const notificationDeliverySchema = new Schema<NotificationDeliveryRecord>(
     },
     relatedEntityType: {
       type: String,
-      enum: ["dataset", "job"],
+      enum: ["dataset", "job", "comparison_item", "watchlist_item", "portfolio_item"],
     },
     relatedEntityId: {
       type: String,

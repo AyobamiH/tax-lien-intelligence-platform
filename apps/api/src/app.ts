@@ -83,7 +83,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const workspaceActivityService =
     dependencies.workspaceActivityService ?? createWorkspaceActivityService();
   const workspaceCommentService =
-    dependencies.workspaceCommentService ?? createWorkspaceCommentService();
+    dependencies.workspaceCommentService ?? createWorkspaceCommentService(alertService);
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));

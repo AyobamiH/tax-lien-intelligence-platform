@@ -7,6 +7,7 @@ import type {
   AlertStatus,
   AlertType,
   NotificationDeliveryPreparation,
+  WorkspaceCommentEntityType,
 } from "@tax-lien/types";
 
 export interface StoredAlert {
@@ -42,6 +43,13 @@ export interface AlertStore {
   countUnreadForUser(userId: string): Promise<number>;
   markAlertReadForUser(alertId: string, userId: string, readAt: Date): Promise<StoredAlert | null>;
   markAllAlertsReadForUser(userId: string, readAt: Date): Promise<number>;
+  markDiscussionAlertsReadForUser(
+    userId: string,
+    workspaceId: string,
+    relatedEntityType: WorkspaceCommentEntityType,
+    relatedEntityId: string,
+    readAt: Date,
+  ): Promise<number>;
 }
 
 export class MongoAlertStore implements AlertStore {
@@ -97,6 +105,33 @@ export class MongoAlertStore implements AlertStore {
 
     return result.modifiedCount;
   }
+
+  public async markDiscussionAlertsReadForUser(
+    userId: string,
+    workspaceId: string,
+    relatedEntityType: WorkspaceCommentEntityType,
+    relatedEntityId: string,
+    readAt: Date,
+  ): Promise<number> {
+    const result = await AlertModel.updateMany(
+      {
+        userId,
+        type: "workspace_comment_added",
+        status: "unread",
+        relatedEntityType,
+        relatedEntityId,
+        "metadata.workspaceId": workspaceId,
+      },
+      {
+        $set: {
+          status: "read",
+          readAt,
+        },
+      },
+    ).exec();
+
+    return result.modifiedCount;
+  }
 }
 
 function toPersistedDeliveryPreparation(preparation: NotificationDeliveryPreparation): Record<string, unknown> {
@@ -141,6 +176,14 @@ export function mapAlert(document: AlertDocument): StoredAlert {
               : {}),
             ...(document.metadata.errorCode ? { errorCode: document.metadata.errorCode } : {}),
             ...(document.metadata.requestKind ? { requestKind: document.metadata.requestKind } : {}),
+            ...(document.metadata.workspaceId ? { workspaceId: document.metadata.workspaceId } : {}),
+            ...(document.metadata.commentId ? { commentId: document.metadata.commentId } : {}),
+            ...(document.metadata.commentActorUserId
+              ? { commentActorUserId: document.metadata.commentActorUserId }
+              : {}),
+            ...(document.metadata.commentActorEmail
+              ? { commentActorEmail: document.metadata.commentActorEmail }
+              : {}),
           },
         }
       : {}),
@@ -179,6 +222,18 @@ export function mapAlert(document: AlertDocument): StoredAlert {
                         : {}),
                       ...(document.deliveryPreparation.payload.metadata.requestKind
                         ? { requestKind: document.deliveryPreparation.payload.metadata.requestKind }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.workspaceId
+                        ? { workspaceId: document.deliveryPreparation.payload.metadata.workspaceId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.commentId
+                        ? { commentId: document.deliveryPreparation.payload.metadata.commentId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.commentActorUserId
+                        ? { commentActorUserId: document.deliveryPreparation.payload.metadata.commentActorUserId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.commentActorEmail
+                        ? { commentActorEmail: document.deliveryPreparation.payload.metadata.commentActorEmail }
                         : {}),
                     },
                   },

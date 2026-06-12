@@ -18,7 +18,7 @@ Supported `entityType` values:
 ## `GET /comments/:entityType/:entityId`
 
 Returns up to the 200 most recent comments, ordered oldest first for reading,
-for an accessible target. A deleted or
+plus the current member's attention state for the thread. A deleted or
 cross-workspace target returns `comment_target_not_found` without exposing
 whether it exists elsewhere.
 
@@ -39,7 +39,15 @@ whether it exists elsewhere.
       "createdAt": "2026-06-12T10:00:00.000Z",
       "updatedAt": "2026-06-12T10:00:00.000Z"
     }
-  ]
+  ],
+  "attention": {
+    "workspaceId": "workspace-id",
+    "relatedEntityType": "dataset",
+    "relatedEntityId": "dataset-id",
+    "unreadCount": 2,
+    "hasUnread": true,
+    "latestCommentAt": "2026-06-12T10:00:00.000Z"
+  }
 }
 ```
 
@@ -57,6 +65,33 @@ Any active member may add discussion to an accessible target, including a
 The body is trimmed, must contain text, cannot exceed 1,000 characters, and
 cannot contain unsupported control characters. It is stored and returned as
 plain text; HTML is not interpreted.
+
+The response includes the created comment and the author's current attention
+state. The author is marked current and is never notified about their own
+comment. Other active members receive an unread increment. An alert is created
+only when a member's thread changes from read to unread.
+
+## `PATCH /comments/:entityType/:entityId/read`
+
+Clears the authenticated member's unread count for an accessible thread.
+
+```json
+{
+  "attention": {
+    "workspaceId": "workspace-id",
+    "relatedEntityType": "dataset",
+    "relatedEntityId": "dataset-id",
+    "unreadCount": 0,
+    "hasUnread": false,
+    "lastReadAt": "2026-06-12T10:05:00.000Z",
+    "latestCommentAt": "2026-06-12T10:00:00.000Z"
+  }
+}
+```
+
+Read state is user-specific and workspace-specific. It does not modify or
+delete comments. It also acknowledges matching unread
+`workspace_comment_added` alerts for that user and record.
 
 ## `DELETE /comments/:commentId`
 
@@ -79,3 +114,4 @@ workspace returns `comment_not_found`, even when the caller authored it.
 
 The API does not provide edit, reply nesting, rich text, mentions, attachments,
 reactions, realtime delivery, tasks, approvals, or activity-feed events.
+Comment alerts are bounded personal product alerts, not a realtime inbox.

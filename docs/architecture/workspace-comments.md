@@ -1,7 +1,8 @@
 # Workspace Comments Architecture
 
 Phase 31 adds contextual discussion to shared records without turning the
-product into chat.
+product into chat. Phase 32 adds bounded personal attention and notification
+signals for that discussion.
 
 ## Model
 
@@ -53,6 +54,21 @@ Changing the selected record clears the previous thread and loads the newly
 selected entity. Each surface includes loading, empty, error, create, actor,
 timestamp, count, and author-delete states.
 
+Phase 32 adds a personal `Up to date`/unread indicator and explicit
+`Mark discussion read` action to the same component.
+
+## Attention And Notifications
+
+Discussion attention is stored separately per user, workspace, entity type, and
+entity id. The author is marked current. Other active members receive an unread
+increment, but an alert is generated only when a thread transitions from zero
+unread to one unread for that member.
+
+`workspace_comment_added` flows through existing personal notification
+preferences, alerts, email outbox, and digest processing. No alert or delivery
+payload contains comment body text. See
+`docs/architecture/comment-notifications.md`.
+
 ## Activity Boundary
 
 Comment creation does not emit Phase 30 workspace activity. This keeps the
@@ -61,6 +77,6 @@ discussion thread into a noisy workspace-wide transcript.
 
 ## Deferred
 
-Realtime updates, rich text, mentions, notifications, attachments, reactions,
-nested replies, editing, moderation consoles, tasks, approvals, and shared
-editing indicators remain out of scope.
+Realtime updates, rich text, mentions, push/SMS, attachments, reactions, nested
+replies, editing, moderation consoles, tasks, approvals, and shared editing
+indicators remain out of scope.

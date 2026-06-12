@@ -29,7 +29,8 @@ Current implementation:
 - workspace/member list, add-member, and role-update APIs;
 - workspace activity model, recorder, and membership-protected retrieval API;
 - workspace comment model, entity-target access adapter, and
-  membership-protected list/create/delete API;
+  membership-protected list/create/read-state/delete API;
+- discussion-attention model and service keyed by user, workspace, and thread;
 - selected-workspace membership middleware and explicit read/write/member-role
   checks;
 - global API error handling;
@@ -63,7 +64,8 @@ Current implementation:
 - notification delivery outbox model;
 - notification digest batch model;
 - authenticated notification preference get/update routes;
-- preference-driven job-alert suppression and delivery classification;
+- preference-driven scoring/discussion alert suppression and delivery
+  classification;
 - provider-agnostic delivery-preparation metadata for supported alerts;
 - env-driven SMTP email transport boundary;
 - preference-aware immediate email delivery for supported product alerts when
@@ -105,6 +107,8 @@ Current implementation:
 - focused actor-attributed activity capture for meaningful shared actions;
 - workspace-owned plain-text comments on datasets, comparison items, watchlist
   items, and portfolio items with member creation and author-only hard delete;
+- peer-only comment notification fan-out with self-notification exclusion,
+  unread accumulation, and one alert per unread cycle;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -136,6 +140,7 @@ The backend should become the trusted boundary for:
 - notification preference persistence;
 - workspace operational activity persistence;
 - workspace contextual discussion persistence;
+- personal workspace-bound discussion attention persistence;
 - future compliance-grade audit events;
 - security enforcement.
 
@@ -540,7 +545,7 @@ Current limitation:
 ## Notification Preferences Implementation
 
 The notification preference foundation now exists. Preferences belong to one
-user and control the current scoring alert types.
+user and control supported scoring and workspace-discussion alert types.
 
 Current notification preference API:
 
@@ -554,7 +559,8 @@ Notification preference endpoints:
 - validate alert types, enabled flags, delivery modes, and cadence values;
 - expose category metadata for the supported alert types only.
 
-Job-generated alerts now receive explicit delivery classification:
+Supported scoring and discussion alerts receive explicit delivery
+classification:
 
 - disabled alert types are suppressed;
 - `in_app_only` alerts remain in-app records;
@@ -712,7 +718,9 @@ Backend implementation order should stay disciplined:
 27. workspace and team-access foundation: implemented in Phase 29;
 28. workspace activity and member-aware history: implemented in Phase 30;
 29. workspace comments and discussion threads: implemented in Phase 31;
-30. later external automation.
+30. comment notification and discussion attention workflow: implemented in
+    Phase 32;
+31. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -725,7 +733,7 @@ Avoid:
 - admin APIs before audit/security controls;
 - treating best-effort workspace activity as immutable compliance evidence;
 - turning contextual comments into chat, arbitrary HTML, or an unbounded
-  notification stream;
+  notification stream beyond the one-alert-per-unread-cycle rule;
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
   separate financial analytics phase.
