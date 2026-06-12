@@ -2,7 +2,7 @@
 
 Phase 30 adds a practical shared-awareness layer on top of the Phase 29
 workspace boundary. It helps active members understand recent meaningful
-changes without introducing chat, comments, realtime collaboration, or an
+changes without introducing chat, realtime collaboration, or an
 immutable compliance audit system.
 
 ## Model
@@ -81,6 +81,7 @@ styling.
 
 ## Deferred
 
-Phase 30 does not add immutable retention, audit exports, before/after object
-diffs, comments, mentions, tasks, approvals, websocket updates, or admin
-compliance tooling.
+Phase 31 adds entity-linked comments as a separate contextual surface. Comment
+creation is deliberately not copied into workspace activity. Immutable
+retention, audit exports, before/after object diffs, mentions, tasks, approvals,
+websocket updates, and admin compliance tooling remain deferred.

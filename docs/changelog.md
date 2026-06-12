@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-06-12
+
+- Implemented Phase 31 workspace comments with a workspace-owned comment model,
+  verified actor attribution, bounded plain-text bodies, and entity access
+  checks for datasets, comparison items, watchlist items, and portfolio items.
+- Added authenticated list/create/delete APIs. Every active workspace member
+  may discuss an accessible record; deletion is limited to the original author
+  and is a hard delete in this phase.
+- Added compact discussion sections to all four supported frontend detail
+  surfaces with loading, empty, error, create, timestamp, attribution, and
+  author-delete states.
+- Added tests for supported targets, member creation, stale and malformed
+  references, workspace isolation, author-only deletion, content limits,
+  selected-workspace API headers, and escaped plain-text rendering.
+- Kept comments out of the workspace activity feed to avoid turning operational
+  activity into a chat transcript. Realtime delivery, rich text, mentions,
+  attachments, reactions, tasks, approvals, and comment editing remain out of
+  scope.
+
 ## 2026-06-11
 
 - Implemented Phase 30 workspace activity with a workspace-scoped activity

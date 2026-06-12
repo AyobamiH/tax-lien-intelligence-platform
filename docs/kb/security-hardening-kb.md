@@ -52,6 +52,13 @@ Current repo protections:
 - selected-workspace membership and minimal role checks;
 - workspace-owned activity persistence with server-derived summaries;
 - cross-workspace activity rejection and actor-attribution tests;
+- workspace-owned comments with allowlisted target types and verified target
+  access through the selected workspace;
+- plain-text comment trimming, empty/content/1,000-character validation, safe
+  React text rendering, and no raw HTML interpretation;
+- comment queries scoped by workspace id, author-only hard deletion, and tests
+  for cross-workspace, stale-target, invalid-id, unsafe-content, and role
+  behavior;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
 - browser upload flow that uses the authenticated dataset upload endpoint;

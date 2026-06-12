@@ -70,6 +70,9 @@ It shows:
 - dedicated workspace activity route using `#/activity`;
 - recent meaningful activity with actor email, safe summary, timestamp,
   category filters, and links to affected product surfaces;
+- contextual workspace discussion on dataset, comparison item, watchlist item,
+  and portfolio item detail with actor, timestamp, create, and author-delete
+  states;
 - dedicated workspace management route using `#/workspace`;
 - active member list, workspace switching, direct registered-user addition,
   and owner-only role controls;
@@ -93,6 +96,9 @@ The current API surface is minimal:
 - `POST /workspaces/current/members`
 - `PATCH /workspaces/current/members/:membershipId`
 - `GET /workspaces/current/activity`
+- `GET /comments/:entityType/:entityId`
+- `POST /comments/:entityType/:entityId`
+- `DELETE /comments/:commentId`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -150,6 +156,7 @@ Documented in:
 - `docs/api/comparison.md`
 - `docs/api/saved-views.md`
 - `docs/api/workspaces.md`
+- `docs/api/comments.md`
 
 There is no standalone parcel API yet.
 
@@ -199,12 +206,15 @@ Real workflows now present:
   config is complete.
 - scheduled digest processing and owner-scoped delivery history.
 - workspace-shared recent activity for meaningful operational changes.
+- workspace-shared, entity-linked plain-text comments for bounded operational
+  discussion.
 
 Real workflows not present:
 
 - settings;
 - SMS/push alert delivery;
 - realtime alerts.
+- realtime chat, rich text, mentions, attachments, and comment notifications.
 
 ## Current Visual Signals
 
@@ -244,7 +254,8 @@ The current API cannot:
 - expose a user-facing scheduler console;
 - provide broad county adapter coverage or scraping;
 - provide a full spreadsheet transformation workflow;
-- provide chat, comments, mentions, tasks, approvals, realtime collaboration,
+- provide chat, rich-text comments, mentions, tasks, approvals, realtime
+  collaboration,
   compliance-grade audit exports, or auction execution.
 - run arbitrary saved-view query expressions or BI/report-builder workflows.
 - send SMS/push alerts or realtime notifications.

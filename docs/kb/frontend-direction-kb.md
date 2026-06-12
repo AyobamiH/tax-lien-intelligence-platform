@@ -61,6 +61,9 @@ Current implementation:
   registered-user addition, and owner-only role controls;
 - workspace activity route with category tabs, actor attribution, timestamps,
   empty/error/loading states, and affected-surface navigation;
+- reusable workspace discussion section on dataset, comparison, watchlist, and
+  portfolio detail surfaces with plain-text rendering, attribution, timestamps,
+  loading/empty/error states, creation, and author deletion;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -110,6 +113,7 @@ Current and future page direction:
 - implemented: delivery history surface;
 - implemented: lightweight workspace/account-management surface;
 - implemented: focused workspace activity surface;
+- implemented: contextual workspace comment threads on four core record types;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities
@@ -158,7 +162,6 @@ Implemented watchlist:
 
 Future watchlist expansion:
 
-- notes;
 - tags;
 
 Implemented portfolio:
@@ -355,7 +358,8 @@ Future frontend work must:
 - avoid treating import profile suggestions as authorization or source truth;
 - avoid exposing one user's import profiles to another user's session;
 - avoid leaking another user's records through cache or state reuse;
-- avoid displaying internal server stack traces.
+- avoid displaying internal server stack traces;
+- render workspace comments as escaped text and never inject comment HTML.
 
 ## What Must Not Be Overbuilt Too Early
 

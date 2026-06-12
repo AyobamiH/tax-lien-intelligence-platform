@@ -5,6 +5,7 @@ import {
   applySavedView,
   applyDatasetImportProfile,
   createSavedView,
+  createWorkspaceComment,
   createDataset,
   getNotificationPreferences,
   getPortfolioSummary,
@@ -17,8 +18,10 @@ import {
   listSavedViews,
   listWorkspaceMembers,
   listWorkspaceActivity,
+  listWorkspaceComments,
   listWorkspaces,
   removeComparisonItem,
+  deleteWorkspaceComment,
   saveDatasetImportProfile,
   saveDatasetManualMapping,
   setActiveWorkspaceId,
@@ -111,6 +114,52 @@ describe("web API client", () => {
     const headers = init.headers as Headers;
     expect(headers.get("Authorization")).toBe("Bearer test-token");
     expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
+  });
+
+  it("lists, creates, and deletes comments inside the selected workspace", async () => {
+    const payloads = [
+      { comments: [] },
+      {
+        comment: {
+          id: "comment-1",
+          workspaceId: "workspace-1",
+          author: { userId: "user-1", email: "owner@example.com" },
+          relatedEntityType: "dataset",
+          relatedEntityId: "dataset-1",
+          body: "Review the missing values.",
+          canDelete: true,
+          createdAt: "2026-06-12T10:00:00.000Z",
+          updatedAt: "2026-06-12T10:00:00.000Z",
+        },
+      },
+      { id: "comment-1", deleted: true },
+    ];
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payloads.shift()), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await listWorkspaceComments("test-token", "dataset", "dataset-1");
+    await createWorkspaceComment("test-token", "dataset", "dataset-1", "Review the missing values.");
+    await deleteWorkspaceComment("test-token", "comment-1");
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/comments/dataset/dataset-1",
+      "http://localhost:4000/comments/dataset/dataset-1",
+      "http://localhost:4000/comments/comment-1",
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual(["GET", "POST", "DELETE"]);
+    for (const [, init] of fetchMock.mock.calls) {
+      const headers = init?.headers as Headers;
+      expect(headers.get("Authorization")).toBe("Bearer test-token");
+      expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
+    }
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ body: "Review the missing values." }));
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

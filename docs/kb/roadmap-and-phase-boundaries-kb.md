@@ -969,7 +969,7 @@ Phase 30 includes:
 
 Phase 30 does not include:
 
-- chat, comments, mentions, reactions, or presence;
+- chat, comment events, mentions, reactions, or presence;
 - task assignment or approvals;
 - realtime websocket updates;
 - arbitrary client-created events;
@@ -980,6 +980,36 @@ Phase 30 does not include:
 Comparison item history remains the detailed local timeline for decision/note
 changes and handoffs. Workspace activity is a broader, shallower operational
 summary and intentionally omits note text.
+
+## Phase 31: Workspace Comments And Discussion Threads
+
+Current status: implemented.
+
+Phase 31 includes:
+
+- workspace-owned comment records with verified actor attribution;
+- plain-text bodies bounded to 1,000 characters;
+- entity-linked threads for datasets, comparison items, watchlist items, and
+  portfolio items;
+- membership and target-access checks using the selected workspace;
+- active-member create access and author-only hard deletion;
+- compact contextual frontend threads with loading, empty, error, create,
+  attribution, timestamp, and delete states;
+- tests for supported targets, validation, stale targets, membership,
+  cross-workspace isolation, deletion, API behavior, and safe rendering.
+
+Phase 31 does not include:
+
+- realtime chat or websocket delivery;
+- rich text, mentions, notifications, attachments, reactions, or nested
+  replies;
+- comment editing or admin moderation overrides;
+- task assignment, approvals, or shared editing;
+- activity-feed events for comment creation;
+- auction execution or ML/AI collaboration helpers.
+
+Comments are contextual workspace discussion, not an audit log or a replacement
+for the broader Phase 30 operational activity feed.
 
 ## Later Phases
 
@@ -1034,7 +1064,8 @@ Dependency order matters:
 26. digest delivery workflow and owner-safe history;
 27. workspace and team-access foundation;
 28. workspace activity and member-aware history;
-29. broader automation.
+29. workspace comments and discussion threads;
+30. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

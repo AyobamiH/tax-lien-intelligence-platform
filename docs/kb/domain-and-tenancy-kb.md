@@ -5,7 +5,7 @@
 This file governs domain concepts and tenant isolation expectations. It explains
 how future data should be modeled and protected.
 
-It does not define every database schema. User, workspace, membership, activity, dataset,
+It does not define every database schema. User, workspace, membership, activity, comment, dataset,
 scored-record, internal job, alert, import profile, watchlist item, portfolio
 item, and comparison item schemas now exist; a standalone parcel schema does
 not.
@@ -19,6 +19,7 @@ Current implementation:
 - user model exists for authentication;
 - workspace and workspace-membership models exist;
 - workspace-activity model exists;
+- workspace-comment model exists;
 - personal owner workspaces bootstrap on first workspace-aware access;
 - dataset model exists for authenticated manual CSV uploads;
 - dataset import summary metadata exists for generic fallback or the current
@@ -39,6 +40,8 @@ Current implementation:
 - frontend review surface exposes workspace-shared datasets and scored records
   through authenticated, membership-checked API calls;
 - frontend activity surface exposes bounded member-attributed workspace events;
+- frontend detail surfaces expose workspace-scoped comments on four shared
+  entity types;
 - frontend watchlist surface exposes user-owned shortlisted scored records;
 - frontend portfolio surface exposes user-owned tracked records and status;
 - frontend comparison surface exposes user-owned comparison candidates,
@@ -87,6 +90,18 @@ Current status: implemented for dataset upload, score/refresh requests,
 comparison decision/handoff, portfolio status, and membership changes. It does
 not store note text, raw errors, source rows, personal alerts, or arbitrary
 client-authored events. It is not immutable compliance audit infrastructure.
+
+### Workspace Comment
+
+A workspace comment is plain-text contextual discussion attached to a dataset,
+comparison item, watchlist item, or portfolio item. The record stores the
+workspace, verified actor identity/email snapshot, related entity, body, and
+timestamps.
+
+Current status: implemented with active-member list/create access, independent
+target access checks, a 1,000-character limit, safe text rendering, and
+author-only hard deletion. It is not chat, rich text, mentions, nested replies,
+realtime presence, tasks, approvals, or an activity-feed event.
 
 ### Dataset
 

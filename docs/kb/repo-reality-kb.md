@@ -65,10 +65,13 @@ Implemented today:
 - user model in `packages/db`;
 - workspace and workspace-membership models in `packages/db`;
 - workspace-activity model in `packages/db`;
+- workspace-comment model in `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
 - authenticated workspace/member APIs with owner/admin/member roles;
 - workspace membership and role middleware using `X-Workspace-Id`;
 - authenticated workspace activity retrieval with category filtering;
+- authenticated workspace comment list/create/delete routes with target access
+  checks and author-only deletion;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -120,6 +123,8 @@ Implemented today:
   watchlist, portfolio, comparison, decision history, and handoff;
 - workspace-scoped operational activity for meaningful dataset, score/refresh
   request, comparison, portfolio-status, and membership actions;
+- workspace-scoped plain-text discussion on datasets, comparison items,
+  watchlist items, and portfolio items;
 - queued/running/completed/failed job lifecycle;
 - dedicated worker entrypoint for queued internal jobs;
 - worker-side job claiming and dataset scoring execution;
@@ -229,6 +234,8 @@ Implemented today:
 - frontend review workspace;
 - frontend `#/activity` surface with actor, summary, timestamp, category
   filters, and affected-surface navigation;
+- compact comment threads on dataset, comparison, watchlist, and portfolio
+  detail surfaces with actor/timestamp display and author deletion;
 - Tailwind setup;
 - shared health/error/runtime types;
 - local MongoDB docker-compose;

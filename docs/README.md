@@ -36,6 +36,7 @@ before writing specs, prompts, or implementation plans.
 - [Digest Delivery And History Architecture](architecture/digest-delivery.md)
 - [Workspaces And Tenancy Architecture](architecture/workspaces-and-tenancy.md)
 - [Workspace Activity Architecture](architecture/workspace-activity.md)
+- [Workspace Comments Architecture](architecture/workspace-comments.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 
@@ -54,6 +55,7 @@ before writing specs, prompts, or implementation plans.
 - [Comparison API](api/comparison.md)
 - [Saved Views API](api/saved-views.md)
 - [Workspaces API](api/workspaces.md)
+- [Workspace Comments API](api/comments.md)
 
 ## Decisions
 

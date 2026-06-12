@@ -22,8 +22,10 @@ import type {
   ApplyImportProfileToDatasetResponse,
   CreateSavedViewRequest,
   CreateSavedViewResponse,
+  CreateWorkspaceCommentResponse,
   DeletePortfolioItemResponse,
   DeleteSavedViewResponse,
+  DeleteWorkspaceCommentResponse,
   DatasetRefreshJobResponse,
   DatasetScoringStatusResponse,
   DatasetManualMappingContextResponse,
@@ -53,6 +55,8 @@ import type {
   AddWorkspaceMemberResponse,
   WorkspaceActivityCategory,
   WorkspaceActivityListResponse,
+  WorkspaceCommentEntityType,
+  WorkspaceCommentListResponse,
   WorkspaceRole,
 } from "@tax-lien/types";
 
@@ -119,6 +123,43 @@ export async function listWorkspaceActivity(
 ): Promise<WorkspaceActivityListResponse> {
   const query = category ? `?category=${encodeURIComponent(category)}` : "";
   return requestJson<WorkspaceActivityListResponse>(`/workspaces/current/activity${query}`, { token });
+}
+
+export async function listWorkspaceComments(
+  token: string,
+  entityType: WorkspaceCommentEntityType,
+  entityId: string,
+): Promise<WorkspaceCommentListResponse> {
+  return requestJson<WorkspaceCommentListResponse>(
+    `/comments/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { token },
+  );
+}
+
+export async function createWorkspaceComment(
+  token: string,
+  entityType: WorkspaceCommentEntityType,
+  entityId: string,
+  body: string,
+): Promise<CreateWorkspaceCommentResponse> {
+  return requestJson<CreateWorkspaceCommentResponse>(
+    `/comments/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify({ body }),
+    },
+  );
+}
+
+export async function deleteWorkspaceComment(
+  token: string,
+  commentId: string,
+): Promise<DeleteWorkspaceCommentResponse> {
+  return requestJson<DeleteWorkspaceCommentResponse>(`/comments/${encodeURIComponent(commentId)}`, {
+    method: "DELETE",
+    token,
+  });
 }
 
 export async function addWorkspaceMember(

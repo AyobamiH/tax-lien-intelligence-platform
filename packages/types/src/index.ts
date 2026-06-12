@@ -160,6 +160,46 @@ export interface WorkspaceActivityListResponse {
   activities: WorkspaceActivityResponse[];
 }
 
+export type WorkspaceCommentEntityType =
+  | "dataset"
+  | "comparison_item"
+  | "watchlist_item"
+  | "portfolio_item";
+
+export interface WorkspaceCommentAuthor {
+  userId: string;
+  email: string;
+}
+
+export interface WorkspaceCommentResponse {
+  id: string;
+  workspaceId: string;
+  author: WorkspaceCommentAuthor;
+  relatedEntityType: WorkspaceCommentEntityType;
+  relatedEntityId: string;
+  body: string;
+  canDelete: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceCommentListResponse {
+  comments: WorkspaceCommentResponse[];
+}
+
+export interface CreateWorkspaceCommentRequest {
+  body: string;
+}
+
+export interface CreateWorkspaceCommentResponse {
+  comment: WorkspaceCommentResponse;
+}
+
+export interface DeleteWorkspaceCommentResponse {
+  id: string;
+  deleted: true;
+}
+
 export type DatasetStatus = "validated";
 export type DatasetSourceType = "manual_csv";
 export type DatasetImportAdapterId = "generic_csv" | "maricopa_tax_lien_v1";

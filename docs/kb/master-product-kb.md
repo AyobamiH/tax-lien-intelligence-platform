@@ -49,6 +49,9 @@ suite.
 Phase 30 adds a focused workspace activity feed so members can see meaningful
 recent shared actions, who performed them, when they occurred, and where to
 continue. It is not chat or compliance-grade audit tooling.
+Phase 31 adds bounded, entity-linked workspace comments on datasets,
+comparison items, watchlist items, and portfolio items. It is a plain-text
+context layer, not chat, rich text, mentions, or realtime communication.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -92,6 +95,8 @@ Current evidence:
 - workspace members can review bounded operational activity across datasets,
   decisions, portfolio status, and membership without exposing notes or raw
   system internals.
+- workspace members can discuss specific shared records with visible actor and
+  timestamp context without leaving the product.
 
 ## What This SaaS Is
 
@@ -128,9 +133,9 @@ worker-driven scoring execution, source-row enrichment, and controlled refresh
 exist. Bounded scheduled maintenance groundwork now exists. One
 Maricopa-style county import adapter exists. Browser CSV upload and import
 readiness guidance now exist. Focused manual field mapping repair now exists.
-Reusable import profiles, comparison, and the workspace-access foundation now
-exist. Broad county
-coverage, live county sync, full spreadsheet editing, comments/realtime
+Reusable import profiles, comparison, the workspace-access foundation, activity,
+and contextual comments now exist. Broad county
+coverage, live county sync, full spreadsheet editing, realtime chat, rich-text
 collaboration, compliance audit tooling, ML mapping suggestions, SMS/push alert delivery, user-facing
 scheduler policy controls, broader automatic refresh, advanced digest
 scheduling/templates/retries, and richer automation remain future direction.
@@ -243,7 +248,8 @@ Current implementation:
   mapping of common county headers;
 - scoring job outcomes create in-app alerts;
 - no standalone parcel/lien schema;
-- no comments/chat, shared editing, task/approval collaboration, final
+- no chat, rich-text/realtime comments, shared editing, task/approval
+  collaboration, final
   investment decision, auction, or accounting workflow.
 - workspace activity exists as a bounded shared-awareness feed, not an
   immutable audit trail.

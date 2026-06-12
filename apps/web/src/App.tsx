@@ -28,6 +28,8 @@ import type {
   WorkspaceRole,
   WorkspaceActivityCategory,
   WorkspaceActivityResponse,
+  WorkspaceCommentEntityType,
+  WorkspaceCommentResponse,
 } from "@tax-lien/types";
 import {
   ApiClientError,
@@ -38,8 +40,10 @@ import {
   applySavedView,
   applyDatasetImportProfile,
   createSavedView,
+  createWorkspaceComment,
   createDataset,
   deleteSavedView,
+  deleteWorkspaceComment,
   getCurrentUser,
   getDataset,
   getDatasetScoringStatus,
@@ -59,6 +63,7 @@ import {
   listWatchlist,
   listWorkspaceMembers,
   listWorkspaceActivity,
+  listWorkspaceComments,
   listWorkspaces,
   login,
   markAlertRead,
@@ -136,6 +141,7 @@ import {
   workspaceActivityDestinationLabel,
   workspaceRoleLabel,
 } from "./review-model";
+import { WorkspaceCommentBody } from "./workspace-comment-body";
 
 const authStorageKey = "tax-lien-review-session";
 
@@ -1480,6 +1486,7 @@ function App() {
           />
         ) : page.name === "watchlist" ? (
           <WatchlistPage
+            token={session.token}
             items={watchlist.items}
             isLoading={watchlist.isLoading}
             error={watchlist.error}
@@ -1498,6 +1505,7 @@ function App() {
           />
         ) : page.name === "portfolio" ? (
           <PortfolioPage
+            token={session.token}
             items={portfolio.items}
             summary={portfolio.summary}
             savedViews={savedViews}
@@ -2644,6 +2652,12 @@ function DatasetDetailPage({
           />
         </div>
       )}
+      <WorkspaceCommentThread
+        key={`dataset:${datasetId}`}
+        token={token}
+        entityType="dataset"
+        entityId={datasetId}
+      />
     </section>
   );
 }
@@ -3602,11 +3616,18 @@ function ComparisonDetail({
           </ol>
         ) : null}
       </section>
+      <WorkspaceCommentThread
+        key={`comparison_item:${item.id}`}
+        token={token}
+        entityType="comparison_item"
+        entityId={item.id}
+      />
     </aside>
   );
 }
 
 function WatchlistPage({
+  token,
   items,
   isLoading,
   error,
@@ -3623,6 +3644,7 @@ function WatchlistPage({
   onCompare,
   onRemoveFromComparison,
 }: {
+  token: string;
   items: WatchlistItemResponse[];
   isLoading: boolean;
   error: string | null;
@@ -3829,6 +3851,7 @@ function WatchlistPage({
             </div>
           </div>
           <WatchlistDetail
+            token={token}
             item={selectedItem}
             actionId={actionId}
             portfolioItem={selectedPortfolioItem}
@@ -3847,6 +3870,7 @@ function WatchlistPage({
 }
 
 function PortfolioPage({
+  token,
   items,
   summary,
   savedViews,
@@ -3865,6 +3889,7 @@ function PortfolioPage({
   onApplyView,
   onDeleteView,
 }: {
+  token: string;
   items: PortfolioItemResponse[];
   summary: PortfolioSummaryResponse | null;
   savedViews: SavedViewsState;
@@ -4288,6 +4313,7 @@ function PortfolioPage({
             )}
           </div>
           <PortfolioDetail
+            token={token}
             item={selectedItem}
             actionId={actionId}
             comparisonItem={selectedComparisonItem}
@@ -4351,6 +4377,7 @@ function PortfolioActivityPanel({
 }
 
 function PortfolioDetail({
+  token,
   item,
   actionId,
   comparisonItem,
@@ -4360,6 +4387,7 @@ function PortfolioDetail({
   onCompare,
   onRemoveFromComparison,
 }: {
+  token: string;
   item: PortfolioItemResponse | null;
   actionId: string | null;
   comparisonItem: ComparisonItemResponse | null;
@@ -4457,6 +4485,12 @@ function PortfolioDetail({
           </ul>
         )}
       </section>
+      <WorkspaceCommentThread
+        key={`portfolio_item:${item.id}`}
+        token={token}
+        entityType="portfolio_item"
+        entityId={item.id}
+      />
     </aside>
   );
 }
@@ -5435,6 +5469,7 @@ function ScoreDetail({
 }
 
 function WatchlistDetail({
+  token,
   item,
   actionId,
   portfolioItem,
@@ -5446,6 +5481,7 @@ function WatchlistDetail({
   onCompare,
   onRemoveFromComparison,
 }: {
+  token: string;
   item: WatchlistItemResponse | null;
   actionId: string | null;
   portfolioItem: PortfolioItemResponse | null;
@@ -5545,7 +5581,179 @@ function WatchlistDetail({
           </ul>
         )}
       </section>
+      <WorkspaceCommentThread
+        key={`watchlist_item:${item.id}`}
+        token={token}
+        entityType="watchlist_item"
+        entityId={item.id}
+      />
     </aside>
+  );
+}
+
+function WorkspaceCommentThread({
+  token,
+  entityType,
+  entityId,
+}: {
+  token: string;
+  entityType: WorkspaceCommentEntityType;
+  entityId: string;
+}) {
+  const [comments, setComments] = useState<WorkspaceCommentResponse[]>([]);
+  const [body, setBody] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setComments([]);
+    setBody("");
+    setIsLoading(true);
+    setError(null);
+
+    void listWorkspaceComments(token, entityType, entityId)
+      .then((result) => {
+        if (!cancelled) {
+          setComments(result.comments);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [entityId, entityType, reloadVersion, token]);
+
+  async function submitComment(): Promise<void> {
+    const normalizedBody = body.trim();
+    if (!normalizedBody) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      const result = await createWorkspaceComment(token, entityType, entityId, normalizedBody);
+      setComments((current) => [...current, result.comment]);
+      setBody("");
+    } catch (submitError: unknown) {
+      setError(errorMessage(submitError));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function removeComment(commentId: string): Promise<void> {
+    setDeleteId(commentId);
+    setError(null);
+    try {
+      await deleteWorkspaceComment(token, commentId);
+      setComments((current) => current.filter((comment) => comment.id !== commentId));
+    } catch (deleteError: unknown) {
+      setError(errorMessage(deleteError));
+    } finally {
+      setDeleteId(null);
+    }
+  }
+
+  return (
+    <section className="mt-5 border-t border-line pt-5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h4 className="text-sm font-semibold">Discussion</h4>
+          <p className="mt-1 text-xs text-ink/60">Workspace comments for this record.</p>
+        </div>
+        <span className="shrink-0 text-xs text-ink/55">
+          {isLoading ? "Loading" : `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`}
+        </span>
+      </div>
+
+      {error ? (
+        <div className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() => setReloadVersion((current) => current + 1)}
+            className="mt-2 border border-red-300 bg-white px-2 py-1 text-xs font-semibold"
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
+      {!isLoading && !error && comments.length === 0 ? (
+        <p className="mt-3 text-sm text-ink/65">No discussion yet.</p>
+      ) : null}
+      {comments.length > 0 ? (
+        <ol className="mt-3 divide-y divide-line border border-line bg-white">
+          {comments.map((comment) => (
+            <li key={comment.id} className="p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold text-ink/75">{comment.author.email}</p>
+                  <p className="mt-1 text-xs text-ink/55">{formatDateTime(comment.createdAt)}</p>
+                </div>
+                {comment.canDelete ? (
+                  <button
+                    type="button"
+                    disabled={deleteId === comment.id}
+                    onClick={() => void removeComment(comment.id)}
+                    className="shrink-0 border border-line px-2 py-1 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {deleteId === comment.id ? "Deleting" : "Delete"}
+                  </button>
+                ) : null}
+              </div>
+              <WorkspaceCommentBody body={comment.body} />
+            </li>
+          ))}
+        </ol>
+      ) : null}
+
+      <form
+        className="mt-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submitComment();
+        }}
+      >
+        <label className="text-xs font-semibold uppercase text-ink/60" htmlFor={`comment-${entityType}-${entityId}`}>
+          Add comment
+        </label>
+        <textarea
+          id={`comment-${entityType}-${entityId}`}
+          value={body}
+          maxLength={1000}
+          rows={4}
+          disabled={isLoading || isSubmitting}
+          onChange={(event) => setBody(event.target.value)}
+          placeholder="Add context for your workspace"
+          className="mt-2 w-full resize-y border border-line bg-white px-3 py-2 text-sm leading-6 disabled:cursor-not-allowed disabled:opacity-60"
+        />
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <span className="text-xs text-ink/55">{body.length}/1000</span>
+          <button
+            type="submit"
+            disabled={isLoading || isSubmitting || body.trim().length === 0}
+            className="bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? "Posting..." : "Post comment"}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }
 

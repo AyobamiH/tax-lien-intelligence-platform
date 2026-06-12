@@ -110,3 +110,7 @@ remain personal and ignore workspace ownership in Phase 29.
 Workspace activity is shared operational context in Phase 30. It complements
 comparison item history; it does not replace that item-level timeline and is
 not a compliance-grade audit API.
+
+Workspace comments are shared contextual discussion in Phase 31 and use their
+own `/comments` API. Active members may comment on accessible shared records;
+comments are not emitted into workspace activity.

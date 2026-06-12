@@ -50,6 +50,11 @@ not use the legacy owner `userId` compatibility key. This gives the shared
 awareness layer a direct tenant boundary while core pre-workspace records
 continue using the compatibility approach.
 
+Phase 31 comment records are also explicitly workspace-owned. Their related
+entity is independently checked through the compatibility tenant key before
+list or create, so the new collaboration record and the older core record must
+both resolve inside the selected workspace boundary.
+
 ## Workspace Selection
 
 Clients may send `X-Workspace-Id` on authenticated requests. If omitted, the
@@ -88,6 +93,13 @@ Workspace-shared operational context added in Phase 30:
 - actor attribution using member-visible identity;
 - links back to affected shared surfaces.
 
+Workspace-shared contextual discussion added in Phase 31:
+
+- plain-text threads on datasets, comparison items, watchlist items, and
+  portfolio items;
+- verified actor attribution;
+- member create access and author-only hard deletion.
+
 Personal surfaces remain user-scoped because notification routing and saved
 attention preferences are individual settings in this phase.
 
@@ -99,10 +111,11 @@ email invitation token or pending invitation lifecycle yet.
 
 ## Boundaries
 
-Phase 29 does not add comments, chat, concurrent editing, task assignment,
+Phase 29 did not add comments, chat, concurrent editing, task assignment,
 approvals, custom roles, billing, shared notification policy, auction
 execution, or ML/AI collaboration features.
 
-Phase 30 does not change those boundaries. Its activity feed is not an
-immutable audit system and does not expose comparison notes or personal
-notification activity.
+Phase 31 adds bounded entity-linked comments only. It does not add chat,
+realtime updates, rich text, mentions, attachments, reactions, comment editing,
+tasks, approvals, or shared editing. The activity feed remains separate and is
+not an immutable audit system.

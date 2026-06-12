@@ -28,6 +28,8 @@ Current implementation:
 - personal owner-workspace bootstrap;
 - workspace/member list, add-member, and role-update APIs;
 - workspace activity model, recorder, and membership-protected retrieval API;
+- workspace comment model, entity-target access adapter, and
+  membership-protected list/create/delete API;
 - selected-workspace membership middleware and explicit read/write/member-role
   checks;
 - global API error handling;
@@ -101,6 +103,8 @@ Current implementation:
 - workspace-aware access for datasets, scoring/jobs, import profiles,
   watchlist, portfolio, comparison, decision history, and handoff;
 - focused actor-attributed activity capture for meaningful shared actions;
+- workspace-owned plain-text comments on datasets, comparison items, watchlist
+  items, and portfolio items with member creation and author-only hard delete;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -131,6 +135,7 @@ The backend should become the trusted boundary for:
 - in-app alert persistence;
 - notification preference persistence;
 - workspace operational activity persistence;
+- workspace contextual discussion persistence;
 - future compliance-grade audit events;
 - security enforcement.
 
@@ -706,7 +711,8 @@ Backend implementation order should stay disciplined:
 26. scheduled digest processing and delivery history: implemented in Phase 28;
 27. workspace and team-access foundation: implemented in Phase 29;
 28. workspace activity and member-aware history: implemented in Phase 30;
-29. later external automation.
+29. workspace comments and discussion threads: implemented in Phase 31;
+30. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -718,6 +724,8 @@ Avoid:
 - custom permission matrices before the minimal workspace roles earn them;
 - admin APIs before audit/security controls;
 - treating best-effort workspace activity as immutable compliance evidence;
+- turning contextual comments into chat, arbitrary HTML, or an unbounded
+  notification stream;
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
   separate financial analytics phase.

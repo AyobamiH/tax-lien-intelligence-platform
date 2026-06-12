@@ -39,6 +39,13 @@ Current shared types in `packages/types`:
 - `WorkspaceActivityMetadata`;
 - `WorkspaceActivityResponse`;
 - `WorkspaceActivityListResponse`.
+- `WorkspaceCommentEntityType`;
+- `WorkspaceCommentAuthor`;
+- `WorkspaceCommentResponse`;
+- `WorkspaceCommentListResponse`;
+- `CreateWorkspaceCommentRequest`;
+- `CreateWorkspaceCommentResponse`;
+- `DeleteWorkspaceCommentResponse`.
 - `DatasetStatus`;
 - `DatasetSourceType`;
 - `DatasetImportAdapterId`;

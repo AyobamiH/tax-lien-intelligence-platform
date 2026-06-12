@@ -167,6 +167,12 @@ export {
   type WorkspaceActivityRelatedEntityTypeRecord,
 } from "./models/workspace-activity.js";
 export {
+  WorkspaceCommentModel,
+  type WorkspaceCommentDocument,
+  type WorkspaceCommentEntityTypeRecord,
+  type WorkspaceCommentRecord,
+} from "./models/workspace-comment.js";
+export {
   WatchlistItemModel,
   type WatchlistItemDocument,
   type WatchlistItemRecord,
