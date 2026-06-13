@@ -52,9 +52,10 @@ Current implementation:
 - refresh action/status visibility for scored datasets;
 - maintenance mode/message visibility for scored datasets;
 - alerts route with unread count and read/read-all actions;
-- alert entries for scoring completion/failure and bounded discussion outcomes;
+- alert entries for scoring completion/failure, bounded discussion outcomes,
+  and direct responsibility assignments;
 - notification preferences route with controls for supported scoring and
-  discussion alert types,
+  discussion and assignment alert types,
   enabled state, in-app-only versus email-capable handling, and timing;
 - delivery history route with safe immediate and digest outcomes;
 - workspace context, selected role, and read-only visibility in the header;
@@ -67,6 +68,10 @@ Current implementation:
   loading/empty/error states, creation, and author deletion;
 - discussion unread indicators, explicit read clearing, and alert navigation
   that switches to the verified workspace before opening a shared surface;
+- compact responsibility controls on dataset, comparison, watchlist, and
+  portfolio detail surfaces;
+- assigned-to-me route with loading, empty, error, refresh, and affected-surface
+  navigation;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -118,6 +123,7 @@ Current and future page direction:
 - implemented: focused workspace activity surface;
 - implemented: contextual workspace comment threads on four core record types;
 - implemented: bounded discussion attention and comment alert workflow;
+- implemented: current workspace responsibility and assigned-to-me workflow;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities
@@ -366,6 +372,8 @@ Future frontend work must:
 - render workspace comments as escaped text and never inject comment HTML.
 - treat discussion unread state as user/workspace scoped and never infer access
   from a client-side alert link.
+- treat assignment links as navigation hints only; the API must reverify
+  workspace membership and target access.
 
 ## What Must Not Be Overbuilt Too Early
 

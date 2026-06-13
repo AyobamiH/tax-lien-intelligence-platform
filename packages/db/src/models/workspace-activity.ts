@@ -1,6 +1,6 @@
 import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 
-export type WorkspaceActivityCategoryRecord = "data" | "decisions" | "portfolio" | "members";
+export type WorkspaceActivityCategoryRecord = "data" | "decisions" | "portfolio" | "members" | "responsibility";
 export type WorkspaceActivityEventTypeRecord =
   | "dataset_uploaded"
   | "dataset_scoring_requested"
@@ -10,7 +10,10 @@ export type WorkspaceActivityEventTypeRecord =
   | "comparison_handoff_to_portfolio"
   | "portfolio_status_changed"
   | "workspace_member_added"
-  | "workspace_member_role_changed";
+  | "workspace_member_role_changed"
+  | "entity_assigned"
+  | "entity_reassigned"
+  | "entity_assignment_cleared";
 export type WorkspaceActivityRelatedEntityTypeRecord =
   | "dataset"
   | "job"
@@ -25,7 +28,7 @@ export interface WorkspaceActivityMetadataRecord {
   requestKind?: "score" | "refresh";
   previousDecision?: "undecided" | "keep_reviewing" | "move_forward" | "rejected";
   newDecision?: "undecided" | "keep_reviewing" | "move_forward" | "rejected";
-  targetEntityType?: "watchlist_item" | "portfolio_item";
+  targetEntityType?: "dataset" | "comparison_item" | "watchlist_item" | "portfolio_item";
   targetEntityId?: string;
   previousStatus?: "tracked" | "reviewing" | "ready" | "acquired" | "closed" | "discarded";
   newStatus?: "tracked" | "reviewing" | "ready" | "acquired" | "closed" | "discarded";
@@ -33,6 +36,10 @@ export interface WorkspaceActivityMetadataRecord {
   memberEmail?: string;
   previousRole?: "admin" | "member";
   role?: "admin" | "member";
+  assigneeUserId?: string;
+  assigneeEmail?: string;
+  previousAssigneeUserId?: string;
+  previousAssigneeEmail?: string;
 }
 
 export interface WorkspaceActivityRecord {
@@ -60,7 +67,10 @@ const workspaceActivityMetadataSchema = new Schema<WorkspaceActivityMetadataReco
     requestKind: { type: String, enum: ["score", "refresh"] },
     previousDecision: { type: String, enum: ["undecided", "keep_reviewing", "move_forward", "rejected"] },
     newDecision: { type: String, enum: ["undecided", "keep_reviewing", "move_forward", "rejected"] },
-    targetEntityType: { type: String, enum: ["watchlist_item", "portfolio_item"] },
+    targetEntityType: {
+      type: String,
+      enum: ["dataset", "comparison_item", "watchlist_item", "portfolio_item"],
+    },
     targetEntityId: { type: String, trim: true },
     previousStatus: { type: String, enum: ["tracked", "reviewing", "ready", "acquired", "closed", "discarded"] },
     newStatus: { type: String, enum: ["tracked", "reviewing", "ready", "acquired", "closed", "discarded"] },
@@ -68,6 +78,10 @@ const workspaceActivityMetadataSchema = new Schema<WorkspaceActivityMetadataReco
     memberEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
     previousRole: { type: String, enum: ["admin", "member"] },
     role: { type: String, enum: ["admin", "member"] },
+    assigneeUserId: { type: String, trim: true },
+    assigneeEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
+    previousAssigneeUserId: { type: String, trim: true },
+    previousAssigneeEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
   },
   { _id: false, versionKey: false },
 );
@@ -79,7 +93,7 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
     actorEmail: { type: String, required: true, trim: true, lowercase: true, maxlength: 320 },
     category: {
       type: String,
-      enum: ["data", "decisions", "portfolio", "members"],
+      enum: ["data", "decisions", "portfolio", "members", "responsibility"],
       required: true,
       index: true,
     },
@@ -95,6 +109,9 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
         "portfolio_status_changed",
         "workspace_member_added",
         "workspace_member_role_changed",
+        "entity_assigned",
+        "entity_reassigned",
+        "entity_assignment_cleared",
       ],
       required: true,
       index: true,

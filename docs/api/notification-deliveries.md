@@ -8,6 +8,10 @@ Phase 32 discussion alerts may also appear here when a user explicitly makes
 `workspace_comment_added` delivery-eligible. Delivery summaries identify the
 workspace and related record but never include comment body text.
 
+Phase 33 assignment alerts may appear when `workspace_item_assigned` is
+delivery-eligible. Their metadata is limited to workspace, assignment, actor,
+and related-record identifiers and excludes record content or task fields.
+
 All routes require `Authorization: Bearer <jwt-access-token>`.
 
 ## `GET /notification-deliveries`

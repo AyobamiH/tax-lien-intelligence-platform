@@ -24,6 +24,7 @@ export const notificationAlertTypes = [
   "scoring_job_completed",
   "scoring_job_failed",
   "workspace_comment_added",
+  "workspace_item_assigned",
 ] as const;
 export const notificationDeliveryModes = ["in_app_only", "delivery_eligible"] as const;
 export const notificationCadences = ["immediate", "digest"] as const;
@@ -68,6 +69,19 @@ const notificationCategories: NotificationPreferenceCategory[] = [
     supportsDigest: true,
     defaultRule: {
       alertType: "workspace_comment_added",
+      enabled: true,
+      deliveryMode: "in_app_only",
+      cadence: "digest",
+    },
+  },
+  {
+    alertType: "workspace_item_assigned",
+    label: "Workspace assignment",
+    description: "A workspace member assigned you responsibility for a shared record.",
+    supportsDelivery: true,
+    supportsDigest: true,
+    defaultRule: {
+      alertType: "workspace_item_assigned",
       enabled: true,
       deliveryMode: "in_app_only",
       cadence: "digest",
@@ -238,6 +252,8 @@ function notificationSubject(alertType: AlertType, severity: AlertSeverity): str
       return severity === "error" ? "Scoring failed" : "Scoring needs review";
     case "workspace_comment_added":
       return "New workspace discussion";
+    case "workspace_item_assigned":
+      return "Workspace item assigned";
   }
 }
 
@@ -252,6 +268,9 @@ function sanitizeAlertMetadata(metadata: AlertMetadata | undefined): NonNullable
     ...(metadata?.commentId ? { commentId: metadata.commentId } : {}),
     ...(metadata?.commentActorUserId ? { commentActorUserId: metadata.commentActorUserId } : {}),
     ...(metadata?.commentActorEmail ? { commentActorEmail: metadata.commentActorEmail } : {}),
+    ...(metadata?.assignmentId ? { assignmentId: metadata.assignmentId } : {}),
+    ...(metadata?.assignmentActorUserId ? { assignmentActorUserId: metadata.assignmentActorUserId } : {}),
+    ...(metadata?.assignmentActorEmail ? { assignmentActorEmail: metadata.assignmentActorEmail } : {}),
   };
 }
 

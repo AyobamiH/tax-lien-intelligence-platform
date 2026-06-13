@@ -496,7 +496,8 @@ Current alert types:
 
 - `scoring_job_completed`;
 - `scoring_job_failed`;
-- `workspace_comment_added`.
+- `workspace_comment_added`;
+- `workspace_item_assigned`.
 
 Current alert metadata is limited to safe identifiers and summary values:
 
@@ -506,6 +507,8 @@ Current alert metadata is limited to safe identifiers and summary values:
 - stable error code.
 - request kind.
 - workspace id, comment id, and member-visible actor identity for discussion
+  alerts.
+- workspace id, assignment id, and member-visible actor identity for assignment
   alerts.
 
 Alert contracts must not expose raw job payloads, stack traces, source rows,
@@ -528,8 +531,8 @@ Current notification preference contracts include:
 - digest batch status and scheduler result contracts;
 - safe owner-facing delivery and digest history response contracts.
 
-Notification preferences cover supported scoring and workspace-discussion
-alert types. They must not
+Notification preferences cover supported scoring, workspace-discussion, and
+workspace-assignment alert types. They must not
 become a broad messaging rules engine, marketing preference center, shared/team
 policy model, provider configuration payload, SMS/push contract, or realtime
 push contract without a separate product and security phase.
@@ -607,7 +610,7 @@ Current workspace activity contracts include:
 
 - workspace-scoped activity id;
 - actor user id and member-visible email;
-- category: `data`, `decisions`, `portfolio`, or `members`;
+- category: `data`, `decisions`, `portfolio`, `members`, or `responsibility`;
 - allowlisted event type;
 - related entity type/id;
 - server-derived summary;
@@ -623,6 +626,25 @@ return an empty `activities` array.
 Workspace activity is broader than comparison item history but shallower. It
 must not be represented as chat, a notification inbox, or a legal/compliance
 audit contract.
+
+## Workspace Assignment Contract
+
+Current assignment contracts include:
+
+- one current assignment per workspace, entity type, and entity id;
+- supported types: dataset, comparison item, watchlist item, and portfolio item;
+- current assignee and assigning actor user id/email;
+- assigned and updated timestamps;
+- detail response with nullable assignment;
+- update response with explicit `changed` no-op state;
+- clear response with explicit `cleared` no-op state;
+- bounded assigned-to-me list response.
+
+Clients submit only the requested assignee user id. The backend derives actor
+and workspace identity, verifies active membership, and rechecks target access.
+Assignment contracts must not grow task status, due dates, reminders,
+priorities, subtasks, approval state, or arbitrary metadata without a separate
+phase.
 
 ## Workspace Discussion Attention Contract
 

@@ -55,6 +55,9 @@ context layer, not chat, rich text, mentions, or realtime communication.
 Phase 32 adds per-member unread discussion attention and low-noise comment
 alerts through existing personal preferences and delivery infrastructure. It
 does not add a team inbox, realtime chat, push/SMS, or AI collaboration.
+Phase 33 adds one current responsible workspace member on datasets, comparison
+items, watchlist items, and portfolio items, plus a personal assigned-to-me
+queue. It is responsibility signaling, not task management.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -102,6 +105,8 @@ Current evidence:
   timestamp context without leaving the product.
 - workspace members can see bounded unread discussion state and receive at most
   one alert per unread cycle without exposing comment text in notifications.
+- workspace members can assign current responsibility for supported records and
+  return to their own bounded assignment queue.
 
 ## What This SaaS Is
 
@@ -139,7 +144,8 @@ exist. Bounded scheduled maintenance groundwork now exists. One
 Maricopa-style county import adapter exists. Browser CSV upload and import
 readiness guidance now exist. Focused manual field mapping repair now exists.
 Reusable import profiles, comparison, the workspace-access foundation, activity,
-contextual comments, and bounded discussion attention now exist. Broad county
+contextual comments, bounded discussion attention, and current responsibility
+assignments now exist. Broad county
 coverage, live county sync, full spreadsheet editing, realtime chat, rich-text
 collaboration, compliance audit tooling, ML mapping suggestions, SMS/push alert delivery, user-facing
 scheduler policy controls, broader automatic refresh, advanced digest
@@ -235,8 +241,8 @@ Current implementation:
 - portfolio dashboard summaries exist for operational review;
 - saved views exist for private reusable portfolio/comparison filters and
   built-in attention queues;
-- notification preferences exist for scoring and workspace-discussion alert
-  types;
+- notification preferences exist for scoring, workspace-discussion, and
+  workspace-assignment alert types;
 - env-driven immediate email delivery exists for supported product alerts when
   SMTP config is complete;
 - side-by-side comparison with lightweight decision notes and decision history
@@ -254,8 +260,11 @@ Current implementation:
   mapping of common county headers;
 - scoring job outcomes create in-app alerts;
 - peer comments create bounded personal alerts and per-thread unread counts;
+- direct assignment creates a bounded alert for the new assignee and meaningful
+  responsibility activity;
 - no standalone parcel/lien schema;
-- no chat, rich-text/realtime comments, shared editing, task/approval
+- no chat, rich-text/realtime comments, shared editing, task status/due dates,
+  approval
   collaboration, final
   investment decision, auction, or accounting workflow.
 - workspace activity exists as a bounded shared-awareness feed, not an

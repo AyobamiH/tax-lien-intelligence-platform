@@ -67,6 +67,7 @@ Implemented today:
 - workspace-activity model in `packages/db`;
 - workspace-comment model in `packages/db`;
 - discussion-attention model in `packages/db`;
+- workspace-assignment model in `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
 - authenticated workspace/member APIs with owner/admin/member roles;
 - workspace membership and role middleware using `X-Workspace-Id`;
@@ -75,6 +76,8 @@ Implemented today:
   target access checks and author-only deletion;
 - peer-only discussion alerts with per-user workspace unread counts and
   one-alert-per-unread-cycle behavior;
+- authenticated assignment get/update/clear and assigned-to-me routes with
+  active-member, selected-workspace, and target-access enforcement;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -128,6 +131,8 @@ Implemented today:
   request, comparison, portfolio-status, and membership actions;
 - workspace-scoped plain-text discussion on datasets, comparison items,
   watchlist items, and portfolio items;
+- one current workspace-owned responsibility assignment on datasets,
+  comparison items, watchlist items, and portfolio items;
 - queued/running/completed/failed job lifecycle;
 - dedicated worker entrypoint for queued internal jobs;
 - worker-side job claiming and dataset scoring execution;

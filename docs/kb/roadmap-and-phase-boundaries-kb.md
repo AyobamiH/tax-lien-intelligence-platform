@@ -1036,12 +1036,37 @@ Phase 32 does not include:
 - mentions, reactions, attachments, rich text, or nested replies;
 - a team inbox or shared notification policy;
 - push/SMS;
-- tasks, assignments, approvals, or auction execution;
+- tasks, approvals, or auction execution; Phase 33 adds only current
+  responsibility assignment;
 - AI summaries or collaboration helpers.
 
 The alert record remains personal to the recipient. The thread and its
 discussion attention remain bounded by the verified workspace and related
 entity access checks.
+
+## Phase 33: Assignment And Responsibility Workflow
+
+Current status: implemented.
+
+Phase 33 includes:
+
+- one current workspace-owned assignee for datasets, comparison items,
+  watchlist items, and portfolio items;
+- assign, reassign, clear, detail, and assigned-to-me APIs;
+- active same-workspace assignee and target-access validation;
+- meaningful responsibility activity with explicit no-op suppression;
+- preference-aware new-assignee alerts with self-notification exclusion;
+- compact detail controls and a dedicated personal queue;
+- tenancy, activity, notification, API, and frontend helper tests.
+
+Phase 33 does not include:
+
+- task status, due dates, reminders, priorities, subtasks, or kanban;
+- approvals, task assignment chains, or automatic routing;
+- assignment comments or chat escalation;
+- auction execution or AI assignment helpers.
+
+Assignment is a current responsibility marker. It is not a work-item model.
 
 ## Later Phases
 
@@ -1098,7 +1123,8 @@ Dependency order matters:
 28. workspace activity and member-aware history;
 29. workspace comments and discussion threads;
 30. comment notification and discussion attention;
-31. broader automation.
+31. workspace assignment and responsibility workflow;
+32. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

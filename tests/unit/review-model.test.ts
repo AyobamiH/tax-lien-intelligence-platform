@@ -10,12 +10,15 @@ import type {
   ScoredRecordResponse,
   WatchlistItemResponse,
   WorkspaceActivityResponse,
+  WorkspaceAssignmentResponse,
 } from "@tax-lien/types";
 import {
   alertDestination,
   alertDestinationLabel,
   alertSeverityClassName,
   alertTypeLabel,
+  assignmentDestination,
+  assignmentEntityLabel,
   applyPortfolioSavedViewForReview,
   buildComparisonByPortfolioId,
   buildComparisonByScoreId,
@@ -327,6 +330,7 @@ describe("review model helpers", () => {
 
     expect(workspaceActivityCategoryLabel("all")).toBe("All");
     expect(workspaceActivityCategoryLabel("decisions")).toBe("Decisions");
+    expect(workspaceActivityCategoryLabel("responsibility")).toBe("Responsibility");
     const destination = workspaceActivityDestination(activity);
     expect(destination).toEqual({ surface: "dataset", datasetId: "dataset-1" });
     expect(destination && workspaceActivityDestinationLabel(destination)).toBe("Open dataset");
@@ -338,6 +342,46 @@ describe("review model helpers", () => {
         relatedEntityType: "workspace_membership",
       }),
     ).toEqual({ surface: "workspace" });
+    expect(
+      workspaceActivityDestination({
+        ...activity,
+        category: "responsibility",
+        eventType: "entity_assigned",
+        relatedEntityType: "watchlist_item",
+        relatedEntityId: "watchlist-1",
+        metadata: {
+          targetEntityType: "watchlist_item",
+          assigneeUserId: "user-2",
+          assigneeEmail: "member@example.com",
+        },
+      }),
+    ).toEqual({ surface: "watchlist" });
+  });
+
+  it("labels and routes assigned records to their operating surface", () => {
+    const assignment: WorkspaceAssignmentResponse = {
+      id: "assignment-1",
+      workspaceId: "workspace-1",
+      relatedEntityType: "dataset",
+      relatedEntityId: "dataset-1",
+      assignee: { userId: "user-2", email: "member@example.com" },
+      assignedBy: { userId: "user-1", email: "owner@example.com" },
+      assignedAt: "2026-06-12T12:00:00.000Z",
+      updatedAt: "2026-06-12T12:00:00.000Z",
+    };
+
+    expect(assignmentEntityLabel("comparison_item")).toBe("Comparison item");
+    expect(assignmentDestination(assignment)).toEqual({
+      surface: "dataset",
+      datasetId: "dataset-1",
+    });
+    expect(
+      assignmentDestination({
+        ...assignment,
+        relatedEntityType: "portfolio_item",
+        relatedEntityId: "portfolio-1",
+      }),
+    ).toEqual({ surface: "portfolio" });
   });
 
   it("sorts scored records by strongest investment score, then lower risk", () => {
@@ -679,6 +723,7 @@ describe("review model helpers", () => {
     expect(alertTypeLabel("scoring_job_completed")).toBe("Scoring completed");
     expect(alertTypeLabel("scoring_job_failed")).toBe("Scoring failed");
     expect(alertTypeLabel("workspace_comment_added")).toBe("Workspace discussion");
+    expect(alertTypeLabel("workspace_item_assigned")).toBe("Workspace assignment");
     expect(alertSeverityClassName("error")).toContain("red");
     expect(notificationDeliveryModeLabel("in_app_only")).toBe("In-app only");
     expect(notificationDeliveryModeLabel("delivery_eligible")).toBe("Delivery-ready");

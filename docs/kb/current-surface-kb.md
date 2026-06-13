@@ -60,7 +60,7 @@ It shows:
 - dedicated alerts route using `#/alerts`;
 - unread alert count and alert read/read-all actions;
 - dedicated notification preferences route using `#/notifications`;
-- notification controls for supported scoring and discussion alert types, enabled state,
+- notification controls for supported scoring, discussion, and assignment alert types, enabled state,
   in-app-only versus email-capable handling, and immediate versus digest-ready
   timing;
 - dedicated delivery history route using `#/delivery-history`;
@@ -75,6 +75,9 @@ It shows:
   states;
 - per-thread unread discussion counts, explicit read clearing, and
   workspace-aware discussion alert navigation;
+- responsibility controls on dataset, comparison, watchlist, and portfolio
+  detail surfaces;
+- dedicated assigned-to-me route using `#/assignments`;
 - dedicated workspace management route using `#/workspace`;
 - active member list, workspace switching, direct registered-user addition,
   and owner-only role controls;
@@ -102,6 +105,10 @@ The current API surface is minimal:
 - `POST /comments/:entityType/:entityId`
 - `PATCH /comments/:entityType/:entityId/read`
 - `DELETE /comments/:commentId`
+- `GET /assignments/mine`
+- `GET /assignments/:entityType/:entityId`
+- `PATCH /assignments/:entityType/:entityId`
+- `DELETE /assignments/:entityType/:entityId`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -160,6 +167,7 @@ Documented in:
 - `docs/api/saved-views.md`
 - `docs/api/workspaces.md`
 - `docs/api/comments.md`
+- `docs/api/assignments.md`
 
 There is no standalone parcel API yet.
 
@@ -198,7 +206,8 @@ Real workflows now present:
   work slices.
 - comparison workspace, decision state, and lightweight notes.
 - in-app alert review for scoring outcomes and bounded workspace discussion.
-- notification preference management for scoring and discussion alert types.
+- notification preference management for scoring, discussion, and assignment
+  alert types.
 - import readiness review before relying on score output.
 - focused import repair before rerunning readiness/scoring.
 - deterministic import profile reuse for repeated upload shapes.
@@ -212,6 +221,8 @@ Real workflows now present:
 - workspace-shared, entity-linked plain-text comments for bounded operational
   discussion.
 - member-specific unread discussion attention with one alert per unread cycle.
+- explicit current responsibility plus a personal assigned-to-me queue for four
+  shared record types.
 
 Real workflows not present:
 

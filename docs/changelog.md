@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-06-13
+
+- Implemented Phase 33 workspace assignments with one current workspace-owned
+  assignee for datasets, comparison items, watchlist items, and portfolio
+  items.
+- Added authenticated get/assign/reassign/clear APIs, active-membership and
+  target-access validation, no-op handling, cross-workspace rejection, and a
+  bounded assigned-to-me queue that filters stale targets.
+- Added responsibility activity for meaningful assignment changes and
+  preference-aware `workspace_item_assigned` alerts for new assignees, with
+  self-notification exclusion and no alert on clear.
+- Added assignment controls to all supported detail surfaces and a dedicated
+  `#/assignments` personal work queue.
+- Added integration and frontend contract tests while keeping due dates,
+  reminders, task status, boards, approvals, automatic routing, and auction
+  execution out of scope.
+
 ## 2026-06-12
 
 - Implemented Phase 32 comment notification workflow with per-member,

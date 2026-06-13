@@ -6,8 +6,10 @@ import {
   applyDatasetImportProfile,
   createSavedView,
   createWorkspaceComment,
+  clearWorkspaceAssignment,
   createDataset,
   getNotificationPreferences,
+  getWorkspaceAssignment,
   getPortfolioSummary,
   handoffComparisonToPortfolio,
   handoffComparisonToWatchlist,
@@ -19,6 +21,7 @@ import {
   listWorkspaceMembers,
   listWorkspaceActivity,
   listWorkspaceComments,
+  listAssignedToMe,
   listWorkspaces,
   markWorkspaceDiscussionRead,
   removeComparisonItem,
@@ -28,6 +31,7 @@ import {
   setActiveWorkspaceId,
   updateComparisonItem,
   updateNotificationPreferences,
+  updateWorkspaceAssignment,
 } from "../../apps/web/src/api.js";
 
 const originalFetch = globalThis.fetch;
@@ -188,6 +192,60 @@ describe("web API client", () => {
       expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
     }
     expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ body: "Review the missing values." }));
+  });
+
+  it("loads, changes, clears, and lists workspace assignments", async () => {
+    const payloads = [
+      { assignment: null },
+      {
+        assignment: {
+          id: "assignment-1",
+          workspaceId: "workspace-1",
+          relatedEntityType: "dataset",
+          relatedEntityId: "dataset-1",
+          assignee: { userId: "user-2", email: "member@example.com" },
+          assignedBy: { userId: "user-1", email: "owner@example.com" },
+          assignedAt: "2026-06-12T10:00:00.000Z",
+          updatedAt: "2026-06-12T10:00:00.000Z",
+        },
+        changed: true,
+      },
+      { relatedEntityType: "dataset", relatedEntityId: "dataset-1", cleared: true },
+      { assignments: [] },
+    ];
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payloads.shift()), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await getWorkspaceAssignment("test-token", "dataset", "dataset-1");
+    await updateWorkspaceAssignment("test-token", "dataset", "dataset-1", "user-2");
+    await clearWorkspaceAssignment("test-token", "dataset", "dataset-1");
+    await listAssignedToMe("test-token");
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/assignments/dataset/dataset-1",
+      "http://localhost:4000/assignments/dataset/dataset-1",
+      "http://localhost:4000/assignments/dataset/dataset-1",
+      "http://localhost:4000/assignments/mine",
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual([
+      "GET",
+      "PATCH",
+      "DELETE",
+      "GET",
+    ]);
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(
+      JSON.stringify({ assigneeUserId: "user-2" }),
+    );
+    for (const [, init] of fetchMock.mock.calls) {
+      const headers = init?.headers as Headers;
+      expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
+    }
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

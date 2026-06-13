@@ -31,6 +31,8 @@ import type {
   WorkspaceActivityResponse,
   WorkspaceCommentEntityType,
   WorkspaceCommentResponse,
+  WorkspaceAssignmentEntityType,
+  WorkspaceAssignmentResponse,
 } from "@tax-lien/types";
 import {
   ApiClientError,
@@ -42,6 +44,7 @@ import {
   applyDatasetImportProfile,
   createSavedView,
   createWorkspaceComment,
+  clearWorkspaceAssignment,
   createDataset,
   deleteSavedView,
   deleteWorkspaceComment,
@@ -65,11 +68,13 @@ import {
   listWorkspaceMembers,
   listWorkspaceActivity,
   listWorkspaceComments,
+  listAssignedToMe,
   listWorkspaces,
   login,
   markAlertRead,
   markAllAlertsRead,
   markWorkspaceDiscussionRead,
+  getWorkspaceAssignment,
   register,
   removeComparisonItem,
   removePortfolioItem,
@@ -83,12 +88,15 @@ import {
   updateNotificationPreferences,
   updatePortfolioItemStatus,
   updateWorkspaceMemberRole,
+  updateWorkspaceAssignment,
 } from "./api";
 import {
   alertSeverityClassName,
   alertDestination,
   alertDestinationLabel,
   alertTypeLabel,
+  assignmentDestination,
+  assignmentEntityLabel,
   applyPortfolioSavedViewForReview,
   buildComparisonByPortfolioId,
   buildComparisonByScoreId,
@@ -160,6 +168,7 @@ type PageState =
   | { name: "notifications" }
   | { name: "delivery-history" }
   | { name: "activity" }
+  | { name: "assignments" }
   | { name: "workspace" };
 
 type AuthMode = "login" | "register";
@@ -656,6 +665,29 @@ function App() {
 
     if (alert.status === "unread") {
       void markOneAlertRead(alert.id);
+    }
+  }
+
+  function openAssignment(assignment: WorkspaceAssignmentResponse): void {
+    const destination = assignmentDestination(assignment);
+    if (!destination) {
+      return;
+    }
+    switch (destination.surface) {
+      case "dataset":
+        navigate({ name: "dataset", datasetId: destination.datasetId }, setPage);
+        return;
+      case "comparison":
+        navigate({ name: "comparison" }, setPage);
+        return;
+      case "watchlist":
+        navigate({ name: "watchlist" }, setPage);
+        return;
+      case "portfolio":
+        navigate({ name: "portfolio" }, setPage);
+        return;
+      case "workspace":
+        return;
     }
   }
 
@@ -1580,6 +1612,11 @@ function App() {
             onOpenPortfolio={() => navigate({ name: "portfolio" }, setPage)}
             onRemove={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
           />
+        ) : page.name === "assignments" ? (
+          <AssignedToMePage
+            token={session.token}
+            onOpen={openAssignment}
+          />
         ) : page.name === "alerts" ? (
           <AlertsPage
             alerts={alerts.alerts}
@@ -1799,6 +1836,13 @@ function AppHeader({
             className={`border border-line px-3 py-2 font-medium ${page.name === "comparison" ? "bg-field" : "bg-white"}`}
           >
             Compare ({comparisonCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate({ name: "assignments" })}
+            className={`border border-line px-3 py-2 font-medium ${page.name === "assignments" ? "bg-field" : "bg-white"}`}
+          >
+            Assigned to me
           </button>
           <button
             type="button"
@@ -2699,6 +2743,7 @@ function DatasetDetailPage({
         entityType="dataset"
         entityId={datasetId}
       />
+      <WorkspaceAssignmentControl token={token} entityType="dataset" entityId={datasetId} />
     </section>
   );
 }
@@ -3669,6 +3714,7 @@ function ComparisonDetail({
         entityType="comparison_item"
         entityId={item.id}
       />
+      <WorkspaceAssignmentControl token={token} entityType="comparison_item" entityId={item.id} />
     </aside>
   );
 }
@@ -4538,6 +4584,7 @@ function PortfolioDetail({
         entityType="portfolio_item"
         entityId={item.id}
       />
+      <WorkspaceAssignmentControl token={token} entityType="portfolio_item" entityId={item.id} />
     </aside>
   );
 }
@@ -4852,6 +4899,7 @@ function WorkspaceActivityPage({
     "data",
     "decisions",
     "portfolio",
+    "responsibility",
     "members",
   ];
 
@@ -4861,7 +4909,7 @@ function WorkspaceActivityPage({
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Workspace Activity</p>
         <h2 className="mt-1 text-2xl font-semibold">{workspaceName}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
-          Meaningful shared actions across datasets, decisions, portfolio tracking, and membership.
+          Meaningful shared actions across datasets, decisions, responsibility, portfolio tracking, and membership.
         </p>
       </div>
 
@@ -5634,7 +5682,270 @@ function WatchlistDetail({
         entityType="watchlist_item"
         entityId={item.id}
       />
+      <WorkspaceAssignmentControl token={token} entityType="watchlist_item" entityId={item.id} />
     </aside>
+  );
+}
+
+function AssignedToMePage({
+  token,
+  onOpen,
+}: {
+  token: string;
+  onOpen: (assignment: WorkspaceAssignmentResponse) => void;
+}) {
+  const [assignments, setAssignments] = useState<WorkspaceAssignmentResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+    listAssignedToMe(token)
+      .then((result) => {
+        if (!cancelled) {
+          setAssignments(result.assignments);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, reloadVersion]);
+
+  return (
+    <section className="min-w-0">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Responsibility</p>
+          <h2 className="mt-1 text-2xl font-semibold">Assigned to me</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+            Shared records where your workspace has made you the current responsible member.
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={isLoading}
+          onClick={() => setReloadVersion((version) => version + 1)}
+          className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-60"
+        >
+          Refresh
+        </button>
+      </div>
+
+      {error ? (
+        <div className="mt-5">
+          <PanelError message={error} onRetry={() => setReloadVersion((version) => version + 1)} />
+        </div>
+      ) : isLoading && assignments.length === 0 ? (
+        <div className="mt-5">
+          <PanelMessage label="Loading assigned records..." />
+        </div>
+      ) : assignments.length === 0 ? (
+        <div className="mt-5 border-y border-line bg-white px-4 py-6">
+          <p className="font-semibold">Nothing is assigned to you.</p>
+          <p className="mt-2 text-sm leading-6 text-ink/70">
+            Assignments appear here after a workspace member makes you responsible for a supported record.
+          </p>
+        </div>
+      ) : (
+        <ol className="mt-5 border-t border-line">
+          {assignments.map((assignment) => (
+            <li
+              key={assignment.id}
+              className="grid gap-3 border-b border-line bg-white px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+            >
+              <div className="min-w-0">
+                <p className="font-semibold">{assignmentEntityLabel(assignment.relatedEntityType)}</p>
+                <p className="mt-1 break-all text-sm text-ink/70">{assignment.relatedEntityId}</p>
+                <p className="mt-1 text-xs text-ink/55">
+                  Assigned by {assignment.assignedBy.email} · {formatDateTime(assignment.assignedAt)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onOpen(assignment)}
+                className="justify-self-start border border-line bg-white px-3 py-2 text-sm font-semibold sm:justify-self-end"
+              >
+                Open
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+function WorkspaceAssignmentControl({
+  token,
+  entityType,
+  entityId,
+}: {
+  token: string;
+  entityType: WorkspaceAssignmentEntityType;
+  entityId: string;
+}) {
+  const [assignment, setAssignment] = useState<WorkspaceAssignmentResponse | null>(null);
+  const [members, setMembers] = useState<WorkspaceMemberResponse[]>([]);
+  const [assigneeUserId, setAssigneeUserId] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    Promise.all([
+      getWorkspaceAssignment(token, entityType, entityId),
+      listWorkspaceMembers(token),
+    ])
+      .then(([assignmentResult, memberResult]) => {
+        if (!cancelled) {
+          setAssignment(assignmentResult.assignment);
+          setMembers(memberResult.members);
+          setAssigneeUserId(assignmentResult.assignment?.assignee.userId ?? "");
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, entityType, entityId, reloadVersion]);
+
+  async function saveAssignment(): Promise<void> {
+    if (!assigneeUserId) {
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await updateWorkspaceAssignment(token, entityType, entityId, assigneeUserId);
+      setAssignment(result.assignment);
+      setSuccess(result.changed ? "Responsibility updated." : "This member is already assigned.");
+    } catch (saveError) {
+      setError(errorMessage(saveError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function removeAssignment(): Promise<void> {
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await clearWorkspaceAssignment(token, entityType, entityId);
+      setAssignment(null);
+      setAssigneeUserId("");
+      setSuccess(result.cleared ? "Responsibility cleared." : "No assignment was present.");
+    } catch (clearError) {
+      setError(errorMessage(clearError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="mt-5 border-t border-line pt-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h4 className="text-sm font-semibold">Responsibility</h4>
+          <p className="mt-1 text-sm text-ink/65">
+            {assignment ? `Assigned to ${assignment.assignee.email}` : "No workspace member is assigned."}
+          </p>
+          {assignment ? (
+            <p className="mt-1 text-xs text-ink/55">
+              Set by {assignment.assignedBy.email} · {formatDateTime(assignment.assignedAt)}
+            </p>
+          ) : null}
+        </div>
+        {isLoading ? <span className="text-xs text-ink/55">Loading...</span> : null}
+      </div>
+
+      {error ? (
+        <div className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() => setReloadVersion((version) => version + 1)}
+            className="mt-2 border border-red-300 px-2 py-1 font-semibold"
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
+      {success ? (
+        <p className="mt-3 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          {success}
+        </p>
+      ) : null}
+
+      <div className="mt-3 flex flex-wrap items-end gap-2">
+        <label className="min-w-[220px] flex-1 text-xs font-semibold uppercase tracking-[0.08em] text-ink/60">
+          Responsible member
+          <select
+            value={assigneeUserId}
+            disabled={isLoading || isSaving}
+            onChange={(event) => {
+              setAssigneeUserId(event.target.value);
+              setSuccess(null);
+            }}
+            className="mt-1 block w-full border border-line bg-white px-3 py-2 text-sm font-normal text-ink disabled:opacity-60"
+          >
+            <option value="">Select a member</option>
+            {members.map((member) => (
+              <option key={member.id} value={member.userId}>
+                {member.email} · {workspaceRoleLabel(member.role)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          disabled={!assigneeUserId || isLoading || isSaving}
+          onClick={() => void saveAssignment()}
+          className="bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSaving ? "Saving" : assignment ? "Reassign" : "Assign"}
+        </button>
+        {assignment ? (
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void removeAssignment()}
+            className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-60"
+          >
+            Clear
+          </button>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
@@ -5885,21 +6196,23 @@ function navigate(page: PageState, setPage: (page: PageState) => void): void {
       ? "#/datasets"
       : page.name === "watchlist"
         ? "#/watchlist"
-      : page.name === "portfolio"
-        ? "#/portfolio"
-        : page.name === "comparison"
-          ? "#/comparison"
-          : page.name === "alerts"
-            ? "#/alerts"
-            : page.name === "notifications"
-              ? "#/notifications"
-              : page.name === "delivery-history"
-                ? "#/delivery-history"
-                : page.name === "activity"
-                  ? "#/activity"
-                : page.name === "workspace"
-                  ? "#/workspace"
-                : `#/datasets/${page.datasetId}`;
+        : page.name === "portfolio"
+          ? "#/portfolio"
+          : page.name === "comparison"
+            ? "#/comparison"
+            : page.name === "alerts"
+              ? "#/alerts"
+              : page.name === "notifications"
+                ? "#/notifications"
+                : page.name === "delivery-history"
+                  ? "#/delivery-history"
+                  : page.name === "activity"
+                    ? "#/activity"
+                    : page.name === "assignments"
+                      ? "#/assignments"
+                      : page.name === "workspace"
+                        ? "#/workspace"
+                        : `#/datasets/${page.datasetId}`;
   window.history.pushState(null, "", hash);
   setPage(page);
 }
@@ -5931,6 +6244,10 @@ function readRoute(): PageState {
 
   if (window.location.hash === "#/activity") {
     return { name: "activity" };
+  }
+
+  if (window.location.hash === "#/assignments") {
+    return { name: "assignments" };
   }
 
   if (window.location.hash === "#/workspace") {

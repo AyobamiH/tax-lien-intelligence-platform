@@ -37,6 +37,8 @@ import type {
   WorkspaceActivityCategory,
   WorkspaceActivityResponse,
   DiscussionAttentionResponse,
+  WorkspaceAssignmentEntityType,
+  WorkspaceAssignmentResponse,
 } from "@tax-lien/types";
 
 export function workspaceRoleLabel(role: WorkspaceRole): string {
@@ -70,6 +72,8 @@ export function workspaceActivityCategoryLabel(category: WorkspaceActivityCatego
       return "Portfolio";
     case "members":
       return "Members";
+    case "responsibility":
+      return "Responsibility";
   }
 }
 
@@ -97,10 +101,51 @@ export function workspaceActivityDestination(
     case "workspace_member_added":
     case "workspace_member_role_changed":
       return { surface: "workspace" };
+    case "entity_assigned":
+    case "entity_reassigned":
+    case "entity_assignment_cleared":
+      return activity.metadata?.targetEntityType
+        ? assignmentSurfaceDestination(activity.metadata.targetEntityType, activity.relatedEntityId)
+        : null;
     case "dataset_uploaded":
     case "dataset_scoring_requested":
     case "dataset_refresh_requested":
       return null;
+  }
+}
+
+export function assignmentEntityLabel(entityType: WorkspaceAssignmentEntityType): string {
+  switch (entityType) {
+    case "dataset":
+      return "Dataset";
+    case "comparison_item":
+      return "Comparison item";
+    case "watchlist_item":
+      return "Watchlist item";
+    case "portfolio_item":
+      return "Portfolio item";
+  }
+}
+
+export function assignmentDestination(
+  assignment: WorkspaceAssignmentResponse,
+): WorkspaceActivityDestination {
+  return assignmentSurfaceDestination(assignment.relatedEntityType, assignment.relatedEntityId);
+}
+
+function assignmentSurfaceDestination(
+  entityType: WorkspaceAssignmentEntityType,
+  entityId: string,
+): WorkspaceActivityDestination {
+  switch (entityType) {
+    case "dataset":
+      return { surface: "dataset", datasetId: entityId };
+    case "comparison_item":
+      return { surface: "comparison" };
+    case "watchlist_item":
+      return { surface: "watchlist" };
+    case "portfolio_item":
+      return { surface: "portfolio" };
   }
 }
 
@@ -765,6 +810,8 @@ export function alertTypeLabel(type: AlertType): string {
       return "Scoring failed";
     case "workspace_comment_added":
       return "Workspace discussion";
+    case "workspace_item_assigned":
+      return "Workspace assignment";
   }
 }
 

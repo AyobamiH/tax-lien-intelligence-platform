@@ -184,6 +184,13 @@ export function mapAlert(document: AlertDocument): StoredAlert {
             ...(document.metadata.commentActorEmail
               ? { commentActorEmail: document.metadata.commentActorEmail }
               : {}),
+            ...(document.metadata.assignmentId ? { assignmentId: document.metadata.assignmentId } : {}),
+            ...(document.metadata.assignmentActorUserId
+              ? { assignmentActorUserId: document.metadata.assignmentActorUserId }
+              : {}),
+            ...(document.metadata.assignmentActorEmail
+              ? { assignmentActorEmail: document.metadata.assignmentActorEmail }
+              : {}),
           },
         }
       : {}),
@@ -234,6 +241,15 @@ export function mapAlert(document: AlertDocument): StoredAlert {
                         : {}),
                       ...(document.deliveryPreparation.payload.metadata.commentActorEmail
                         ? { commentActorEmail: document.deliveryPreparation.payload.metadata.commentActorEmail }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.assignmentId
+                        ? { assignmentId: document.deliveryPreparation.payload.metadata.assignmentId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.assignmentActorUserId
+                        ? { assignmentActorUserId: document.deliveryPreparation.payload.metadata.assignmentActorUserId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.assignmentActorEmail
+                        ? { assignmentActorEmail: document.deliveryPreparation.payload.metadata.assignmentActorEmail }
                         : {}),
                     },
                   },

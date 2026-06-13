@@ -102,7 +102,7 @@ export interface UpdateWorkspaceMemberRoleResponse {
   member: WorkspaceMemberResponse;
 }
 
-export type WorkspaceActivityCategory = "data" | "decisions" | "portfolio" | "members";
+export type WorkspaceActivityCategory = "data" | "decisions" | "portfolio" | "members" | "responsibility";
 export type WorkspaceActivityEventType =
   | "dataset_uploaded"
   | "dataset_scoring_requested"
@@ -112,7 +112,10 @@ export type WorkspaceActivityEventType =
   | "comparison_handoff_to_portfolio"
   | "portfolio_status_changed"
   | "workspace_member_added"
-  | "workspace_member_role_changed";
+  | "workspace_member_role_changed"
+  | "entity_assigned"
+  | "entity_reassigned"
+  | "entity_assignment_cleared";
 export type WorkspaceActivityRelatedEntityType =
   | "dataset"
   | "job"
@@ -133,7 +136,7 @@ export interface WorkspaceActivityMetadata {
   requestKind?: "score" | "refresh";
   previousDecision?: ComparisonDecision;
   newDecision?: ComparisonDecision;
-  targetEntityType?: "watchlist_item" | "portfolio_item";
+  targetEntityType?: WorkspaceAssignmentEntityType;
   targetEntityId?: string;
   previousStatus?: PortfolioStatus;
   newStatus?: PortfolioStatus;
@@ -141,6 +144,10 @@ export interface WorkspaceActivityMetadata {
   memberEmail?: string;
   previousRole?: Exclude<WorkspaceRole, "owner">;
   role?: Exclude<WorkspaceRole, "owner">;
+  assigneeUserId?: string;
+  assigneeEmail?: string;
+  previousAssigneeUserId?: string;
+  previousAssigneeEmail?: string;
 }
 
 export interface WorkspaceActivityResponse {
@@ -158,6 +165,51 @@ export interface WorkspaceActivityResponse {
 
 export interface WorkspaceActivityListResponse {
   activities: WorkspaceActivityResponse[];
+}
+
+export type WorkspaceAssignmentEntityType =
+  | "dataset"
+  | "comparison_item"
+  | "watchlist_item"
+  | "portfolio_item";
+
+export interface WorkspaceAssignmentActor {
+  userId: string;
+  email: string;
+}
+
+export interface WorkspaceAssignmentResponse {
+  id: string;
+  workspaceId: string;
+  relatedEntityType: WorkspaceAssignmentEntityType;
+  relatedEntityId: string;
+  assignee: WorkspaceAssignmentActor;
+  assignedBy: WorkspaceAssignmentActor;
+  assignedAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceAssignmentDetailResponse {
+  assignment: WorkspaceAssignmentResponse | null;
+}
+
+export interface UpdateWorkspaceAssignmentRequest {
+  assigneeUserId: string;
+}
+
+export interface UpdateWorkspaceAssignmentResponse {
+  assignment: WorkspaceAssignmentResponse;
+  changed: boolean;
+}
+
+export interface ClearWorkspaceAssignmentResponse {
+  relatedEntityType: WorkspaceAssignmentEntityType;
+  relatedEntityId: string;
+  cleared: boolean;
+}
+
+export interface AssignedToMeResponse {
+  assignments: WorkspaceAssignmentResponse[];
 }
 
 export type WorkspaceCommentEntityType =
@@ -600,7 +652,11 @@ export interface DatasetScoresResponse {
   scores: ScoredRecordResponse[];
 }
 
-export type AlertType = "scoring_job_completed" | "scoring_job_failed" | "workspace_comment_added";
+export type AlertType =
+  | "scoring_job_completed"
+  | "scoring_job_failed"
+  | "workspace_comment_added"
+  | "workspace_item_assigned";
 export type AlertSeverity = "info" | "error";
 export type AlertStatus = "unread" | "read";
 export type AlertRelatedEntityType =
@@ -620,6 +676,9 @@ export interface AlertMetadata {
   commentId?: string;
   commentActorUserId?: string;
   commentActorEmail?: string;
+  assignmentId?: string;
+  assignmentActorUserId?: string;
+  assignmentActorEmail?: string;
 }
 
 export interface AlertResponse {

@@ -8,6 +8,9 @@ Phase 28 adds scheduled digest processing, digest batch records, and
 authenticated user-visible delivery history.
 Phase 32 adds `workspace_comment_added` as a supported preference category while
 keeping its default in-app-only and digest-paced.
+Phase 33 adds `workspace_item_assigned`. It is evaluated against the new
+assignee's personal rule; self-assignment, no-op assignment, and clear actions
+do not generate an alert.
 
 Email delivery is disabled by default. It sends only when email delivery is
 enabled and required SMTP/sender env config is complete.
@@ -21,8 +24,8 @@ Implemented through Phase 28:
   `apps/api/src/notification-preferences`;
 - authenticated `GET /notification-preferences` and
   `PATCH /notification-preferences` routes;
-- explicit rules for `scoring_job_completed`, `scoring_job_failed`, and
-  `workspace_comment_added`;
+- explicit rules for `scoring_job_completed`, `scoring_job_failed`,
+  `workspace_comment_added`, and `workspace_item_assigned`;
 - `enabled`, `deliveryMode`, and `cadence` controls;
 - job-alert suppression when a supported alert type is disabled;
 - provider-agnostic delivery-preparation payloads with safe metadata;

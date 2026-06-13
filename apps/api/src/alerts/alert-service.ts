@@ -11,6 +11,7 @@ import type {
   InternalJobType,
   MarkAllAlertsReadResponse,
   WorkspaceCommentEntityType,
+  WorkspaceAssignmentEntityType,
 } from "@tax-lien/types";
 import { ApiError } from "../errors/api-error.js";
 import type { NotificationDeliveryService } from "../notification-delivery/notification-delivery-service.js";
@@ -42,6 +43,16 @@ export interface WorkspaceCommentAlertEvent {
   relatedEntityType: WorkspaceCommentEntityType;
   relatedEntityId: string;
   commentId: string;
+}
+
+export interface WorkspaceAssignmentAlertEvent {
+  recipientUserId: string;
+  workspaceId: string;
+  actorUserId: string;
+  actorEmail: string;
+  relatedEntityType: WorkspaceAssignmentEntityType;
+  relatedEntityId: string;
+  assignmentId: string;
 }
 
 export class AlertService implements JobAlertSink {
@@ -130,6 +141,26 @@ export class AlertService implements JobAlertSink {
     });
   }
 
+  public async recordWorkspaceItemAssigned(event: WorkspaceAssignmentAlertEvent): Promise<void> {
+    if (event.recipientUserId === event.actorUserId) {
+      return;
+    }
+    await this.createPreferenceAwareAlert({
+      userId: event.recipientUserId,
+      type: "workspace_item_assigned",
+      severity: "info",
+      message: `${event.actorEmail} assigned you ${workspaceAssignmentTargetLabel(event.relatedEntityType)}.`,
+      relatedEntityType: event.relatedEntityType,
+      relatedEntityId: event.relatedEntityId,
+      metadata: {
+        workspaceId: event.workspaceId,
+        assignmentId: event.assignmentId,
+        assignmentActorUserId: event.actorUserId,
+        assignmentActorEmail: event.actorEmail,
+      },
+    });
+  }
+
   private async createPreferenceAwareAlert(input: CreateAlertInput): Promise<void> {
     if (!this.notificationPreferenceService) {
       await this.createAlert(input);
@@ -207,6 +238,19 @@ function jobActionLabel(requestKind: InternalJobRequestKind): string {
 }
 
 function workspaceCommentTargetLabel(entityType: WorkspaceCommentEntityType): string {
+  switch (entityType) {
+    case "dataset":
+      return "a dataset";
+    case "comparison_item":
+      return "a comparison item";
+    case "watchlist_item":
+      return "a watchlist item";
+    case "portfolio_item":
+      return "a portfolio item";
+  }
+}
+
+function workspaceAssignmentTargetLabel(entityType: WorkspaceAssignmentEntityType): string {
   switch (entityType) {
     case "dataset":
       return "a dataset";

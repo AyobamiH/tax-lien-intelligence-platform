@@ -1,6 +1,10 @@
 import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 
-export type AlertTypeRecord = "scoring_job_completed" | "scoring_job_failed" | "workspace_comment_added";
+export type AlertTypeRecord =
+  | "scoring_job_completed"
+  | "scoring_job_failed"
+  | "workspace_comment_added"
+  | "workspace_item_assigned";
 export type AlertSeverityRecord = "info" | "error";
 export type AlertStatusRecord = "unread" | "read";
 export type AlertRelatedEntityTypeRecord =
@@ -20,6 +24,9 @@ export interface AlertMetadataRecord {
   commentId?: string;
   commentActorUserId?: string;
   commentActorEmail?: string;
+  assignmentId?: string;
+  assignmentActorUserId?: string;
+  assignmentActorEmail?: string;
 }
 
 export interface AlertDeliveryPreparationPayloadRecord {
@@ -68,6 +75,9 @@ const alertMetadataSchema = new Schema<AlertMetadataRecord>(
     commentId: { type: String, trim: true },
     commentActorUserId: { type: String, trim: true },
     commentActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
+    assignmentId: { type: String, trim: true },
+    assignmentActorUserId: { type: String, trim: true },
+    assignmentActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
   },
   {
     _id: false,
@@ -100,7 +110,7 @@ const alertDeliveryPreparationSchema = new Schema<AlertDeliveryPreparationRecord
   {
     alertType: {
       type: String,
-      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added"],
+      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added", "workspace_item_assigned"],
       required: true,
     },
     deliveryState: {
@@ -145,7 +155,7 @@ const alertSchema = new Schema<AlertRecord>(
     },
     type: {
       type: String,
-      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added"],
+      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added", "workspace_item_assigned"],
       required: true,
       index: true,
     },

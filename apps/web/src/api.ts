@@ -54,10 +54,15 @@ import type {
   WorkspaceListResponse,
   WorkspaceMembersResponse,
   AddWorkspaceMemberResponse,
+  AssignedToMeResponse,
+  ClearWorkspaceAssignmentResponse,
   WorkspaceActivityCategory,
   WorkspaceActivityListResponse,
   WorkspaceCommentEntityType,
   WorkspaceCommentListResponse,
+  WorkspaceAssignmentDetailResponse,
+  WorkspaceAssignmentEntityType,
+  UpdateWorkspaceAssignmentResponse,
   WorkspaceRole,
 } from "@tax-lien/types";
 
@@ -175,6 +180,44 @@ export async function deleteWorkspaceComment(
     method: "DELETE",
     token,
   });
+}
+
+export async function getWorkspaceAssignment(
+  token: string,
+  entityType: WorkspaceAssignmentEntityType,
+  entityId: string,
+): Promise<WorkspaceAssignmentDetailResponse> {
+  return requestJson<WorkspaceAssignmentDetailResponse>(
+    `/assignments/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { token },
+  );
+}
+
+export async function updateWorkspaceAssignment(
+  token: string,
+  entityType: WorkspaceAssignmentEntityType,
+  entityId: string,
+  assigneeUserId: string,
+): Promise<UpdateWorkspaceAssignmentResponse> {
+  return requestJson<UpdateWorkspaceAssignmentResponse>(
+    `/assignments/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { method: "PATCH", token, body: JSON.stringify({ assigneeUserId }) },
+  );
+}
+
+export async function clearWorkspaceAssignment(
+  token: string,
+  entityType: WorkspaceAssignmentEntityType,
+  entityId: string,
+): Promise<ClearWorkspaceAssignmentResponse> {
+  return requestJson<ClearWorkspaceAssignmentResponse>(
+    `/assignments/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { method: "DELETE", token },
+  );
+}
+
+export async function listAssignedToMe(token: string): Promise<AssignedToMeResponse> {
+  return requestJson<AssignedToMeResponse>("/assignments/mine", { token });
 }
 
 export async function addWorkspaceMember(

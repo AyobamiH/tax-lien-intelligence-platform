@@ -79,6 +79,30 @@ describe("workspace activity service", () => {
         relatedEntityId: "portfolio-1",
         metadata: { previousStatus: "tracked", newStatus: "reviewing" },
       }),
+      service.record({
+        workspaceId,
+        actorUserId: userStore.user.id,
+        eventType: "entity_assigned",
+        relatedEntityType: "watchlist_item",
+        relatedEntityId: "watchlist-1",
+        metadata: {
+          targetEntityType: "watchlist_item",
+          assigneeUserId: "member-1",
+          assigneeEmail: "member@example.com",
+        },
+      }),
+      service.record({
+        workspaceId,
+        actorUserId: userStore.user.id,
+        eventType: "entity_assignment_cleared",
+        relatedEntityType: "watchlist_item",
+        relatedEntityId: "watchlist-1",
+        metadata: {
+          targetEntityType: "watchlist_item",
+          previousAssigneeUserId: "member-1",
+          previousAssigneeEmail: "member@example.com",
+        },
+      }),
     ]);
 
     expect(events.map((event) => event.category)).toEqual([
@@ -88,6 +112,8 @@ describe("workspace activity service", () => {
       "decisions",
       "decisions",
       "portfolio",
+      "responsibility",
+      "responsibility",
     ]);
     expect(events.map((event) => event.summary)).toEqual([
       "Queued scoring for a dataset.",
@@ -96,6 +122,8 @@ describe("workspace activity service", () => {
       "Moved a comparison candidate to the watchlist.",
       "Moved a comparison candidate into portfolio tracking.",
       "Changed a portfolio item from tracked to reviewing.",
+      "Assigned a watchlist item to member@example.com.",
+      "Cleared responsibility for a watchlist item previously assigned to member@example.com.",
     ]);
     expect(events.every((event) => event.actor.email === "analyst@example.com")).toBe(true);
   });

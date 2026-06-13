@@ -66,6 +66,13 @@ Current repo protections:
 - discussion alert/delivery metadata allowlists that exclude comment body text;
 - tests for unread accumulation/read clearing, cross-workspace read rejection,
   preference-aware digest classification, and safe discussion payloads;
+- workspace-owned assignments with a unique target boundary, allowlisted target
+  types, verified target access, and active same-workspace assignees;
+- server-derived assignment actor/workspace identity, explicit no-op behavior,
+  cross-workspace rejection, stale-target filtering, and new-assignee-only
+  notifications;
+- assignment alert/delivery metadata allowlists with no record content, notes,
+  compatibility tenant key, or arbitrary task payload;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
 - browser upload flow that uses the authenticated dataset upload endpoint;

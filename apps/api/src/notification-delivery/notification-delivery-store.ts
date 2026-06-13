@@ -283,6 +283,13 @@ export function mapNotificationDelivery(document: NotificationDeliveryDocument):
             ...(document.metadata.commentActorEmail
               ? { commentActorEmail: document.metadata.commentActorEmail }
               : {}),
+            ...(document.metadata.assignmentId ? { assignmentId: document.metadata.assignmentId } : {}),
+            ...(document.metadata.assignmentActorUserId
+              ? { assignmentActorUserId: document.metadata.assignmentActorUserId }
+              : {}),
+            ...(document.metadata.assignmentActorEmail
+              ? { assignmentActorEmail: document.metadata.assignmentActorEmail }
+              : {}),
           },
         }
       : {}),

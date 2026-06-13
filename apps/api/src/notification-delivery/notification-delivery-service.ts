@@ -540,6 +540,9 @@ function deliverySourceKeyForSuppressedInput(input: CreateAlertInput): string {
   if (input.metadata?.commentId) {
     return `comment:${input.metadata.commentId}:${input.userId}:${input.type}`;
   }
+  if (input.metadata?.assignmentId) {
+    return `assignment:${input.metadata.assignmentId}:${input.userId}:${input.type}`;
+  }
 
   return `input:${input.userId}:${input.type}:${input.relatedEntityType ?? "none"}:${input.relatedEntityId ?? "none"}`;
 }
@@ -555,6 +558,9 @@ function sanitizeDeliveryMetadata(metadata: AlertMetadata | undefined): AlertMet
     ...(metadata?.commentId ? { commentId: metadata.commentId } : {}),
     ...(metadata?.commentActorUserId ? { commentActorUserId: metadata.commentActorUserId } : {}),
     ...(metadata?.commentActorEmail ? { commentActorEmail: metadata.commentActorEmail } : {}),
+    ...(metadata?.assignmentId ? { assignmentId: metadata.assignmentId } : {}),
+    ...(metadata?.assignmentActorUserId ? { assignmentActorUserId: metadata.assignmentActorUserId } : {}),
+    ...(metadata?.assignmentActorEmail ? { assignmentActorEmail: metadata.assignmentActorEmail } : {}),
   };
 }
 
@@ -566,6 +572,8 @@ function alertTypeLabel(alertType: StoredAlert["type"]): string {
       return "Scoring failed";
     case "workspace_comment_added":
       return "New workspace discussion";
+    case "workspace_item_assigned":
+      return "Workspace item assigned";
   }
 }
 

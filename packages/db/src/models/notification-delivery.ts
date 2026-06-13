@@ -55,6 +55,9 @@ const notificationDeliveryMetadataSchema = new Schema<AlertMetadataRecord>(
     commentId: { type: String, trim: true },
     commentActorUserId: { type: String, trim: true },
     commentActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
+    assignmentId: { type: String, trim: true },
+    assignmentActorUserId: { type: String, trim: true },
+    assignmentActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
   },
   {
     _id: false,
@@ -87,7 +90,7 @@ const notificationDeliverySchema = new Schema<NotificationDeliveryRecord>(
     },
     alertType: {
       type: String,
-      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added"],
+      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added", "workspace_item_assigned"],
       required: true,
       index: true,
     },

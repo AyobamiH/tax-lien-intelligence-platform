@@ -31,6 +31,8 @@ Current implementation:
 - workspace comment model, entity-target access adapter, and
   membership-protected list/create/read-state/delete API;
 - discussion-attention model and service keyed by user, workspace, and thread;
+- workspace-assignment model and service with one current assignee per
+  supported shared record;
 - selected-workspace membership middleware and explicit read/write/member-role
   checks;
 - global API error handling;
@@ -64,7 +66,7 @@ Current implementation:
 - notification delivery outbox model;
 - notification digest batch model;
 - authenticated notification preference get/update routes;
-- preference-driven scoring/discussion alert suppression and delivery
+- preference-driven scoring/discussion/assignment alert suppression and delivery
   classification;
 - provider-agnostic delivery-preparation metadata for supported alerts;
 - env-driven SMTP email transport boundary;
@@ -109,6 +111,9 @@ Current implementation:
   items, and portfolio items with member creation and author-only hard delete;
 - peer-only comment notification fan-out with self-notification exclusion,
   unread accumulation, and one alert per unread cycle;
+- assignment get/reassign/clear and assigned-to-me APIs with active-assignee
+  validation, no-op handling, responsibility activity, and new-assignee-only
+  notification;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -141,6 +146,7 @@ The backend should become the trusted boundary for:
 - workspace operational activity persistence;
 - workspace contextual discussion persistence;
 - personal workspace-bound discussion attention persistence;
+- workspace responsibility assignment persistence;
 - future compliance-grade audit events;
 - security enforcement.
 
@@ -720,7 +726,8 @@ Backend implementation order should stay disciplined:
 29. workspace comments and discussion threads: implemented in Phase 31;
 30. comment notification and discussion attention workflow: implemented in
     Phase 32;
-31. later external automation.
+31. workspace assignment and responsibility workflow: implemented in Phase 33;
+32. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -734,6 +741,8 @@ Avoid:
 - treating best-effort workspace activity as immutable compliance evidence;
 - turning contextual comments into chat, arbitrary HTML, or an unbounded
   notification stream beyond the one-alert-per-unread-cycle rule;
+- turning responsibility assignments into task status, due dates, reminders,
+  boards, approvals, or automatic routing;
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
   separate financial analytics phase.

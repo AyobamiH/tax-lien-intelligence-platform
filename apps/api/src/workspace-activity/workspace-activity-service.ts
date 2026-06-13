@@ -96,6 +96,10 @@ function categoryForEvent(eventType: WorkspaceActivityEventType): WorkspaceActiv
     case "workspace_member_added":
     case "workspace_member_role_changed":
       return "members";
+    case "entity_assigned":
+    case "entity_reassigned":
+    case "entity_assignment_cleared":
+      return "responsibility";
   }
 }
 
@@ -122,6 +126,12 @@ function summaryForEvent(
       return `Added ${safeName(metadata?.memberEmail, "a registered user")} as ${roleLabel(metadata?.role)}.`;
     case "workspace_member_role_changed":
       return `Changed ${safeName(metadata?.memberEmail, "a workspace member")} from ${roleLabel(metadata?.previousRole)} to ${roleLabel(metadata?.role)}.`;
+    case "entity_assigned":
+      return `Assigned ${entityLabel(metadata)} to ${safeName(metadata?.assigneeEmail, "a workspace member")}.`;
+    case "entity_reassigned":
+      return `Reassigned ${entityLabel(metadata)} from ${safeName(metadata?.previousAssigneeEmail, "a workspace member")} to ${safeName(metadata?.assigneeEmail, "a workspace member")}.`;
+    case "entity_assignment_cleared":
+      return `Cleared responsibility for ${entityLabel(metadata)} previously assigned to ${safeName(metadata?.previousAssigneeEmail, "a workspace member")}.`;
   }
 }
 
@@ -140,6 +150,12 @@ function statusLabel(value: PortfolioStatus | undefined): string {
 
 function roleLabel(value: Exclude<WorkspaceRole, "owner"> | undefined): string {
   return value ?? "member";
+}
+
+function entityLabel(metadata: WorkspaceActivityMetadata | undefined): string {
+  return metadata?.targetEntityType
+    ? `a ${metadata.targetEntityType.replaceAll("_", " ")}`
+    : "a shared record";
 }
 
 function toWorkspaceActivityResponse(activity: StoredWorkspaceActivity): WorkspaceActivityResponse {

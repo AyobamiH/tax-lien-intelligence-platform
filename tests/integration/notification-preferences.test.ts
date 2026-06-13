@@ -160,6 +160,7 @@ describe("notification preferences API", () => {
         { alertType: "scoring_job_completed", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
         { alertType: "scoring_job_failed", enabled: true, deliveryMode: "delivery_eligible", cadence: "immediate" },
         { alertType: "workspace_comment_added", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
+        { alertType: "workspace_item_assigned", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
       ],
     });
     expect(response.body.categories).toEqual(
@@ -167,6 +168,7 @@ describe("notification preferences API", () => {
         expect.objectContaining({ alertType: "scoring_job_completed", supportsDelivery: true }),
         expect.objectContaining({ alertType: "scoring_job_failed", supportsDigest: true }),
         expect.objectContaining({ alertType: "workspace_comment_added", supportsDelivery: true }),
+        expect.objectContaining({ alertType: "workspace_item_assigned", supportsDelivery: true }),
       ]),
     );
     expect(JSON.stringify(response.body)).not.toContain(owner.userId);
@@ -343,6 +345,69 @@ describe("notification preferences API", () => {
       }),
     ]);
     expect(JSON.stringify(alerts.body)).not.toContain("private comment body");
+    expect(emailTransport.messages).toHaveLength(0);
+  });
+
+  it("routes assignment alerts through the assignee preference without exposing record content", async () => {
+    const { app, alertService, notificationDeliveryStore, emailTransport } = createTestContext();
+    const member = await registerUser(app, "member@example.com");
+    const workspaceId = new mongoose.Types.ObjectId().toString();
+    const entityId = new mongoose.Types.ObjectId().toString();
+    const assignmentId = new mongoose.Types.ObjectId().toString();
+
+    await request(app)
+      .patch("/notification-preferences")
+      .set("Authorization", `Bearer ${member.token}`)
+      .send({
+        rules: [
+          {
+            alertType: "workspace_item_assigned",
+            enabled: true,
+            deliveryMode: "delivery_eligible",
+            cadence: "digest",
+          },
+        ],
+      })
+      .expect(200);
+
+    await alertService.recordWorkspaceItemAssigned({
+      recipientUserId: member.userId,
+      workspaceId,
+      actorUserId: new mongoose.Types.ObjectId().toString(),
+      actorEmail: "owner@example.com",
+      relatedEntityType: "comparison_item",
+      relatedEntityId: entityId,
+      assignmentId,
+    });
+
+    const alerts = await request(app)
+      .get("/alerts")
+      .set("Authorization", `Bearer ${member.token}`)
+      .expect(200);
+    expect(alerts.body.alerts[0]).toMatchObject({
+      type: "workspace_item_assigned",
+      relatedEntityType: "comparison_item",
+      relatedEntityId: entityId,
+      deliveryPreparation: {
+        deliveryState: "delivery_digest",
+        payload: {
+          subject: "Workspace item assigned",
+          metadata: {
+            workspaceId,
+            assignmentId,
+            assignmentActorEmail: "owner@example.com",
+          },
+        },
+      },
+    });
+    expect(notificationDeliveryStore.listAll()).toEqual([
+      expect.objectContaining({
+        alertType: "workspace_item_assigned",
+        status: "digest_ready",
+        cadence: "digest",
+      }),
+    ]);
+    expect(JSON.stringify(alerts.body)).not.toContain("record content");
     expect(emailTransport.messages).toHaveLength(0);
   });
 

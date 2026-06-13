@@ -172,6 +172,12 @@ export {
   type WorkspaceActivityRelatedEntityTypeRecord,
 } from "./models/workspace-activity.js";
 export {
+  WorkspaceAssignmentModel,
+  type WorkspaceAssignmentDocument,
+  type WorkspaceAssignmentEntityTypeRecord,
+  type WorkspaceAssignmentRecord,
+} from "./models/workspace-assignment.js";
+export {
   WorkspaceCommentModel,
   type WorkspaceCommentDocument,
   type WorkspaceCommentEntityTypeRecord,

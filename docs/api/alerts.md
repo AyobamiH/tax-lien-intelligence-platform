@@ -12,6 +12,8 @@ processing and user-visible delivery history. SMS, push, realtime delivery, and
 marketing messaging are not implemented.
 Phase 32 adds preference-aware alerts for a workspace discussion's first unread
 transition.
+Phase 33 adds preference-aware alerts when a workspace member becomes the new
+assignee for a supported shared record.
 
 Current alert sources:
 
@@ -24,6 +26,8 @@ Current alert sources:
   "Scheduled refresh" user-facing label.
 - a workspace peer adds a comment to a supported shared record while the
   recipient has no unread comments on that thread.
+- a workspace member assigns the recipient to a dataset, comparison item,
+  watchlist item, or portfolio item.
 
 ## Security Model
 
@@ -42,6 +46,7 @@ Supported alert types:
 - `scoring_job_completed`
 - `scoring_job_failed`
 - `workspace_comment_added`
+- `workspace_item_assigned`
 
 Supported severity values:
 
@@ -153,3 +158,7 @@ Discussion alerts remain personal records even though the related comment is
 workspace-owned. They include the verified workspace id for safe navigation and
 never include comment body text. A member receives at most one discussion alert
 per unread cycle for a thread.
+
+Assignment alerts are also personal. They identify only the workspace, target,
+assignment, and verified actor. Assigning yourself, assigning the current
+assignee again, and clearing responsibility do not create an alert.
