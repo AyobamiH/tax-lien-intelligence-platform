@@ -32,6 +32,7 @@ export function createWorkspaceRouter(
   const requireAuthenticatedUser = requireAuth(authService);
   const requireWorkspaceRead = requireWorkspaceAccess(workspaceService, "read");
   const requireMemberManagement = requireWorkspaceAccess(workspaceService, "manage_members");
+  const requireMemberRemoval = requireWorkspaceAccess(workspaceService, "remove_members");
   const requireRoleManagement = requireWorkspaceAccess(workspaceService, "manage_roles");
 
   router.get("/", requireAuthenticatedUser, async (request, response, next) => {
@@ -166,6 +167,43 @@ export function createWorkspaceRouter(
             },
           });
         }
+        response.status(200).json(result);
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  router.delete(
+    "/current/members/:membershipId",
+    requireAuthenticatedUser,
+    requireMemberRemoval,
+    async (request, response, next) => {
+      try {
+        if (!request.auth || !request.workspace) {
+          throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
+        }
+        const membershipId = request.params.membershipId;
+        if (typeof membershipId !== "string") {
+          throw new ApiError(400, "workspace_invalid_membership_id", "Workspace membership id is invalid.");
+        }
+        const result = await workspaceService.deactivateMember(
+          request.auth.userId,
+          request.workspace,
+          membershipId,
+        );
+        await recordWorkspaceActivitySafely(activityService, {
+          workspaceId: request.workspace.workspaceId,
+          actorUserId: request.auth.userId,
+          eventType: "workspace_member_removed",
+          relatedEntityType: "workspace_membership",
+          relatedEntityId: result.member.id,
+          metadata: {
+            memberUserId: result.member.userId,
+            memberEmail: result.member.email,
+            role: result.member.role === "owner" ? "member" : result.member.role,
+          },
+        });
         response.status(200).json(result);
       } catch (error) {
         next(error);

@@ -52,6 +52,23 @@ export function workspaceRoleLabel(role: WorkspaceRole): string {
   }
 }
 
+export function canChangeWorkspaceMemberRole(
+  actorRole: WorkspaceRole,
+  targetRole: WorkspaceRole,
+): boolean {
+  return actorRole === "owner" && targetRole !== "owner";
+}
+
+export function canRemoveWorkspaceMember(
+  actorRole: WorkspaceRole,
+  targetRole: WorkspaceRole,
+): boolean {
+  return (
+    targetRole !== "owner" &&
+    (actorRole === "owner" || (actorRole === "admin" && targetRole === "member"))
+  );
+}
+
 export type WorkspaceActivityDestination =
   | { surface: "dataset"; datasetId: string }
   | { surface: "comparison" }
@@ -100,6 +117,7 @@ export function workspaceActivityDestination(
       return { surface: "portfolio" };
     case "workspace_member_added":
     case "workspace_member_role_changed":
+    case "workspace_member_removed":
       return { surface: "workspace" };
     case "entity_assigned":
     case "entity_reassigned":

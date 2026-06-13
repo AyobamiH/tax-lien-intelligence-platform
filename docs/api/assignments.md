@@ -51,8 +51,10 @@ Returns the target's current assignment or `null`. Invalid ids return
 ## `PATCH /assignments/:entityType/:entityId`
 
 Assigns or reassigns the target to an active member of the selected workspace.
-All active members may use this additive responsibility control. The backend
-does not accept an email, role, workspace id, or actor id from the client.
+Only owners and admins may use this responsibility control. Members may read
+assignments and use their personal queue but receive `workspace_role_forbidden`
+for assignment changes. The backend does not accept an email, role, workspace
+id, or actor id from the client.
 
 ```json
 {
@@ -68,7 +70,12 @@ workspace activity. The new assignee receives a personal
 ## `DELETE /assignments/:entityType/:entityId`
 
 Clears current responsibility. Clearing an already-unassigned target is a
-successful no-op. A meaningful clear creates workspace activity but no alert.
+successful no-op. Only owners and admins may clear. A meaningful clear creates
+workspace activity but no alert.
+
+Removing a workspace member revokes access immediately but does not rewrite
+historical assignment records. The frontend marks an assignment to an inactive
+member as historical so an owner/admin can deliberately reassign or clear it.
 
 ## Boundaries
 

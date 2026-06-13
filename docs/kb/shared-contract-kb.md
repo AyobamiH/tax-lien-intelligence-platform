@@ -31,7 +31,8 @@ Current shared types in `packages/types`:
 - `AddWorkspaceMemberRequest`;
 - `AddWorkspaceMemberResponse`;
 - `UpdateWorkspaceMemberRoleRequest`;
-- `UpdateWorkspaceMemberRoleResponse`.
+- `UpdateWorkspaceMemberRoleResponse`;
+- `DeactivateWorkspaceMemberResponse`.
 - `WorkspaceActivityCategory`;
 - `WorkspaceActivityEventType`;
 - `WorkspaceActivityRelatedEntityType`;
@@ -778,6 +779,11 @@ possible or explicitly versioned.
   resource DTOs; derive them from verified workspace membership.
 - Keep the `owner`/`admin`/`member` role set explicit and do not smuggle a
   custom permission language into shared contracts.
+- Keep `WorkspaceMembershipStatus` limited to the implemented active/inactive
+  lifecycle and expose `canRemoveMembers` with the other server-derived
+  workspace permission booleans.
+- Keep membership removal as a server-authorized deactivation response; never
+  accept actor, workspace, owner, or status fields from the client.
 - Keep workspace activity enums and metadata allowlisted; do not accept
   client-authored summaries or general event payloads.
 - Do not represent scoring as a single number once explainable scoring exists.

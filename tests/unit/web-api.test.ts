@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ApiClientError,
+  addWorkspaceMember,
   addComparisonItem,
   applySavedView,
   applyDatasetImportProfile,
@@ -8,6 +9,7 @@ import {
   createWorkspaceComment,
   clearWorkspaceAssignment,
   createDataset,
+  deactivateWorkspaceMember,
   getNotificationPreferences,
   getWorkspaceAssignment,
   getPortfolioSummary,
@@ -31,6 +33,7 @@ import {
   setActiveWorkspaceId,
   updateComparisonItem,
   updateNotificationPreferences,
+  updateWorkspaceMemberRole,
   updateWorkspaceAssignment,
 } from "../../apps/web/src/api.js";
 
@@ -83,6 +86,41 @@ describe("web API client", () => {
     const secondHeaders = fetchMock.mock.calls[1]?.[1]?.headers as Headers;
     expect(firstHeaders.get("X-Workspace-Id")).toBeNull();
     expect(secondHeaders.get("X-Workspace-Id")).toBe("workspace-1");
+  });
+
+  it("adds, updates, and deactivates workspace members through the selected workspace", async () => {
+    const payloads = [
+      { member: { id: "membership-1", email: "member@example.com", role: "member", status: "active" } },
+      { member: { id: "membership-1", email: "member@example.com", role: "admin", status: "active" } },
+      { member: { id: "membership-1", email: "member@example.com", role: "admin", status: "inactive" } },
+    ];
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payloads.shift()), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await addWorkspaceMember("test-token", "member@example.com", "member");
+    await updateWorkspaceMemberRole("test-token", "membership-1", "admin");
+    await deactivateWorkspaceMember("test-token", "membership-1");
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/workspaces/current/members",
+      "http://localhost:4000/workspaces/current/members/membership-1",
+      "http://localhost:4000/workspaces/current/members/membership-1",
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual(["POST", "PATCH", "DELETE"]);
+    expect(fetchMock.mock.calls[0]?.[1]?.body).toBe(
+      JSON.stringify({ email: "member@example.com", role: "member" }),
+    );
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(JSON.stringify({ role: "admin" }));
+    for (const [, init] of fetchMock.mock.calls) {
+      const headers = init?.headers as Headers;
+      expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
+    }
   });
 
   it("loads filtered workspace activity inside the selected workspace", async () => {

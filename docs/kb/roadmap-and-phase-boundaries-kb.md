@@ -1092,6 +1092,35 @@ Phase 34 does not include:
 
 No npm advisory remains unresolved at completion.
 
+## Phase 35: Role-Aware Workspace Administration And Permission Hardening
+
+Current status: implemented.
+
+Phase 35 includes:
+
+- explicit owner/admin/member action rules;
+- owner-only non-owner role changes;
+- owner/admin member deactivation with admin-to-member-only target limits;
+- protected single-owner and no-self-escalation behavior;
+- inactive-membership access rejection and safe reactivation;
+- non-disclosing cross-workspace member administration;
+- member-removal workspace activity;
+- owner/admin-only assignment ownership changes;
+- focused workspace administration controls with protected/restricted states;
+- backend, API client, activity, and frontend permission-helper tests.
+
+Phase 35 does not include:
+
+- ownership transfer;
+- custom roles or arbitrary permission matrices;
+- SSO/SAML or SCIM;
+- billing or organization-wide enterprise administration;
+- compliance-grade audit logging;
+- approvals, auction execution, or AI administration.
+
+The role model remains intentionally small. This phase hardens the existing
+workspace foundation; it does not create an enterprise IAM platform.
+
 ## Later Phases
 
 Later phases may include:

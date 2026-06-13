@@ -2,6 +2,21 @@
 
 ## 2026-06-13
 
+- Implemented Phase 35 role-aware workspace administration and permission
+  hardening with explicit owner/admin/member action boundaries.
+- Added safe membership deactivation and reactivation, owner protection,
+  admin target-role restrictions, cross-workspace non-disclosure, and immediate
+  access revocation for inactive memberships.
+- Added owner-only role changes, owner/admin member-removal controls, clear
+  protected/restricted frontend states, confirmation and success/error
+  feedback, and member-removal workspace activity.
+- Restricted responsibility assignment changes to owners/admins while keeping
+  assignment visibility and personal queues available to active members.
+- Added integration and frontend contract tests for role differences,
+  self-escalation prevention, last-owner protection, removal/reactivation,
+  cross-workspace rejection, and permission-aware rendering.
+- Kept custom roles, SSO/SAML, SCIM, billing administration, approval
+  workflows, and enterprise policy tooling out of scope.
 - Implemented Phase 34 dependency vulnerability triage and supply-chain
   hardening.
 - Traced the two npm high-severity entries to `vite@7.3.3` and vulnerable

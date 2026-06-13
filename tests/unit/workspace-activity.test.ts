@@ -82,6 +82,18 @@ describe("workspace activity service", () => {
       service.record({
         workspaceId,
         actorUserId: userStore.user.id,
+        eventType: "workspace_member_removed",
+        relatedEntityType: "workspace_membership",
+        relatedEntityId: "membership-1",
+        metadata: {
+          memberUserId: "member-1",
+          memberEmail: "member@example.com",
+          role: "member",
+        },
+      }),
+      service.record({
+        workspaceId,
+        actorUserId: userStore.user.id,
         eventType: "entity_assigned",
         relatedEntityType: "watchlist_item",
         relatedEntityId: "watchlist-1",
@@ -112,6 +124,7 @@ describe("workspace activity service", () => {
       "decisions",
       "decisions",
       "portfolio",
+      "members",
       "responsibility",
       "responsibility",
     ]);
@@ -122,6 +135,7 @@ describe("workspace activity service", () => {
       "Moved a comparison candidate to the watchlist.",
       "Moved a comparison candidate into portfolio tracking.",
       "Changed a portfolio item from tracked to reviewing.",
+      "Removed member@example.com from the workspace.",
       "Assigned a watchlist item to member@example.com.",
       "Cleared responsibility for a watchlist item previously assigned to member@example.com.",
     ]);

@@ -55,7 +55,13 @@ Current repo protections:
 - safe auth responses that do not return password hashes;
 - tests for common auth failure modes;
 - explicit workspace and membership persistence;
-- selected-workspace membership and minimal role checks;
+- selected-workspace membership and minimal owner/admin/member role checks;
+- owner-only non-owner role updates with no admin/member self-escalation path;
+- owner protection, admin-to-member-only removal, retained inactive membership
+  records, immediate inactive-member access rejection, and safe reactivation;
+- membership ids are resolved inside the selected workspace and unknown or
+  cross-workspace ids share a non-disclosing not-found response;
+- role-aware frontend administration states backed by server authorization;
 - workspace-owned activity persistence with server-derived summaries;
 - cross-workspace activity rejection and actor-attribution tests;
 - workspace-owned comments with allowlisted target types and verified target
@@ -75,8 +81,8 @@ Current repo protections:
 - workspace-owned assignments with a unique target boundary, allowlisted target
   types, verified target access, and active same-workspace assignees;
 - server-derived assignment actor/workspace identity, explicit no-op behavior,
-  cross-workspace rejection, stale-target filtering, and new-assignee-only
-  notifications;
+  owner/admin mutation checks, cross-workspace rejection, stale-target
+  filtering, and new-assignee-only notifications;
 - assignment alert/delivery metadata allowlists with no record content, notes,
   compatibility tenant key, or arbitrary task payload;
 - tenant-owned dataset records;
@@ -191,6 +197,9 @@ Not yet implemented:
 - standalone normalized parcel/lien upload validation;
 - richer manual field-mapping validation and audit trail;
 - audit logging;
+- ownership transfer and recovery workflow beyond the protected single-owner
+  model;
+- SSO/SAML, SCIM, custom roles, and enterprise policy administration;
 - production CORS restrictions;
 - final browser session architecture beyond the current session-scoped JWT;
 - deployed worker authorization and credential isolation model;

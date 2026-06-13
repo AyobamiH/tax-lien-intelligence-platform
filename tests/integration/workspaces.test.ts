@@ -151,6 +151,7 @@ describe("workspace and team access", () => {
         canReadSharedData: true,
         canManageSharedData: true,
         canManageMembers: true,
+        canRemoveMembers: true,
         canManageRoles: true,
       },
     });
@@ -274,6 +275,176 @@ describe("workspace and team access", () => {
       .send({ role: "member" })
       .expect(400);
     expect(invalidMembership.body.error.code).toBe("workspace_invalid_membership_id");
+  });
+
+  it("enforces owner/admin/member removal rules and safely reactivates removed members", async () => {
+    const { app } = createTestContext();
+    const owner = await register(app, "owner@example.com");
+    const admin = await register(app, "admin@example.com");
+    const member = await register(app, "member@example.com");
+    const candidate = await register(app, "candidate@example.com");
+
+    const current = await request(app)
+      .get("/workspaces/current")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+    const workspaceId = current.body.workspace.id as string;
+    const ownerMembership = await request(app)
+      .get("/workspaces/current/members")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    const ownerMembershipId = ownerMembership.body.members[0].id as string;
+
+    const addedAdmin = await request(app)
+      .post("/workspaces/current/members")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ email: "admin@example.com", role: "admin" })
+      .expect(201);
+    const addedMember = await request(app)
+      .post("/workspaces/current/members")
+      .set("Authorization", `Bearer ${admin.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ email: "member@example.com", role: "member" })
+      .expect(201);
+
+    const adminContext = await request(app)
+      .get("/workspaces/current")
+      .set("Authorization", `Bearer ${admin.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(adminContext.body.workspace.permissions).toMatchObject({
+      canManageSharedData: true,
+      canManageMembers: true,
+      canRemoveMembers: true,
+      canManageRoles: false,
+    });
+
+    const memberContext = await request(app)
+      .get("/workspaces/current")
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(memberContext.body.workspace.permissions).toMatchObject({
+      canManageSharedData: false,
+      canManageMembers: false,
+      canRemoveMembers: false,
+      canManageRoles: false,
+    });
+
+    const memberRemovalAttempt = await request(app)
+      .delete(`/workspaces/current/members/${addedAdmin.body.member.id as string}`)
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(403);
+    expect(memberRemovalAttempt.body.error.code).toBe("workspace_role_forbidden");
+
+    const adminRemovalAttempt = await request(app)
+      .delete(`/workspaces/current/members/${addedAdmin.body.member.id as string}`)
+      .set("Authorization", `Bearer ${admin.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(403);
+    expect(adminRemovalAttempt.body.error.code).toBe("workspace_role_forbidden");
+
+    const ownerRemovalAttempt = await request(app)
+      .delete(`/workspaces/current/members/${ownerMembershipId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(409);
+    expect(ownerRemovalAttempt.body.error.code).toBe("workspace_owner_protected");
+
+    const removed = await request(app)
+      .delete(`/workspaces/current/members/${addedMember.body.member.id as string}`)
+      .set("Authorization", `Bearer ${admin.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(removed.body.member).toMatchObject({
+      id: addedMember.body.member.id,
+      email: "member@example.com",
+      role: "member",
+      status: "inactive",
+    });
+
+    const memberActivity = await request(app)
+      .get("/workspaces/current/activity?category=members")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(memberActivity.body.activities[0]).toMatchObject({
+      eventType: "workspace_member_removed",
+      relatedEntityId: addedMember.body.member.id,
+      summary: "Removed member@example.com from the workspace.",
+    });
+
+    const removedAccess = await request(app)
+      .get("/workspaces/current/members")
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(403);
+    expect(removedAccess.body.error.code).toBe("workspace_access_denied");
+
+    const reactivated = await request(app)
+      .post("/workspaces/current/members")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ email: "member@example.com", role: "member" })
+      .expect(201);
+    expect(reactivated.body.member).toMatchObject({
+      id: addedMember.body.member.id,
+      status: "active",
+    });
+
+    await request(app)
+      .post("/workspaces/current/members")
+      .set("Authorization", `Bearer ${admin.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ email: "candidate@example.com", role: "member" })
+      .expect(201);
+
+    const members = await request(app)
+      .get("/workspaces/current/members")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(members.body.members).toHaveLength(4);
+  });
+
+  it("does not reveal memberships across workspace administration boundaries", async () => {
+    const { app } = createTestContext();
+    const firstOwner = await register(app, "first@example.com");
+    const secondOwner = await register(app, "second@example.com");
+    const secondMember = await register(app, "second-member@example.com");
+    const firstWorkspaceId = await request(app)
+      .get("/workspaces/current")
+      .set("Authorization", `Bearer ${firstOwner.token}`)
+      .expect(200)
+      .then((response) => response.body.workspace.id as string);
+    const secondWorkspaceId = await request(app)
+      .get("/workspaces/current")
+      .set("Authorization", `Bearer ${secondOwner.token}`)
+      .expect(200)
+      .then((response) => response.body.workspace.id as string);
+
+    const secondMembership = await request(app)
+      .post("/workspaces/current/members")
+      .set("Authorization", `Bearer ${secondOwner.token}`)
+      .set("X-Workspace-Id", secondWorkspaceId)
+      .send({ email: "second-member@example.com", role: "member" })
+      .expect(201);
+
+    const crossWorkspace = await request(app)
+      .delete(`/workspaces/current/members/${secondMembership.body.member.id as string}`)
+      .set("Authorization", `Bearer ${firstOwner.token}`)
+      .set("X-Workspace-Id", firstWorkspaceId)
+      .expect(404);
+    expect(crossWorkspace.body.error.code).toBe("workspace_member_not_found");
+
+    await request(app)
+      .get("/workspaces/current/members")
+      .set("Authorization", `Bearer ${secondMember.token}`)
+      .set("X-Workspace-Id", secondWorkspaceId)
+      .expect(200);
   });
 
   it("returns a member-visible workspace activity feed with actor attribution and safe filtering", async () => {

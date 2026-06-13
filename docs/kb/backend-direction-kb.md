@@ -26,15 +26,16 @@ Current implementation:
 - auth middleware;
 - workspace and workspace-membership models;
 - personal owner-workspace bootstrap;
-- workspace/member list, add-member, and role-update APIs;
+- workspace/member list, add-member, owner-only role-update, and role-aware
+  deactivation APIs;
 - workspace activity model, recorder, and membership-protected retrieval API;
 - workspace comment model, entity-target access adapter, and
   membership-protected list/create/read-state/delete API;
 - discussion-attention model and service keyed by user, workspace, and thread;
 - workspace-assignment model and service with one current assignee per
   supported shared record;
-- selected-workspace membership middleware and explicit read/write/member-role
-  checks;
+- selected-workspace membership middleware and explicit read/write,
+  member-management, member-removal, and role-management checks;
 - global API error handling;
 - high-severity npm audit enforcement in CI and pre-push, with frontend
   compiler/build packages separated from runtime dependencies;
@@ -114,8 +115,8 @@ Current implementation:
 - peer-only comment notification fan-out with self-notification exclusion,
   unread accumulation, and one alert per unread cycle;
 - assignment get/reassign/clear and assigned-to-me APIs with active-assignee
-  validation, no-op handling, responsibility activity, and new-assignee-only
-  notification;
+  validation, owner/admin mutation enforcement, no-op handling, responsibility
+  activity, and new-assignee-only notification;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -154,6 +155,7 @@ The backend should become the trusted boundary for:
 - workspace contextual discussion persistence;
 - personal workspace-bound discussion attention persistence;
 - workspace responsibility assignment persistence;
+- workspace membership administration and inactive-membership lifecycle;
 - future compliance-grade audit events;
 - security enforcement.
 
@@ -767,6 +769,11 @@ Every backend feature must include:
 - tests for unauthorized access;
 - docs;
 - safe error behavior.
+
+Workspace administration additionally requires target-role checks after
+membership resolution. Owner records are immutable through current member
+routes, admins can affect regular members only, role updates are owner-only,
+and cross-workspace membership ids return non-disclosing not-found errors.
 
 ## Drift Risks
 

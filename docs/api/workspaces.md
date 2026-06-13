@@ -24,7 +24,8 @@ bootstraps a personal owner workspace when needed.
 ## `GET /workspaces/current`
 
 Returns the selected workspace, current role, member count, and explicit
-permission booleans.
+permission booleans for shared-data mutation, member addition/removal, and role
+management.
 
 ## `GET /workspaces/current/members`
 
@@ -56,7 +57,24 @@ Owner-only role update for a non-owner membership.
 }
 ```
 
-The owner role cannot be assigned or changed through this route.
+The owner role cannot be assigned or changed through this route. Admins and
+members receive `workspace_role_forbidden`, including attempts to change their
+own role.
+
+## `DELETE /workspaces/current/members/:membershipId`
+
+Deactivates a non-owner membership and immediately removes that user's access
+to the selected workspace. The membership record is retained as `inactive` and
+can be safely reactivated by adding the registered user again.
+
+- owners may remove admins or members;
+- admins may remove regular members only;
+- members cannot remove anyone;
+- the owner cannot be removed because ownership transfer is not implemented.
+
+Owner removal returns `workspace_owner_protected`. A membership id from another
+workspace returns the same `workspace_member_not_found` response as an unknown
+id, preventing cross-workspace disclosure.
 
 ## `GET /workspaces/current/activity`
 
@@ -65,7 +83,7 @@ member may read the feed.
 
 Optional query parameters:
 
-- `category`: `data`, `decisions`, `portfolio`, or `members`;
+- `category`: `data`, `decisions`, `portfolio`, `members`, or `responsibility`;
 - `limit`: integer from 1 to 100; defaults to 30.
 
 Example response:
@@ -114,3 +132,7 @@ not a compliance-grade audit API.
 Workspace comments are shared contextual discussion in Phase 31 and use their
 own `/comments` API. Active members may comment on accessible shared records;
 comments are not emitted into workspace activity.
+
+Phase 35 adds role-aware administration, not enterprise IAM. Custom roles,
+SSO/SAML, SCIM, arbitrary permission matrices, and ownership transfer remain
+out of scope.

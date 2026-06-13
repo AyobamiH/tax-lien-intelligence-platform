@@ -311,4 +311,37 @@ describe("workspace assignments", () => {
       .expect(403);
     expect(crossWorkspace.body.error.code).toBe("workspace_access_denied");
   });
+
+  it("allows members to read responsibility but restricts assignment changes to owners and admins", async () => {
+    const { app, targetAccess } = createTestContext();
+    const owner = await register(app, "owner@example.com");
+    const member = await register(app, "member@example.com");
+    const workspaceId = await currentWorkspaceId(app, owner.token);
+    await addMember(app, owner.token, workspaceId, "member@example.com");
+    const entityId = new mongoose.Types.ObjectId().toString();
+    targetAccess.allow("dataset", entityId, owner.userId);
+
+    await assignmentRequest(app, owner.token, workspaceId, "dataset", entityId)
+      .send({ assigneeUserId: member.userId })
+      .expect(200);
+
+    const visible = await request(app)
+      .get(`/assignments/dataset/${entityId}`)
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(visible.body.assignment.assignee.userId).toBe(member.userId);
+
+    const reassign = await assignmentRequest(app, member.token, workspaceId, "dataset", entityId)
+      .send({ assigneeUserId: owner.userId })
+      .expect(403);
+    expect(reassign.body.error.code).toBe("workspace_role_forbidden");
+
+    const clear = await request(app)
+      .delete(`/assignments/dataset/${entityId}`)
+      .set("Authorization", `Bearer ${member.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(403);
+    expect(clear.body.error.code).toBe("workspace_role_forbidden");
+  });
 });

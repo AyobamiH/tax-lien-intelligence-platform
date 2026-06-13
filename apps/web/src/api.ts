@@ -29,6 +29,7 @@ import type {
   DatasetRefreshJobResponse,
   DatasetScoringStatusResponse,
   DatasetManualMappingContextResponse,
+  DeactivateWorkspaceMemberResponse,
   DeleteComparisonItemResponse,
   ImportProfileListResponse,
   JobDetailResponse,
@@ -243,6 +244,19 @@ export async function updateWorkspaceMemberRole(
       method: "PATCH",
       token,
       body: JSON.stringify({ role }),
+    },
+  );
+}
+
+export async function deactivateWorkspaceMember(
+  token: string,
+  membershipId: string,
+): Promise<DeactivateWorkspaceMemberResponse> {
+  return requestJson<DeactivateWorkspaceMemberResponse>(
+    `/workspaces/current/members/${encodeURIComponent(membershipId)}`,
+    {
+      method: "DELETE",
+      token,
     },
   );
 }

@@ -11,6 +11,7 @@ export type WorkspaceActivityEventTypeRecord =
   | "portfolio_status_changed"
   | "workspace_member_added"
   | "workspace_member_role_changed"
+  | "workspace_member_removed"
   | "entity_assigned"
   | "entity_reassigned"
   | "entity_assignment_cleared";
@@ -109,6 +110,7 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
         "portfolio_status_changed",
         "workspace_member_added",
         "workspace_member_role_changed",
+        "workspace_member_removed",
         "entity_assigned",
         "entity_reassigned",
         "entity_assignment_cleared",

@@ -95,6 +95,7 @@ function categoryForEvent(eventType: WorkspaceActivityEventType): WorkspaceActiv
       return "portfolio";
     case "workspace_member_added":
     case "workspace_member_role_changed":
+    case "workspace_member_removed":
       return "members";
     case "entity_assigned":
     case "entity_reassigned":
@@ -126,6 +127,8 @@ function summaryForEvent(
       return `Added ${safeName(metadata?.memberEmail, "a registered user")} as ${roleLabel(metadata?.role)}.`;
     case "workspace_member_role_changed":
       return `Changed ${safeName(metadata?.memberEmail, "a workspace member")} from ${roleLabel(metadata?.previousRole)} to ${roleLabel(metadata?.role)}.`;
+    case "workspace_member_removed":
+      return `Removed ${safeName(metadata?.memberEmail, "a workspace member")} from the workspace.`;
     case "entity_assigned":
       return `Assigned ${entityLabel(metadata)} to ${safeName(metadata?.assigneeEmail, "a workspace member")}.`;
     case "entity_reassigned":

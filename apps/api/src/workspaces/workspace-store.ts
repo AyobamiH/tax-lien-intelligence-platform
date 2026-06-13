@@ -23,6 +23,8 @@ export interface StoredWorkspaceMembership {
   isDefault: boolean;
   addedByUserId: string;
   joinedAt: Date;
+  deactivatedByUserId?: string;
+  deactivatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,6 +61,12 @@ export interface WorkspaceMembershipStore {
     workspaceId: string,
     role: Exclude<WorkspaceRole, "owner">,
   ): Promise<StoredWorkspaceMembership | null>;
+  deactivateMembership(
+    membershipId: string,
+    workspaceId: string,
+    deactivatedByUserId: string,
+    deactivatedAt: Date,
+  ): Promise<StoredWorkspaceMembership | null>;
 }
 
 export class MongoWorkspaceStore implements WorkspaceStore {
@@ -80,6 +88,18 @@ export class MongoWorkspaceStore implements WorkspaceStore {
 
 export class MongoWorkspaceMembershipStore implements WorkspaceMembershipStore {
   public async createMembership(input: CreateWorkspaceMembershipInput): Promise<StoredWorkspaceMembership> {
+    const reactivated = await WorkspaceMembershipModel.findOneAndUpdate(
+      { workspaceId: input.workspaceId, userId: input.userId, status: "inactive" },
+      {
+        $set: { ...input, status: "active" },
+        $unset: { deactivatedByUserId: 1, deactivatedAt: 1 },
+      },
+      { new: true },
+    ).exec();
+    if (reactivated) {
+      return mapMembership(reactivated);
+    }
+
     const document = await WorkspaceMembershipModel.create({ ...input, status: "active" });
     return mapMembership(document);
   }
@@ -89,7 +109,11 @@ export class MongoWorkspaceMembershipStore implements WorkspaceMembershipStore {
   ): Promise<StoredWorkspaceMembership> {
     const document = await WorkspaceMembershipModel.findOneAndUpdate(
       { workspaceId: input.workspaceId, userId: input.userId },
-      { $setOnInsert: { ...input, status: "active" } },
+      {
+        $setOnInsert: input,
+        $set: { status: "active" },
+        $unset: { deactivatedByUserId: 1, deactivatedAt: 1 },
+      },
       { upsert: true, new: true },
     ).exec();
 
@@ -150,6 +174,27 @@ export class MongoWorkspaceMembershipStore implements WorkspaceMembershipStore {
     ).exec();
     return document ? mapMembership(document) : null;
   }
+
+  public async deactivateMembership(
+    membershipId: string,
+    workspaceId: string,
+    deactivatedByUserId: string,
+    deactivatedAt: Date,
+  ): Promise<StoredWorkspaceMembership | null> {
+    const document = await WorkspaceMembershipModel.findOneAndUpdate(
+      { _id: membershipId, workspaceId, role: { $ne: "owner" }, status: "active" },
+      {
+        $set: {
+          status: "inactive",
+          isDefault: false,
+          deactivatedByUserId,
+          deactivatedAt,
+        },
+      },
+      { new: true },
+    ).exec();
+    return document ? mapMembership(document) : null;
+  }
 }
 
 function mapWorkspace(document: WorkspaceDocument): StoredWorkspace {
@@ -163,7 +208,7 @@ function mapWorkspace(document: WorkspaceDocument): StoredWorkspace {
 }
 
 function mapMembership(document: WorkspaceMembershipDocument): StoredWorkspaceMembership {
-  return {
+  const membership: StoredWorkspaceMembership = {
     id: document.id,
     workspaceId: document.workspaceId,
     userId: document.userId,
@@ -175,4 +220,11 @@ function mapMembership(document: WorkspaceMembershipDocument): StoredWorkspaceMe
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
   };
+  if (document.deactivatedByUserId) {
+    membership.deactivatedByUserId = document.deactivatedByUserId;
+  }
+  if (document.deactivatedAt) {
+    membership.deactivatedAt = document.deactivatedAt;
+  }
+  return membership;
 }

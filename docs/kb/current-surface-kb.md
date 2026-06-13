@@ -76,11 +76,13 @@ It shows:
 - per-thread unread discussion counts, explicit read clearing, and
   workspace-aware discussion alert navigation;
 - responsibility controls on dataset, comparison, watchlist, and portfolio
-  detail surfaces;
+  detail surfaces, with assignment mutation limited to owners/admins and clear
+  member-restricted states;
 - dedicated assigned-to-me route using `#/assignments`;
 - dedicated workspace management route using `#/workspace`;
 - active member list, workspace switching, direct registered-user addition,
-  and owner-only role controls;
+  owner-only role controls, role-aware removal/deactivation controls, protected
+  owner state, and action feedback;
 - loading, empty, and error states.
 
 This is the first real user-facing review and decision-tracking workflow. It is
@@ -100,6 +102,7 @@ The current API surface is minimal:
 - `GET /workspaces/current/members`
 - `POST /workspaces/current/members`
 - `PATCH /workspaces/current/members/:membershipId`
+- `DELETE /workspaces/current/members/:membershipId`
 - `GET /workspaces/current/activity`
 - `GET /comments/:entityType/:entityId`
 - `POST /comments/:entityType/:entityId`
@@ -335,6 +338,12 @@ members are read-only. Existing record `userId` values remain the workspace
 owner compatibility key and are never client supplied. Alerts, notification
 settings/history, and saved views remain personal. Future changes must preserve
 both boundaries.
+
+Workspace administration is also server-authorized. Owners can change
+non-owner roles and remove admins/members; admins can add/remove regular
+members only; members cannot administer access. Deactivated memberships are
+excluded from workspace resolution immediately. This is a minimal role model,
+not enterprise IAM.
 
 Workspace activity is also shared only inside verified membership. It contains
 server-derived summaries and member-visible actor identity, never note text,

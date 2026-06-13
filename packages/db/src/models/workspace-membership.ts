@@ -2,7 +2,7 @@ import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 
 export const workspaceMembershipRoles = ["owner", "admin", "member"] as const;
 export type WorkspaceMembershipRoleRecord = (typeof workspaceMembershipRoles)[number];
-export type WorkspaceMembershipStatusRecord = "active";
+export type WorkspaceMembershipStatusRecord = "active" | "inactive";
 
 export interface WorkspaceMembershipRecord {
   workspaceId: string;
@@ -12,6 +12,8 @@ export interface WorkspaceMembershipRecord {
   isDefault: boolean;
   addedByUserId: string;
   joinedAt: Date;
+  deactivatedByUserId?: string;
+  deactivatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,10 +25,12 @@ const workspaceMembershipSchema = new Schema<WorkspaceMembershipRecord>(
     workspaceId: { type: String, required: true, index: true },
     userId: { type: String, required: true, index: true },
     role: { type: String, required: true, enum: workspaceMembershipRoles },
-    status: { type: String, required: true, enum: ["active"], default: "active" },
+    status: { type: String, required: true, enum: ["active", "inactive"], default: "active" },
     isDefault: { type: Boolean, required: true, default: false },
     addedByUserId: { type: String, required: true },
     joinedAt: { type: Date, required: true },
+    deactivatedByUserId: { type: String },
+    deactivatedAt: { type: Date },
   },
   {
     timestamps: true,

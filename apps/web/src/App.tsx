@@ -46,6 +46,7 @@ import {
   createWorkspaceComment,
   clearWorkspaceAssignment,
   createDataset,
+  deactivateWorkspaceMember,
   deleteSavedView,
   deleteWorkspaceComment,
   getCurrentUser,
@@ -104,6 +105,8 @@ import {
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
+  canChangeWorkspaceMemberRole,
+  canRemoveWorkspaceMember,
   comparisonDecisionClassName,
   comparisonDecisionLabel,
   comparisonDecisionOptions,
@@ -609,6 +612,31 @@ function App() {
         ),
         actionId: null,
         success: `${result.member.email} is now ${result.member.role}.`,
+      }));
+    } catch (error: unknown) {
+      setWorkspace((current) => ({
+        ...current,
+        actionId: null,
+        error: errorMessage(error),
+      }));
+    }
+  }
+
+  async function removeWorkspaceMember(membershipId: string): Promise<void> {
+    if (!session) {
+      return;
+    }
+    setWorkspace((current) => ({ ...current, actionId: membershipId, error: null, success: null }));
+    try {
+      const result = await deactivateWorkspaceMember(session.token, membershipId);
+      setWorkspace((current) => ({
+        ...current,
+        members: current.members.filter((member) => member.id !== result.member.id),
+        current: current.current
+          ? { ...current.current, memberCount: Math.max(1, current.current.memberCount - 1) }
+          : null,
+        actionId: null,
+        success: `${result.member.email} no longer has access to this workspace.`,
       }));
     } catch (error: unknown) {
       setWorkspace((current) => ({
@@ -1656,6 +1684,7 @@ function App() {
             onRetry={() => void refreshWorkspaceContext(session.token, workspace.current?.id)}
             onAddMember={(email, role) => void createWorkspaceMember(email, role)}
             onRoleChange={(membershipId, role) => void changeWorkspaceMemberRole(membershipId, role)}
+            onRemoveMember={(membershipId) => void removeWorkspaceMember(membershipId)}
           />
         ) : (
           <ReviewHome
@@ -4989,12 +5018,14 @@ function WorkspacePage({
   onRetry,
   onAddMember,
   onRoleChange,
+  onRemoveMember,
 }: {
   state: WorkspaceState;
   currentUserId: string;
   onRetry: () => void;
   onAddMember: (email: string, role: Exclude<WorkspaceRole, "owner">) => void;
   onRoleChange: (membershipId: string, role: Exclude<WorkspaceRole, "owner">) => void;
+  onRemoveMember: (membershipId: string) => void;
 }) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Exclude<WorkspaceRole, "owner">>("member");
@@ -5008,7 +5039,9 @@ function WorkspacePage({
   }
 
   const canAddMembers = state.current.permissions.canManageMembers;
+  const canRemoveMembers = state.current.permissions.canRemoveMembers;
   const canManageRoles = state.current.permissions.canManageRoles;
+  const currentRole = state.current.role;
 
   return (
     <section className="min-w-0">
@@ -5107,6 +5140,7 @@ function WorkspacePage({
               <th className="px-4 py-3">Role</th>
               <th className="px-4 py-3">Access</th>
               <th className="px-4 py-3">Joined</th>
+              <th className="px-4 py-3">Administration</th>
             </tr>
           </thead>
           <tbody>
@@ -5119,7 +5153,7 @@ function WorkspacePage({
                   </p>
                 </td>
                 <td className="px-4 py-3">
-                  {canManageRoles && member.role !== "owner" ? (
+                  {canManageRoles && canChangeWorkspaceMemberRole(currentRole, member.role) ? (
                     <select
                       value={member.role}
                       disabled={state.actionId === member.id}
@@ -5139,9 +5173,37 @@ function WorkspacePage({
                   )}
                 </td>
                 <td className="px-4 py-3 text-ink/70">
-                  {member.role === "member" ? "Shared data: read only" : "Shared data: read and write"}
+                  {member.role === "owner"
+                    ? "Full workspace administration"
+                    : member.role === "admin"
+                      ? "Shared data and regular member administration"
+                      : "Shared data: read only"}
                 </td>
                 <td className="px-4 py-3 text-ink/70">{formatDateTime(member.joinedAt)}</td>
+                <td className="px-4 py-3">
+                  {member.role === "owner" ? (
+                    <span className="text-xs font-semibold text-ink/55">Protected owner</span>
+                  ) : canRemoveMembers && canRemoveWorkspaceMember(currentRole, member.role) ? (
+                    <button
+                      type="button"
+                      disabled={state.actionId === member.id}
+                      onClick={() => {
+                        if (window.confirm(`Remove ${member.email} from this workspace?`)) {
+                          onRemoveMember(member.id);
+                        }
+                      }}
+                      className="border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {state.actionId === member.id ? "Removing" : "Remove access"}
+                    </button>
+                  ) : (
+                    <span className="text-xs font-semibold text-ink/55">
+                      {currentRole === "admin" && member.role === "admin"
+                        ? "Owner only"
+                        : "Restricted"}
+                    </span>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -5802,6 +5864,7 @@ function WorkspaceAssignmentControl({
   const [assigneeUserId, setAssigneeUserId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [canManage, setCanManage] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [reloadVersion, setReloadVersion] = useState(0);
@@ -5809,16 +5872,23 @@ function WorkspaceAssignmentControl({
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
+    setCanManage(false);
     setError(null);
     setSuccess(null);
     Promise.all([
       getWorkspaceAssignment(token, entityType, entityId),
       listWorkspaceMembers(token),
+      listWorkspaces(token),
     ])
-      .then(([assignmentResult, memberResult]) => {
+      .then(([assignmentResult, memberResult, workspaceResult]) => {
         if (!cancelled) {
           setAssignment(assignmentResult.assignment);
           setMembers(memberResult.members);
+          setCanManage(
+            workspaceResult.workspaces.find(
+              (candidate) => candidate.id === workspaceResult.currentWorkspaceId,
+            )?.permissions.canManageSharedData ?? false,
+          );
           setAssigneeUserId(assignmentResult.assignment?.assignee.userId ?? "");
         }
       })
@@ -5871,17 +5941,33 @@ function WorkspaceAssignmentControl({
     }
   }
 
+  const assigneeIsActive = assignment
+    ? members.some((member) => member.userId === assignment.assignee.userId)
+    : true;
+
   return (
     <section className="mt-5 border-t border-line pt-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h4 className="text-sm font-semibold">Responsibility</h4>
           <p className="mt-1 text-sm text-ink/65">
-            {assignment ? `Assigned to ${assignment.assignee.email}` : "No workspace member is assigned."}
+            {assignment
+              ? `Assigned to ${assignment.assignee.email}${assigneeIsActive ? "" : " (inactive member)"}`
+              : "No workspace member is assigned."}
           </p>
           {assignment ? (
             <p className="mt-1 text-xs text-ink/55">
               Set by {assignment.assignedBy.email} · {formatDateTime(assignment.assignedAt)}
+            </p>
+          ) : null}
+          {!canManage && !isLoading ? (
+            <p className="mt-1 text-xs text-ink/55">
+              Owners and administrators can change responsibility.
+            </p>
+          ) : null}
+          {!assigneeIsActive ? (
+            <p className="mt-1 text-xs font-semibold text-amber-800">
+              This responsibility marker is historical. Reassign or clear it before relying on the assignee.
             </p>
           ) : null}
         </div>
@@ -5911,7 +5997,7 @@ function WorkspaceAssignmentControl({
           Responsible member
           <select
             value={assigneeUserId}
-            disabled={isLoading || isSaving}
+            disabled={!canManage || isLoading || isSaving}
             onChange={(event) => {
               setAssigneeUserId(event.target.value);
               setSuccess(null);
@@ -5928,7 +6014,7 @@ function WorkspaceAssignmentControl({
         </label>
         <button
           type="button"
-          disabled={!assigneeUserId || isLoading || isSaving}
+          disabled={!canManage || !assigneeUserId || isLoading || isSaving}
           onClick={() => void saveAssignment()}
           className="bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
@@ -5937,7 +6023,7 @@ function WorkspaceAssignmentControl({
         {assignment ? (
           <button
             type="button"
-            disabled={isSaving}
+            disabled={!canManage || isSaving}
             onClick={() => void removeAssignment()}
             className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-60"
           >

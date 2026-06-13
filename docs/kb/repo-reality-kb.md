@@ -72,7 +72,10 @@ Implemented today:
 - discussion-attention model in `packages/db`;
 - workspace-assignment model in `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
-- authenticated workspace/member APIs with owner/admin/member roles;
+- authenticated workspace/member list, add, role-update, and deactivation APIs
+  with owner/admin/member roles;
+- owner protection, admin target-role restrictions, inactive-membership
+  filtering, safe membership reactivation, and cross-workspace non-disclosure;
 - workspace membership and role middleware using `X-Workspace-Id`;
 - authenticated workspace activity retrieval with category filtering;
 - authenticated workspace comment list/create/read-state/delete routes with
@@ -80,7 +83,8 @@ Implemented today:
 - peer-only discussion alerts with per-user workspace unread counts and
   one-alert-per-unread-cycle behavior;
 - authenticated assignment get/update/clear and assigned-to-me routes with
-  active-member, selected-workspace, and target-access enforcement;
+  active-member, selected-workspace, target-access, and owner/admin mutation
+  enforcement;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -131,7 +135,8 @@ Implemented today:
 - workspace-aware shared access for datasets, scoring/jobs, import profiles,
   watchlist, portfolio, comparison, decision history, and handoff;
 - workspace-scoped operational activity for meaningful dataset, score/refresh
-  request, comparison, portfolio-status, and membership actions;
+  request, comparison, portfolio-status, membership add/role, and member
+  removal actions;
 - workspace-scoped plain-text discussion on datasets, comparison items,
   watchlist items, and portfolio items;
 - one current workspace-owned responsibility assignment on datasets,
@@ -443,6 +448,9 @@ The repo has baseline security signals, but it is not yet a hardened SaaS:
 - alerts, notification preferences/delivery history, and saved views remain
   personal user-scoped records in Phase 29.
 - cross-workspace rejection and role-restricted mutation tests are implemented.
+- owner/admin/member administration differences, self-escalation prevention,
+  owner protection, deactivation/reactivation, and removed-member access tests
+  are implemented.
 - workspace activity actor attribution, empty feed, filtering, summary,
   navigation, and cross-workspace rejection tests are implemented.
 - workspace activity is best-effort operational history, not immutable audit

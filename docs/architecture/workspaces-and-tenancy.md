@@ -1,6 +1,8 @@
 # Workspaces And Tenancy Architecture
 
-Phase 29 adds the first workspace and team-access foundation. It evolves the
+Phase 29 adds the first workspace and team-access foundation. Phase 35 hardens
+that foundation with role-aware administration and safe membership
+deactivation. Together they evolve the
 product from authenticated single-user ownership to explicit workspace
 membership without rewriting every persisted product record in one release.
 
@@ -17,13 +19,18 @@ membership without rewriting every persisted product record in one release.
 - workspace id;
 - user id;
 - role: `owner`, `admin`, or `member`;
-- active status;
+- active or inactive status;
 - default-workspace marker;
 - adding user id;
-- joined, created, and updated timestamps.
+- joined, created, and updated timestamps;
+- optional deactivation actor and timestamp.
 
 There is one owner membership per workspace and one membership per
 user/workspace pair.
+
+Deactivation retains the membership record and unique user/workspace identity.
+Adding that registered user again reactivates the same membership safely.
+Normal workspace resolution and member lists include active memberships only.
 
 ## Bootstrap And Compatibility
 
@@ -68,10 +75,16 @@ membership or the API returns `workspace_access_denied`.
 
 ## Role Rules
 
-- `owner`: read/write shared data, add members/admins, and change non-owner roles;
-- `admin`: read/write shared data and add members, but cannot add admins or
-  change roles;
-- `member`: read shared data only.
+- `owner`: read/write shared data, add members/admins, change non-owner roles,
+  and remove admins/members;
+- `admin`: read/write shared data, add regular members, and remove regular
+  members, but cannot add admins, change roles, or remove admins/owners;
+- `member`: read shared data and participate in bounded comments, but cannot
+  mutate core records, administer membership, or change assignments.
+
+The owner cannot be demoted or deactivated. Ownership transfer is not
+implemented, so the workspace always retains its single owner. Role updates are
+owner-only, preventing admin or member self-escalation.
 
 The role set is intentionally small. There is no custom permission matrix.
 
@@ -121,6 +134,11 @@ Owners and admins can add an already registered user directly by email.
 Owners may assign `admin` or `member`; admins may add only `member`. There is no
 email invitation token or pending invitation lifecycle yet.
 
+Phase 35 adds membership deactivation. Owners may deactivate admins or members;
+admins may deactivate regular members only. Removed users immediately fail
+selected-workspace resolution. Re-adding the user reactivates the retained
+membership.
+
 ## Boundaries
 
 Phase 29 did not add comments, chat, concurrent editing, task assignment,
@@ -134,3 +152,7 @@ not an immutable audit system.
 
 Phase 32 adds bounded comment alerts, not shared notification policy, a team
 inbox, push/SMS, presence, or realtime messaging.
+
+Phase 35 is permission hardening, not enterprise IAM. It does not add custom
+roles, ownership transfer, SSO/SAML, SCIM, billing administration, policy
+packs, or compliance-grade audit guarantees.

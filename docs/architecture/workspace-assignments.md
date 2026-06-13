@@ -27,10 +27,10 @@ The requested assignee must have an active membership in the same workspace.
 The client cannot supply workspace ownership or actor identity. Missing,
 deleted, and cross-workspace targets share a safe not-found response.
 
-All active members may assign, reassign, and clear responsibility because this
-metadata is additive and does not mutate the underlying decision record.
-Owner/admin/member remains the complete role set; Phase 33 does not introduce a
-permission matrix.
+Phase 35 restricts assign, reassign, and clear operations to owners and admins.
+Active members may still read current responsibility and use their personal
+assigned-to-me queue. Owner/admin/member remains the complete role set; this
+hardening does not introduce a permission matrix.
 
 ## Activity And Notifications
 
@@ -52,9 +52,11 @@ and contain only workspace, assignment, actor, and target identifiers.
 ## Frontend
 
 Each supported detail surface shows current responsibility and provides a
-member selector with assign/reassign/clear controls. `#/assignments` lists the
-authenticated member's accessible assignments and links back to the owning
-surface.
+member selector with assign/reassign/clear controls for owners/admins and a
+clear restricted state for members. Assignments to deactivated members remain
+visible as historical markers until an owner/admin deliberately reassigns or
+clears them. `#/assignments` lists the authenticated member's accessible
+assignments and links back to the owning surface.
 
 ## Boundary
 

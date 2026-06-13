@@ -20,6 +20,7 @@ export function createWorkspaceAssignmentRouter(
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
   const requireWorkspaceRead = requireWorkspaceAccess(workspaceService, "read");
+  const requireWorkspaceWrite = requireWorkspaceAccess(workspaceService, "write");
 
   router.get("/mine", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
     try {
@@ -41,7 +42,7 @@ export function createWorkspaceAssignmentRouter(
     }
   });
 
-  router.patch("/:entityType/:entityId", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
+  router.patch("/:entityType/:entityId", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
       const { entityType, entityId } = parseTarget(request);
       const parsed = assignSchema.safeParse(request.body);
@@ -65,7 +66,7 @@ export function createWorkspaceAssignmentRouter(
     }
   });
 
-  router.delete("/:entityType/:entityId", requireAuthenticatedUser, requireWorkspaceRead, async (request, response, next) => {
+  router.delete("/:entityType/:entityId", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
       const { entityType, entityId } = parseTarget(request);
       if (!request.auth) {

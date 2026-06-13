@@ -58,6 +58,10 @@ does not add a team inbox, realtime chat, push/SMS, or AI collaboration.
 Phase 33 adds one current responsible workspace member on datasets, comparison
 items, watchlist items, and portfolio items, plus a personal assigned-to-me
 queue. It is responsibility signaling, not task management.
+Phase 35 makes the shared workspace governable with owner-only role changes,
+role-aware member deactivation, protected ownership, explicit restricted
+states, and owner/admin-only assignment changes. It is permission hardening,
+not enterprise IAM.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -107,6 +111,9 @@ Current evidence:
   one alert per unread cycle without exposing comment text in notifications.
 - workspace members can assign current responsibility for supported records and
   return to their own bounded assignment queue.
+- workspace owners/admins can manage active access within explicit role limits,
+  while members can see who is present and which administration actions are
+  intentionally restricted.
 
 ## What This SaaS Is
 
@@ -145,7 +152,8 @@ Maricopa-style county import adapter exists. Browser CSV upload and import
 readiness guidance now exist. Focused manual field mapping repair now exists.
 Reusable import profiles, comparison, the workspace-access foundation, activity,
 contextual comments, bounded discussion attention, and current responsibility
-assignments now exist. Broad county
+assignments now exist. Role-aware workspace administration and permission
+hardening now exist. Broad county
 coverage, live county sync, full spreadsheet editing, realtime chat, rich-text
 collaboration, compliance audit tooling, ML mapping suggestions, SMS/push alert delivery, user-facing
 scheduler policy controls, broader automatic refresh, advanced digest
@@ -340,7 +348,9 @@ Near-term non-goals:
 - broad automation before ingestion and scoring are reliable;
 - external automation before internal job boundaries are safe;
 - custom enterprise administration before the minimal workspace roles are
-  proven secure.
+  proven secure;
+- SSO/SAML, SCIM, custom roles, or policy packs before a separately justified
+  enterprise IAM phase.
 
 ## Long-Term Direction
 

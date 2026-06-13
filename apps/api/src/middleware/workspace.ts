@@ -2,7 +2,12 @@ import type { RequestHandler } from "express";
 import { ApiError } from "../errors/api-error.js";
 import type { WorkspaceAccessContext, WorkspaceService } from "../workspaces/workspace-service.js";
 
-export type WorkspacePermission = "read" | "write" | "manage_members" | "manage_roles";
+export type WorkspacePermission =
+  | "read"
+  | "write"
+  | "manage_members"
+  | "remove_members"
+  | "manage_roles";
 
 declare global {
   namespace Express {
@@ -47,6 +52,10 @@ function assertPermission(context: WorkspaceAccessContext, permission: Workspace
   }
 
   if (permission === "manage_members" && (context.role === "owner" || context.role === "admin")) {
+    return;
+  }
+
+  if (permission === "remove_members" && (context.role === "owner" || context.role === "admin")) {
     return;
   }
 

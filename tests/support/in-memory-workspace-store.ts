@@ -46,11 +46,24 @@ export class InMemoryWorkspaceMembershipStore implements WorkspaceMembershipStor
     const duplicate = [...this.memberships.values()].find(
       (membership) => membership.workspaceId === input.workspaceId && membership.userId === input.userId,
     );
-    if (duplicate) {
+    if (duplicate?.status === "active") {
       throw new Error("duplicate workspace membership");
     }
 
     const now = new Date();
+    if (duplicate) {
+      const reactivated: StoredWorkspaceMembership = {
+        ...duplicate,
+        ...input,
+        status: "active",
+        updatedAt: now,
+      };
+      delete reactivated.deactivatedByUserId;
+      delete reactivated.deactivatedAt;
+      this.memberships.set(reactivated.id, reactivated);
+      return reactivated;
+    }
+
     const membership: StoredWorkspaceMembership = {
       id: new mongoose.Types.ObjectId().toString(),
       ...input,
@@ -123,6 +136,28 @@ export class InMemoryWorkspaceMembershipStore implements WorkspaceMembershipStor
       return null;
     }
     const updated = { ...membership, role, updatedAt: new Date() };
+    this.memberships.set(updated.id, updated);
+    return updated;
+  }
+
+  public async deactivateMembership(
+    membershipId: string,
+    workspaceId: string,
+    deactivatedByUserId: string,
+    deactivatedAt: Date,
+  ): Promise<StoredWorkspaceMembership | null> {
+    const membership = await this.findByIdInWorkspace(membershipId, workspaceId);
+    if (!membership || membership.role === "owner") {
+      return null;
+    }
+    const updated: StoredWorkspaceMembership = {
+      ...membership,
+      status: "inactive",
+      isDefault: false,
+      deactivatedByUserId,
+      deactivatedAt,
+      updatedAt: deactivatedAt,
+    };
     this.memberships.set(updated.id, updated);
     return updated;
   }

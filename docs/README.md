@@ -34,7 +34,7 @@ before writing specs, prompts, or implementation plans.
 - [Alerts And Monitoring Architecture](architecture/alerts.md)
 - [Notification Preferences And Email Delivery Foundation](architecture/notification-preferences.md)
 - [Digest Delivery And History Architecture](architecture/digest-delivery.md)
-- [Workspaces And Tenancy Architecture](architecture/workspaces-and-tenancy.md)
+- [Workspaces, Tenancy, And Role-Aware Administration](architecture/workspaces-and-tenancy.md)
 - [Workspace Activity Architecture](architecture/workspace-activity.md)
 - [Workspace Comments Architecture](architecture/workspace-comments.md)
 - [Comment Notification And Attention Architecture](architecture/comment-notifications.md)

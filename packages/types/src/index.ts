@@ -40,12 +40,13 @@ export interface AuthenticatedPrincipal {
 }
 
 export type WorkspaceRole = "owner" | "admin" | "member";
-export type WorkspaceMembershipStatus = "active";
+export type WorkspaceMembershipStatus = "active" | "inactive";
 
 export interface WorkspacePermissions {
   canReadSharedData: boolean;
   canManageSharedData: boolean;
   canManageMembers: boolean;
+  canRemoveMembers: boolean;
   canManageRoles: boolean;
 }
 
@@ -102,6 +103,10 @@ export interface UpdateWorkspaceMemberRoleResponse {
   member: WorkspaceMemberResponse;
 }
 
+export interface DeactivateWorkspaceMemberResponse {
+  member: WorkspaceMemberResponse;
+}
+
 export type WorkspaceActivityCategory = "data" | "decisions" | "portfolio" | "members" | "responsibility";
 export type WorkspaceActivityEventType =
   | "dataset_uploaded"
@@ -113,6 +118,7 @@ export type WorkspaceActivityEventType =
   | "portfolio_status_changed"
   | "workspace_member_added"
   | "workspace_member_role_changed"
+  | "workspace_member_removed"
   | "entity_assigned"
   | "entity_reassigned"
   | "entity_assignment_cleared";

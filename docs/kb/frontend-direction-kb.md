@@ -60,7 +60,8 @@ Current implementation:
 - delivery history route with safe immediate and digest outcomes;
 - workspace context, selected role, and read-only visibility in the header;
 - workspace management route with member list, workspace selection,
-  registered-user addition, and owner-only role controls;
+  registered-user addition, owner-only role controls, role-aware removal,
+  protected/restricted states, confirmation, and success/error feedback;
 - workspace activity route with category tabs, actor attribution, timestamps,
   empty/error/loading states, and affected-surface navigation;
 - reusable workspace discussion section on dataset, comparison, watchlist, and
@@ -69,7 +70,8 @@ Current implementation:
 - discussion unread indicators, explicit read clearing, and alert navigation
   that switches to the verified workspace before opening a shared surface;
 - compact responsibility controls on dataset, comparison, watchlist, and
-  portfolio detail surfaces;
+  portfolio detail surfaces; owners/admins may mutate responsibility while
+  members see a clear restricted state;
 - assigned-to-me route with loading, empty, error, refresh, and affected-surface
   navigation;
 - loading, empty, and error states;
@@ -120,6 +122,8 @@ Current and future page direction:
 - implemented: notification preferences surface;
 - implemented: delivery history surface;
 - implemented: lightweight workspace/account-management surface;
+- implemented: Phase 35 role-aware workspace administration and member
+  deactivation controls;
 - implemented: focused workspace activity surface;
 - implemented: contextual workspace comment threads on four core record types;
 - implemented: bounded discussion attention and comment alert workflow;
@@ -374,6 +378,8 @@ Future frontend work must:
   from a client-side alert link.
 - treat assignment links as navigation hints only; the API must reverify
   workspace membership and target access.
+- derive member-management and assignment-control states from server-provided
+  workspace permissions; hidden or disabled controls are never authorization.
 
 ## What Must Not Be Overbuilt Too Early
 

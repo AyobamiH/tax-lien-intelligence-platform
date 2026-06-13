@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import type {
   AddWorkspaceMemberResponse,
   CurrentWorkspaceResponse,
+  DeactivateWorkspaceMemberResponse,
   UpdateWorkspaceMemberRoleResponse,
   WorkspaceListResponse,
   WorkspaceMemberResponse,
@@ -164,6 +165,44 @@ export class WorkspaceService {
     return { member: await this.toMemberResponse(updated) };
   }
 
+  public async deactivateMember(
+    actorUserId: string,
+    context: WorkspaceAccessContext,
+    membershipId: string,
+  ): Promise<DeactivateWorkspaceMemberResponse> {
+    if (!mongoose.Types.ObjectId.isValid(membershipId)) {
+      throw new ApiError(400, "workspace_invalid_membership_id", "Workspace membership id is invalid.");
+    }
+
+    this.assertCanManageMembers(context);
+    const existing = await this.membershipStore.findByIdInWorkspace(membershipId, context.workspaceId);
+    if (!existing) {
+      throw new ApiError(404, "workspace_member_not_found", "Workspace member was not found.");
+    }
+    if (existing.role === "owner") {
+      throw new ApiError(
+        409,
+        "workspace_owner_protected",
+        "The workspace owner cannot be removed. Ownership transfer is not available.",
+      );
+    }
+    if (context.role === "admin" && existing.role !== "member") {
+      throw new ApiError(403, "workspace_role_forbidden", "Administrators can remove regular members only.");
+    }
+
+    const deactivated = await this.membershipStore.deactivateMembership(
+      membershipId,
+      context.workspaceId,
+      actorUserId,
+      new Date(),
+    );
+    if (!deactivated) {
+      throw new ApiError(404, "workspace_member_not_found", "Workspace member was not found.");
+    }
+
+    return { member: await this.toMemberResponse(deactivated) };
+  }
+
   private async bootstrapPersonalWorkspace(userId: string): Promise<void> {
     const user = await this.userStore.findById(userId);
     if (!user) {
@@ -233,6 +272,7 @@ export function permissionsForRole(role: WorkspaceRole): WorkspacePermissions {
     canReadSharedData: true,
     canManageSharedData: role === "owner" || role === "admin",
     canManageMembers: role === "owner" || role === "admin",
+    canRemoveMembers: role === "owner" || role === "admin",
     canManageRoles: role === "owner",
   };
 }

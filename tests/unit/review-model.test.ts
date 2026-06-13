@@ -26,6 +26,8 @@ import {
   buildPortfolioByScoreId,
   buildPortfolioByWatchlistId,
   buildWatchlistByScoreId,
+  canChangeWorkspaceMemberRole,
+  canRemoveWorkspaceMember,
   datasetImportPresentation,
   datasetNeedsImportRepair,
   datasetReadinessClassName,
@@ -312,6 +314,14 @@ describe("review model helpers", () => {
     expect(workspaceRoleLabel("owner")).toBe("Owner");
     expect(workspaceRoleLabel("admin")).toBe("Admin");
     expect(workspaceRoleLabel("member")).toBe("Member");
+    expect(canChangeWorkspaceMemberRole("owner", "admin")).toBe(true);
+    expect(canChangeWorkspaceMemberRole("admin", "member")).toBe(false);
+    expect(canChangeWorkspaceMemberRole("owner", "owner")).toBe(false);
+    expect(canRemoveWorkspaceMember("owner", "admin")).toBe(true);
+    expect(canRemoveWorkspaceMember("admin", "member")).toBe(true);
+    expect(canRemoveWorkspaceMember("admin", "admin")).toBe(false);
+    expect(canRemoveWorkspaceMember("member", "member")).toBe(false);
+    expect(canRemoveWorkspaceMember("owner", "owner")).toBe(false);
   });
 
   it("maps workspace activity categories and affected surfaces", () => {
@@ -339,6 +349,14 @@ describe("review model helpers", () => {
         ...activity,
         category: "members",
         eventType: "workspace_member_added",
+        relatedEntityType: "workspace_membership",
+      }),
+    ).toEqual({ surface: "workspace" });
+    expect(
+      workspaceActivityDestination({
+        ...activity,
+        category: "members",
+        eventType: "workspace_member_removed",
         relatedEntityType: "workspace_membership",
       }),
     ).toEqual({ surface: "workspace" });
