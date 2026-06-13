@@ -1,5 +1,7 @@
 import type {
   AlertResponse,
+  ApprovalRequestedAction,
+  ApprovalRequestStatus,
   AlertRelatedEntityType,
   AlertSeverity,
   AlertType,
@@ -69,12 +71,46 @@ export function canRemoveWorkspaceMember(
   );
 }
 
+export function approvalStatusLabel(status: ApprovalRequestStatus): string {
+  switch (status) {
+    case "pending":
+      return "Pending";
+    case "approved":
+      return "Approved";
+    case "rejected":
+      return "Rejected";
+    case "cancelled":
+      return "Cancelled";
+  }
+}
+
+export function approvalStatusClassName(status: ApprovalRequestStatus): string {
+  switch (status) {
+    case "pending":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+    case "approved":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    case "rejected":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "cancelled":
+      return "border-line bg-field text-ink/65";
+  }
+}
+
+export function approvalActionLabel(action: ApprovalRequestedAction): string {
+  switch (action) {
+    case "comparison_handoff_to_portfolio":
+      return "Move comparison item to portfolio";
+  }
+}
+
 export type WorkspaceActivityDestination =
   | { surface: "dataset"; datasetId: string }
   | { surface: "comparison" }
   | { surface: "watchlist" }
   | { surface: "portfolio" }
   | { surface: "workspace" }
+  | { surface: "approvals" }
   | null;
 
 export function workspaceActivityCategoryLabel(category: WorkspaceActivityCategory | "all"): string {
@@ -91,6 +127,8 @@ export function workspaceActivityCategoryLabel(category: WorkspaceActivityCatego
       return "Members";
     case "responsibility":
       return "Responsibility";
+    case "approvals":
+      return "Approvals";
   }
 }
 
@@ -119,6 +157,11 @@ export function workspaceActivityDestination(
     case "workspace_member_role_changed":
     case "workspace_member_removed":
       return { surface: "workspace" };
+    case "approval_requested":
+    case "approval_approved":
+    case "approval_rejected":
+    case "approval_cancelled":
+      return { surface: "approvals" };
     case "entity_assigned":
     case "entity_reassigned":
     case "entity_assignment_cleared":
@@ -181,6 +224,8 @@ export function workspaceActivityDestinationLabel(
       return "Open portfolio";
     case "workspace":
       return "Open workspace";
+    case "approvals":
+      return "Open approvals";
   }
 }
 

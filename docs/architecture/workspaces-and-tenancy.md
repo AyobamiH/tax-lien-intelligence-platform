@@ -156,3 +156,7 @@ inbox, push/SMS, presence, or realtime messaging.
 Phase 35 is permission hardening, not enterprise IAM. It does not add custom
 roles, ownership transfer, SSO/SAML, SCIM, billing administration, policy
 packs, or compliance-grade audit guarantees.
+
+Phase 36 adds one workspace-scoped comparison-to-portfolio approval checkpoint.
+It does not add custom roles, shared policy builders, multi-step chains,
+enterprise governance, or general collaboration workflow.

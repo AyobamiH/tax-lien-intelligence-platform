@@ -115,6 +115,35 @@ describe("workspace activity service", () => {
           previousAssigneeEmail: "member@example.com",
         },
       }),
+      service.record({
+        workspaceId,
+        actorUserId: userStore.user.id,
+        eventType: "approval_requested",
+        relatedEntityType: "comparison_item",
+        relatedEntityId: "comparison-1",
+        metadata: {
+          approvalRequestId: "approval-1",
+          approvalAction: "comparison_handoff_to_portfolio",
+          approvalStatus: "pending",
+          approvalRequesterEmail: "member@example.com",
+        },
+      }),
+      service.record({
+        workspaceId,
+        actorUserId: userStore.user.id,
+        eventType: "approval_approved",
+        relatedEntityType: "comparison_item",
+        relatedEntityId: "comparison-1",
+        metadata: {
+          approvalRequestId: "approval-1",
+          approvalAction: "comparison_handoff_to_portfolio",
+          approvalStatus: "approved",
+          approvalRequesterEmail: "member@example.com",
+          approvalReviewerEmail: "owner@example.com",
+          targetEntityType: "portfolio_item",
+          targetEntityId: "portfolio-1",
+        },
+      }),
     ]);
 
     expect(events.map((event) => event.category)).toEqual([
@@ -127,6 +156,8 @@ describe("workspace activity service", () => {
       "members",
       "responsibility",
       "responsibility",
+      "approvals",
+      "approvals",
     ]);
     expect(events.map((event) => event.summary)).toEqual([
       "Queued scoring for a dataset.",
@@ -138,6 +169,8 @@ describe("workspace activity service", () => {
       "Removed member@example.com from the workspace.",
       "Assigned a watchlist item to member@example.com.",
       "Cleared responsibility for a watchlist item previously assigned to member@example.com.",
+      "member@example.com requested approval to move a comparison item to portfolio.",
+      "owner@example.com approved a comparison-to-portfolio handoff.",
     ]);
     expect(events.every((event) => event.actor.email === "analyst@example.com")).toBe(true);
   });

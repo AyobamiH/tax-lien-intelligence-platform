@@ -101,6 +101,11 @@ function categoryForEvent(eventType: WorkspaceActivityEventType): WorkspaceActiv
     case "entity_reassigned":
     case "entity_assignment_cleared":
       return "responsibility";
+    case "approval_requested":
+    case "approval_approved":
+    case "approval_rejected":
+    case "approval_cancelled":
+      return "approvals";
   }
 }
 
@@ -135,6 +140,14 @@ function summaryForEvent(
       return `Reassigned ${entityLabel(metadata)} from ${safeName(metadata?.previousAssigneeEmail, "a workspace member")} to ${safeName(metadata?.assigneeEmail, "a workspace member")}.`;
     case "entity_assignment_cleared":
       return `Cleared responsibility for ${entityLabel(metadata)} previously assigned to ${safeName(metadata?.previousAssigneeEmail, "a workspace member")}.`;
+    case "approval_requested":
+      return `${safeName(metadata?.approvalRequesterEmail, "A workspace member")} requested approval to move a comparison item to portfolio.`;
+    case "approval_approved":
+      return `${safeName(metadata?.approvalReviewerEmail, "A workspace reviewer")} approved a comparison-to-portfolio handoff.`;
+    case "approval_rejected":
+      return `${safeName(metadata?.approvalReviewerEmail, "A workspace reviewer")} rejected a comparison-to-portfolio handoff.`;
+    case "approval_cancelled":
+      return `${safeName(metadata?.approvalRequesterEmail, "A workspace member")} cancelled a comparison-to-portfolio approval request.`;
   }
 }
 

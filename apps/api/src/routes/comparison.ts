@@ -12,6 +12,7 @@ import {
   recordWorkspaceActivitySafely,
   type WorkspaceActivityService,
 } from "../workspace-activity/workspace-activity-service.js";
+import type { ApprovalService } from "../approvals/approval-service.js";
 
 const comparisonDecisionSchema = z.enum(comparisonDecisions);
 const portfolioStatusSchema = z.enum(portfolioStatuses);
@@ -38,11 +39,13 @@ export function createComparisonRouter(
   comparisonService: ComparisonService,
   workspaceService: WorkspaceService,
   activityService: WorkspaceActivityService,
+  approvalService: ApprovalService,
 ): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
   const requireWorkspaceRead = requireWorkspaceAccess(workspaceService, "read");
   const requireWorkspaceWrite = requireWorkspaceAccess(workspaceService, "write");
+  const requireSensitiveAction = requireWorkspaceAccess(workspaceService, "execute_sensitive_actions");
 
   router.post("/", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
     try {
@@ -127,7 +130,7 @@ export function createComparisonRouter(
     }
   });
 
-  router.post("/:comparisonItemId/handoff/portfolio", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
+  router.post("/:comparisonItemId/handoff/portfolio", requireAuthenticatedUser, requireSensitiveAction, async (request, response, next) => {
     try {
       if (!request.auth || !request.workspace) {
         throw new ApiError(403, "workspace_access_denied", "Workspace access is required.");
@@ -143,6 +146,7 @@ export function createComparisonRouter(
         throw toValidationError();
       }
 
+      await approvalService.assertNoPendingForTarget(request.workspace, comparisonItemId);
       const result = await comparisonService.handoffToPortfolio(request.workspace.tenantUserId, comparisonItemId, {
         ...(parsed.data.status ? { status: parsed.data.status } : {}),
       });

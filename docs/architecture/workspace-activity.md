@@ -83,10 +83,15 @@ styling.
 
 Phase 31 adds entity-linked comments as a separate contextual surface. Comment
 creation is deliberately not copied into workspace activity. Immutable
-retention, audit exports, before/after object diffs, mentions, tasks, approvals,
-websocket updates, and admin compliance tooling remain deferred.
+retention, audit exports, before/after object diffs, mentions, tasks, multi-step
+approval chains, websocket updates, and admin compliance tooling remain
+deferred.
 
 Phase 33 adds a `responsibility` category for meaningful assignment,
 reassignment, and clear events. Reassigning to the current assignee is a no-op
 and is not recorded. Assignment activity contains bounded member identity and
 target metadata, never task notes or record content.
+
+Phase 36 adds an `approvals` category for request, approval, rejection, and
+cancellation. It stores bounded identifiers/status and verified actor emails;
+request and reviewer notes are not copied into activity.

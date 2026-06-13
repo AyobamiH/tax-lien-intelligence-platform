@@ -19,7 +19,7 @@ const addMemberSchema = z.object({
 });
 const updateMemberRoleSchema = z.object({ role: memberRoleSchema });
 const activityQuerySchema = z.object({
-  category: z.enum(["data", "decisions", "portfolio", "members", "responsibility"]).optional(),
+  category: z.enum(["data", "decisions", "portfolio", "members", "responsibility", "approvals"]).optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
 });
 

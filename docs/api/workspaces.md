@@ -24,8 +24,8 @@ bootstraps a personal owner workspace when needed.
 ## `GET /workspaces/current`
 
 Returns the selected workspace, current role, member count, and explicit
-permission booleans for shared-data mutation, member addition/removal, and role
-management.
+permission booleans for shared-data mutation, member addition/removal, role
+management, approval request/review, and direct sensitive-action execution.
 
 ## `GET /workspaces/current/members`
 
@@ -83,7 +83,8 @@ member may read the feed.
 
 Optional query parameters:
 
-- `category`: `data`, `decisions`, `portfolio`, `members`, or `responsibility`;
+- `category`: `data`, `decisions`, `portfolio`, `members`, `responsibility`, or
+  `approvals`;
 - `limit`: integer from 1 to 100; defaults to 30.
 
 Example response:
@@ -132,6 +133,11 @@ not a compliance-grade audit API.
 Workspace comments are shared contextual discussion in Phase 31 and use their
 own `/comments` API. Active members may comment on accessible shared records;
 comments are not emitted into workspace activity.
+
+Phase 36 approval requests use the same selected-workspace membership boundary.
+All active roles may request a supported checkpoint, owners/admins may review a
+different member's request, and only owners may execute the direct
+comparison-to-portfolio action.
 
 Phase 35 adds role-aware administration, not enterprise IAM. Custom roles,
 SSO/SAML, SCIM, arbitrary permission matrices, and ownership transfer remain

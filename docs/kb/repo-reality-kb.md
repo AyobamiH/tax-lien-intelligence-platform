@@ -71,6 +71,7 @@ Implemented today:
 - workspace-comment model in `packages/db`;
 - discussion-attention model in `packages/db`;
 - workspace-assignment model in `packages/db`;
+- workspace-scoped approval-request model in `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
 - authenticated workspace/member list, add, role-update, and deactivation APIs
   with owner/admin/member roles;
@@ -85,6 +86,9 @@ Implemented today:
 - authenticated assignment get/update/clear and assigned-to-me routes with
   active-member, selected-workspace, target-access, and owner/admin mutation
   enforcement;
+- authenticated approval create/list/detail/approve/reject/cancel routes with
+  owner/admin reviewer authority, self-review prevention, requester
+  cancellation, stale-target checks, and cross-workspace non-disclosure;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -141,6 +145,9 @@ Implemented today:
   watchlist items, and portfolio items;
 - one current workspace-owned responsibility assignment on datasets,
   comparison items, watchlist items, and portfolio items;
+- one allowlisted comparison-to-portfolio approval checkpoint with
+  owner/admin review by a different user and an owner-only direct compatibility
+  path;
 - queued/running/completed/failed job lifecycle;
 - dedicated worker entrypoint for queued internal jobs;
 - worker-side job claiming and dataset scoring execution;
@@ -243,6 +250,8 @@ Implemented today:
   reasoning;
 - comparison detail history surface for recent decision/note changes;
 - comparison detail handoff actions with destination result visibility;
+- comparison detail approval request/status visibility and a dedicated
+  `#/approvals` reviewer queue;
 - frontend score job status polling after a scoring trigger;
 - frontend alerts route with unread count and read/read-all actions;
 - structured JSON 404 for unknown API routes;
@@ -381,6 +390,8 @@ Current tests cover:
 - comparison add/list/update/delete behavior;
 - duplicate comparison handling;
 - cross-user comparison source/update/delete/history/handoff rejection.
+- approval create/approve/reject/cancel, self-review, stale-target,
+  cross-workspace, activity, API client, and presentation behavior.
 
 Tests do not yet cover:
 

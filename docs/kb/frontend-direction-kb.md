@@ -74,6 +74,11 @@ Current implementation:
   members see a clear restricted state;
 - assigned-to-me route with loading, empty, error, refresh, and affected-surface
   navigation;
+- comparison-detail approval request/status section for the supported
+  comparison-to-portfolio checkpoint;
+- focused approval queue with pending/resolved status filters, bounded context,
+  reviewer rationale, owner/admin approve/reject actions, and requester
+  cancellation;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -128,6 +133,8 @@ Current and future page direction:
 - implemented: contextual workspace comment threads on four core record types;
 - implemented: bounded discussion attention and comment alert workflow;
 - implemented: current workspace responsibility and assigned-to-me workflow;
+- implemented: focused comparison-to-portfolio approval request and reviewer
+  workflow;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities
@@ -222,7 +229,8 @@ Future comparison expansion:
 - richer decision history beyond the current lightweight timeline;
 - collaboration;
 - legal-grade audit trails;
-- workflow boards or approval handoffs;
+- workflow boards or multi-step approval handoffs beyond the current focused
+  checkpoint;
 - task/project management;
 - spreadsheet-style custom comparison builders.
 

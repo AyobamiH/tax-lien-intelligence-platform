@@ -7,6 +7,15 @@ export {
 } from "./mongo.js";
 
 export {
+  ApprovalRequestModel,
+  type ApprovalActorRoleRecord,
+  type ApprovalRequestDocument,
+  type ApprovalRequestRecord,
+  type ApprovalRequestedActionRecord,
+  type ApprovalRequestStatusRecord,
+  type ApprovalTargetEntityTypeRecord,
+} from "./models/approval-request.js";
+export {
   AlertModel,
   type AlertDeliveryPreparationPayloadRecord,
   type AlertDeliveryPreparationRecord,

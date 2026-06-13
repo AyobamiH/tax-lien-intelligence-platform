@@ -1,5 +1,8 @@
 import type {
   ApiErrorResponse,
+  ApprovalRequestDetailResponse,
+  ApprovalRequestListResponse,
+  ApprovalRequestStatus,
   AuthMeResponse,
   AuthSuccessResponse,
   AlertDetailResponse,
@@ -65,6 +68,7 @@ import type {
   WorkspaceAssignmentEntityType,
   UpdateWorkspaceAssignmentResponse,
   WorkspaceRole,
+  CreateApprovalRequestResponse,
 } from "@tax-lien/types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
@@ -219,6 +223,88 @@ export async function clearWorkspaceAssignment(
 
 export async function listAssignedToMe(token: string): Promise<AssignedToMeResponse> {
   return requestJson<AssignedToMeResponse>("/assignments/mine", { token });
+}
+
+export async function listApprovalRequests(
+  token: string,
+  options: {
+    status?: ApprovalRequestStatus;
+    targetEntityType?: "comparison_item";
+    targetEntityId?: string;
+  } = {},
+): Promise<ApprovalRequestListResponse> {
+  const search = new URLSearchParams();
+  if (options.status) {
+    search.set("status", options.status);
+  }
+  if (options.targetEntityType) {
+    search.set("targetEntityType", options.targetEntityType);
+  }
+  if (options.targetEntityId) {
+    search.set("targetEntityId", options.targetEntityId);
+  }
+  const query = search.size > 0 ? `?${search.toString()}` : "";
+  return requestJson<ApprovalRequestListResponse>(`/approvals${query}`, { token });
+}
+
+export async function createApprovalRequest(
+  token: string,
+  targetEntityId: string,
+  requestNote: string,
+): Promise<CreateApprovalRequestResponse> {
+  return requestJson<CreateApprovalRequestResponse>("/approvals", {
+    method: "POST",
+    token,
+    body: JSON.stringify({
+      targetEntityType: "comparison_item",
+      targetEntityId,
+      requestedAction: "comparison_handoff_to_portfolio",
+      requestNote,
+    }),
+  });
+}
+
+export async function approveApprovalRequest(
+  token: string,
+  approvalRequestId: string,
+  responseNote?: string,
+): Promise<ApprovalRequestDetailResponse> {
+  return requestJson<ApprovalRequestDetailResponse>(
+    `/approvals/${encodeURIComponent(approvalRequestId)}/approve`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify(responseNote ? { responseNote } : {}),
+    },
+  );
+}
+
+export async function rejectApprovalRequest(
+  token: string,
+  approvalRequestId: string,
+  responseNote: string,
+): Promise<ApprovalRequestDetailResponse> {
+  return requestJson<ApprovalRequestDetailResponse>(
+    `/approvals/${encodeURIComponent(approvalRequestId)}/reject`,
+    {
+      method: "POST",
+      token,
+      body: JSON.stringify({ responseNote }),
+    },
+  );
+}
+
+export async function cancelApprovalRequest(
+  token: string,
+  approvalRequestId: string,
+): Promise<ApprovalRequestDetailResponse> {
+  return requestJson<ApprovalRequestDetailResponse>(
+    `/approvals/${encodeURIComponent(approvalRequestId)}/cancel`,
+    {
+      method: "POST",
+      token,
+    },
+  );
 }
 
 export async function addWorkspaceMember(

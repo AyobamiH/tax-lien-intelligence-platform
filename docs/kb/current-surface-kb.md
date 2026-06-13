@@ -79,6 +79,11 @@ It shows:
   detail surfaces, with assignment mutation limited to owners/admins and clear
   member-restricted states;
 - dedicated assigned-to-me route using `#/assignments`;
+- comparison-detail approval request/status visibility for the supported
+  comparison-to-portfolio checkpoint;
+- dedicated approval queue using `#/approvals`, with pending/resolved filters,
+  requester/reviewer context, rationale, and role-aware
+  approve/reject/cancel controls;
 - dedicated workspace management route using `#/workspace`;
 - active member list, workspace switching, direct registered-user addition,
   owner-only role controls, role-aware removal/deactivation controls, protected
@@ -112,6 +117,12 @@ The current API surface is minimal:
 - `GET /assignments/:entityType/:entityId`
 - `PATCH /assignments/:entityType/:entityId`
 - `DELETE /assignments/:entityType/:entityId`
+- `GET /approvals`
+- `POST /approvals`
+- `GET /approvals/:approvalRequestId`
+- `POST /approvals/:approvalRequestId/approve`
+- `POST /approvals/:approvalRequestId/reject`
+- `POST /approvals/:approvalRequestId/cancel`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -171,6 +182,7 @@ Documented in:
 - `docs/api/workspaces.md`
 - `docs/api/comments.md`
 - `docs/api/assignments.md`
+- `docs/api/approvals.md`
 
 There is no standalone parcel API yet.
 
@@ -273,8 +285,8 @@ The current API cannot:
 - expose a user-facing scheduler console;
 - provide broad county adapter coverage or scraping;
 - provide a full spreadsheet transformation workflow;
-- provide chat, rich-text comments, mentions, tasks, approvals, realtime
-  collaboration,
+- provide chat, rich-text comments, mentions, task approvals, multi-step
+  approval chains, realtime collaboration,
   compliance-grade audit exports, or auction execution.
 - run arbitrary saved-view query expressions or BI/report-builder workflows.
 - send SMS/push alerts or realtime notifications.

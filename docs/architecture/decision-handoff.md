@@ -36,7 +36,7 @@ Implemented scope:
 Not implemented:
 
 - broad workflow engines;
-- collaboration or approval handoffs;
+- multi-step or arbitrary approval handoffs;
 - task/project management;
 - auction execution;
 - automation rules;
@@ -84,14 +84,16 @@ Handoff history records include:
 - portfolio status when relevant.
 
 This is enough to answer where a candidate went without introducing a lineage
-engine, approval model, or task system.
+engine or task system. Phase 36 layers one allowlisted approval request around
+the existing portfolio handoff service.
 
 ## Frontend Surface
 
-The comparison detail panel exposes two explicit actions:
+The comparison detail panel exposes:
 
 - send to watchlist;
-- track in portfolio.
+- direct track in portfolio for owners;
+- request portfolio approval for admins/members.
 
 After a successful handoff, the panel shows whether the destination received the
 record or already had it, the target id, and a navigation action to the
@@ -123,7 +125,8 @@ Future contributors should avoid:
 - letting `move_forward` automatically create portfolio records;
 - accepting client-submitted target ids or ownership;
 - turning handoff into a broad workflow engine;
-- adding approval/collaboration semantics without authorization design;
+- adding broader approval/collaboration semantics without a new authorization
+  design;
 - using handoff events as legal-grade audit logs;
 - creating auction execution side effects.
 

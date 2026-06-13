@@ -38,7 +38,7 @@ Not implemented:
 
 - full compliance/legal audit logging;
 - immutable append-only infrastructure guarantees;
-- approval workflows;
+- multi-step approval workflows;
 - task/project management;
 - rich diffs;
 - auction execution;
@@ -157,4 +157,4 @@ Update this document when:
 - event retention, immutability, or compliance guarantees change;
 - history metadata fields change;
 - handoff event metadata fields change;
-- collaboration, approval, or audit semantics are introduced.
+- broader collaboration, approval, or audit semantics are introduced.

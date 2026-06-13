@@ -18,6 +18,7 @@ phase should not be pushed until:
 - `npm run typecheck` passes;
 - `npm run test` passes;
 - `npm run build` passes;
+- `npm audit` passes;
 - the pre-push hook passes.
 
 Pull requests may still be useful for visibility, but they are not the current
@@ -1116,10 +1117,46 @@ Phase 35 does not include:
 - SSO/SAML or SCIM;
 - billing or organization-wide enterprise administration;
 - compliance-grade audit logging;
-- approvals, auction execution, or AI administration.
+- approval checkpoints, auction execution, or AI administration; Phase 36 adds
+  only one focused review gate.
 
 The role model remains intentionally small. This phase hardens the existing
 workspace foundation; it does not create an enterprise IAM platform.
+
+## Phase 36: Approval Requests And Review Checkpoints
+
+Current status: implemented.
+
+Phase 36 includes:
+
+- workspace-scoped approval requests for
+  `comparison_handoff_to_portfolio`;
+- `pending`, `approved`, `rejected`, and `cancelled` lifecycle;
+- bounded request context and reviewer rationale;
+- one pending request per workspace/target/action;
+- active-member request access;
+- owner/admin reviewer authority with self-review prevention;
+- requester-only cancellation;
+- stale-target revalidation and pending-only atomic resolution;
+- execution through the existing duplicate-safe portfolio handoff and decision
+  history path;
+- bounded approval workspace activity without note text;
+- comparison-detail request/status visibility and a focused approval queue;
+- integration and frontend contract tests.
+
+Owners retain an explicit direct portfolio-handoff compatibility path for solo
+workspaces. Admins and members use the review checkpoint.
+
+Phase 36 does not include:
+
+- multi-step approval chains, quorums, or delegation;
+- arbitrary workflow builders or custom permission matrices;
+- SLAs, escalation, compliance policy, or e-signatures;
+- general task/project approvals;
+- approval alerts/email;
+- auction execution or AI reviewer routing.
+
+This is a practical trust checkpoint, not a business-process platform.
 
 ## Later Phases
 
@@ -1178,7 +1215,9 @@ Dependency order matters:
 30. comment notification and discussion attention;
 31. workspace assignment and responsibility workflow;
 32. dependency vulnerability triage and supply-chain hardening;
-33. broader automation.
+33. role-aware workspace administration hardening;
+34. focused approval requests and review checkpoints;
+35. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

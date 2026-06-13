@@ -2,6 +2,24 @@
 
 ## 2026-06-13
 
+- Implemented Phase 36 approval requests and review checkpoints for
+  comparison-to-portfolio handoff.
+- Added a workspace-scoped approval model, pending/approved/rejected/cancelled
+  lifecycle, bounded requester/reviewer notes, duplicate-pending protection,
+  short-lived atomic reviewer claims, stale-target checks, and recorded
+  portfolio outcomes.
+- Added active-member request access, owner/admin review authority,
+  self-review prevention, requester-only cancellation, cross-workspace
+  non-disclosure, and an owner-only direct-handoff compatibility path.
+- Added comparison approval status/request controls, a focused `#/approvals`
+  queue, approve/reject/cancel actions, reviewer rationale, and resolved outcome
+  visibility.
+- Added bounded approval workspace activity without copying note text, plus
+  integration and frontend contract tests for valid, unauthorized, stale,
+  repeated, and cross-workspace paths.
+- Kept multi-step chains, arbitrary workflow builders, SLA/escalation,
+  e-signatures, compliance approval systems, approval notifications, auction
+  execution, and AI routing out of scope.
 - Implemented Phase 35 role-aware workspace administration and permission
   hardening with explicit owner/admin/member action boundaries.
 - Added safe membership deactivation and reactivation, owner protection,

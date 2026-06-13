@@ -274,6 +274,9 @@ export function permissionsForRole(role: WorkspaceRole): WorkspacePermissions {
     canManageMembers: role === "owner" || role === "admin",
     canRemoveMembers: role === "owner" || role === "admin",
     canManageRoles: role === "owner",
+    canRequestApprovals: true,
+    canReviewApprovals: role === "owner" || role === "admin",
+    canExecuteSensitiveActions: role === "owner",
   };
 }
 

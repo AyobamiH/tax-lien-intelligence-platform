@@ -47,9 +47,9 @@ Implemented scope:
 Not implemented:
 
 - saved multiple workspaces;
-- collaboration or team comments;
+- broad realtime collaboration;
 - legal-grade audit trails;
-- workflow engines or approval pipelines;
+- workflow engines or multi-step approval pipelines;
 - rich text notes;
 - task/project management;
 - spreadsheet builders;
@@ -111,7 +111,8 @@ These states are lightweight review markers. They do not trigger side effects.
 `move_forward` does not automatically create a portfolio item, schedule a task,
 send an alert, or execute an auction action. Phase 23 adds explicit handoff
 buttons so the user can deliberately send a comparison item to watchlist or
-portfolio.
+portfolio. Phase 36 makes direct portfolio handoff owner-only and lets
+admins/members request review through the separate approval API.
 
 Notes are intentionally plain text. They are trimmed, capped at 500 characters,
 and validated for unsupported control characters. Phase 22 records lightweight
@@ -130,6 +131,8 @@ The frontend integrates comparison into the existing review loop:
   reasoning, flags, and lightweight decision history.
 - selected item detail exposes explicit watchlist/portfolio handoff actions and
   result visibility.
+- selected item detail shows approval status and request controls for the
+  supported comparison-to-portfolio checkpoint.
 
 The comparison page is dense and operational. It should remain a decision tool,
 not a decorative card gallery or spreadsheet replacement.

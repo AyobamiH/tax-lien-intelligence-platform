@@ -62,6 +62,10 @@ Phase 35 makes the shared workspace governable with owner-only role changes,
 role-aware member deactivation, protected ownership, explicit restricted
 states, and owner/admin-only assignment changes. It is permission hardening,
 not enterprise IAM.
+Phase 36 adds one focused approval checkpoint for moving comparison candidates
+into portfolio tracking. A different owner/admin can approve or reject a
+member/admin request with bounded rationale, while owners retain an explicit
+direct compatibility path. It is a trust layer, not a general workflow engine.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -114,6 +118,9 @@ Current evidence:
 - workspace owners/admins can manage active access within explicit role limits,
   while members can see who is present and which administration actions are
   intentionally restricted.
+- workspace members/admins can request review before a comparison item enters
+  portfolio, and a different owner/admin can record approval or rejection with
+  a bounded reason.
 
 ## What This SaaS Is
 
@@ -142,6 +149,10 @@ The intended product loop is:
 14. the user can deliberately refresh stale or weak scoring/enrichment state.
 15. the system can identify stale scored datasets for bounded maintenance
     review without becoming an unlimited automation product.
+16. a non-owner can request explicit review before a comparison candidate moves
+    into portfolio tracking.
+17. a different owner/admin can approve or reject that request with a recorded
+    rationale and visible outcome.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
@@ -153,11 +164,13 @@ readiness guidance now exist. Focused manual field mapping repair now exists.
 Reusable import profiles, comparison, the workspace-access foundation, activity,
 contextual comments, bounded discussion attention, and current responsibility
 assignments now exist. Role-aware workspace administration and permission
-hardening now exist. Broad county
+hardening now exist. A focused comparison-to-portfolio approval checkpoint now
+exists. Broad county
 coverage, live county sync, full spreadsheet editing, realtime chat, rich-text
 collaboration, compliance audit tooling, ML mapping suggestions, SMS/push alert delivery, user-facing
 scheduler policy controls, broader automatic refresh, advanced digest
-scheduling/templates/retries, and richer automation remain future direction.
+scheduling/templates/retries, multi-step approval governance, and richer
+automation remain future direction.
 
 ## What This SaaS Is Not
 
@@ -272,9 +285,8 @@ Current implementation:
   responsibility activity;
 - no standalone parcel/lien schema;
 - no chat, rich-text/realtime comments, shared editing, task status/due dates,
-  approval
-  collaboration, final
-  investment decision, auction, or accounting workflow.
+  multi-step approval governance, final investment decision, auction, or
+  accounting workflow.
 - workspace activity exists as a bounded shared-awareness feed, not an
   immutable audit trail.
 

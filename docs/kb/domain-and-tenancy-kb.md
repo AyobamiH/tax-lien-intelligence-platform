@@ -77,8 +77,9 @@ Current documentation direction:
 
 A workspace is the selected tenant operating context. It has one owner and
 active owner/admin/member memberships. Owners/admins can mutate shared core
-data; members are read-only. This is an access foundation, not comments, tasks,
-approvals, billing, or full collaboration.
+data; members are read-only except for bounded collaboration actions such as
+comments and approval requests. This is an access foundation, not task
+management, custom approval policy, billing, or full collaboration.
 
 ### Workspace Activity
 
@@ -87,9 +88,10 @@ meaningful shared actions. It stores the verified actor, an allowlisted event
 type, a related entity, a server-derived summary, bounded metadata, and time.
 
 Current status: implemented for dataset upload, score/refresh requests,
-comparison decision/handoff, portfolio status, and membership changes. It does
-not store note text, raw errors, source rows, personal alerts, or arbitrary
-client-authored events. It is not immutable compliance audit infrastructure.
+comparison decision/handoff, portfolio status, membership, responsibility, and
+approval lifecycle changes. It does not store note text, raw errors, source
+rows, personal alerts, or arbitrary client-authored events. It is not immutable
+compliance audit infrastructure.
 
 ### Workspace Comment
 

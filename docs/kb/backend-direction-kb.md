@@ -34,8 +34,11 @@ Current implementation:
 - discussion-attention model and service keyed by user, workspace, and thread;
 - workspace-assignment model and service with one current assignee per
   supported shared record;
+- approval-request model and service for the allowlisted
+  comparison-to-portfolio checkpoint;
 - selected-workspace membership middleware and explicit read/write,
-  member-management, member-removal, and role-management checks;
+  member-management, member-removal, role-management, approval-review, and
+  sensitive-action checks;
 - global API error handling;
 - high-severity npm audit enforcement in CI and pre-push, with frontend
   compiler/build packages separated from runtime dependencies;
@@ -117,6 +120,9 @@ Current implementation:
 - assignment get/reassign/clear and assigned-to-me APIs with active-assignee
   validation, owner/admin mutation enforcement, no-op handling, responsibility
   activity, and new-assignee-only notification;
+- approval create/list/detail/approve/reject/cancel APIs with duplicate-pending
+  protection, self-review prevention, requester-only cancellation,
+  stale-target revalidation, and workspace-qualified lookup;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -155,6 +161,7 @@ The backend should become the trusted boundary for:
 - workspace contextual discussion persistence;
 - personal workspace-bound discussion attention persistence;
 - workspace responsibility assignment persistence;
+- workspace approval checkpoint persistence and resolution;
 - workspace membership administration and inactive-membership lifecycle;
 - future compliance-grade audit events;
 - security enforcement.
@@ -482,13 +489,15 @@ Comparison endpoints:
 - create/reuse watchlist or portfolio records only through explicit user
   handoff actions;
 - record safe handoff target linkage in decision history;
-- do not create alerts, auction, automation, approval, or task side effects.
+- let the separate allowlisted approval service invoke the existing portfolio
+  handoff path after review;
+- do not create alerts, auction, automation, or task side effects.
 
 Current limitation:
 
-- no multiple workspaces, collaboration, legal-grade audit trail, task
-  management, rich text notes, spreadsheet builders, workflow engines,
-  approval pipelines, auction execution, or ML/AI decision suggestions.
+- no legal-grade audit trail, task management, rich text notes, spreadsheet
+  builders, general workflow engines, multi-step approval pipelines, auction
+  execution, or ML/AI decision suggestions.
 
 ## Saved Views Implementation
 
@@ -736,7 +745,11 @@ Backend implementation order should stay disciplined:
 30. comment notification and discussion attention workflow: implemented in
     Phase 32;
 31. workspace assignment and responsibility workflow: implemented in Phase 33;
-32. later external automation.
+32. dependency vulnerability and supply-chain hardening: implemented in Phase
+    34;
+33. role-aware workspace administration hardening: implemented in Phase 35;
+34. focused approval requests and review checkpoints: implemented in Phase 36;
+35. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -751,7 +764,9 @@ Avoid:
 - turning contextual comments into chat, arbitrary HTML, or an unbounded
   notification stream beyond the one-alert-per-unread-cycle rule;
 - turning responsibility assignments into task status, due dates, reminders,
-  boards, approvals, or automatic routing;
+  boards, general approvals, or automatic routing;
+- expanding the focused approval checkpoint into chains, policy builders,
+  escalation, or compliance workflow without a separate architecture phase;
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
   separate financial analytics phase.

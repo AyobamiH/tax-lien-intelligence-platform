@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import type {
   AlertResponse,
+  ApprovalRequestResponse,
+  ApprovalRequestStatus,
   AuthUserResponse,
   ComparisonDecision,
   ComparisonHandoffToPortfolioResponse,
@@ -36,6 +38,7 @@ import type {
 } from "@tax-lien/types";
 import {
   ApiClientError,
+  approveApprovalRequest,
   addWorkspaceMember,
   addComparisonItem,
   addPortfolioItem,
@@ -45,6 +48,8 @@ import {
   createSavedView,
   createWorkspaceComment,
   clearWorkspaceAssignment,
+  cancelApprovalRequest,
+  createApprovalRequest,
   createDataset,
   deactivateWorkspaceMember,
   deleteSavedView,
@@ -70,6 +75,7 @@ import {
   listWorkspaceActivity,
   listWorkspaceComments,
   listAssignedToMe,
+  listApprovalRequests,
   listWorkspaces,
   login,
   markAlertRead,
@@ -77,6 +83,7 @@ import {
   markWorkspaceDiscussionRead,
   getWorkspaceAssignment,
   register,
+  rejectApprovalRequest,
   removeComparisonItem,
   removePortfolioItem,
   removeWatchlistItem,
@@ -96,6 +103,9 @@ import {
   alertDestination,
   alertDestinationLabel,
   alertTypeLabel,
+  approvalActionLabel,
+  approvalStatusClassName,
+  approvalStatusLabel,
   assignmentDestination,
   assignmentEntityLabel,
   applyPortfolioSavedViewForReview,
@@ -172,6 +182,7 @@ type PageState =
   | { name: "delivery-history" }
   | { name: "activity" }
   | { name: "assignments" }
+  | { name: "approvals" }
   | { name: "workspace" };
 
 type AuthMode = "login" | "register";
@@ -716,6 +727,9 @@ function App() {
         return;
       case "workspace":
         return;
+      case "approvals":
+        navigate({ name: "approvals" }, setPage);
+        return;
     }
   }
 
@@ -740,6 +754,9 @@ function App() {
         return;
       case "workspace":
         navigate({ name: "workspace" }, setPage);
+        return;
+      case "approvals":
+        navigate({ name: "approvals" }, setPage);
         return;
     }
   }
@@ -1628,6 +1645,9 @@ function App() {
         ) : page.name === "comparison" ? (
           <ComparisonPage
             token={session.token}
+            canExecuteSensitiveActions={
+              workspace.current?.permissions.canExecuteSensitiveActions ?? false
+            }
             items={comparison.items}
             isLoading={comparison.isLoading}
             error={comparison.error}
@@ -1639,6 +1659,12 @@ function App() {
             onOpenWatchlist={() => navigate({ name: "watchlist" }, setPage)}
             onOpenPortfolio={() => navigate({ name: "portfolio" }, setPage)}
             onRemove={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
+          />
+        ) : page.name === "approvals" ? (
+          <ApprovalQueuePage
+            token={session.token}
+            onOpenComparison={() => navigate({ name: "comparison" }, setPage)}
+            onApproved={() => void refreshPortfolio(session.token)}
           />
         ) : page.name === "assignments" ? (
           <AssignedToMePage
@@ -1872,6 +1898,15 @@ function AppHeader({
             className={`border border-line px-3 py-2 font-medium ${page.name === "assignments" ? "bg-field" : "bg-white"}`}
           >
             Assigned to me
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate({ name: "approvals" })}
+            className={`border border-line px-3 py-2 font-medium ${
+              page.name === "approvals" ? "bg-field" : "bg-white"
+            }`}
+          >
+            Approvals
           </button>
           <button
             type="button"
@@ -3216,6 +3251,7 @@ function AlertsPage({
 
 function ComparisonPage({
   token,
+  canExecuteSensitiveActions,
   items,
   isLoading,
   error,
@@ -3229,6 +3265,7 @@ function ComparisonPage({
   onRemove,
 }: {
   token: string;
+  canExecuteSensitiveActions: boolean;
   items: ComparisonItemResponse[];
   isLoading: boolean;
   error: string | null;
@@ -3303,6 +3340,7 @@ function ComparisonPage({
           />
           <ComparisonDetail
             token={token}
+            canExecuteSensitiveActions={canExecuteSensitiveActions}
             item={selectedItem}
             actionId={actionId}
             onUpdate={onUpdate}
@@ -3448,6 +3486,7 @@ function ComparisonMatrixRow({
 
 function ComparisonDetail({
   token,
+  canExecuteSensitiveActions,
   item,
   actionId,
   onUpdate,
@@ -3458,6 +3497,7 @@ function ComparisonDetail({
   onRemove,
 }: {
   token: string;
+  canExecuteSensitiveActions: boolean;
   item: ComparisonItemResponse | null;
   actionId: string | null;
   onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => Promise<void>;
@@ -3476,6 +3516,7 @@ function ComparisonDetail({
     ComparisonHandoffToWatchlistResponse | ComparisonHandoffToPortfolioResponse | null
   >(null);
   const [handoffError, setHandoffError] = useState<string | null>(null);
+  const [hasPendingPortfolioApproval, setHasPendingPortfolioApproval] = useState(false);
 
   useEffect(() => {
     setDraftDecision(item?.decision ?? "undecided");
@@ -3483,6 +3524,10 @@ function ComparisonDetail({
     setHandoffResult(null);
     setHandoffError(null);
   }, [item?.id, item?.decision, item?.note]);
+
+  useEffect(() => {
+    setHasPendingPortfolioApproval(false);
+  }, [item?.id]);
 
   useEffect(() => {
     if (!item) {
@@ -3639,14 +3684,16 @@ function ComparisonDetail({
           >
             {isSaving ? "Working..." : "Send to watchlist"}
           </button>
-          <button
-            type="button"
-            disabled={isSaving}
-            onClick={() => void handoffToPortfolio()}
-            className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isSaving ? "Working..." : "Track in portfolio"}
-          </button>
+          {canExecuteSensitiveActions && !hasPendingPortfolioApproval ? (
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={() => void handoffToPortfolio()}
+              className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSaving ? "Working..." : "Track in portfolio"}
+            </button>
+          ) : null}
         </div>
         {handoffError ? (
           <p className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{handoffError}</p>
@@ -3669,6 +3716,13 @@ function ComparisonDetail({
             </button>
           </div>
         ) : null}
+        <ComparisonApprovalPanel
+          token={token}
+          comparisonItemId={item.id}
+          canExecuteSensitiveActions={canExecuteSensitiveActions}
+          onPendingChange={setHasPendingPortfolioApproval}
+          onOpenPortfolio={onOpenPortfolio}
+        />
       </section>
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
         <DetailTerm label="Lien" value={formatMoney(item.normalizedFields.lienAmount)} />
@@ -4929,6 +4983,7 @@ function WorkspaceActivityPage({
     "decisions",
     "portfolio",
     "responsibility",
+    "approvals",
     "members",
   ];
 
@@ -5749,6 +5804,385 @@ function WatchlistDetail({
   );
 }
 
+function ComparisonApprovalPanel({
+  token,
+  comparisonItemId,
+  canExecuteSensitiveActions,
+  onPendingChange,
+  onOpenPortfolio,
+}: {
+  token: string;
+  comparisonItemId: string;
+  canExecuteSensitiveActions: boolean;
+  onPendingChange: (hasPending: boolean) => void;
+  onOpenPortfolio: () => void;
+}) {
+  const [approvals, setApprovals] = useState<ApprovalRequestResponse[]>([]);
+  const [requestNote, setRequestNote] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+    void listApprovalRequests(token, {
+      targetEntityType: "comparison_item",
+      targetEntityId: comparisonItemId,
+    })
+      .then((result) => {
+        if (!cancelled) {
+          setApprovals(result.approvals);
+          onPendingChange(result.approvals.some((approval) => approval.status === "pending"));
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, comparisonItemId, onPendingChange, reloadVersion]);
+
+  async function submitRequest(event: React.FormEvent<HTMLFormElement>): Promise<void> {
+    event.preventDefault();
+    const note = requestNote.trim();
+    if (!note) {
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await createApprovalRequest(token, comparisonItemId, note);
+      setRequestNote("");
+      setSuccess(
+        result.alreadyPending
+          ? "A pending approval already exists for this handoff."
+          : "Approval request submitted.",
+      );
+      setReloadVersion((version) => version + 1);
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  const latest = approvals[0] ?? null;
+  const pending = approvals.find((approval) => approval.status === "pending") ?? null;
+
+  return (
+    <div className="mt-4 border-t border-line pt-4">
+      <div className="flex items-center justify-between gap-3">
+        <h5 className="text-sm font-semibold">Portfolio approval</h5>
+        {isLoading ? <span className="text-xs text-ink/55">Loading</span> : null}
+      </div>
+      {latest ? (
+        <div className="mt-2 border border-line bg-white p-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className={`border px-2 py-1 text-xs font-semibold ${approvalStatusClassName(latest.status)}`}>
+              {approvalStatusLabel(latest.status)}
+            </span>
+            <span className="text-xs text-ink/55">{formatDateTime(latest.updatedAt)}</span>
+          </div>
+          <p className="mt-2 leading-6 text-ink/75">{latest.requestNote}</p>
+          <p className="mt-2 text-xs text-ink/55">Requested by {latest.requester.email}</p>
+          {latest.reviewer ? (
+            <p className="mt-1 text-xs text-ink/55">
+              Reviewed by {latest.reviewer.email}
+              {latest.reviewerResponseNote ? `: ${latest.reviewerResponseNote}` : ""}
+            </p>
+          ) : null}
+          {latest.status === "approved" && latest.outcome ? (
+            <button
+              type="button"
+              onClick={onOpenPortfolio}
+              className="mt-3 border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-900"
+            >
+              Open portfolio
+            </button>
+          ) : null}
+        </div>
+      ) : !isLoading ? (
+        <p className="mt-2 text-sm text-ink/65">No approval has been requested for this handoff.</p>
+      ) : null}
+
+      {!canExecuteSensitiveActions && !pending ? (
+        <form onSubmit={(event) => void submitRequest(event)} className="mt-3">
+          <label className="block text-xs font-semibold uppercase tracking-[0.08em] text-ink/60">
+            Review context
+            <textarea
+              value={requestNote}
+              onChange={(event) => setRequestNote(event.target.value)}
+              maxLength={500}
+              rows={3}
+              required
+              className="mt-2 w-full resize-y border border-line bg-white px-3 py-2 text-sm font-normal normal-case leading-6 tracking-normal text-ink"
+              placeholder="Why should this candidate move into portfolio tracking?"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={isSaving || requestNote.trim().length === 0}
+            className="mt-2 bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSaving ? "Submitting" : "Request approval"}
+          </button>
+        </form>
+      ) : null}
+      {canExecuteSensitiveActions && pending ? (
+        <p className="mt-3 text-xs text-ink/55">
+          Resolve or cancel the pending request before using the direct owner handoff.
+        </p>
+      ) : canExecuteSensitiveActions ? (
+        <p className="mt-3 text-xs text-ink/55">
+          Owners may execute this handoff directly and may review requests from other members.
+        </p>
+      ) : pending ? (
+        <p className="mt-3 text-xs text-ink/55">
+          This handoff is waiting for an owner or a different administrator to review it.
+        </p>
+      ) : null}
+      {error ? <p className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p> : null}
+      {success ? (
+        <p className="mt-3 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          {success}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function ApprovalQueuePage({
+  token,
+  onOpenComparison,
+  onApproved,
+}: {
+  token: string;
+  onOpenComparison: () => void;
+  onApproved: () => void;
+}) {
+  const [status, setStatus] = useState<ApprovalRequestStatus | "all">("pending");
+  const [approvals, setApprovals] = useState<ApprovalRequestResponse[]>([]);
+  const [responseNotes, setResponseNotes] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+    void listApprovalRequests(token, status === "all" ? {} : { status })
+      .then((result) => {
+        if (!cancelled) {
+          setApprovals(result.approvals);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, status, reloadVersion]);
+
+  async function resolveApproval(
+    approval: ApprovalRequestResponse,
+    decision: "approve" | "reject" | "cancel",
+  ): Promise<void> {
+    const note = responseNotes[approval.id]?.trim() ?? "";
+    if (decision === "reject" && !note) {
+      setError("A rejection note is required.");
+      return;
+    }
+    setActionId(approval.id);
+    setError(null);
+    setSuccess(null);
+    try {
+      if (decision === "approve") {
+        await approveApprovalRequest(token, approval.id, note || undefined);
+        setSuccess("Approval accepted and the comparison item was handed to portfolio.");
+        onApproved();
+      } else if (decision === "reject") {
+        await rejectApprovalRequest(token, approval.id, note);
+        setSuccess("Approval request rejected.");
+      } else {
+        await cancelApprovalRequest(token, approval.id);
+        setSuccess("Approval request cancelled.");
+      }
+      setReloadVersion((version) => version + 1);
+    } catch (resolveError) {
+      setError(errorMessage(resolveError));
+    } finally {
+      setActionId(null);
+    }
+  }
+
+  return (
+    <section className="min-w-0">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Review Checkpoints</p>
+          <h2 className="mt-1 text-2xl font-semibold">Approvals</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+            Review requests to move comparison candidates into portfolio tracking. Requesters cannot approve
+            their own requests.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setReloadVersion((version) => version + 1)}
+          disabled={isLoading}
+          className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-60"
+        >
+          Refresh
+        </button>
+      </div>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        {(["pending", "approved", "rejected", "cancelled", "all"] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => setStatus(option)}
+            className={`border px-3 py-2 text-sm font-semibold ${
+              status === option ? "border-pine bg-pine text-white" : "border-line bg-white"
+            }`}
+          >
+            {option === "all" ? "All" : approvalStatusLabel(option)}
+          </button>
+        ))}
+      </div>
+
+      {error ? <p className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p> : null}
+      {success ? (
+        <p className="mt-4 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{success}</p>
+      ) : null}
+
+      {isLoading && approvals.length === 0 ? (
+        <div className="mt-5"><PanelMessage label="Loading approval requests..." /></div>
+      ) : approvals.length === 0 ? (
+        <div className="mt-5 border-y border-line bg-white px-4 py-6">
+          <p className="font-semibold">No approval requests in this view.</p>
+          <p className="mt-2 text-sm text-ink/70">
+            Requests are created from a comparison item before a non-owner handoff to portfolio.
+          </p>
+        </div>
+      ) : (
+        <ol className="mt-5 space-y-4">
+          {approvals.map((approval) => (
+            <li key={approval.id} className="border border-line bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold">{approvalActionLabel(approval.requestedAction)}</p>
+                  <p className="mt-1 text-xs text-ink/55">
+                    Requested by {approval.requester.email} · {formatDateTime(approval.createdAt)}
+                  </p>
+                </div>
+                <span className={`border px-2 py-1 text-xs font-semibold ${approvalStatusClassName(approval.status)}`}>
+                  {approvalStatusLabel(approval.status)}
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-ink/75">{approval.requestNote}</p>
+              <button
+                type="button"
+                onClick={onOpenComparison}
+                className="mt-3 border border-line bg-white px-3 py-2 text-xs font-semibold"
+              >
+                Open comparison
+              </button>
+
+              {approval.status === "pending" && (approval.canReview || approval.canCancel) ? (
+                <div className="mt-4 border-t border-line pt-4">
+                  {approval.canReview ? (
+                    <label className="block text-xs font-semibold uppercase tracking-[0.08em] text-ink/60">
+                      Reviewer response
+                      <textarea
+                        value={responseNotes[approval.id] ?? ""}
+                        onChange={(event) =>
+                          setResponseNotes((current) => ({
+                            ...current,
+                            [approval.id]: event.target.value,
+                          }))
+                        }
+                        maxLength={500}
+                        rows={3}
+                        className="mt-2 w-full resize-y border border-line px-3 py-2 text-sm font-normal normal-case leading-6 tracking-normal text-ink"
+                        placeholder="Optional for approval; required for rejection"
+                      />
+                    </label>
+                  ) : null}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {approval.canReview ? (
+                      <>
+                        <button
+                          type="button"
+                          disabled={actionId === approval.id}
+                          onClick={() => void resolveApproval(approval, "approve")}
+                          className="bg-pine px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          disabled={actionId === approval.id}
+                          onClick={() => void resolveApproval(approval, "reject")}
+                          className="border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-800 disabled:opacity-60"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    ) : null}
+                    {approval.canCancel ? (
+                      <button
+                        type="button"
+                        disabled={actionId === approval.id}
+                        onClick={() => void resolveApproval(approval, "cancel")}
+                        className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-60"
+                      >
+                        Cancel request
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+              {approval.reviewer ? (
+                <div className="mt-4 border-t border-line pt-3 text-sm text-ink/70">
+                  <p>Reviewed by {approval.reviewer.email}</p>
+                  {approval.reviewerResponseNote ? (
+                    <p className="mt-1 leading-6">{approval.reviewerResponseNote}</p>
+                  ) : null}
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
+
 function AssignedToMePage({
   token,
   onOpen,
@@ -6294,8 +6728,10 @@ function navigate(page: PageState, setPage: (page: PageState) => void): void {
                   ? "#/delivery-history"
                   : page.name === "activity"
                     ? "#/activity"
-                    : page.name === "assignments"
-                      ? "#/assignments"
+                  : page.name === "assignments"
+                    ? "#/assignments"
+                    : page.name === "approvals"
+                      ? "#/approvals"
                       : page.name === "workspace"
                         ? "#/workspace"
                         : `#/datasets/${page.datasetId}`;
@@ -6334,6 +6770,10 @@ function readRoute(): PageState {
 
   if (window.location.hash === "#/assignments") {
     return { name: "assignments" };
+  }
+
+  if (window.location.hash === "#/approvals") {
+    return { name: "approvals" };
   }
 
   if (window.location.hash === "#/workspace") {

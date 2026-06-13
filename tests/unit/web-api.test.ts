@@ -3,8 +3,11 @@ import {
   ApiClientError,
   addWorkspaceMember,
   addComparisonItem,
+  approveApprovalRequest,
   applySavedView,
   applyDatasetImportProfile,
+  cancelApprovalRequest,
+  createApprovalRequest,
   createSavedView,
   createWorkspaceComment,
   clearWorkspaceAssignment,
@@ -24,9 +27,11 @@ import {
   listWorkspaceActivity,
   listWorkspaceComments,
   listAssignedToMe,
+  listApprovalRequests,
   listWorkspaces,
   markWorkspaceDiscussionRead,
   removeComparisonItem,
+  rejectApprovalRequest,
   deleteWorkspaceComment,
   saveDatasetImportProfile,
   saveDatasetManualMapping,
@@ -280,6 +285,79 @@ describe("web API client", () => {
     expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(
       JSON.stringify({ assigneeUserId: "user-2" }),
     );
+    for (const [, init] of fetchMock.mock.calls) {
+      const headers = init?.headers as Headers;
+      expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
+    }
+  });
+
+  it("lists, creates, reviews, and cancels workspace approval requests", async () => {
+    const approval = {
+      id: "approval-1",
+      workspaceId: "workspace-1",
+      targetEntityType: "comparison_item",
+      targetEntityId: "comparison-1",
+      requestedAction: "comparison_handoff_to_portfolio",
+      status: "pending",
+      requester: { userId: "user-2", email: "member@example.com", role: "member" },
+      requestNote: "Ready for tracked diligence.",
+      canReview: true,
+      canCancel: false,
+      createdAt: "2026-06-13T10:00:00.000Z",
+      updatedAt: "2026-06-13T10:00:00.000Z",
+    };
+    const payloads = [
+      { approvals: [approval] },
+      { approval, alreadyPending: false },
+      { approval: { ...approval, status: "approved" } },
+      { approval: { ...approval, status: "rejected" } },
+      { approval: { ...approval, status: "cancelled" } },
+    ];
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payloads.shift()), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await listApprovalRequests("test-token", {
+      status: "pending",
+      targetEntityType: "comparison_item",
+      targetEntityId: "comparison-1",
+    });
+    await createApprovalRequest("test-token", "comparison-1", "Ready for tracked diligence.");
+    await approveApprovalRequest("test-token", "approval-1", "Approved for tracking.");
+    await rejectApprovalRequest("test-token", "approval-1", "Verify the county source date.");
+    await cancelApprovalRequest("test-token", "approval-1");
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/approvals?status=pending&targetEntityType=comparison_item&targetEntityId=comparison-1",
+      "http://localhost:4000/approvals",
+      "http://localhost:4000/approvals/approval-1/approve",
+      "http://localhost:4000/approvals/approval-1/reject",
+      "http://localhost:4000/approvals/approval-1/cancel",
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual([
+      "GET",
+      "POST",
+      "POST",
+      "POST",
+      "POST",
+    ]);
+    expect(JSON.parse(fetchMock.mock.calls[1]?.[1]?.body as string)).toEqual({
+      targetEntityType: "comparison_item",
+      targetEntityId: "comparison-1",
+      requestedAction: "comparison_handoff_to_portfolio",
+      requestNote: "Ready for tracked diligence.",
+    });
+    expect(JSON.parse(fetchMock.mock.calls[2]?.[1]?.body as string)).toEqual({
+      responseNote: "Approved for tracking.",
+    });
+    expect(JSON.parse(fetchMock.mock.calls[3]?.[1]?.body as string)).toEqual({
+      responseNote: "Verify the county source date.",
+    });
     for (const [, init] of fetchMock.mock.calls) {
       const headers = init?.headers as Headers;
       expect(headers.get("X-Workspace-Id")).toBe("workspace-1");

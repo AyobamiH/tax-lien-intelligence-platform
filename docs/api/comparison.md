@@ -2,7 +2,9 @@
 
 Phase 21 adds a comparison surface for lightweight decision review. Phase 29
 makes it shared inside the selected workspace with member read access and
-owner/admin mutation access.
+owner/admin mutation access. Phase 36 makes the comparison-to-portfolio
+transition owner-only when called directly and adds a separate approval request
+path for admins and members.
 
 The comparison API does not execute auctions, send notifications, or make
 investment recommendations. It stores the user's selected comparison candidates,
@@ -25,6 +27,8 @@ the handoff endpoint.
   require owner/admin.
 - History retrieval is scoped to an owned comparison item. Deleted or stale
   comparison item ids return `comparison_item_not_found`.
+- Watchlist handoff is available to owners/admins. Direct portfolio handoff is
+  owner-only; admins and members use the workspace-scoped approval API.
 - Handoff actions are scoped to an owned comparison item and create or reuse the
   destination watchlist/portfolio record for the same selected workspace.
 
@@ -227,6 +231,10 @@ The real `item` uses the full watchlist item response shape documented in
 
 Explicitly sends one workspace comparison item into the selected workspace's
 portfolio tracking surface. The destination is duplicate-safe by scored record.
+This direct route is owner-only in Phase 36. Admin/member handoffs are requested
+through `POST /approvals` and execute this same service path after a different
+owner/admin approves them. If a request is already pending for the comparison
+item, direct owner handoff returns `approval_pending_review`.
 
 Optional request body:
 
@@ -308,7 +316,7 @@ Possible comparison errors:
 
 ## Out Of Scope
 
-The comparison API intentionally does not include collaboration, team comments,
-rich text, legal-grade audit trails, task management, auction execution,
-spreadsheet-style comparison builders, workflow engines, approval pipelines, or
-ML/AI decision suggestions.
+The comparison API intentionally does not include rich text, legal-grade audit
+trails, task management, auction execution, spreadsheet-style comparison
+builders, general workflow engines, multi-step approval pipelines, or ML/AI
+decision suggestions.

@@ -17,6 +17,9 @@ import {
   alertDestinationLabel,
   alertSeverityClassName,
   alertTypeLabel,
+  approvalActionLabel,
+  approvalStatusClassName,
+  approvalStatusLabel,
   assignmentDestination,
   assignmentEntityLabel,
   applyPortfolioSavedViewForReview,
@@ -324,6 +327,19 @@ describe("review model helpers", () => {
     expect(canRemoveWorkspaceMember("owner", "owner")).toBe(false);
   });
 
+  it("presents approval actions and states clearly", () => {
+    expect(approvalActionLabel("comparison_handoff_to_portfolio")).toBe(
+      "Move comparison item to portfolio",
+    );
+    expect(approvalStatusLabel("pending")).toBe("Pending");
+    expect(approvalStatusLabel("approved")).toBe("Approved");
+    expect(approvalStatusLabel("rejected")).toBe("Rejected");
+    expect(approvalStatusLabel("cancelled")).toBe("Cancelled");
+    expect(approvalStatusClassName("pending")).toContain("amber");
+    expect(approvalStatusClassName("approved")).toContain("emerald");
+    expect(approvalStatusClassName("rejected")).toContain("red");
+  });
+
   it("maps workspace activity categories and affected surfaces", () => {
     const activity: WorkspaceActivityResponse = {
       id: "activity-1",
@@ -341,6 +357,7 @@ describe("review model helpers", () => {
     expect(workspaceActivityCategoryLabel("all")).toBe("All");
     expect(workspaceActivityCategoryLabel("decisions")).toBe("Decisions");
     expect(workspaceActivityCategoryLabel("responsibility")).toBe("Responsibility");
+    expect(workspaceActivityCategoryLabel("approvals")).toBe("Approvals");
     const destination = workspaceActivityDestination(activity);
     expect(destination).toEqual({ surface: "dataset", datasetId: "dataset-1" });
     expect(destination && workspaceActivityDestinationLabel(destination)).toBe("Open dataset");
@@ -374,6 +391,16 @@ describe("review model helpers", () => {
         },
       }),
     ).toEqual({ surface: "watchlist" });
+    expect(
+      workspaceActivityDestination({
+        ...activity,
+        category: "approvals",
+        eventType: "approval_requested",
+        relatedEntityType: "comparison_item",
+        relatedEntityId: "comparison-1",
+      }),
+    ).toEqual({ surface: "approvals" });
+    expect(workspaceActivityDestinationLabel({ surface: "approvals" })).toBe("Open approvals");
   });
 
   it("labels and routes assigned records to their operating surface", () => {

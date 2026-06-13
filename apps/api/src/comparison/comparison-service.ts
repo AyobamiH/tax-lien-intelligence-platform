@@ -112,6 +112,10 @@ export class ComparisonService {
     };
   }
 
+  public async getItem(userId: string, comparisonItemId: string): Promise<ComparisonItemResponse> {
+    return toComparisonItemResponse(await this.findOwnedComparisonItem(userId, comparisonItemId));
+  }
+
   public async updateItem(
     userId: string,
     comparisonItemId: string,

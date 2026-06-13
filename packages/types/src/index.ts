@@ -48,6 +48,9 @@ export interface WorkspacePermissions {
   canManageMembers: boolean;
   canRemoveMembers: boolean;
   canManageRoles: boolean;
+  canRequestApprovals: boolean;
+  canReviewApprovals: boolean;
+  canExecuteSensitiveActions: boolean;
 }
 
 export interface WorkspaceResponse {
@@ -107,7 +110,13 @@ export interface DeactivateWorkspaceMemberResponse {
   member: WorkspaceMemberResponse;
 }
 
-export type WorkspaceActivityCategory = "data" | "decisions" | "portfolio" | "members" | "responsibility";
+export type WorkspaceActivityCategory =
+  | "data"
+  | "decisions"
+  | "portfolio"
+  | "members"
+  | "responsibility"
+  | "approvals";
 export type WorkspaceActivityEventType =
   | "dataset_uploaded"
   | "dataset_scoring_requested"
@@ -121,7 +130,11 @@ export type WorkspaceActivityEventType =
   | "workspace_member_removed"
   | "entity_assigned"
   | "entity_reassigned"
-  | "entity_assignment_cleared";
+  | "entity_assignment_cleared"
+  | "approval_requested"
+  | "approval_approved"
+  | "approval_rejected"
+  | "approval_cancelled";
 export type WorkspaceActivityRelatedEntityType =
   | "dataset"
   | "job"
@@ -154,6 +167,11 @@ export interface WorkspaceActivityMetadata {
   assigneeEmail?: string;
   previousAssigneeUserId?: string;
   previousAssigneeEmail?: string;
+  approvalRequestId?: string;
+  approvalAction?: ApprovalRequestedAction;
+  approvalStatus?: ApprovalRequestStatus;
+  approvalRequesterEmail?: string;
+  approvalReviewerEmail?: string;
 }
 
 export interface WorkspaceActivityResponse {
@@ -216,6 +234,65 @@ export interface ClearWorkspaceAssignmentResponse {
 
 export interface AssignedToMeResponse {
   assignments: WorkspaceAssignmentResponse[];
+}
+
+export type ApprovalRequestStatus = "pending" | "approved" | "rejected" | "cancelled";
+export type ApprovalTargetEntityType = "comparison_item";
+export type ApprovalRequestedAction = "comparison_handoff_to_portfolio";
+
+export interface ApprovalActor {
+  userId: string;
+  email: string;
+  role: WorkspaceRole;
+}
+
+export interface ApprovalOutcome {
+  targetEntityType: "portfolio_item";
+  targetEntityId: string;
+  alreadyExists: boolean;
+}
+
+export interface ApprovalRequestResponse {
+  id: string;
+  workspaceId: string;
+  targetEntityType: ApprovalTargetEntityType;
+  targetEntityId: string;
+  requestedAction: ApprovalRequestedAction;
+  status: ApprovalRequestStatus;
+  requester: ApprovalActor;
+  requestNote: string;
+  reviewer?: ApprovalActor;
+  reviewerResponseNote?: string;
+  outcome?: ApprovalOutcome;
+  canReview: boolean;
+  canCancel: boolean;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+}
+
+export interface CreateApprovalRequestRequest {
+  targetEntityType: ApprovalTargetEntityType;
+  targetEntityId: string;
+  requestedAction: ApprovalRequestedAction;
+  requestNote: string;
+}
+
+export interface CreateApprovalRequestResponse {
+  approval: ApprovalRequestResponse;
+  alreadyPending: boolean;
+}
+
+export interface ApprovalRequestListResponse {
+  approvals: ApprovalRequestResponse[];
+}
+
+export interface ApprovalRequestDetailResponse {
+  approval: ApprovalRequestResponse;
+}
+
+export interface ResolveApprovalRequestRequest {
+  responseNote?: string;
 }
 
 export type WorkspaceCommentEntityType =

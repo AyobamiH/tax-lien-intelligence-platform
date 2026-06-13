@@ -1,6 +1,12 @@
 import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
 
-export type WorkspaceActivityCategoryRecord = "data" | "decisions" | "portfolio" | "members" | "responsibility";
+export type WorkspaceActivityCategoryRecord =
+  | "data"
+  | "decisions"
+  | "portfolio"
+  | "members"
+  | "responsibility"
+  | "approvals";
 export type WorkspaceActivityEventTypeRecord =
   | "dataset_uploaded"
   | "dataset_scoring_requested"
@@ -14,7 +20,11 @@ export type WorkspaceActivityEventTypeRecord =
   | "workspace_member_removed"
   | "entity_assigned"
   | "entity_reassigned"
-  | "entity_assignment_cleared";
+  | "entity_assignment_cleared"
+  | "approval_requested"
+  | "approval_approved"
+  | "approval_rejected"
+  | "approval_cancelled";
 export type WorkspaceActivityRelatedEntityTypeRecord =
   | "dataset"
   | "job"
@@ -41,6 +51,11 @@ export interface WorkspaceActivityMetadataRecord {
   assigneeEmail?: string;
   previousAssigneeUserId?: string;
   previousAssigneeEmail?: string;
+  approvalRequestId?: string;
+  approvalAction?: "comparison_handoff_to_portfolio";
+  approvalStatus?: "pending" | "approved" | "rejected" | "cancelled";
+  approvalRequesterEmail?: string;
+  approvalReviewerEmail?: string;
 }
 
 export interface WorkspaceActivityRecord {
@@ -83,6 +98,11 @@ const workspaceActivityMetadataSchema = new Schema<WorkspaceActivityMetadataReco
     assigneeEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
     previousAssigneeUserId: { type: String, trim: true },
     previousAssigneeEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
+    approvalRequestId: { type: String, trim: true },
+    approvalAction: { type: String, enum: ["comparison_handoff_to_portfolio"] },
+    approvalStatus: { type: String, enum: ["pending", "approved", "rejected", "cancelled"] },
+    approvalRequesterEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
+    approvalReviewerEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
   },
   { _id: false, versionKey: false },
 );
@@ -94,7 +114,7 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
     actorEmail: { type: String, required: true, trim: true, lowercase: true, maxlength: 320 },
     category: {
       type: String,
-      enum: ["data", "decisions", "portfolio", "members", "responsibility"],
+      enum: ["data", "decisions", "portfolio", "members", "responsibility", "approvals"],
       required: true,
       index: true,
     },
@@ -114,6 +134,10 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
         "entity_assigned",
         "entity_reassigned",
         "entity_assignment_cleared",
+        "approval_requested",
+        "approval_approved",
+        "approval_rejected",
+        "approval_cancelled",
       ],
       required: true,
       index: true,

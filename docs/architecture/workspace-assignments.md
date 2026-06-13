@@ -61,5 +61,6 @@ assignments and links back to the owning surface.
 ## Boundary
 
 Assignments are current responsibility markers, not tasks. There are no due
-dates, reminders, priorities, statuses, subtasks, boards, approvals, automatic
-routing, or assignment-specific conversation threads.
+dates, reminders, priorities, statuses, subtasks, boards, assignment approval
+chains, automatic routing, or assignment-specific conversation threads. Phase
+36 approval requests remain a separate comparison-to-portfolio checkpoint.

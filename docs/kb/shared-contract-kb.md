@@ -611,7 +611,8 @@ Current workspace activity contracts include:
 
 - workspace-scoped activity id;
 - actor user id and member-visible email;
-- category: `data`, `decisions`, `portfolio`, `members`, or `responsibility`;
+- category: `data`, `decisions`, `portfolio`, `members`, `responsibility`, or
+  `approvals`;
 - allowlisted event type;
 - related entity type/id;
 - server-derived summary;
@@ -753,6 +754,33 @@ Portfolio handoff may accept an optional portfolio `status` and defaults to
 `tracked`. Handoff requests must not include user ids, target ids, score
 snapshots, source snapshots, or history metadata.
 
+Direct comparison-to-portfolio handoff is owner-only in Phase 36. Admin/member
+transitions use the approval request contract below.
+
+## Approval Request Contract
+
+Current approval contracts are intentionally allowlisted:
+
+- target entity type: `comparison_item`;
+- requested action: `comparison_handoff_to_portfolio`;
+- status: `pending`, `approved`, `rejected`, or `cancelled`;
+- verified requester and optional reviewer actor projections;
+- bounded request note and optional reviewer response note;
+- optional portfolio outcome with target id and `alreadyExists`;
+- server-derived `canReview` and `canCancel`;
+- created, updated, and optional resolved timestamps.
+
+Creation accepts only target type/id, action, and request note. Approval and
+rejection accept only an optional or required response note respectively. The
+client must never submit workspace id, actor ids/emails/roles, status, outcome,
+permission booleans, or timestamps.
+
+Approval notes are plain text, trimmed, capped at 500 characters, and excluded
+from workspace activity metadata. Approval executes the existing
+comparison-to-portfolio contract only after server-side target revalidation.
+This contract does not model workflow steps, custom reviewer rules, quorums,
+SLAs, escalation, e-signatures, or general task approval.
+
 Future comparison contracts may add multiple workspaces, note history, or
 collaboration only with validation, API docs, tenancy tests, and an explicit
 architecture decision.
@@ -786,6 +814,8 @@ possible or explicitly versioned.
   accept actor, workspace, owner, or status fields from the client.
 - Keep workspace activity enums and metadata allowlisted; do not accept
   client-authored summaries or general event payloads.
+- Keep approval target/action/status enums allowlisted, derive reviewer
+  authority server-side, and never expose note text through activity metadata.
 - Do not represent scoring as a single number once explainable scoring exists.
 - Do not treat alert metadata as a raw logging or diagnostic payload.
 - Do not let enrichment contracts imply external verification when enrichment is

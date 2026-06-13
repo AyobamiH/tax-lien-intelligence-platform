@@ -675,10 +675,39 @@ the authenticated user. Notes are plain text, bounded, and validated. Decision
 history is created server-side only and stores bounded note snapshots plus safe
 derived metadata. Handoff target metadata is also server-derived and cannot be
 client supplied. These records are not rich text, comments, legal-grade audit
-events, or task records. Future expansion such as multiple workspaces,
-collaboration, richer history, broad activity feeds, approvals, or downstream
-automation side effects must add validation, authorization, docs, and cross-user
-tests before release.
+events, or task records. Phase 36 adds one allowlisted approval checkpoint for
+comparison-to-portfolio handoff. Broader approval actions, richer history,
+compliance policy, or downstream automation side effects require a separate
+validation and authorization phase.
+
+### Approval Requests
+
+Approval requests are decision-authority records and must remain
+workspace-scoped.
+
+Current implemented protection:
+
+- active selected-workspace membership before every operation;
+- workspace-id-qualified request lookup and cross-workspace non-disclosure;
+- owner/admin review authority with requester self-review denied;
+- requester-only cancellation;
+- server-derived actors, roles, status, outcome, and permission booleans;
+- target validation on creation and revalidation immediately before approval;
+- short-lived atomic reviewer claims, claim-qualified pending resolution, and
+  one-pending-request uniqueness;
+- bounded plain-text notes with control-character rejection;
+- note exclusion from activity summaries and metadata;
+- reuse of the existing duplicate-safe portfolio handoff path.
+
+Known boundary:
+
+- owners retain an explicit direct handoff compatibility path for solo
+  workspaces, but it is blocked when a request is pending for the target;
+- approval activity is operational context, not a compliance-grade audit log;
+- Phase 36 does not send approval alerts or email.
+
+Later hardening must be designed before adding multi-step chains, delegations,
+quorums, enterprise policy, escalation, e-signatures, or automated routing.
 
 ### Automation Jobs And Workers
 

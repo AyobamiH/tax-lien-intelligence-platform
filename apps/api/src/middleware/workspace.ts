@@ -7,7 +7,9 @@ export type WorkspacePermission =
   | "write"
   | "manage_members"
   | "remove_members"
-  | "manage_roles";
+  | "manage_roles"
+  | "review_approvals"
+  | "execute_sensitive_actions";
 
 declare global {
   namespace Express {
@@ -60,6 +62,14 @@ function assertPermission(context: WorkspaceAccessContext, permission: Workspace
   }
 
   if (permission === "manage_roles" && context.role === "owner") {
+    return;
+  }
+
+  if (permission === "review_approvals" && (context.role === "owner" || context.role === "admin")) {
+    return;
+  }
+
+  if (permission === "execute_sensitive_actions" && context.role === "owner") {
     return;
   }
 
