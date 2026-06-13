@@ -36,6 +36,8 @@ Current implementation:
 - selected-workspace membership middleware and explicit read/write/member-role
   checks;
 - global API error handling;
+- high-severity npm audit enforcement in CI and pre-push, with frontend
+  compiler/build packages separated from runtime dependencies;
 - dataset model;
 - authenticated dataset upload/list/detail routes;
 - CSV upload handling;
@@ -122,6 +124,11 @@ Current implementation:
 - startup connects to MongoDB;
 - env parsing with `zod`;
 - no standalone parcel/lien models.
+
+The Phase 34 dependency audit found no vulnerable package in an API request
+path. The reported Vite/esbuild chain was development/build tooling, was
+upgraded to fixed versions, and now resolves cleanly in both full and
+production-only npm audits.
 
 ## Intended Backend Role
 

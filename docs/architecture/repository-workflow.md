@@ -31,13 +31,14 @@ and on pull requests for visibility.
 The required gate runs:
 
 - `npm ci`
+- `npm run audit`
 - `npm run typecheck`
 - `npm run test`
 - `npm run build`
 
 Local pre-push runs `npm install` instead of `npm ci` so it can keep the local
-workspace usable while still enforcing the same typecheck, test, and build
-expectations.
+workspace usable while still enforcing the same high-severity audit, typecheck,
+test, and build expectations.
 
 ## Main Branch Policy
 
@@ -46,6 +47,7 @@ The current operating model is direct-to-`main` after local verification:
 - complete the work locally;
 - run `git diff --check`;
 - run `npm install`;
+- run `npm run audit`;
 - run `npm run typecheck`;
 - run `npm run test`;
 - run `npm run build`;
@@ -78,6 +80,7 @@ git config core.hooksPath .githooks
 The hook runs:
 
 - `npm install`
+- `npm run audit`
 - `npm run typecheck`
 - `npm run test`
 - `npm run build`
@@ -86,3 +89,7 @@ The hook runs:
 
 Each stable feature must include implementation, tests, documentation, a clean
 commit, local passing gates, and a successful push to the startup remote.
+
+Dependency changes additionally require advisory-path review, runtime versus
+development classification, lockfile inspection, and explicit documentation
+for any unresolved high or critical risk.

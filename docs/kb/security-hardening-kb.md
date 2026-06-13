@@ -36,6 +36,12 @@ Current repo protections:
 - strict TypeScript configuration;
 - environment parsing with `zod`;
 - `.env` and `.env.*` ignored except `.env.example`;
+- high-severity `npm audit` enforcement in CI and the local pre-push hook;
+- frontend compiler, CSS, and bundler packages classified as development-only;
+- Vite upgraded from vulnerable `7.3.3` to `8.0.16` and both esbuild paths
+  consolidated on fixed `0.28.1`;
+- full and production-only npm audits at Phase 34 completion report zero known
+  vulnerabilities;
 - `JWT_SECRET` modeled in configuration;
 - production startup fails when `JWT_SECRET` is missing;
 - Helmet middleware enabled in the API;
@@ -159,6 +165,20 @@ Current repo protections:
 - CI quality-gates workflow;
 - local pre-push hook;
 - direct-to-main workflow that requires local gates before push.
+
+### Phase 34 Dependency Triage Record
+
+The two high entries reported by npm were a direct Vite finding and its
+transitive esbuild cause. The affected esbuild versions were build-time
+`0.27.7` and `0.28.0`; they were not loaded by the deployed API or browser
+runtime. The high advisory could affect developer/CI execution through a
+malicious registry configuration, so the development-only classification was
+not treated as a reason to defer remediation.
+
+The repo now uses Vite `8.0.16` and esbuild `0.28.1`. No override was needed,
+and no npm vulnerability remains. Future high or critical findings must block
+CI unless they are explicitly contained and documented with exact package
+paths, exposure, and follow-up.
 
 ### Current Missing Protections
 

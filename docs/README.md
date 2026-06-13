@@ -39,6 +39,7 @@ before writing specs, prompts, or implementation plans.
 - [Workspace Comments Architecture](architecture/workspace-comments.md)
 - [Comment Notification And Attention Architecture](architecture/comment-notifications.md)
 - [Workspace Assignments Architecture](architecture/workspace-assignments.md)
+- [Dependency Security And Supply-Chain Hygiene](architecture/dependency-security.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
 

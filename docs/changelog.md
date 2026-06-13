@@ -2,6 +2,18 @@
 
 ## 2026-06-13
 
+- Implemented Phase 34 dependency vulnerability triage and supply-chain
+  hardening.
+- Traced the two npm high-severity entries to `vite@7.3.3` and vulnerable
+  `esbuild` versions `0.27.7`/`0.28.0` used by frontend and TypeScript build
+  tooling, not deployed API or browser runtime code.
+- Upgraded to `vite@8.0.16`, refreshed esbuild to fixed `0.28.1`, aligned the
+  Node engine range, and verified the Vite 8 production bundle without
+  compatibility overrides.
+- Reclassified React/Vite/PostCSS/Tailwind compiler packages as development
+  dependencies and added a high-severity `npm audit` gate to CI and pre-push.
+- Full and production-only npm audits now report zero vulnerabilities; no known
+  npm advisory remains unresolved.
 - Implemented Phase 33 workspace assignments with one current workspace-owned
   assignee for datasets, comparison items, watchlist items, and portfolio
   items.

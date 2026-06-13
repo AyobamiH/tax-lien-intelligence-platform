@@ -1068,6 +1068,30 @@ Phase 33 does not include:
 
 Assignment is a current responsibility marker. It is not a work-item model.
 
+## Phase 34: Dependency Vulnerability Triage And Supply-Chain Hardening
+
+Current status: implemented.
+
+Phase 34 includes:
+
+- exact npm advisory and dependency-path investigation;
+- runtime versus build/development exposure classification;
+- Vite 8 and fixed esbuild remediation;
+- production/development dependency classification cleanup;
+- Node engine alignment with the supported build toolchain;
+- high-severity npm audit enforcement in CI and pre-push;
+- clean full and production-only audit results;
+- full application regression gates and security documentation.
+
+Phase 34 does not include:
+
+- broad dependency freshness upgrades;
+- automatic major-version churn;
+- enterprise SCA platforms;
+- hiding low-signal or unresolved risk.
+
+No npm advisory remains unresolved at completion.
+
 ## Later Phases
 
 Later phases may include:
@@ -1124,7 +1148,8 @@ Dependency order matters:
 29. workspace comments and discussion threads;
 30. comment notification and discussion attention;
 31. workspace assignment and responsibility workflow;
-32. broader automation.
+32. dependency vulnerability triage and supply-chain hardening;
+33. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

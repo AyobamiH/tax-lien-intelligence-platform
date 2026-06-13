@@ -58,6 +58,9 @@ Implemented today:
 - workspace package structure;
 - TypeScript project references;
 - root `typecheck`, `test`, and `build` scripts;
+- root high-severity dependency audit script enforced in CI and pre-push;
+- Vite 8 frontend build pipeline with fixed `esbuild@0.28.1` tooling and
+  build-only packages classified as development dependencies;
 - Express app creation;
 - API health endpoint at `GET /healthz`;
 - auth endpoints at `POST /auth/register`, `POST /auth/login`, and

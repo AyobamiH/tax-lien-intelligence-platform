@@ -11,7 +11,11 @@ portfolio/status tracking, comparison, decision history, decision handoff,
 saved operational views, internal jobs, alerts, worker/scheduler groundwork,
 enrichment, import repair, reusable import profiles, saved views, notification
 preferences, email delivery, digest processing/delivery history, and the Phase
-29 workspace/team-access foundation plus the Phase 30 workspace activity feed:
+29 workspace/team-access foundation plus the Phase 30 workspace activity feed.
+Phase 34 adds a clean audited dependency graph and high-severity supply-chain
+gates.
+
+Current packages:
 
 - `apps/web`: React, Vite, TypeScript, Tailwind review workspace
 - `apps/api`: Express, TypeScript, auth, dataset, scoring, internal jobs,
@@ -100,6 +104,8 @@ realtime collaboration, or a compliance-grade audit log.
 
 ## Local Development
 
+Use Node.js `^20.19.0 || >=22.12.0`.
+
 1. Install dependencies:
 
    ```bash
@@ -127,6 +133,7 @@ realtime collaboration, or a compliance-grade audit log.
 ## Quality Gates
 
 ```bash
+npm run audit
 npm run typecheck
 npm run test
 npm run build

@@ -4,6 +4,9 @@ set -eu
 echo "[pre-push] Installing dependencies"
 npm install
 
+echo "[pre-push] Auditing high-severity dependency risk"
+npm run audit
+
 echo "[pre-push] Running TypeScript checks"
 npm run typecheck
 
