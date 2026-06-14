@@ -13,6 +13,8 @@ import {
   clearWorkspaceAssignment,
   createDataset,
   deactivateWorkspaceMember,
+  followEntity,
+  getFollowState,
   getMyWork,
   getNotificationPreferences,
   getWorkspaceAssignment,
@@ -29,6 +31,7 @@ import {
   listWorkspaceComments,
   listAssignedToMe,
   listApprovalRequests,
+  listFollows,
   listWorkspaces,
   markWorkspaceDiscussionRead,
   removeComparisonItem,
@@ -41,6 +44,7 @@ import {
   updateNotificationPreferences,
   updateWorkspaceMemberRole,
   updateWorkspaceAssignment,
+  unfollowEntity,
 } from "../../apps/web/src/api.js";
 
 const originalFetch = globalThis.fetch;
@@ -374,12 +378,14 @@ describe("web API client", () => {
         approvals: 0,
         unreadDiscussions: 1,
         unreadMessages: 2,
+        following: 1,
         totalActionable: 2,
       },
       queues: {
         assignments: { count: 1, items: [] },
         approvals: { count: 0, items: [] },
         discussions: { count: 1, unreadCount: 2, items: [] },
+        following: { count: 1, items: [] },
       },
     };
     const fetchMock = vi.fn(async () =>
@@ -399,6 +405,70 @@ describe("web API client", () => {
     const headers = init.headers as Headers;
     expect(headers.get("Authorization")).toBe("Bearer test-token");
     expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
+  });
+
+  it("loads and toggles workspace-scoped follow state", async () => {
+    const subscription = {
+      id: "follow-1",
+      workspaceId: "workspace-1",
+      targetEntityType: "portfolio_item",
+      targetEntityId: "portfolio-1",
+      followedAt: "2026-06-14T10:00:00.000Z",
+    };
+    const payloads = [
+      { follows: [subscription] },
+      {
+        targetEntityType: "portfolio_item",
+        targetEntityId: "portfolio-1",
+        following: false,
+        followerCount: 1,
+      },
+      {
+        targetEntityType: "portfolio_item",
+        targetEntityId: "portfolio-1",
+        following: true,
+        followerCount: 2,
+        subscription,
+        alreadyFollowing: false,
+      },
+      {
+        targetEntityType: "portfolio_item",
+        targetEntityId: "portfolio-1",
+        unfollowed: true,
+        followerCount: 1,
+      },
+    ];
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payloads.shift()), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await listFollows("test-token");
+    await getFollowState("test-token", "portfolio_item", "portfolio-1");
+    await followEntity("test-token", "portfolio_item", "portfolio-1");
+    await unfollowEntity("test-token", "portfolio_item", "portfolio-1");
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/follows",
+      "http://localhost:4000/follows/portfolio_item/portfolio-1",
+      "http://localhost:4000/follows/portfolio_item/portfolio-1",
+      "http://localhost:4000/follows/portfolio_item/portfolio-1",
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual([
+      "GET",
+      "GET",
+      "PUT",
+      "DELETE",
+    ]);
+    for (const [, init] of fetchMock.mock.calls) {
+      const headers = init?.headers as Headers;
+      expect(headers.get("Authorization")).toBe("Bearer test-token");
+      expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
+    }
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

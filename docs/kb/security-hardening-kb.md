@@ -733,6 +733,29 @@ The endpoint does not infer urgency, manager visibility, workload, or access
 from client state. Any future queue source must define its own personal
 relevance and tenancy checks before joining this aggregation.
 
+### Follow Subscriptions
+
+Follow state changes personal visibility and notification scope, so it must not
+be treated as a client-side bookmark.
+
+Current protection:
+
+- authenticated actor and active selected-workspace membership for every route;
+- allowlisted target types and ObjectId validation;
+- current target-access checks for state retrieval and creation;
+- workspace-, actor-, type-, and target-qualified unique subscriptions;
+- stale/inaccessible target omission from personal lists and My Work;
+- idempotent stale-subscription cleanup without target disclosure;
+- active-membership filtering for follower counts and notification fan-out;
+- no follower identity list in the current API;
+- actor exclusion and direct-assignee deduplication for bounded alerts;
+- personal notification-preference enforcement before in-app/email delivery;
+- workspace remounting of frontend record state.
+
+Following never grants record access, reviewer authority, assignment, or a
+workspace role. Social graphs, public feeds, recommendation logic, presence,
+and arbitrary event subscriptions remain out of scope.
+
 ### Automation Jobs And Workers
 
 Internal jobs now include tenant ownership, lifecycle status, safe

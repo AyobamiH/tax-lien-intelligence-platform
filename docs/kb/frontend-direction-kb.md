@@ -53,9 +53,9 @@ Current implementation:
 - maintenance mode/message visibility for scored datasets;
 - alerts route with unread count and read/read-all actions;
 - alert entries for scoring completion/failure, bounded discussion outcomes,
-  and direct responsibility assignments;
+  direct responsibility assignments, and consequential followed-item changes;
 - notification preferences route with controls for supported scoring and
-  discussion and assignment alert types,
+  discussion, assignment, and followed-item alert types,
   enabled state, in-app-only versus email-capable handling, and timing;
 - delivery history route with safe immediate and digest outcomes;
 - workspace context, selected role, and read-only visibility in the header;
@@ -80,7 +80,10 @@ Current implementation:
   reviewer rationale, owner/admin approve/reject actions, and requester
   cancellation;
 - default my-work route with compact counts and bounded assigned, reviewable
-  approval, and unread discussion queues linked to existing surfaces;
+  approval, unread discussion, and informational followed-record queues linked
+  to existing surfaces;
+- compact follow/unfollow controls with follower count on dataset, comparison,
+  watchlist, and portfolio detail surfaces;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -139,6 +142,8 @@ Current and future page direction:
   workflow;
 - implemented: member-focused my-work operational home and reviewer queue
   aggregation;
+- implemented: stakeholder follow controls and informational followed-record
+  queue;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities
@@ -393,6 +398,9 @@ Future frontend work must:
 - treat my-work counts and links as server-derived workspace-scoped summaries;
   never combine cached queues across workspace switches or infer access from a
   visible row.
+- treat follow state as server-derived personal workspace data; remount or
+  reload it on workspace changes and never infer record access from a stored
+  subscription.
 - derive member-management and assignment-control states from server-provided
   workspace permissions; hidden or disabled controls are never authorization.
 

@@ -770,6 +770,7 @@ describe("review model helpers", () => {
     expect(alertTypeLabel("scoring_job_failed")).toBe("Scoring failed");
     expect(alertTypeLabel("workspace_comment_added")).toBe("Workspace discussion");
     expect(alertTypeLabel("workspace_item_assigned")).toBe("Workspace assignment");
+    expect(alertTypeLabel("followed_item_changed")).toBe("Followed item update");
     expect(alertSeverityClassName("error")).toContain("red");
     expect(notificationDeliveryModeLabel("in_app_only")).toBe("In-app only");
     expect(notificationDeliveryModeLabel("delivery_eligible")).toBe("Delivery-ready");

@@ -498,17 +498,20 @@ Current alert types:
 - `scoring_job_completed`;
 - `scoring_job_failed`;
 - `workspace_comment_added`;
-- `workspace_item_assigned`.
+- `workspace_item_assigned`;
+- `followed_item_changed`.
 
 Current alert metadata is limited to safe identifiers and summary values:
 
 - job id;
 - dataset id;
 - scored record count;
-- stable error code.
-- request kind.
+- stable error code;
+- request kind;
 - workspace id, comment id, and member-visible actor identity for discussion
-  alerts.
+  alerts;
+- workspace id, follow event id, allowlisted change type, and verified actor
+  identity for followed-item updates;
 - workspace id, assignment id, and member-visible actor identity for assignment
   alerts.
 
@@ -671,10 +674,11 @@ The current my-work response composes existing contracts:
 
 - verified workspace id and server generation timestamp;
 - assigned, reviewable-approval, unread-thread, unread-message, and total
-  actionable counts;
-- assignment, approval, and discussion queues with total count plus at most
-  eight preview items;
-- existing assignment, approval, and discussion-attention item shapes.
+  actionable counts, plus a separate followed-record count;
+- assignment, approval, discussion, and following queues with total count plus
+  at most eight preview items;
+- existing assignment, approval, discussion-attention, and follow-subscription
+  item shapes.
 
 The authenticated actor is implicit. Clients must not submit a user id, role,
 workspace id in the body, target access decision, reviewer eligibility, unread
@@ -684,6 +688,30 @@ entries never include comment body text.
 
 This contract is an aggregation response, not a task, priority, SLA, workload,
 or activity-feed contract.
+Following is informational and does not contribute to `totalActionable`.
+
+## Follow Subscription Contract
+
+The current follow contract is intentionally allowlisted:
+
+- target entity types: `dataset`, `comparison_item`, `watchlist_item`, and
+  `portfolio_item`;
+- server-derived workspace and follower identity;
+- subscription id, target type/id, and followed timestamp;
+- actor-specific followed state and active follower count;
+- duplicate-safe create result with `alreadyFollowing`;
+- idempotent delete result with `unfollowed`;
+- personal selected-workspace list.
+
+Clients submit only the target type/id in the URL. They must not submit user
+ids, workspace ids, follower counts, target access decisions, notification
+recipients, or timestamps. Following does not grant access or responsibility.
+
+`followed_item_changed` alerts use an allowlisted change type:
+`assignment_changed`, `portfolio_status_changed`, or `approval_resolved`.
+Notification payloads contain bounded actor and target metadata, never record
+contents. The contract is not a social graph, presence, reaction, mention,
+recommendation, or arbitrary event-subscription model.
 
 ## Saved View Contract
 
@@ -838,6 +866,8 @@ possible or explicitly versioned.
   authority server-side, and never expose note text through activity metadata.
 - Keep my-work queues actor/workspace derived, bounded, target-revalidated, and
   free of comment bodies or invented urgency metadata.
+- Keep follows actor/workspace qualified, duplicate-safe, target-revalidated,
+  and incapable of granting access or authority.
 - Do not represent scoring as a single number once explainable scoring exists.
 - Do not treat alert metadata as a raw logging or diagnostic payload.
 - Do not let enrichment contracts imply external verification when enrichment is

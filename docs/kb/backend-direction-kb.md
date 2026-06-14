@@ -37,7 +37,9 @@ Current implementation:
 - approval-request model and service for the allowlisted
   comparison-to-portfolio checkpoint;
 - my-work aggregation service over existing assignment, approval, discussion
-  attention, membership, and target-access boundaries;
+  attention, follow, membership, and target-access boundaries;
+- follow-subscription model, store, service, and routes for four allowlisted
+  shared record types;
 - selected-workspace membership middleware and explicit read/write,
   member-management, member-removal, role-management, approval-review, and
   sensitive-action checks;
@@ -74,8 +76,8 @@ Current implementation:
 - notification delivery outbox model;
 - notification digest batch model;
 - authenticated notification preference get/update routes;
-- preference-driven scoring/discussion/assignment alert suppression and delivery
-  classification;
+- preference-driven scoring/discussion/assignment/followed-item alert
+  suppression and delivery classification;
 - provider-agnostic delivery-preparation metadata for supported alerts;
 - env-driven SMTP email transport boundary;
 - preference-aware immediate email delivery for supported product alerts when
@@ -126,7 +128,12 @@ Current implementation:
   protection, self-review prevention, requester-only cancellation,
   stale-target revalidation, and workspace-qualified lookup;
 - authenticated my-work retrieval with reviewer filtering, unread discussion
-  aggregation, stale-target omission, and bounded queue previews;
+  aggregation, followed-record listing, stale-target omission, and bounded
+  queue previews;
+- authenticated follow state/create/delete/list behavior with duplicate-safe
+  persistence, selected-workspace scoping, and target-access validation;
+- bounded follower notification fan-out for assignment changes, portfolio
+  status changes, and approval resolution;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -167,6 +174,8 @@ The backend should become the trusted boundary for:
 - workspace responsibility assignment persistence;
 - workspace approval checkpoint persistence and resolution;
 - member-focused operational queue aggregation without new task persistence;
+- personal workspace follow-subscription persistence and bounded stakeholder
+  notification fan-out;
 - workspace membership administration and inactive-membership lifecycle;
 - future compliance-grade audit events;
 - security enforcement.
@@ -756,7 +765,8 @@ Backend implementation order should stay disciplined:
 34. focused approval requests and review checkpoints: implemented in Phase 36;
 35. member-focused my-work dashboard and reviewer queues: implemented in Phase
     37;
-36. later external automation.
+36. follow subscriptions and stakeholder awareness: implemented in Phase 38;
+37. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -776,6 +786,8 @@ Avoid:
   escalation, or compliance workflow without a separate architecture phase;
 - turning my-work aggregation into tasks, due dates, SLA scoring, workload
   analytics, or AI prioritization;
+- turning follow subscriptions into social graphs, public feeds, arbitrary
+  event rules, recommendations, or notification-on-every-change behavior;
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
   separate financial analytics phase.

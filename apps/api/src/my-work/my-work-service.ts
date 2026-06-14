@@ -5,6 +5,7 @@ import type {
 } from "@tax-lien/types";
 import type { ApprovalService } from "../approvals/approval-service.js";
 import type { DiscussionAttentionService } from "../discussion-attention/discussion-attention-service.js";
+import type { FollowService } from "../follows/follow-service.js";
 import type { WorkspaceAssignmentService } from "../workspace-assignments/workspace-assignment-service.js";
 import type { WorkspaceCommentTargetAccess } from "../workspace-comments/comment-target-access.js";
 import type { WorkspaceAccessContext } from "../workspaces/workspace-service.js";
@@ -17,16 +18,18 @@ export class MyWorkService {
     private readonly approvalService: ApprovalService,
     private readonly discussionAttentionService: DiscussionAttentionService,
     private readonly targetAccess: WorkspaceCommentTargetAccess,
+    private readonly followService: FollowService,
   ) {}
 
   public async get(
     context: WorkspaceAccessContext,
     actorUserId: string,
   ): Promise<MyWorkResponse> {
-    const [assignmentResult, approvalResult, unreadDiscussionResult] = await Promise.all([
+    const [assignmentResult, approvalResult, unreadDiscussionResult, followResult] = await Promise.all([
       this.assignmentService.listMine(context, actorUserId),
       this.approvalService.list(context, actorUserId, { status: "pending" }),
       this.discussionAttentionService.listUnread(actorUserId, context.workspaceId),
+      this.followService.listMine(context, actorUserId),
     ]);
 
     const approvals = await this.accessibleReviewableApprovals(
@@ -53,6 +56,7 @@ export class MyWorkService {
         approvals: approvalCount,
         unreadDiscussions: discussionCount,
         unreadMessages,
+        following: followResult.follows.length,
         totalActionable: assignedCount + approvalCount + discussionCount,
       },
       queues: {
@@ -68,6 +72,10 @@ export class MyWorkService {
           count: discussionCount,
           unreadCount: unreadMessages,
           items: discussions.slice(0, maxQueueItems),
+        },
+        following: {
+          count: followResult.follows.length,
+          items: followResult.follows.slice(0, maxQueueItems),
         },
       },
     };

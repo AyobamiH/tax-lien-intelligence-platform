@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { AuthService } from "../auth/auth-service.js";
 import { ApiError } from "../errors/api-error.js";
 import { toValidationError } from "../errors/error-handler.js";
+import type { FollowService } from "../follows/follow-service.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import type { PortfolioService } from "../portfolio/portfolio-service.js";
@@ -30,6 +31,7 @@ export function createPortfolioRouter(
   portfolioService: PortfolioService,
   workspaceService: WorkspaceService,
   activityService: WorkspaceActivityService,
+  followService: FollowService,
 ): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
@@ -134,6 +136,17 @@ export function createPortfolioRouter(
             newStatus: result.item.status,
           },
         });
+        try {
+          await followService.notifyFollowers({
+            workspaceId: request.workspace.workspaceId,
+            actorUserId: request.auth.userId,
+            targetEntityType: "portfolio_item",
+            targetEntityId: result.item.id,
+            changeType: "portfolio_status_changed",
+          });
+        } catch {
+          // Portfolio status persistence is authoritative; follower alerts are best effort.
+        }
       }
       response.status(200).json(result);
     } catch (error) {

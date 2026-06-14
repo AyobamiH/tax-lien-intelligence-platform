@@ -356,6 +356,7 @@ export interface MyWorkCounts {
   approvals: number;
   unreadDiscussions: number;
   unreadMessages: number;
+  following: number;
   totalActionable: number;
 }
 
@@ -375,6 +376,48 @@ export interface MyWorkDiscussionQueue {
   items: DiscussionAttentionResponse[];
 }
 
+export type FollowTargetEntityType = WorkspaceCommentEntityType;
+export type FollowedItemChangeType =
+  | "assignment_changed"
+  | "portfolio_status_changed"
+  | "approval_resolved";
+
+export interface FollowSubscriptionResponse {
+  id: string;
+  workspaceId: string;
+  targetEntityType: FollowTargetEntityType;
+  targetEntityId: string;
+  followedAt: string;
+}
+
+export interface FollowStateResponse {
+  targetEntityType: FollowTargetEntityType;
+  targetEntityId: string;
+  following: boolean;
+  followerCount: number;
+  subscription?: FollowSubscriptionResponse;
+}
+
+export interface FollowEntityResponse extends FollowStateResponse {
+  alreadyFollowing: boolean;
+}
+
+export interface UnfollowEntityResponse {
+  targetEntityType: FollowTargetEntityType;
+  targetEntityId: string;
+  unfollowed: boolean;
+  followerCount: number;
+}
+
+export interface FollowListResponse {
+  follows: FollowSubscriptionResponse[];
+}
+
+export interface MyWorkFollowingQueue {
+  count: number;
+  items: FollowSubscriptionResponse[];
+}
+
 export interface MyWorkResponse {
   workspaceId: string;
   generatedAt: string;
@@ -383,6 +426,7 @@ export interface MyWorkResponse {
     assignments: MyWorkAssignmentQueue;
     approvals: MyWorkApprovalQueue;
     discussions: MyWorkDiscussionQueue;
+    following: MyWorkFollowingQueue;
   };
 }
 
@@ -774,7 +818,8 @@ export type AlertType =
   | "scoring_job_completed"
   | "scoring_job_failed"
   | "workspace_comment_added"
-  | "workspace_item_assigned";
+  | "workspace_item_assigned"
+  | "followed_item_changed";
 export type AlertSeverity = "info" | "error";
 export type AlertStatus = "unread" | "read";
 export type AlertRelatedEntityType =
@@ -797,6 +842,10 @@ export interface AlertMetadata {
   assignmentId?: string;
   assignmentActorUserId?: string;
   assignmentActorEmail?: string;
+  followEventId?: string;
+  followChangeType?: FollowedItemChangeType;
+  followActorUserId?: string;
+  followActorEmail?: string;
 }
 
 export interface AlertResponse {

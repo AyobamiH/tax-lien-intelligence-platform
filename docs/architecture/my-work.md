@@ -10,9 +10,11 @@ aggregation layer, not a task-management domain.
 - `WorkspaceAssignmentService.listMine`;
 - `ApprovalService.list` filtered to pending requests the actor can review;
 - `DiscussionAttentionService.listUnread`.
+- `FollowService.listMine`.
 
 No new persistence model is introduced. Assignment, approval, discussion
-attention, membership, and target-access records remain authoritative.
+attention, follow subscriptions, membership, and target-access records remain
+authoritative.
 
 ## Security Boundary
 
@@ -28,6 +30,8 @@ were deleted, moved, or are no longer accessible.
 Approval reviewer eligibility remains server-derived, including role and
 self-review rules. Discussion rows contain only attention metadata, never
 comment bodies.
+Follow subscriptions are revalidated against current target access and remain
+an informational signal rather than an inferred obligation.
 
 ## Response Shape
 
@@ -35,7 +39,7 @@ The response includes:
 
 - grouped counts;
 - a generated timestamp;
-- compact assignment, approval, and discussion previews;
+- compact assignment, approval, discussion, and followed-record previews;
 - unread thread and unread message counts.
 
 Each preview is capped at eight items. Existing source stores remain bounded at
@@ -44,8 +48,10 @@ Each preview is capped at eight items. Existing source stores remain bounded at
 ## Frontend
 
 `#/my-work` is the default signed-in and workspace-switch destination. It shows
-compact counts and three line-item queues with navigation into the existing
+compact counts and four line-item queues with navigation into the existing
 dataset, comparison, watchlist, portfolio, and approval surfaces.
+The Following queue is visually separate and does not contribute to the
+actionable total.
 
 Dedicated assignment and approval pages remain available for deeper work. The
 home view does not duplicate review controls or mark discussions read merely

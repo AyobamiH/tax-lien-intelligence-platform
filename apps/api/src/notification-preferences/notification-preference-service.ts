@@ -25,6 +25,7 @@ export const notificationAlertTypes = [
   "scoring_job_failed",
   "workspace_comment_added",
   "workspace_item_assigned",
+  "followed_item_changed",
 ] as const;
 export const notificationDeliveryModes = ["in_app_only", "delivery_eligible"] as const;
 export const notificationCadences = ["immediate", "digest"] as const;
@@ -82,6 +83,19 @@ const notificationCategories: NotificationPreferenceCategory[] = [
     supportsDigest: true,
     defaultRule: {
       alertType: "workspace_item_assigned",
+      enabled: true,
+      deliveryMode: "in_app_only",
+      cadence: "digest",
+    },
+  },
+  {
+    alertType: "followed_item_changed",
+    label: "Followed item updates",
+    description: "A consequential assignment, portfolio status, or approval change happened on a record you follow.",
+    supportsDelivery: true,
+    supportsDigest: true,
+    defaultRule: {
+      alertType: "followed_item_changed",
       enabled: true,
       deliveryMode: "in_app_only",
       cadence: "digest",
@@ -254,6 +268,8 @@ function notificationSubject(alertType: AlertType, severity: AlertSeverity): str
       return "New workspace discussion";
     case "workspace_item_assigned":
       return "Workspace item assigned";
+    case "followed_item_changed":
+      return "Followed item updated";
   }
 }
 
@@ -271,6 +287,10 @@ function sanitizeAlertMetadata(metadata: AlertMetadata | undefined): NonNullable
     ...(metadata?.assignmentId ? { assignmentId: metadata.assignmentId } : {}),
     ...(metadata?.assignmentActorUserId ? { assignmentActorUserId: metadata.assignmentActorUserId } : {}),
     ...(metadata?.assignmentActorEmail ? { assignmentActorEmail: metadata.assignmentActorEmail } : {}),
+    ...(metadata?.followEventId ? { followEventId: metadata.followEventId } : {}),
+    ...(metadata?.followChangeType ? { followChangeType: metadata.followChangeType } : {}),
+    ...(metadata?.followActorUserId ? { followActorUserId: metadata.followActorUserId } : {}),
+    ...(metadata?.followActorEmail ? { followActorEmail: metadata.followActorEmail } : {}),
   };
 }
 

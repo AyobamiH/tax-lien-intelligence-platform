@@ -11,13 +11,15 @@ keeping its default in-app-only and digest-paced.
 Phase 33 adds `workspace_item_assigned`. It is evaluated against the new
 assignee's personal rule; self-assignment, no-op assignment, and clear actions
 do not generate an alert.
+Phase 38 adds `followed_item_changed`. It defaults to enabled, in-app-only, and
+digest-paced, and is evaluated against each follower's personal rule.
 
 Email delivery is disabled by default. It sends only when email delivery is
 enabled and required SMTP/sender env config is complete.
 
 ## Current Implementation
 
-Implemented through Phase 28:
+Implemented through Phase 38:
 
 - tenant-owned notification preference model in `packages/db`;
 - notification preference store/service boundaries in
@@ -25,7 +27,8 @@ Implemented through Phase 28:
 - authenticated `GET /notification-preferences` and
   `PATCH /notification-preferences` routes;
 - explicit rules for `scoring_job_completed`, `scoring_job_failed`,
-  `workspace_comment_added`, and `workspace_item_assigned`;
+  `workspace_comment_added`, `workspace_item_assigned`, and
+  `followed_item_changed`;
 - `enabled`, `deliveryMode`, and `cadence` controls;
 - job-alert suppression when a supported alert type is disabled;
 - provider-agnostic delivery-preparation payloads with safe metadata;
@@ -92,7 +95,8 @@ preference service to classify the alert:
 The preparation payload contains a subject, summary, related entity ids, and
 bounded alert metadata such as job id, dataset id, request kind, record count,
 or error code. It deliberately avoids raw dataset rows, stack traces, provider
-configuration, comment body text, or broad internal job payloads.
+configuration, comment body text, followed-record details, or broad internal
+job payloads.
 
 ## Email Delivery Boundary
 
@@ -122,6 +126,8 @@ The unique source key is `alert:<alertId>` for created alerts and
 from sending the same product alert more than once.
 Suppressed discussion events use
 `comment:<commentId>:<recipientUserId>:workspace_comment_added`.
+Suppressed follower events use
+`follow:<followEventId>:<recipientUserId>:followed_item_changed`.
 
 ## SMTP Configuration
 

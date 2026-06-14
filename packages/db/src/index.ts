@@ -50,6 +50,12 @@ export {
   type DiscussionAttentionRecord,
 } from "./models/discussion-attention.js";
 export {
+  FollowSubscriptionModel,
+  type FollowSubscriptionDocument,
+  type FollowSubscriptionRecord,
+  type FollowTargetEntityTypeRecord,
+} from "./models/follow-subscription.js";
+export {
   DatasetModel,
   type DatasetDocument,
   type DatasetImportAdapterIdRecord,

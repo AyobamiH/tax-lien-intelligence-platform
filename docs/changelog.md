@@ -2,6 +2,24 @@
 
 ## 2026-06-14
 
+- Implemented Phase 38 workspace-scoped follow subscriptions for datasets,
+  comparison items, watchlist items, and portfolio items.
+- Added authenticated follow, unfollow, state, follower-count, and personal
+  followed-item list APIs with duplicate-safe persistence, target-access
+  validation, stale-target filtering, and cross-workspace rejection.
+- Added follow controls to all supported record detail surfaces and an
+  informational Following queue in My Work. Following does not assign
+  responsibility or increase the actionable-work count.
+- Added bounded `followed_item_changed` alerts for assignment changes,
+  portfolio status changes, and approval resolution. Actors and newly assigned
+  recipients are excluded where they already have direct context, and existing
+  personal notification preferences still govern in-app versus delivery-ready
+  behavior.
+- Added integration and frontend API contract tests for duplicate follows,
+  unfollow, stale targets, workspace isolation, follower alerts, preference
+  handling, and My Work aggregation.
+- Kept social following, public feeds, reactions, mentions, recommendations,
+  presence, and notification-on-every-change behavior out of scope.
 - Implemented Phase 37 member-focused my-work aggregation over existing
   assignments, reviewable approvals, and unread discussion attention.
 - Added authenticated `GET /my-work` with selected-workspace membership,

@@ -10,6 +10,7 @@ import type {
 import type { AlertService } from "../alerts/alert-service.js";
 import type { UserStore } from "../auth/user-store.js";
 import { ApiError } from "../errors/api-error.js";
+import type { FollowService } from "../follows/follow-service.js";
 import type { WorkspaceCommentTargetAccess } from "../workspace-comments/comment-target-access.js";
 import {
   recordWorkspaceActivitySafely,
@@ -30,6 +31,7 @@ export class WorkspaceAssignmentService {
     private readonly targetAccess: WorkspaceCommentTargetAccess,
     private readonly alertService: AlertService,
     private readonly activityService: WorkspaceActivityService,
+    private readonly followService?: FollowService,
   ) {}
 
   public async get(
@@ -107,6 +109,17 @@ export class WorkspaceAssignmentService {
       } catch {
         // Clearing the assignment remains successful if activity enrichment is unavailable.
       }
+      try {
+        await this.followService?.notifyFollowers({
+          workspaceId: context.workspaceId,
+          actorUserId,
+          targetEntityType: entityType,
+          targetEntityId: entityId,
+          changeType: "assignment_changed",
+        });
+      } catch {
+        // Clearing responsibility remains successful when follower notification fails.
+      }
     }
     return { relatedEntityType: entityType, relatedEntityId: entityId, cleared: Boolean(previous) };
   }
@@ -179,6 +192,18 @@ export class WorkspaceAssignmentService {
       } catch {
         // Assignment persistence is authoritative; notification delivery is best effort.
       }
+    }
+    try {
+      await this.followService?.notifyFollowers({
+        workspaceId,
+        actorUserId,
+        targetEntityType: assignment.relatedEntityType,
+        targetEntityId: assignment.relatedEntityId,
+        changeType: "assignment_changed",
+        excludeUserIds: [assignment.assigneeUserId],
+      });
+    } catch {
+      // Assignment persistence remains authoritative when follower notification fails.
     }
   }
 

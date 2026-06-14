@@ -38,6 +38,9 @@ Current implementation:
 - workspace comments create bounded peer attention: unread counts accumulate
   per thread while alerts are limited to one per unread cycle and exclude
   comment body text;
+- deliberate record follows create bounded stakeholder alerts only for
+  assignment changes, portfolio status changes, and approval resolution, under
+  each follower's existing preferences;
 - first internal enrichment adapter exists for uploaded source-row inference;
 - controlled user-triggered dataset refresh/reprocessing exists through the
   worker job boundary;
@@ -78,6 +81,8 @@ notification automation platform.
 Phase 32 reuses this delivery foundation for optional discussion alerts. It is
 not autonomous collaboration, realtime chat, mention intelligence, or
 AI-generated summarization.
+Phase 38 reuses it for deliberate stakeholder awareness. It is not social
+following, event-stream automation, recommendation logic, or AI prioritization.
 
 ## Why Automation Is Part Of The SaaS
 
@@ -135,7 +140,8 @@ Manual-first sequence:
 20. email delivery foundation for supported product alerts;
 21. bounded digest delivery and owner-safe history;
 22. bounded discussion attention and optional delivery;
-23. then broader automation.
+23. bounded stakeholder follow subscriptions;
+24. then broader automation.
 
 Automation before reliable manual workflows risks making errors faster and less
 visible.

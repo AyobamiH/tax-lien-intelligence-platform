@@ -1153,7 +1153,8 @@ Phase 36 does not include:
 - arbitrary workflow builders or custom permission matrices;
 - SLAs, escalation, compliance policy, or e-signatures;
 - general task/project approvals;
-- approval alerts/email;
+- direct approval request/reviewer alerts or email; Phase 38 only adds bounded
+  resolution alerts for members already following the comparison item;
 - auction execution or AI reviewer routing.
 
 This is a practical trust checkpoint, not a business-process platform.
@@ -1184,6 +1185,35 @@ Phase 37 does not include:
 
 This is a personal aggregation layer over existing workflow truth, not a
 productivity platform.
+
+## Phase 38: Follow Subscriptions And Stakeholder Awareness
+
+Current status: implemented.
+
+Phase 38 includes:
+
+- workspace-scoped follow subscriptions for datasets, comparison items,
+  watchlist items, and portfolio items;
+- authenticated state, follow, unfollow, and personal list APIs;
+- duplicate-safe creation, active-member follower counts, current target-access
+  checks, stale-target omission, and idempotent cleanup;
+- compact follow controls on supported detail surfaces;
+- a separate informational Following queue in My Work;
+- bounded, preference-aware alerts for assignment changes, portfolio status
+  changes, and approval resolution;
+- actor exclusion and direct-assignee deduplication;
+- integration and frontend API contract tests.
+
+Phase 38 does not include:
+
+- social user following, public feeds, reactions, mentions, or presence;
+- recommendation or AI prioritization;
+- arbitrary event subscriptions or notification on every mutation;
+- follower analytics or stakeholder management suites;
+- auction execution.
+
+This is a deliberate operational awareness layer, not a social network or
+workflow automation engine.
 
 ## Later Phases
 
@@ -1245,7 +1275,8 @@ Dependency order matters:
 33. role-aware workspace administration hardening;
 34. focused approval requests and review checkpoints;
 35. member-focused my-work dashboard and reviewer queues;
-36. broader automation.
+36. follow subscriptions and stakeholder awareness;
+37. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

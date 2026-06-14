@@ -54,6 +54,9 @@ import { createApprovalRouter } from "./routes/approvals.js";
 import { createMyWorkService } from "./my-work/factory.js";
 import type { MyWorkService } from "./my-work/my-work-service.js";
 import { createMyWorkRouter } from "./routes/my-work.js";
+import { createFollowService } from "./follows/factory.js";
+import type { FollowService } from "./follows/follow-service.js";
+import { createFollowRouter } from "./routes/follows.js";
 
 export interface AppDependencies {
   authService?: AuthService;
@@ -73,6 +76,7 @@ export interface AppDependencies {
   workspaceAssignmentService?: WorkspaceAssignmentService;
   approvalService?: ApprovalService;
   myWorkService?: MyWorkService;
+  followService?: FollowService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -96,14 +100,16 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     dependencies.workspaceActivityService ?? createWorkspaceActivityService();
   const workspaceCommentService =
     dependencies.workspaceCommentService ?? createWorkspaceCommentService(alertService);
+  const followService =
+    dependencies.followService ?? createFollowService(alertService);
   const workspaceAssignmentService =
     dependencies.workspaceAssignmentService ??
-    createWorkspaceAssignmentService(alertService, workspaceActivityService);
+    createWorkspaceAssignmentService(alertService, workspaceActivityService, followService);
   const approvalService =
     dependencies.approvalService ?? createApprovalService(comparisonService);
   const myWorkService =
     dependencies.myWorkService ??
-    createMyWorkService(workspaceAssignmentService, approvalService);
+    createMyWorkService(workspaceAssignmentService, approvalService, followService);
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -124,7 +130,17 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/workspaces", createWorkspaceRouter(authService, workspaceService, workspaceActivityService));
   app.use("/comments", createWorkspaceCommentRouter(authService, workspaceService, workspaceCommentService));
   app.use("/assignments", createWorkspaceAssignmentRouter(authService, workspaceService, workspaceAssignmentService));
-  app.use("/approvals", createApprovalRouter(authService, workspaceService, approvalService, workspaceActivityService));
+  app.use(
+    "/approvals",
+    createApprovalRouter(
+      authService,
+      workspaceService,
+      approvalService,
+      workspaceActivityService,
+      followService,
+    ),
+  );
+  app.use("/follows", createFollowRouter(authService, workspaceService, followService));
   app.use("/my-work", createMyWorkRouter(authService, workspaceService, myWorkService));
   app.use("/datasets", createDatasetRouter(authService, datasetService, workspaceService, workspaceActivityService));
   app.use("/datasets", createScoringRouter(authService, scoringService, workspaceService, workspaceActivityService));
@@ -133,7 +149,16 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/notification-deliveries", createNotificationDeliveryRouter(authService, notificationDeliveryService));
   app.use("/notification-preferences", createNotificationPreferenceRouter(authService, notificationPreferenceService));
   app.use("/watchlist", createWatchlistRouter(authService, watchlistService, workspaceService));
-  app.use("/portfolio", createPortfolioRouter(authService, portfolioService, workspaceService, workspaceActivityService));
+  app.use(
+    "/portfolio",
+    createPortfolioRouter(
+      authService,
+      portfolioService,
+      workspaceService,
+      workspaceActivityService,
+      followService,
+    ),
+  );
   app.use(
     "/comparison",
     createComparisonRouter(

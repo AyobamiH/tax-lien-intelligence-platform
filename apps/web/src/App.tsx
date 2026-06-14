@@ -13,6 +13,9 @@ import type {
   DatasetResponse,
   DatasetScoringStatusResponse,
   DiscussionAttentionResponse,
+  FollowStateResponse,
+  FollowSubscriptionResponse,
+  FollowTargetEntityType,
   InternalJobResponse,
   MyWorkResponse,
   NotificationDeliveryHistoryItem,
@@ -58,12 +61,14 @@ import {
   getCurrentUser,
   getDataset,
   getDatasetScoringStatus,
+  getFollowState,
   getJob,
   getMyWork,
   getNotificationPreferences,
   getPortfolioSummary,
   handoffComparisonToPortfolio,
   handoffComparisonToWatchlist,
+  followEntity,
   listAlerts,
   listComparison,
   listComparisonHistory,
@@ -99,6 +104,7 @@ import {
   updatePortfolioItemStatus,
   updateWorkspaceMemberRole,
   updateWorkspaceAssignment,
+  unfollowEntity,
 } from "./api";
 import {
   alertSeverityClassName,
@@ -757,6 +763,23 @@ function App() {
         return;
       case "workspace":
       case "approvals":
+        return;
+    }
+  }
+
+  function openFollow(subscription: FollowSubscriptionResponse): void {
+    switch (subscription.targetEntityType) {
+      case "dataset":
+        navigate({ name: "dataset", datasetId: subscription.targetEntityId }, setPage);
+        return;
+      case "comparison_item":
+        navigate({ name: "comparison" }, setPage);
+        return;
+      case "watchlist_item":
+        navigate({ name: "watchlist" }, setPage);
+        return;
+      case "portfolio_item":
+        navigate({ name: "portfolio" }, setPage);
         return;
     }
   }
@@ -1579,7 +1602,10 @@ function App() {
           </p>
         </div>
       ) : null}
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[320px_1fr]">
+      <div
+        key={workspace.current?.id ?? "workspace-loading"}
+        className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[320px_1fr]"
+      >
         <DatasetListPanel
           datasets={datasets}
           isLoading={datasetsLoading}
@@ -1616,6 +1642,7 @@ function App() {
             onOpenAssignment={openAssignment}
             onOpenApproval={() => navigate({ name: "approvals" }, setPage)}
             onOpenDiscussion={openDiscussionAttention}
+            onOpenFollow={openFollow}
           />
         ) : page.name === "dataset" ? (
           <DatasetDetailPage
@@ -2733,6 +2760,7 @@ function DatasetDetailPage({
             ) : null}
           </div>
         </div>
+        <FollowControl token={token} entityType="dataset" entityId={datasetId} />
         {state.error ? (
           <div className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{state.error}</div>
         ) : null}
@@ -3842,6 +3870,7 @@ function ComparisonDetail({
         entityType="comparison_item"
         entityId={item.id}
       />
+      <FollowControl token={token} entityType="comparison_item" entityId={item.id} />
       <WorkspaceAssignmentControl token={token} entityType="comparison_item" entityId={item.id} />
     </aside>
   );
@@ -4712,6 +4741,7 @@ function PortfolioDetail({
         entityType="portfolio_item"
         entityId={item.id}
       />
+      <FollowControl token={token} entityType="portfolio_item" entityId={item.id} />
       <WorkspaceAssignmentControl token={token} entityType="portfolio_item" entityId={item.id} />
     </aside>
   );
@@ -5844,6 +5874,7 @@ function WatchlistDetail({
         entityType="watchlist_item"
         entityId={item.id}
       />
+      <FollowControl token={token} entityType="watchlist_item" entityId={item.id} />
       <WorkspaceAssignmentControl token={token} entityType="watchlist_item" entityId={item.id} />
     </aside>
   );
@@ -6015,12 +6046,14 @@ function MyWorkPage({
   onOpenAssignment,
   onOpenApproval,
   onOpenDiscussion,
+  onOpenFollow,
 }: {
   token: string;
   workspaceId: string;
   onOpenAssignment: (assignment: WorkspaceAssignmentResponse) => void;
   onOpenApproval: () => void;
   onOpenDiscussion: (attention: DiscussionAttentionResponse) => void;
+  onOpenFollow: (subscription: FollowSubscriptionResponse) => void;
 }) {
   const [myWork, setMyWork] = useState<MyWorkResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -6087,12 +6120,14 @@ function MyWorkPage({
     { label: "Assigned", count: myWork.counts.assigned },
     { label: "Approvals", count: myWork.counts.approvals },
     { label: "Unread discussion", count: myWork.counts.unreadMessages },
+    { label: "Following", count: myWork.counts.following },
   ];
   const summaryBorderClasses = [
     "",
     "border-t border-line sm:border-l sm:border-t-0",
-    "border-t border-line xl:border-l xl:border-t-0",
-    "border-t border-line sm:border-l xl:border-t-0",
+    "border-t border-line lg:border-l lg:border-t-0",
+    "border-t border-line sm:border-l lg:border-t-0",
+    "border-t border-line lg:border-l lg:border-t-0",
   ];
 
   return (
@@ -6102,7 +6137,7 @@ function MyWorkPage({
         onRefresh={() => setReloadVersion((version) => version + 1)}
       />
 
-      <div className="mt-5 grid border border-line bg-white sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-5 grid border border-line bg-white sm:grid-cols-2 lg:grid-cols-5">
         {summaries.map((summary, index) => (
           <div
             key={summary.label}
@@ -6243,6 +6278,47 @@ function MyWorkPage({
             </ol>
           )}
         </section>
+
+        <section aria-labelledby="my-work-following">
+          <div className="flex items-end justify-between gap-3 border-b border-line pb-3">
+            <div>
+              <h3 id="my-work-following" className="text-lg font-semibold">Following</h3>
+              <p className="mt-1 text-sm text-ink/65">
+                Records you are watching for bounded assignment, approval, or status updates.
+              </p>
+            </div>
+            <span className="text-sm font-semibold text-ink/60">{myWork.queues.following.count}</span>
+          </div>
+          {myWork.queues.following.items.length === 0 ? (
+            <p className="border-b border-line bg-white px-4 py-4 text-sm text-ink/60">
+              You are not following any records in this workspace.
+            </p>
+          ) : (
+            <ol>
+              {myWork.queues.following.items.map((subscription) => (
+                <li
+                  key={subscription.id}
+                  className="grid gap-3 border-b border-line bg-white px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold">{followTargetLabel(subscription.targetEntityType)}</p>
+                    <p className="mt-1 break-all text-sm text-ink/70">{subscription.targetEntityId}</p>
+                    <p className="mt-1 text-xs text-ink/55">
+                      Followed {formatDateTime(subscription.followedAt)} · Informational
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onOpenFollow(subscription)}
+                    className="justify-self-start border border-line bg-white px-3 py-2 text-sm font-semibold sm:justify-self-end"
+                  >
+                    Open
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
       </div>
 
       <p className="mt-5 text-xs text-ink/50">Updated {formatDateTime(myWork.generatedAt)}</p>
@@ -6263,7 +6339,7 @@ function MyWorkHeader({
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Personal queue</p>
         <h2 className="mt-1 text-2xl font-semibold">My work</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
-          Your assigned records, review decisions, and unread workspace discussions in one place.
+          Your assigned records, review decisions, unread discussions, and watched records in one place.
         </p>
       </div>
       <button
@@ -6594,6 +6670,101 @@ function AssignedToMePage({
           ))}
         </ol>
       )}
+    </section>
+  );
+}
+
+function FollowControl({
+  token,
+  entityType,
+  entityId,
+}: {
+  token: string;
+  entityType: FollowTargetEntityType;
+  entityId: string;
+}) {
+  const [state, setState] = useState<FollowStateResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState(null);
+    setIsLoading(true);
+    setError(null);
+    void getFollowState(token, entityType, entityId)
+      .then((result) => {
+        if (!cancelled) {
+          setState(result);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, entityType, entityId]);
+
+  async function toggleFollow(): Promise<void> {
+    setIsSaving(true);
+    setError(null);
+    try {
+      if (state?.following) {
+        const result = await unfollowEntity(token, entityType, entityId);
+        setState({
+          targetEntityType: entityType,
+          targetEntityId: entityId,
+          following: false,
+          followerCount: result.followerCount,
+        });
+      } else {
+        const result = await followEntity(token, entityType, entityId);
+        setState(result);
+      }
+    } catch (saveError) {
+      setError(errorMessage(saveError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="mt-5 border-t border-line pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold">
+            {state?.following ? "Following this record" : "Follow this record"}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-ink/60">
+            Following keeps this record in My Work and enables bounded alerts for meaningful changes.
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={isLoading || isSaving}
+          onClick={() => void toggleFollow()}
+          className={`border px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+            state?.following ? "border-pine bg-pine text-white" : "border-line bg-white"
+          }`}
+        >
+          {isLoading ? "Loading" : isSaving ? "Saving" : state?.following ? "Unfollow" : "Follow"}
+        </button>
+      </div>
+      {state ? (
+        <p className="mt-2 text-xs text-ink/55">
+          {state.followerCount} active workspace {state.followerCount === 1 ? "follower" : "followers"}.
+        </p>
+      ) : null}
+      {error ? <p className="mt-2 text-xs text-red-800">{error}</p> : null}
     </section>
   );
 }
@@ -7168,6 +7339,19 @@ function jobRequestKindLabel(requestKind: InternalJobResponse["requestKind"]): s
 
 function handoffResultLabel(result: "created" | "already_exists"): string {
   return result === "already_exists" ? "Already existed" : "Created";
+}
+
+function followTargetLabel(entityType: FollowTargetEntityType): string {
+  switch (entityType) {
+    case "dataset":
+      return "Dataset";
+    case "comparison_item":
+      return "Comparison item";
+    case "watchlist_item":
+      return "Watchlist item";
+    case "portfolio_item":
+      return "Portfolio item";
+  }
 }
 
 function jobStatusClassName(status: InternalJobResponse["status"]): string {

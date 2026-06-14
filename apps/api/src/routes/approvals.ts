@@ -5,6 +5,7 @@ import type { ApprovalService } from "../approvals/approval-service.js";
 import type { AuthService } from "../auth/auth-service.js";
 import { ApiError } from "../errors/api-error.js";
 import { toValidationError } from "../errors/error-handler.js";
+import type { FollowService } from "../follows/follow-service.js";
 import { requireAuth } from "../middleware/auth.js";
 import { requireWorkspaceAccess } from "../middleware/workspace.js";
 import {
@@ -38,6 +39,7 @@ export function createApprovalRouter(
   workspaceService: WorkspaceService,
   approvalService: ApprovalService,
   activityService: WorkspaceActivityService,
+  followService: FollowService,
 ): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
@@ -124,6 +126,7 @@ export function createApprovalRouter(
         parsed.data.responseNote,
       );
       await recordApprovalActivity(activityService, request, result.approval, "approval_approved");
+      await notifyApprovalFollowers(followService, request, result.approval.targetEntityId);
       response.status(200).json(result);
     } catch (error) {
       next(error);
@@ -146,6 +149,7 @@ export function createApprovalRouter(
         parsed.data.responseNote,
       );
       await recordApprovalActivity(activityService, request, result.approval, "approval_rejected");
+      await notifyApprovalFollowers(followService, request, result.approval.targetEntityId);
       response.status(200).json(result);
     } catch (error) {
       next(error);
@@ -163,6 +167,7 @@ export function createApprovalRouter(
         request.params.approvalRequestId,
       );
       await recordApprovalActivity(activityService, request, result.approval, "approval_cancelled");
+      await notifyApprovalFollowers(followService, request, result.approval.targetEntityId);
       response.status(200).json(result);
     } catch (error) {
       next(error);
@@ -170,6 +175,27 @@ export function createApprovalRouter(
   });
 
   return router;
+}
+
+async function notifyApprovalFollowers(
+  followService: FollowService,
+  request: Request,
+  targetEntityId: string,
+): Promise<void> {
+  if (!request.auth || !request.workspace) {
+    return;
+  }
+  try {
+    await followService.notifyFollowers({
+      workspaceId: request.workspace.workspaceId,
+      actorUserId: request.auth.userId,
+      targetEntityType: "comparison_item",
+      targetEntityId,
+      changeType: "approval_resolved",
+    });
+  } catch {
+    // Approval resolution is authoritative; follower alerts are best effort.
+  }
 }
 
 async function recordApprovalActivity(

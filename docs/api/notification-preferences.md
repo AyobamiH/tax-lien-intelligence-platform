@@ -19,6 +19,7 @@ All routes require `Authorization: Bearer <jwt-access-token>`.
 - `scoring_job_failed`
 - `workspace_comment_added`
 - `workspace_item_assigned`
+- `followed_item_changed`
 
 ## Preference Fields
 
@@ -64,6 +65,12 @@ Response `200`:
       },
       {
         "alertType": "workspace_item_assigned",
+        "enabled": true,
+        "deliveryMode": "in_app_only",
+        "cadence": "digest"
+      },
+      {
+        "alertType": "followed_item_changed",
         "enabled": true,
         "deliveryMode": "in_app_only",
         "cadence": "digest"
@@ -129,7 +136,8 @@ Supported product alerts now receive an internal delivery classification:
 
 Delivery-preparation payloads are provider-agnostic and contain safe summaries
 plus bounded alert metadata. They do not include raw source rows, stack traces,
-comment body text, assigned-record content, or external provider details.
+comment body text, assigned-record content, followed-record details, or
+external provider details.
 
 The delivery service writes outbox records for supported job alerts:
 

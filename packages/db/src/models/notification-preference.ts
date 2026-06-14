@@ -24,7 +24,13 @@ const notificationPreferenceRuleSchema = new Schema<NotificationPreferenceRuleRe
   {
     alertType: {
       type: String,
-      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added", "workspace_item_assigned"],
+      enum: [
+        "scoring_job_completed",
+        "scoring_job_failed",
+        "workspace_comment_added",
+        "workspace_item_assigned",
+        "followed_item_changed",
+      ],
       required: true,
     },
     enabled: {

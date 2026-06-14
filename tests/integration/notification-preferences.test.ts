@@ -161,6 +161,7 @@ describe("notification preferences API", () => {
         { alertType: "scoring_job_failed", enabled: true, deliveryMode: "delivery_eligible", cadence: "immediate" },
         { alertType: "workspace_comment_added", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
         { alertType: "workspace_item_assigned", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
+        { alertType: "followed_item_changed", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
       ],
     });
     expect(response.body.categories).toEqual(
@@ -169,6 +170,7 @@ describe("notification preferences API", () => {
         expect.objectContaining({ alertType: "scoring_job_failed", supportsDigest: true }),
         expect.objectContaining({ alertType: "workspace_comment_added", supportsDelivery: true }),
         expect.objectContaining({ alertType: "workspace_item_assigned", supportsDelivery: true }),
+        expect.objectContaining({ alertType: "followed_item_changed", supportsDelivery: true }),
       ]),
     );
     expect(JSON.stringify(response.body)).not.toContain(owner.userId);
@@ -408,6 +410,72 @@ describe("notification preferences API", () => {
       }),
     ]);
     expect(JSON.stringify(alerts.body)).not.toContain("record content");
+    expect(emailTransport.messages).toHaveLength(0);
+  });
+
+  it("keeps followed-item alerts bounded and preference-aware", async () => {
+    const { app, alertService, notificationDeliveryStore, emailTransport } = createTestContext();
+    const member = await registerUser(app, "member@example.com");
+    const workspaceId = new mongoose.Types.ObjectId().toString();
+    const entityId = new mongoose.Types.ObjectId().toString();
+    const followEventId = new mongoose.Types.ObjectId().toString();
+    const actorUserId = new mongoose.Types.ObjectId().toString();
+
+    await request(app)
+      .patch("/notification-preferences")
+      .set("Authorization", `Bearer ${member.token}`)
+      .send({
+        rules: [
+          {
+            alertType: "followed_item_changed",
+            enabled: true,
+            deliveryMode: "delivery_eligible",
+            cadence: "digest",
+          },
+        ],
+      })
+      .expect(200);
+
+    await alertService.recordFollowedItemChanged({
+      recipientUserId: member.userId,
+      workspaceId,
+      actorUserId,
+      actorEmail: "owner@example.com",
+      relatedEntityType: "portfolio_item",
+      relatedEntityId: entityId,
+      followEventId,
+      changeType: "portfolio_status_changed",
+    });
+
+    const alerts = await request(app)
+      .get("/alerts")
+      .set("Authorization", `Bearer ${member.token}`)
+      .expect(200);
+    expect(alerts.body.alerts[0]).toMatchObject({
+      type: "followed_item_changed",
+      relatedEntityType: "portfolio_item",
+      relatedEntityId: entityId,
+      deliveryPreparation: {
+        deliveryState: "delivery_digest",
+        payload: {
+          subject: "Followed item updated",
+          metadata: {
+            workspaceId,
+            followEventId,
+            followChangeType: "portfolio_status_changed",
+            followActorEmail: "owner@example.com",
+          },
+        },
+      },
+    });
+    expect(notificationDeliveryStore.listAll()).toEqual([
+      expect.objectContaining({
+        alertType: "followed_item_changed",
+        status: "digest_ready",
+        cadence: "digest",
+      }),
+    ]);
+    expect(JSON.stringify(alerts.body)).not.toContain("status details");
     expect(emailTransport.messages).toHaveLength(0);
   });
 

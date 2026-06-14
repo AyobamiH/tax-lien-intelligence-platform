@@ -4,7 +4,8 @@ export type AlertTypeRecord =
   | "scoring_job_completed"
   | "scoring_job_failed"
   | "workspace_comment_added"
-  | "workspace_item_assigned";
+  | "workspace_item_assigned"
+  | "followed_item_changed";
 export type AlertSeverityRecord = "info" | "error";
 export type AlertStatusRecord = "unread" | "read";
 export type AlertRelatedEntityTypeRecord =
@@ -27,6 +28,10 @@ export interface AlertMetadataRecord {
   assignmentId?: string;
   assignmentActorUserId?: string;
   assignmentActorEmail?: string;
+  followEventId?: string;
+  followChangeType?: "assignment_changed" | "portfolio_status_changed" | "approval_resolved";
+  followActorUserId?: string;
+  followActorEmail?: string;
 }
 
 export interface AlertDeliveryPreparationPayloadRecord {
@@ -78,6 +83,13 @@ const alertMetadataSchema = new Schema<AlertMetadataRecord>(
     assignmentId: { type: String, trim: true },
     assignmentActorUserId: { type: String, trim: true },
     assignmentActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
+    followEventId: { type: String, trim: true },
+    followChangeType: {
+      type: String,
+      enum: ["assignment_changed", "portfolio_status_changed", "approval_resolved"],
+    },
+    followActorUserId: { type: String, trim: true },
+    followActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
   },
   {
     _id: false,
@@ -110,7 +122,13 @@ const alertDeliveryPreparationSchema = new Schema<AlertDeliveryPreparationRecord
   {
     alertType: {
       type: String,
-      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added", "workspace_item_assigned"],
+      enum: [
+        "scoring_job_completed",
+        "scoring_job_failed",
+        "workspace_comment_added",
+        "workspace_item_assigned",
+        "followed_item_changed",
+      ],
       required: true,
     },
     deliveryState: {
@@ -155,7 +173,13 @@ const alertSchema = new Schema<AlertRecord>(
     },
     type: {
       type: String,
-      enum: ["scoring_job_completed", "scoring_job_failed", "workspace_comment_added", "workspace_item_assigned"],
+      enum: [
+        "scoring_job_completed",
+        "scoring_job_failed",
+        "workspace_comment_added",
+        "workspace_item_assigned",
+        "followed_item_changed",
+      ],
       required: true,
       index: true,
     },

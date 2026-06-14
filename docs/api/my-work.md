@@ -2,6 +2,7 @@
 
 Phase 37 adds one member-focused aggregation endpoint over existing workspace
 workflow signals. It does not create task records.
+Phase 38 adds followed records as a separate informational queue.
 
 All requests require bearer authentication and active membership in the
 workspace selected by `X-Workspace-Id`.
@@ -13,6 +14,7 @@ Returns the authenticated member's current operational queues:
 - accessible records assigned to that member;
 - pending approval requests that the member may review now;
 - accessible discussion threads with unread comments for that member.
+- accessible records the member deliberately follows.
 
 Example response:
 
@@ -25,6 +27,7 @@ Example response:
     "approvals": 1,
     "unreadDiscussions": 1,
     "unreadMessages": 3,
+    "following": 2,
     "totalActionable": 4
   },
   "queues": {
@@ -40,19 +43,27 @@ Example response:
       "count": 1,
       "unreadCount": 3,
       "items": []
+    },
+    "following": {
+      "count": 2,
+      "items": []
     }
   }
 }
 ```
 
 Queue items use the existing `WorkspaceAssignmentResponse`,
-`ApprovalRequestResponse`, and `DiscussionAttentionResponse` contracts. Each
-preview returns at most eight items. Counts reflect the complete bounded source
-results, which currently retrieve at most 100 records per source.
+`ApprovalRequestResponse`, `DiscussionAttentionResponse`, and
+`FollowSubscriptionResponse` contracts. Each preview returns at most eight
+items. Counts reflect the complete bounded source results, which currently
+retrieve at most 100 records per source.
 
 `totalActionable` is the sum of assigned records, reviewable approvals, and
 unread discussion threads. `unreadMessages` is reported separately and is not
 added again.
+`following` is informational and is intentionally excluded from
+`totalActionable`; following a record is not the same as accepting an
+assignment or review obligation.
 
 ## Visibility Rules
 
@@ -65,6 +76,8 @@ added again.
 - Stale or inaccessible targets are omitted rather than disclosed.
 - Requester-owned approvals that the actor cannot review are not returned.
 - Comment body text is never included.
+- Follow subscriptions must belong to the actor and selected workspace, and
+  stale or inaccessible targets are omitted.
 
 An empty state returns zero counts and empty arrays. An unknown or
 cross-workspace selection is rejected by workspace membership middleware.

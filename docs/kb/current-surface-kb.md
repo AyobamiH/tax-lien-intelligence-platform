@@ -60,7 +60,8 @@ It shows:
 - dedicated alerts route using `#/alerts`;
 - unread alert count and alert read/read-all actions;
 - dedicated notification preferences route using `#/notifications`;
-- notification controls for supported scoring, discussion, and assignment alert types, enabled state,
+- notification controls for supported scoring, discussion, assignment, and
+  followed-item alert types, enabled state,
   in-app-only versus email-capable handling, and immediate versus digest-ready
   timing;
 - dedicated delivery history route using `#/delivery-history`;
@@ -80,8 +81,11 @@ It shows:
   member-restricted states;
 - dedicated assigned-to-me route using `#/assignments`;
 - default member-focused my-work route using `#/my-work`, with assignment,
-  reviewable approval, and unread discussion counts plus compact navigation
-  queues;
+  reviewable approval, unread discussion, and followed-record counts plus
+  compact navigation queues;
+- follow/unfollow controls and active follower count on dataset, comparison,
+  watchlist, and portfolio detail surfaces;
+- a separate informational Following queue in My Work;
 - comparison-detail approval request/status visibility for the supported
   comparison-to-portfolio checkpoint;
 - dedicated approval queue using `#/approvals`, with pending/resolved filters,
@@ -127,6 +131,10 @@ The current API surface is minimal:
 - `POST /approvals/:approvalRequestId/reject`
 - `POST /approvals/:approvalRequestId/cancel`
 - `GET /my-work`
+- `GET /follows`
+- `GET /follows/:entityType/:entityId`
+- `PUT /follows/:entityType/:entityId`
+- `DELETE /follows/:entityType/:entityId`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -224,15 +232,16 @@ Real workflows now present:
 - saved portfolio views and built-in attention queues for reusable operational
   work slices.
 - comparison workspace, decision state, and lightweight notes.
-- in-app alert review for scoring outcomes and bounded workspace discussion.
-- notification preference management for scoring, discussion, and assignment
-  alert types.
+- in-app alert review for scoring outcomes, bounded workspace discussion,
+  assignments, and followed-item changes.
+- notification preference management for scoring, discussion, assignment, and
+  followed-item alert types.
 - import readiness review before relying on score output.
 - focused import repair before rerunning readiness/scoring.
 - deterministic import profile reuse for repeated upload shapes.
 - deterministic saved views for repeated portfolio review filters.
 - notification preferences for controlling in-app-only versus email-capable
-  scoring and discussion alerts.
+  scoring, discussion, assignment, and followed-item alerts.
 - env-driven immediate product-alert email for supported alerts when SMTP
   config is complete.
 - scheduled digest processing and owner-scoped delivery history.

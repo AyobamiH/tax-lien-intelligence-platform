@@ -69,6 +69,10 @@ direct compatibility path. It is a trust layer, not a general workflow engine.
 Phase 37 adds a member-focused operational home that aggregates current
 assignments, approvals awaiting that actor's decision, and unread accessible
 discussion threads. It is an action queue over existing truth, not a task app.
+Phase 38 adds deliberate follow subscriptions for important datasets,
+comparison items, watchlist items, and portfolio items. Followed records remain
+visible in My Work and can produce bounded, preference-aware alerts for
+consequential changes. It is stakeholder awareness, not social following.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -127,6 +131,9 @@ Current evidence:
 - each workspace member can start from a bounded my-work view showing assigned
   records, reviewable approvals, unread discussion, and the next existing
   surface to open.
+- workspace members can follow important accessible records without accepting
+  assignment, then return to a separate informational queue and receive bounded
+  updates under their personal notification preferences.
 
 ## What This SaaS Is
 
@@ -160,7 +167,10 @@ The intended product loop is:
 17. a different owner/admin can approve or reject that request with a recorded
     rationale and visible outcome.
 18. each member can return to a personal operational queue assembled from
-    assignments, review authority, and unread discussion state.
+    assignments, review authority, unread discussion state, and informational
+    followed records.
+19. a member can follow an important shared record without taking ownership and
+    receive bounded updates for consequential changes.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist

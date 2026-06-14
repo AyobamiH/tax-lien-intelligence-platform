@@ -543,6 +543,9 @@ function deliverySourceKeyForSuppressedInput(input: CreateAlertInput): string {
   if (input.metadata?.assignmentId) {
     return `assignment:${input.metadata.assignmentId}:${input.userId}:${input.type}`;
   }
+  if (input.metadata?.followEventId) {
+    return `follow:${input.metadata.followEventId}:${input.userId}:${input.type}`;
+  }
 
   return `input:${input.userId}:${input.type}:${input.relatedEntityType ?? "none"}:${input.relatedEntityId ?? "none"}`;
 }
@@ -561,6 +564,10 @@ function sanitizeDeliveryMetadata(metadata: AlertMetadata | undefined): AlertMet
     ...(metadata?.assignmentId ? { assignmentId: metadata.assignmentId } : {}),
     ...(metadata?.assignmentActorUserId ? { assignmentActorUserId: metadata.assignmentActorUserId } : {}),
     ...(metadata?.assignmentActorEmail ? { assignmentActorEmail: metadata.assignmentActorEmail } : {}),
+    ...(metadata?.followEventId ? { followEventId: metadata.followEventId } : {}),
+    ...(metadata?.followChangeType ? { followChangeType: metadata.followChangeType } : {}),
+    ...(metadata?.followActorUserId ? { followActorUserId: metadata.followActorUserId } : {}),
+    ...(metadata?.followActorEmail ? { followActorEmail: metadata.followActorEmail } : {}),
   };
 }
 
@@ -574,6 +581,8 @@ function alertTypeLabel(alertType: StoredAlert["type"]): string {
       return "New workspace discussion";
     case "workspace_item_assigned":
       return "Workspace item assigned";
+    case "followed_item_changed":
+      return "Followed item updated";
   }
 }
 

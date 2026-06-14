@@ -881,6 +881,8 @@ export function alertTypeLabel(type: AlertType): string {
       return "Workspace discussion";
     case "workspace_item_assigned":
       return "Workspace assignment";
+    case "followed_item_changed":
+      return "Followed item update";
   }
 }
 

@@ -15,6 +15,7 @@ import { AuthService } from "../../apps/api/src/auth/auth-service.js";
 import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
 import { DiscussionAttentionService } from "../../apps/api/src/discussion-attention/discussion-attention-service.js";
 import { ApiError } from "../../apps/api/src/errors/api-error.js";
+import { FollowService } from "../../apps/api/src/follows/follow-service.js";
 import { MyWorkService } from "../../apps/api/src/my-work/my-work-service.js";
 import { WorkspaceAssignmentService } from "../../apps/api/src/workspace-assignments/workspace-assignment-service.js";
 import { WorkspaceActivityService } from "../../apps/api/src/workspace-activity/workspace-activity-service.js";
@@ -24,6 +25,7 @@ import { WorkspaceService } from "../../apps/api/src/workspaces/workspace-servic
 import { InMemoryAlertStore } from "../support/in-memory-alert-store.js";
 import { InMemoryApprovalRequestStore } from "../support/in-memory-approval-store.js";
 import { InMemoryDiscussionAttentionStore } from "../support/in-memory-discussion-attention-store.js";
+import { InMemoryFollowStore } from "../support/in-memory-follow-store.js";
 import { InMemoryWorkspaceAssignmentStore } from "../support/in-memory-workspace-assignment-store.js";
 import { InMemoryWorkspaceActivityStore } from "../support/in-memory-workspace-activity-store.js";
 import {
@@ -191,6 +193,13 @@ function createTestContext() {
       alertService,
     ),
   );
+  const followService = new FollowService(
+    new InMemoryFollowStore(),
+    targetAccess,
+    membershipStore,
+    userStore,
+    alertService,
+  );
   const workspaceAssignmentService = new WorkspaceAssignmentService(
     new InMemoryWorkspaceAssignmentStore(),
     membershipStore,
@@ -198,6 +207,7 @@ function createTestContext() {
     targetAccess,
     alertService,
     activityService,
+    followService,
   );
   const actionExecutor = new InMemoryApprovalActionExecutor();
   const approvalService = new ApprovalService(
@@ -209,6 +219,7 @@ function createTestContext() {
     approvalService,
     attentionService,
     targetAccess,
+    followService,
   );
 
   return {
@@ -221,6 +232,7 @@ function createTestContext() {
       workspaceAssignmentService,
       approvalService,
       myWorkService,
+      followService,
     }),
     targetAccess,
     actionExecutor,
@@ -314,6 +326,14 @@ describe("my-work dashboard aggregation", () => {
       .send({ body: "Private diligence detail must stay on the thread." })
       .expect(201);
 
+    const followedTargetId = new mongoose.Types.ObjectId().toString();
+    targetAccess.allow("watchlist_item", followedTargetId, owner.userId);
+    await request(app)
+      .put(`/follows/watchlist_item/${followedTargetId}`)
+      .set("Authorization", `Bearer ${admin.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(201);
+
     const response = await getMyWork(app, admin.token, workspaceId).expect(200);
     expect(response.body).toMatchObject({
       workspaceId,
@@ -322,6 +342,7 @@ describe("my-work dashboard aggregation", () => {
         approvals: 1,
         unreadDiscussions: 1,
         unreadMessages: 1,
+        following: 1,
         totalActionable: 3,
       },
       queues: {
@@ -358,6 +379,15 @@ describe("my-work dashboard aggregation", () => {
             },
           ],
         },
+        following: {
+          count: 1,
+          items: [
+            {
+              targetEntityType: "watchlist_item",
+              targetEntityId: followedTargetId,
+            },
+          ],
+        },
       },
     });
     expect(response.body.generatedAt).toEqual(expect.any(String));
@@ -383,12 +413,14 @@ describe("my-work dashboard aggregation", () => {
       approvals: 0,
       unreadDiscussions: 0,
       unreadMessages: 0,
+      following: 0,
       totalActionable: 0,
     });
     expect(initiallyEmpty.body.queues).toMatchObject({
       assignments: { count: 0, items: [] },
       approvals: { count: 0, items: [] },
       discussions: { count: 0, unreadCount: 0, items: [] },
+      following: { count: 0, items: [] },
     });
 
     const assignmentTargetId = new mongoose.Types.ObjectId().toString();

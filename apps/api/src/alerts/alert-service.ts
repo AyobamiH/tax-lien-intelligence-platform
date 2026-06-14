@@ -3,6 +3,7 @@ import type {
   AlertDetailResponse,
   AlertListResponse,
   AlertResponse,
+  FollowedItemChangeType,
   InternalJobError,
   InternalJobRequestKind,
   InternalJobStatus,
@@ -53,6 +54,17 @@ export interface WorkspaceAssignmentAlertEvent {
   relatedEntityType: WorkspaceAssignmentEntityType;
   relatedEntityId: string;
   assignmentId: string;
+}
+
+export interface FollowedItemAlertEvent {
+  recipientUserId: string;
+  workspaceId: string;
+  actorUserId: string;
+  actorEmail: string;
+  relatedEntityType: WorkspaceAssignmentEntityType;
+  relatedEntityId: string;
+  followEventId: string;
+  changeType: FollowedItemChangeType;
 }
 
 export class AlertService implements JobAlertSink {
@@ -161,6 +173,27 @@ export class AlertService implements JobAlertSink {
     });
   }
 
+  public async recordFollowedItemChanged(event: FollowedItemAlertEvent): Promise<void> {
+    if (event.recipientUserId === event.actorUserId) {
+      return;
+    }
+    await this.createPreferenceAwareAlert({
+      userId: event.recipientUserId,
+      type: "followed_item_changed",
+      severity: "info",
+      message: followedItemMessage(event),
+      relatedEntityType: event.relatedEntityType,
+      relatedEntityId: event.relatedEntityId,
+      metadata: {
+        workspaceId: event.workspaceId,
+        followEventId: event.followEventId,
+        followChangeType: event.changeType,
+        followActorUserId: event.actorUserId,
+        followActorEmail: event.actorEmail,
+      },
+    });
+  }
+
   private async createPreferenceAwareAlert(input: CreateAlertInput): Promise<void> {
     if (!this.notificationPreferenceService) {
       await this.createAlert(input);
@@ -260,6 +293,18 @@ function workspaceAssignmentTargetLabel(entityType: WorkspaceAssignmentEntityTyp
       return "a watchlist item";
     case "portfolio_item":
       return "a portfolio item";
+  }
+}
+
+function followedItemMessage(event: FollowedItemAlertEvent): string {
+  const targetLabel = workspaceAssignmentTargetLabel(event.relatedEntityType);
+  switch (event.changeType) {
+    case "assignment_changed":
+      return `${event.actorEmail} changed responsibility for ${targetLabel} you follow.`;
+    case "portfolio_status_changed":
+      return `${event.actorEmail} changed status on ${targetLabel} you follow.`;
+    case "approval_resolved":
+      return `${event.actorEmail} resolved approval for ${targetLabel} you follow.`;
   }
 }
 

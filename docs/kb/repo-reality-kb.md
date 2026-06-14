@@ -72,6 +72,7 @@ Implemented today:
 - discussion-attention model in `packages/db`;
 - workspace-assignment model in `packages/db`;
 - workspace-scoped approval-request model in `packages/db`;
+- workspace-scoped follow-subscription model in `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
 - authenticated workspace/member list, add, role-update, and deactivation APIs
   with owner/admin/member roles;
@@ -90,7 +91,12 @@ Implemented today:
   owner/admin reviewer authority, self-review prevention, requester
   cancellation, stale-target checks, and cross-workspace non-disclosure;
 - authenticated my-work aggregation for assigned records, reviewable pending
-  approvals, and unread accessible discussion threads;
+  approvals, unread accessible discussion threads, and personally followed
+  accessible records;
+- authenticated follow state/create/delete/list routes for datasets,
+  comparison items, watchlist items, and portfolio items;
+- duplicate-safe follows, active-member follower counts, current target-access
+  revalidation, stale-target omission, and cross-workspace rejection;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -255,7 +261,10 @@ Implemented today:
 - comparison detail approval request/status visibility and a dedicated
   `#/approvals` reviewer queue;
 - default `#/my-work` operational home with grouped counts, compact queue
-  previews, and navigation into existing workflow surfaces;
+  previews, an informational Following queue, and navigation into existing
+  workflow surfaces;
+- follow/unfollow controls with visible state and active follower count on the
+  four supported record detail surfaces;
 - frontend score job status polling after a scoring trigger;
 - frontend alerts route with unread count and read/read-all actions;
 - structured JSON 404 for unknown API routes;
@@ -399,6 +408,9 @@ Current tests cover:
 - my-work aggregation, empty state, reviewer eligibility, stale-target
   filtering, safe discussion payload, client request, and workspace-isolation
   behavior.
+- follow creation, duplicate safety, unfollow cleanup, stale/inaccessible
+  filtering, cross-workspace rejection, bounded follower alerts, preference
+  handling, and frontend API behavior.
 
 Tests do not yet cover:
 

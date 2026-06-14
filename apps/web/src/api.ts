@@ -69,7 +69,12 @@ import type {
   UpdateWorkspaceAssignmentResponse,
   WorkspaceRole,
   CreateApprovalRequestResponse,
+  FollowEntityResponse,
+  FollowListResponse,
+  FollowStateResponse,
+  FollowTargetEntityType,
   MyWorkResponse,
+  UnfollowEntityResponse,
 } from "@tax-lien/types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
@@ -228,6 +233,43 @@ export async function listAssignedToMe(token: string): Promise<AssignedToMeRespo
 
 export async function getMyWork(token: string): Promise<MyWorkResponse> {
   return requestJson<MyWorkResponse>("/my-work", { token });
+}
+
+export async function listFollows(token: string): Promise<FollowListResponse> {
+  return requestJson<FollowListResponse>("/follows", { token });
+}
+
+export async function getFollowState(
+  token: string,
+  entityType: FollowTargetEntityType,
+  entityId: string,
+): Promise<FollowStateResponse> {
+  return requestJson<FollowStateResponse>(
+    `/follows/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { token },
+  );
+}
+
+export async function followEntity(
+  token: string,
+  entityType: FollowTargetEntityType,
+  entityId: string,
+): Promise<FollowEntityResponse> {
+  return requestJson<FollowEntityResponse>(
+    `/follows/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { method: "PUT", token },
+  );
+}
+
+export async function unfollowEntity(
+  token: string,
+  entityType: FollowTargetEntityType,
+  entityId: string,
+): Promise<UnfollowEntityResponse> {
+  return requestJson<UnfollowEntityResponse>(
+    `/follows/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { method: "DELETE", token },
+  );
 }
 
 export async function listApprovalRequests(
@@ -685,7 +727,7 @@ export async function deleteSavedView(token: string, savedViewId: string): Promi
 }
 
 interface JsonRequestOptions {
-  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   token?: string;
   body?: string;
 }

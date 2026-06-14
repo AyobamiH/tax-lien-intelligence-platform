@@ -8,6 +8,8 @@ owner-safe delivery history. Alerts still do not add SMS, push notifications,
 realtime websockets, external schedulers, campaigns, or broad alert automation.
 Phase 32 adds low-noise workspace comment attention alerts through the same
 personal alert boundary.
+Phase 38 adds low-noise alerts for consequential changes on deliberately
+followed records.
 
 ## Purpose
 
@@ -35,6 +37,9 @@ Implemented:
 - `PATCH /alerts/read-all`;
 - alert creation from `dataset_scoring` job completion and failure;
 - peer-only `workspace_comment_added` creation on the first unread transition;
+- `workspace_item_assigned` alerts for direct responsibility changes;
+- `followed_item_changed` alerts for allowlisted assignment, portfolio-status,
+  and approval-resolution changes;
 - notification preference classification for supported scoring alerts;
 - email outbox tracking for suppressed, in-app-only, digest-ready,
   digest-processing, provider-disabled, failed, and sent delivery outcomes;
@@ -80,6 +85,8 @@ Current metadata is intentionally small:
 - stable error code;
 - workspace id, comment id, and member-visible actor identity for discussion
   alerts.
+- workspace id, stable follow event id, allowlisted change type, and verified
+  actor identity for followed-item alerts.
 
 Alerts must not store raw job payloads, uploaded source rows, stack traces,
 tokens, secrets, or provider payloads.
@@ -92,11 +99,16 @@ Current alert sources are:
 - failed `dataset_scoring` jobs create `scoring_job_failed`.
 - peer comments create `workspace_comment_added` only when the recipient's
   thread transitions from read to unread.
+- direct assignment creates `workspace_item_assigned` for the new assignee;
+- consequential changes fan out `followed_item_changed` to active followers,
+  excluding the actor and duplicate direct-assignment recipient.
 
 Job alert recording is attached to outcome handling. Comment alert recording is
 attached to the discussion-attention coordinator after comment persistence.
 The source record remains authoritative; the alert is a user-facing visibility
 record.
+Follower alerts are best effort after the authoritative change and do not
+expand record access.
 
 ## Service Boundaries
 

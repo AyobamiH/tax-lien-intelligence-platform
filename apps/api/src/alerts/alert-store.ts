@@ -191,6 +191,16 @@ export function mapAlert(document: AlertDocument): StoredAlert {
             ...(document.metadata.assignmentActorEmail
               ? { assignmentActorEmail: document.metadata.assignmentActorEmail }
               : {}),
+            ...(document.metadata.followEventId ? { followEventId: document.metadata.followEventId } : {}),
+            ...(document.metadata.followChangeType
+              ? { followChangeType: document.metadata.followChangeType }
+              : {}),
+            ...(document.metadata.followActorUserId
+              ? { followActorUserId: document.metadata.followActorUserId }
+              : {}),
+            ...(document.metadata.followActorEmail
+              ? { followActorEmail: document.metadata.followActorEmail }
+              : {}),
           },
         }
       : {}),
@@ -250,6 +260,18 @@ export function mapAlert(document: AlertDocument): StoredAlert {
                         : {}),
                       ...(document.deliveryPreparation.payload.metadata.assignmentActorEmail
                         ? { assignmentActorEmail: document.deliveryPreparation.payload.metadata.assignmentActorEmail }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.followEventId
+                        ? { followEventId: document.deliveryPreparation.payload.metadata.followEventId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.followChangeType
+                        ? { followChangeType: document.deliveryPreparation.payload.metadata.followChangeType }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.followActorUserId
+                        ? { followActorUserId: document.deliveryPreparation.payload.metadata.followActorUserId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.followActorEmail
+                        ? { followActorEmail: document.deliveryPreparation.payload.metadata.followActorEmail }
                         : {}),
                     },
                   },

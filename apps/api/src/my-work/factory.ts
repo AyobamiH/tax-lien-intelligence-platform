@@ -5,6 +5,7 @@ import { MongoDiscussionAttentionStore } from "../discussion-attention/discussio
 import { MongoPortfolioStore } from "../portfolio/portfolio-store.js";
 import { MongoWatchlistStore } from "../watchlist/watchlist-store.js";
 import type { ApprovalService } from "../approvals/approval-service.js";
+import type { FollowService } from "../follows/follow-service.js";
 import type { WorkspaceAssignmentService } from "../workspace-assignments/workspace-assignment-service.js";
 import { StoreBackedWorkspaceCommentTargetAccess } from "../workspace-comments/comment-target-access.js";
 import { MyWorkService } from "./my-work-service.js";
@@ -12,6 +13,7 @@ import { MyWorkService } from "./my-work-service.js";
 export function createMyWorkService(
   assignmentService: WorkspaceAssignmentService,
   approvalService: ApprovalService,
+  followService: FollowService,
 ): MyWorkService {
   return new MyWorkService(
     assignmentService,
@@ -23,5 +25,6 @@ export function createMyWorkService(
       new MongoWatchlistStore(),
       new MongoPortfolioStore(),
     ),
+    followService,
   );
 }
