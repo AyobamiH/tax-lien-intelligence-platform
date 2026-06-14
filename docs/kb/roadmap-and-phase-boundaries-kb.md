@@ -1158,6 +1158,33 @@ Phase 36 does not include:
 
 This is a practical trust checkpoint, not a business-process platform.
 
+## Phase 37: My Work Dashboard And Reviewer Queues
+
+Current status: implemented.
+
+Phase 37 includes:
+
+- authenticated selected-workspace `GET /my-work`;
+- assigned-to-me aggregation using the existing assignment service;
+- pending approvals filtered to requests the actor may review;
+- per-member unread discussion threads and unread message counts;
+- target-access revalidation and stale-target omission;
+- grouped counts and queue previews capped at eight items;
+- default `#/my-work` operational home with navigation into existing surfaces;
+- explicit loading, empty, error, and refresh states;
+- integration and frontend contract tests.
+
+Phase 37 does not include:
+
+- new task objects, task status, due dates, priorities, or boards;
+- SLAs, escalation, workload balancing, or managerial reporting;
+- workspace-wide recent activity presented as personal action;
+- urgency scoring or AI prioritization;
+- auction execution.
+
+This is a personal aggregation layer over existing workflow truth, not a
+productivity platform.
+
 ## Later Phases
 
 Later phases may include:
@@ -1217,7 +1244,8 @@ Dependency order matters:
 32. dependency vulnerability triage and supply-chain hardening;
 33. role-aware workspace administration hardening;
 34. focused approval requests and review checkpoints;
-35. broader automation.
+35. member-focused my-work dashboard and reviewer queues;
+36. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

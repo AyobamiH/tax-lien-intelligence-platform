@@ -69,6 +69,7 @@ import type {
   UpdateWorkspaceAssignmentResponse,
   WorkspaceRole,
   CreateApprovalRequestResponse,
+  MyWorkResponse,
 } from "@tax-lien/types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
@@ -223,6 +224,10 @@ export async function clearWorkspaceAssignment(
 
 export async function listAssignedToMe(token: string): Promise<AssignedToMeResponse> {
   return requestJson<AssignedToMeResponse>("/assignments/mine", { token });
+}
+
+export async function getMyWork(token: string): Promise<MyWorkResponse> {
+  return requestJson<MyWorkResponse>("/my-work", { token });
 }
 
 export async function listApprovalRequests(

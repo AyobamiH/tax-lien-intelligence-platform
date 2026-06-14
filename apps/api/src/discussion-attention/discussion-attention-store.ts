@@ -35,6 +35,7 @@ export interface MarkDiscussionReadInput extends DiscussionAttentionTarget {
 
 export interface DiscussionAttentionStore {
   findForTarget(target: DiscussionAttentionTarget): Promise<StoredDiscussionAttention | null>;
+  listUnreadForUser(userId: string, workspaceId: string): Promise<StoredDiscussionAttention[]>;
   incrementUnread(
     input: IncrementDiscussionAttentionInput,
   ): Promise<{ attention: StoredDiscussionAttention; becameUnread: boolean }>;
@@ -45,6 +46,21 @@ export class MongoDiscussionAttentionStore implements DiscussionAttentionStore {
   public async findForTarget(target: DiscussionAttentionTarget): Promise<StoredDiscussionAttention | null> {
     const document = await DiscussionAttentionModel.findOne(target).exec();
     return document ? mapDiscussionAttention(document) : null;
+  }
+
+  public async listUnreadForUser(
+    userId: string,
+    workspaceId: string,
+  ): Promise<StoredDiscussionAttention[]> {
+    const documents = await DiscussionAttentionModel.find({
+      userId,
+      workspaceId,
+      unreadCount: { $gt: 0 },
+    })
+      .sort({ latestCommentAt: -1, updatedAt: -1, _id: -1 })
+      .limit(100)
+      .exec();
+    return documents.map(mapDiscussionAttention);
   }
 
   public async incrementUnread(

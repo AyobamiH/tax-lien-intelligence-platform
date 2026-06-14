@@ -194,6 +194,12 @@ export function assignmentDestination(
   return assignmentSurfaceDestination(assignment.relatedEntityType, assignment.relatedEntityId);
 }
 
+export function discussionAttentionDestination(
+  attention: DiscussionAttentionResponse,
+): WorkspaceActivityDestination {
+  return assignmentSurfaceDestination(attention.relatedEntityType, attention.relatedEntityId);
+}
+
 function assignmentSurfaceDestination(
   entityType: WorkspaceAssignmentEntityType,
   entityId: string,

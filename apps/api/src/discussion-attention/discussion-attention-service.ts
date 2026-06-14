@@ -16,6 +16,15 @@ export class DiscussionAttentionService {
     return attention ? toDiscussionAttentionResponse(attention) : emptyDiscussionAttentionResponse(target);
   }
 
+  public async listUnread(
+    userId: string,
+    workspaceId: string,
+  ): Promise<DiscussionAttentionResponse[]> {
+    return (await this.store.listUnreadForUser(userId, workspaceId)).map(
+      toDiscussionAttentionResponse,
+    );
+  }
+
   public async incrementUnread(
     target: DiscussionAttentionTarget,
     latestCommentAt: Date,

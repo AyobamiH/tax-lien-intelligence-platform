@@ -14,6 +14,25 @@ export class InMemoryDiscussionAttentionStore implements DiscussionAttentionStor
     return this.attentionByTarget.get(this.key(target)) ?? null;
   }
 
+  public async listUnreadForUser(
+    userId: string,
+    workspaceId: string,
+  ): Promise<StoredDiscussionAttention[]> {
+    return [...this.attentionByTarget.values()]
+      .filter(
+        (attention) =>
+          attention.userId === userId &&
+          attention.workspaceId === workspaceId &&
+          attention.unreadCount > 0,
+      )
+      .sort(
+        (left, right) =>
+          (right.latestCommentAt?.getTime() ?? right.updatedAt.getTime()) -
+            (left.latestCommentAt?.getTime() ?? left.updatedAt.getTime()) ||
+          right.id.localeCompare(left.id),
+      );
+  }
+
   public async incrementUnread(
     input: IncrementDiscussionAttentionInput,
   ): Promise<{ attention: StoredDiscussionAttention; becameUnread: boolean }> {

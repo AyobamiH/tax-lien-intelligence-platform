@@ -51,6 +51,9 @@ import type { WorkspaceAssignmentService } from "./workspace-assignments/workspa
 import { createApprovalService } from "./approvals/factory.js";
 import type { ApprovalService } from "./approvals/approval-service.js";
 import { createApprovalRouter } from "./routes/approvals.js";
+import { createMyWorkService } from "./my-work/factory.js";
+import type { MyWorkService } from "./my-work/my-work-service.js";
+import { createMyWorkRouter } from "./routes/my-work.js";
 
 export interface AppDependencies {
   authService?: AuthService;
@@ -69,6 +72,7 @@ export interface AppDependencies {
   workspaceCommentService?: WorkspaceCommentService;
   workspaceAssignmentService?: WorkspaceAssignmentService;
   approvalService?: ApprovalService;
+  myWorkService?: MyWorkService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -97,6 +101,9 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     createWorkspaceAssignmentService(alertService, workspaceActivityService);
   const approvalService =
     dependencies.approvalService ?? createApprovalService(comparisonService);
+  const myWorkService =
+    dependencies.myWorkService ??
+    createMyWorkService(workspaceAssignmentService, approvalService);
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -118,6 +125,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/comments", createWorkspaceCommentRouter(authService, workspaceService, workspaceCommentService));
   app.use("/assignments", createWorkspaceAssignmentRouter(authService, workspaceService, workspaceAssignmentService));
   app.use("/approvals", createApprovalRouter(authService, workspaceService, approvalService, workspaceActivityService));
+  app.use("/my-work", createMyWorkRouter(authService, workspaceService, myWorkService));
   app.use("/datasets", createDatasetRouter(authService, datasetService, workspaceService, workspaceActivityService));
   app.use("/datasets", createScoringRouter(authService, scoringService, workspaceService, workspaceActivityService));
   app.use("/jobs", createInternalJobRouter(authService, internalJobService, workspaceService));

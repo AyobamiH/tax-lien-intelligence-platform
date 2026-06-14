@@ -85,6 +85,9 @@ Current repo protections:
   filtering, and new-assignee-only notifications;
 - assignment alert/delivery metadata allowlists with no record content, notes,
   compatibility tenant key, or arbitrary task payload;
+- my-work aggregation derived from authenticated actor and verified workspace,
+  with reviewer eligibility, stale-target filtering, bounded previews, and no
+  comment body content;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
 - browser upload flow that uses the authenticated dataset upload endpoint;
@@ -708,6 +711,27 @@ Known boundary:
 
 Later hardening must be designed before adding multi-step chains, delegations,
 quorums, enterprise policy, escalation, e-signatures, or automated routing.
+
+### My Work Aggregation
+
+My-work responses combine several sensitive sources and therefore reapply the
+strongest relevant boundary instead of trusting identifiers already stored in
+queue records.
+
+Current protection:
+
+- authenticated actor and selected-workspace membership are required;
+- assignment retrieval remains actor-specific and target-revalidated;
+- approvals must be pending, reviewable by the actor, and still accessible;
+- discussion attention must match actor and workspace, remain unread, and
+  still point to an accessible record;
+- stale and cross-workspace targets are omitted or rejected without disclosure;
+- previews and source reads are bounded;
+- comment bodies are not returned.
+
+The endpoint does not infer urgency, manager visibility, workload, or access
+from client state. Any future queue source must define its own personal
+relevance and tenancy checks before joining this aggregation.
 
 ### Automation Jobs And Workers
 

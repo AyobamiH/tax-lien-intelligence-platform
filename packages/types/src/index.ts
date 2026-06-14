@@ -351,6 +351,41 @@ export interface MarkDiscussionReadResponse {
   attention: DiscussionAttentionResponse;
 }
 
+export interface MyWorkCounts {
+  assigned: number;
+  approvals: number;
+  unreadDiscussions: number;
+  unreadMessages: number;
+  totalActionable: number;
+}
+
+export interface MyWorkAssignmentQueue {
+  count: number;
+  items: WorkspaceAssignmentResponse[];
+}
+
+export interface MyWorkApprovalQueue {
+  count: number;
+  items: ApprovalRequestResponse[];
+}
+
+export interface MyWorkDiscussionQueue {
+  count: number;
+  unreadCount: number;
+  items: DiscussionAttentionResponse[];
+}
+
+export interface MyWorkResponse {
+  workspaceId: string;
+  generatedAt: string;
+  counts: MyWorkCounts;
+  queues: {
+    assignments: MyWorkAssignmentQueue;
+    approvals: MyWorkApprovalQueue;
+    discussions: MyWorkDiscussionQueue;
+  };
+}
+
 export type DatasetStatus = "validated";
 export type DatasetSourceType = "manual_csv";
 export type DatasetImportAdapterId = "generic_csv" | "maricopa_tax_lien_v1";

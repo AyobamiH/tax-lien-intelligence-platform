@@ -13,6 +13,7 @@ import {
   clearWorkspaceAssignment,
   createDataset,
   deactivateWorkspaceMember,
+  getMyWork,
   getNotificationPreferences,
   getWorkspaceAssignment,
   getPortfolioSummary,
@@ -362,6 +363,42 @@ describe("web API client", () => {
       const headers = init?.headers as Headers;
       expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
     }
+  });
+
+  it("loads the selected workspace my-work aggregation", async () => {
+    const payload = {
+      workspaceId: "workspace-1",
+      generatedAt: "2026-06-14T10:00:00.000Z",
+      counts: {
+        assigned: 1,
+        approvals: 0,
+        unreadDiscussions: 1,
+        unreadMessages: 2,
+        totalActionable: 2,
+      },
+      queues: {
+        assignments: { count: 1, items: [] },
+        approvals: { count: 0, items: [] },
+        discussions: { count: 1, unreadCount: 2, items: [] },
+      },
+    };
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await expect(getMyWork("test-token")).resolves.toEqual(payload);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("http://localhost:4000/my-work");
+    expect(init.method).toBe("GET");
+    const headers = init.headers as Headers;
+    expect(headers.get("Authorization")).toBe("Bearer test-token");
+    expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

@@ -36,6 +36,8 @@ Current implementation:
   supported shared record;
 - approval-request model and service for the allowlisted
   comparison-to-portfolio checkpoint;
+- my-work aggregation service over existing assignment, approval, discussion
+  attention, membership, and target-access boundaries;
 - selected-workspace membership middleware and explicit read/write,
   member-management, member-removal, role-management, approval-review, and
   sensitive-action checks;
@@ -123,6 +125,8 @@ Current implementation:
 - approval create/list/detail/approve/reject/cancel APIs with duplicate-pending
   protection, self-review prevention, requester-only cancellation,
   stale-target revalidation, and workspace-qualified lookup;
+- authenticated my-work retrieval with reviewer filtering, unread discussion
+  aggregation, stale-target omission, and bounded queue previews;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -162,6 +166,7 @@ The backend should become the trusted boundary for:
 - personal workspace-bound discussion attention persistence;
 - workspace responsibility assignment persistence;
 - workspace approval checkpoint persistence and resolution;
+- member-focused operational queue aggregation without new task persistence;
 - workspace membership administration and inactive-membership lifecycle;
 - future compliance-grade audit events;
 - security enforcement.
@@ -749,7 +754,9 @@ Backend implementation order should stay disciplined:
     34;
 33. role-aware workspace administration hardening: implemented in Phase 35;
 34. focused approval requests and review checkpoints: implemented in Phase 36;
-35. later external automation.
+35. member-focused my-work dashboard and reviewer queues: implemented in Phase
+    37;
+36. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -767,6 +774,8 @@ Avoid:
   boards, general approvals, or automatic routing;
 - expanding the focused approval checkpoint into chains, policy builders,
   escalation, or compliance workflow without a separate architecture phase;
+- turning my-work aggregation into tasks, due dates, SLA scoring, workload
+  analytics, or AI prioritization;
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
   separate financial analytics phase.

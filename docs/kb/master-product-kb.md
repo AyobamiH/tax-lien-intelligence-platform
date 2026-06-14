@@ -66,6 +66,9 @@ Phase 36 adds one focused approval checkpoint for moving comparison candidates
 into portfolio tracking. A different owner/admin can approve or reject a
 member/admin request with bounded rationale, while owners retain an explicit
 direct compatibility path. It is a trust layer, not a general workflow engine.
+Phase 37 adds a member-focused operational home that aggregates current
+assignments, approvals awaiting that actor's decision, and unread accessible
+discussion threads. It is an action queue over existing truth, not a task app.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -121,6 +124,9 @@ Current evidence:
 - workspace members/admins can request review before a comparison item enters
   portfolio, and a different owner/admin can record approval or rejection with
   a bounded reason.
+- each workspace member can start from a bounded my-work view showing assigned
+  records, reviewable approvals, unread discussion, and the next existing
+  surface to open.
 
 ## What This SaaS Is
 
@@ -153,6 +159,8 @@ The intended product loop is:
     into portfolio tracking.
 17. a different owner/admin can approve or reject that request with a recorded
     rationale and visible outcome.
+18. each member can return to a personal operational queue assembled from
+    assignments, review authority, and unread discussion state.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
@@ -165,7 +173,7 @@ Reusable import profiles, comparison, the workspace-access foundation, activity,
 contextual comments, bounded discussion attention, and current responsibility
 assignments now exist. Role-aware workspace administration and permission
 hardening now exist. A focused comparison-to-portfolio approval checkpoint now
-exists. Broad county
+exists. A member-focused my-work aggregation surface now exists. Broad county
 coverage, live county sync, full spreadsheet editing, realtime chat, rich-text
 collaboration, compliance audit tooling, ML mapping suggestions, SMS/push alert delivery, user-facing
 scheduler policy controls, broader automatic refresh, advanced digest
@@ -283,6 +291,8 @@ Current implementation:
 - peer comments create bounded personal alerts and per-thread unread counts;
 - direct assignment creates a bounded alert for the new assignee and meaningful
   responsibility activity;
+- my-work aggregation provides bounded assignment, reviewer, and unread
+  discussion queues without exposing comment bodies or creating task records;
 - no standalone parcel/lien schema;
 - no chat, rich-text/realtime comments, shared editing, task status/due dates,
   multi-step approval governance, final investment decision, auction, or

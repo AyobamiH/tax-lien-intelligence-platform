@@ -89,6 +89,8 @@ Implemented today:
 - authenticated approval create/list/detail/approve/reject/cancel routes with
   owner/admin reviewer authority, self-review prevention, requester
   cancellation, stale-target checks, and cross-workspace non-disclosure;
+- authenticated my-work aggregation for assigned records, reviewable pending
+  approvals, and unread accessible discussion threads;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -252,6 +254,8 @@ Implemented today:
 - comparison detail handoff actions with destination result visibility;
 - comparison detail approval request/status visibility and a dedicated
   `#/approvals` reviewer queue;
+- default `#/my-work` operational home with grouped counts, compact queue
+  previews, and navigation into existing workflow surfaces;
 - frontend score job status polling after a scoring trigger;
 - frontend alerts route with unread count and read/read-all actions;
 - structured JSON 404 for unknown API routes;
@@ -392,6 +396,9 @@ Current tests cover:
 - cross-user comparison source/update/delete/history/handoff rejection.
 - approval create/approve/reject/cancel, self-review, stale-target,
   cross-workspace, activity, API client, and presentation behavior.
+- my-work aggregation, empty state, reviewer eligibility, stale-target
+  filtering, safe discussion payload, client request, and workspace-isolation
+  behavior.
 
 Tests do not yet cover:
 

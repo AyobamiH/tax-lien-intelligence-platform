@@ -14,6 +14,7 @@ import type {
   DatasetScoringStatusResponse,
   DiscussionAttentionResponse,
   InternalJobResponse,
+  MyWorkResponse,
   NotificationDeliveryHistoryItem,
   NotificationDigestBatchResponse,
   NotificationPreferenceCategory,
@@ -58,6 +59,7 @@ import {
   getDataset,
   getDatasetScoringStatus,
   getJob,
+  getMyWork,
   getNotificationPreferences,
   getPortfolioSummary,
   handoffComparisonToPortfolio,
@@ -121,6 +123,7 @@ import {
   comparisonDecisionLabel,
   comparisonDecisionOptions,
   decisionHistoryEventLabel,
+  discussionAttentionDestination,
   discussionAttentionLabel,
   datasetImportPresentation,
   datasetNeedsImportRepair,
@@ -172,6 +175,7 @@ import { WorkspaceCommentBody } from "./workspace-comment-body";
 const authStorageKey = "tax-lien-review-session";
 
 type PageState =
+  | { name: "my-work" }
   | { name: "datasets" }
   | { name: "dataset"; datasetId: string }
   | { name: "watchlist" }
@@ -568,7 +572,7 @@ function App() {
         isLoading: false,
         error: null,
       });
-      navigate({ name: "datasets" }, setPage);
+      navigate({ name: "my-work" }, setPage);
       return true;
     } catch (error: unknown) {
       setDatasetsError(errorMessage(error));
@@ -733,6 +737,30 @@ function App() {
     }
   }
 
+  function openDiscussionAttention(attention: DiscussionAttentionResponse): void {
+    const destination = discussionAttentionDestination(attention);
+    if (!destination) {
+      return;
+    }
+    switch (destination.surface) {
+      case "dataset":
+        navigate({ name: "dataset", datasetId: destination.datasetId }, setPage);
+        return;
+      case "comparison":
+        navigate({ name: "comparison" }, setPage);
+        return;
+      case "watchlist":
+        navigate({ name: "watchlist" }, setPage);
+        return;
+      case "portfolio":
+        navigate({ name: "portfolio" }, setPage);
+        return;
+      case "workspace":
+      case "approvals":
+        return;
+    }
+  }
+
   function openWorkspaceActivity(activity: WorkspaceActivityResponse): void {
     const destination = workspaceActivityDestination(activity);
     if (!destination) {
@@ -786,12 +814,12 @@ function App() {
   function handleSignedIn(nextSession: StoredSession): void {
     sessionStorage.setItem(authStorageKey, JSON.stringify(nextSession));
     setSession(nextSession);
-    navigate({ name: "datasets" }, setPage);
+    navigate({ name: "my-work" }, setPage);
   }
 
   function handleSignOut(): void {
     clearSession(setSession);
-    navigate({ name: "datasets" }, setPage);
+    navigate({ name: "my-work" }, setPage);
   }
 
   async function uploadDatasetFromBrowser(file: File | null, sourceLabel: string): Promise<void> {
@@ -1581,7 +1609,15 @@ function App() {
               .finally(() => setDatasetsLoading(false));
           }}
         />
-        {page.name === "dataset" ? (
+        {page.name === "my-work" ? (
+          <MyWorkPage
+            token={session.token}
+            workspaceId={workspace.current?.id ?? ""}
+            onOpenAssignment={openAssignment}
+            onOpenApproval={() => navigate({ name: "approvals" }, setPage)}
+            onOpenDiscussion={openDiscussionAttention}
+          />
+        ) : page.name === "dataset" ? (
           <DatasetDetailPage
             token={session.token}
             datasetId={page.datasetId}
@@ -1862,6 +1898,15 @@ function AppHeader({
           ) : null}
         </div>
         <nav className="flex flex-wrap items-center gap-2 text-sm">
+          <button
+            type="button"
+            onClick={() => onNavigate({ name: "my-work" })}
+            className={`border border-line px-3 py-2 font-medium ${
+              page.name === "my-work" ? "bg-field" : "bg-white"
+            }`}
+          >
+            My work
+          </button>
           <button
             type="button"
             onClick={() => onNavigate({ name: "datasets" })}
@@ -5964,6 +6009,275 @@ function ComparisonApprovalPanel({
   );
 }
 
+function MyWorkPage({
+  token,
+  workspaceId,
+  onOpenAssignment,
+  onOpenApproval,
+  onOpenDiscussion,
+}: {
+  token: string;
+  workspaceId: string;
+  onOpenAssignment: (assignment: WorkspaceAssignmentResponse) => void;
+  onOpenApproval: () => void;
+  onOpenDiscussion: (attention: DiscussionAttentionResponse) => void;
+}) {
+  const [myWork, setMyWork] = useState<MyWorkResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setMyWork(null);
+    setIsLoading(true);
+    setError(null);
+    void getMyWork(token)
+      .then((result) => {
+        if (!cancelled) {
+          setMyWork(result);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, workspaceId, reloadVersion]);
+
+  if (error) {
+    return (
+      <section className="min-w-0">
+        <MyWorkHeader
+          isLoading={isLoading}
+          onRefresh={() => setReloadVersion((version) => version + 1)}
+        />
+        <div className="mt-5">
+          <PanelError message={error} onRetry={() => setReloadVersion((version) => version + 1)} />
+        </div>
+      </section>
+    );
+  }
+
+  if (!myWork) {
+    return (
+      <section className="min-w-0">
+        <MyWorkHeader
+          isLoading={isLoading}
+          onRefresh={() => setReloadVersion((version) => version + 1)}
+        />
+        <div className="mt-5">
+          <PanelMessage label="Loading your work queues..." />
+        </div>
+      </section>
+    );
+  }
+
+  const hasWork = myWork.counts.totalActionable > 0;
+  const summaries = [
+    { label: "Needs attention", count: myWork.counts.totalActionable },
+    { label: "Assigned", count: myWork.counts.assigned },
+    { label: "Approvals", count: myWork.counts.approvals },
+    { label: "Unread discussion", count: myWork.counts.unreadMessages },
+  ];
+  const summaryBorderClasses = [
+    "",
+    "border-t border-line sm:border-l sm:border-t-0",
+    "border-t border-line xl:border-l xl:border-t-0",
+    "border-t border-line sm:border-l xl:border-t-0",
+  ];
+
+  return (
+    <section className="min-w-0">
+      <MyWorkHeader
+        isLoading={isLoading}
+        onRefresh={() => setReloadVersion((version) => version + 1)}
+      />
+
+      <div className="mt-5 grid border border-line bg-white sm:grid-cols-2 xl:grid-cols-4">
+        {summaries.map((summary, index) => (
+          <div
+            key={summary.label}
+            className={`px-4 py-4 ${summaryBorderClasses[index] ?? ""}`}
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/55">
+              {summary.label}
+            </p>
+            <p className="mt-1 text-2xl font-semibold">{summary.count}</p>
+          </div>
+        ))}
+      </div>
+
+      {!hasWork ? (
+        <div className="mt-5 border-y border-line bg-white px-4 py-6">
+          <p className="font-semibold">You are caught up in this workspace.</p>
+          <p className="mt-2 text-sm leading-6 text-ink/70">
+            New assignments, review requests, and unread discussions will appear here.
+          </p>
+        </div>
+      ) : null}
+
+      <div className="mt-7 space-y-8">
+        <section aria-labelledby="my-work-assignments">
+          <div className="flex items-end justify-between gap-3 border-b border-line pb-3">
+            <div>
+              <h3 id="my-work-assignments" className="text-lg font-semibold">Assigned to me</h3>
+              <p className="mt-1 text-sm text-ink/65">Records where you are the responsible workspace member.</p>
+            </div>
+            <span className="text-sm font-semibold text-ink/60">{myWork.queues.assignments.count}</span>
+          </div>
+          {myWork.queues.assignments.items.length === 0 ? (
+            <p className="border-b border-line bg-white px-4 py-4 text-sm text-ink/60">No assigned records.</p>
+          ) : (
+            <ol>
+              {myWork.queues.assignments.items.map((assignment) => (
+                <li
+                  key={assignment.id}
+                  className="grid gap-3 border-b border-line bg-white px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold">{assignmentEntityLabel(assignment.relatedEntityType)}</p>
+                    <p className="mt-1 break-all text-sm text-ink/70">{assignment.relatedEntityId}</p>
+                    <p className="mt-1 text-xs text-ink/55">
+                      Assigned by {assignment.assignedBy.email} · {formatDateTime(assignment.assignedAt)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onOpenAssignment(assignment)}
+                    className="justify-self-start border border-line bg-white px-3 py-2 text-sm font-semibold sm:justify-self-end"
+                  >
+                    Open
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
+        <section aria-labelledby="my-work-approvals">
+          <div className="flex items-end justify-between gap-3 border-b border-line pb-3">
+            <div>
+              <h3 id="my-work-approvals" className="text-lg font-semibold">Awaiting my decision</h3>
+              <p className="mt-1 text-sm text-ink/65">Pending requests that you are allowed to review.</p>
+            </div>
+            <span className="text-sm font-semibold text-ink/60">{myWork.queues.approvals.count}</span>
+          </div>
+          {myWork.queues.approvals.items.length === 0 ? (
+            <p className="border-b border-line bg-white px-4 py-4 text-sm text-ink/60">
+              No approvals are waiting on you.
+            </p>
+          ) : (
+            <ol>
+              {myWork.queues.approvals.items.map((approval) => (
+                <li
+                  key={approval.id}
+                  className="grid gap-3 border-b border-line bg-white px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold">{approvalActionLabel(approval.requestedAction)}</p>
+                    <p className="mt-1 text-sm leading-6 text-ink/70">{approval.requestNote}</p>
+                    <p className="mt-1 text-xs text-ink/55">
+                      Requested by {approval.requester.email} · {formatDateTime(approval.createdAt)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onOpenApproval}
+                    className="justify-self-start bg-pine px-3 py-2 text-sm font-semibold text-white sm:justify-self-end"
+                  >
+                    Review
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
+        <section aria-labelledby="my-work-discussions">
+          <div className="flex items-end justify-between gap-3 border-b border-line pb-3">
+            <div>
+              <h3 id="my-work-discussions" className="text-lg font-semibold">Unread discussion</h3>
+              <p className="mt-1 text-sm text-ink/65">Accessible records with workspace comments you have not read.</p>
+            </div>
+            <span className="text-sm font-semibold text-ink/60">
+              {myWork.queues.discussions.count} threads · {myWork.queues.discussions.unreadCount} messages
+            </span>
+          </div>
+          {myWork.queues.discussions.items.length === 0 ? (
+            <p className="border-b border-line bg-white px-4 py-4 text-sm text-ink/60">
+              No unread discussions.
+            </p>
+          ) : (
+            <ol>
+              {myWork.queues.discussions.items.map((attention) => (
+                <li
+                  key={`${attention.relatedEntityType}:${attention.relatedEntityId}`}
+                  className="grid gap-3 border-b border-line bg-white px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold">{assignmentEntityLabel(attention.relatedEntityType)}</p>
+                    <p className="mt-1 break-all text-sm text-ink/70">{attention.relatedEntityId}</p>
+                    <p className="mt-1 text-xs text-ink/55">
+                      {attention.unreadCount} unread
+                      {attention.latestCommentAt ? ` · Updated ${formatDateTime(attention.latestCommentAt)}` : ""}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onOpenDiscussion(attention)}
+                    className="justify-self-start border border-line bg-white px-3 py-2 text-sm font-semibold sm:justify-self-end"
+                  >
+                    Open discussion
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      </div>
+
+      <p className="mt-5 text-xs text-ink/50">Updated {formatDateTime(myWork.generatedAt)}</p>
+    </section>
+  );
+}
+
+function MyWorkHeader({
+  isLoading,
+  onRefresh,
+}: {
+  isLoading: boolean;
+  onRefresh: () => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-5">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Personal queue</p>
+        <h2 className="mt-1 text-2xl font-semibold">My work</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+          Your assigned records, review decisions, and unread workspace discussions in one place.
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={onRefresh}
+        disabled={isLoading}
+        className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-60"
+      >
+        Refresh
+      </button>
+    </div>
+  );
+}
+
 function ApprovalQueuePage({
   token,
   onOpenComparison,
@@ -6711,35 +7025,16 @@ function PanelError({ message, onRetry }: { message: string; onRetry?: () => voi
 }
 
 function navigate(page: PageState, setPage: (page: PageState) => void): void {
-  const hash =
-    page.name === "datasets"
-      ? "#/datasets"
-      : page.name === "watchlist"
-        ? "#/watchlist"
-        : page.name === "portfolio"
-          ? "#/portfolio"
-          : page.name === "comparison"
-            ? "#/comparison"
-            : page.name === "alerts"
-              ? "#/alerts"
-              : page.name === "notifications"
-                ? "#/notifications"
-                : page.name === "delivery-history"
-                  ? "#/delivery-history"
-                  : page.name === "activity"
-                    ? "#/activity"
-                  : page.name === "assignments"
-                    ? "#/assignments"
-                    : page.name === "approvals"
-                      ? "#/approvals"
-                      : page.name === "workspace"
-                        ? "#/workspace"
-                        : `#/datasets/${page.datasetId}`;
+  const hash = page.name === "dataset" ? `#/datasets/${page.datasetId}` : `#/${page.name}`;
   window.history.pushState(null, "", hash);
   setPage(page);
 }
 
 function readRoute(): PageState {
+  if (window.location.hash === "#/my-work") {
+    return { name: "my-work" };
+  }
+
   if (window.location.hash === "#/watchlist") {
     return { name: "watchlist" };
   }
@@ -6785,7 +7080,7 @@ function readRoute(): PageState {
     return { name: "dataset", datasetId: decodeURIComponent(match[1]) };
   }
 
-  return { name: "datasets" };
+  return { name: "my-work" };
 }
 
 function loadStoredSession(): StoredSession | null {

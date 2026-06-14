@@ -79,6 +79,9 @@ It shows:
   detail surfaces, with assignment mutation limited to owners/admins and clear
   member-restricted states;
 - dedicated assigned-to-me route using `#/assignments`;
+- default member-focused my-work route using `#/my-work`, with assignment,
+  reviewable approval, and unread discussion counts plus compact navigation
+  queues;
 - comparison-detail approval request/status visibility for the supported
   comparison-to-portfolio checkpoint;
 - dedicated approval queue using `#/approvals`, with pending/resolved filters,
@@ -123,6 +126,7 @@ The current API surface is minimal:
 - `POST /approvals/:approvalRequestId/approve`
 - `POST /approvals/:approvalRequestId/reject`
 - `POST /approvals/:approvalRequestId/cancel`
+- `GET /my-work`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -238,6 +242,8 @@ Real workflows now present:
 - member-specific unread discussion attention with one alert per unread cycle.
 - explicit current responsibility plus a personal assigned-to-me queue for four
   shared record types.
+- a personal operational home aggregating assignments, approvals awaiting the
+  actor's decision, and unread accessible discussions without creating tasks.
 
 Real workflows not present:
 
@@ -288,6 +294,8 @@ The current API cannot:
 - provide chat, rich-text comments, mentions, task approvals, multi-step
   approval chains, realtime collaboration,
   compliance-grade audit exports, or auction execution.
+- provide due dates, SLA queues, workload balancing, urgency scoring, or a
+  generic task-management dashboard.
 - run arbitrary saved-view query expressions or BI/report-builder workflows.
 - send SMS/push alerts or realtime notifications.
 

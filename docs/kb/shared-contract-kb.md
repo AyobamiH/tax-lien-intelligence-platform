@@ -665,6 +665,26 @@ must not include comment body text, and alert state must not be treated as a
 replacement for the thread's explicit unread state. Marking a thread read also
 acknowledges matching personal discussion alerts.
 
+## My Work Contract
+
+The current my-work response composes existing contracts:
+
+- verified workspace id and server generation timestamp;
+- assigned, reviewable-approval, unread-thread, unread-message, and total
+  actionable counts;
+- assignment, approval, and discussion queues with total count plus at most
+  eight preview items;
+- existing assignment, approval, and discussion-attention item shapes.
+
+The authenticated actor is implicit. Clients must not submit a user id, role,
+workspace id in the body, target access decision, reviewer eligibility, unread
+count, or priority. Approval entries require server-derived `canReview`, and
+all target-backed entries must survive current access revalidation. Discussion
+entries never include comment body text.
+
+This contract is an aggregation response, not a task, priority, SLA, workload,
+or activity-feed contract.
+
 ## Saved View Contract
 
 Current saved-view contracts include:
@@ -816,6 +836,8 @@ possible or explicitly versioned.
   client-authored summaries or general event payloads.
 - Keep approval target/action/status enums allowlisted, derive reviewer
   authority server-side, and never expose note text through activity metadata.
+- Keep my-work queues actor/workspace derived, bounded, target-revalidated, and
+  free of comment bodies or invented urgency metadata.
 - Do not represent scoring as a single number once explainable scoring exists.
 - Do not treat alert metadata as a raw logging or diagnostic payload.
 - Do not let enrichment contracts imply external verification when enrichment is

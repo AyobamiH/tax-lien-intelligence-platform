@@ -59,6 +59,7 @@ import {
   comparisonDecisionLabel,
   comparisonDecisionOptions,
   decisionHistoryEventLabel,
+  discussionAttentionDestination,
   discussionAttentionLabel,
   portfolioStatusClassName,
   portfolioStatusLabel,
@@ -802,6 +803,24 @@ describe("review model helpers", () => {
       }),
     ).toBe("3 unread");
     expect(discussionAttentionLabel(null)).toBe("Up to date");
+    expect(
+      discussionAttentionDestination({
+        workspaceId: "workspace-1",
+        relatedEntityType: "dataset",
+        relatedEntityId: "dataset-1",
+        unreadCount: 1,
+        hasUnread: true,
+      }),
+    ).toEqual({ surface: "dataset", datasetId: "dataset-1" });
+    expect(
+      discussionAttentionDestination({
+        workspaceId: "workspace-1",
+        relatedEntityType: "portfolio_item",
+        relatedEntityId: "portfolio-1",
+        unreadCount: 2,
+        hasUnread: true,
+      }),
+    ).toEqual({ surface: "portfolio" });
   });
 
   it("orders notification delivery history and digest batches newest first", () => {

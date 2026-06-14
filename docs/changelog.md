@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-06-14
+
+- Implemented Phase 37 member-focused my-work aggregation over existing
+  assignments, reviewable approvals, and unread discussion attention.
+- Added authenticated `GET /my-work` with selected-workspace membership,
+  server-derived reviewer eligibility, stale-target filtering, grouped counts,
+  bounded queue previews, and explicit empty states.
+- Added `#/my-work` as the signed-in and workspace-switch home with compact
+  actionable queues and navigation into existing record and approval surfaces.
+- Added integration and frontend contract tests for aggregation, empty states,
+  requester/reviewer differences, stale targets, safe discussion payloads, and
+  cross-workspace rejection.
+- Kept task objects, due dates, SLAs, boards, workload analytics, workspace-wide
+  activity, and AI prioritization out of scope.
+
 ## 2026-06-13
 
 - Implemented Phase 36 approval requests and review checkpoints for

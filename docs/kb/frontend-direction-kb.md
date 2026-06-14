@@ -79,6 +79,8 @@ Current implementation:
 - focused approval queue with pending/resolved status filters, bounded context,
   reviewer rationale, owner/admin approve/reject actions, and requester
   cancellation;
+- default my-work route with compact counts and bounded assigned, reviewable
+  approval, and unread discussion queues linked to existing surfaces;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -135,6 +137,8 @@ Current and future page direction:
 - implemented: current workspace responsibility and assigned-to-me workflow;
 - implemented: focused comparison-to-portfolio approval request and reviewer
   workflow;
+- implemented: member-focused my-work operational home and reviewer queue
+  aggregation;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities
@@ -386,6 +390,9 @@ Future frontend work must:
   from a client-side alert link.
 - treat assignment links as navigation hints only; the API must reverify
   workspace membership and target access.
+- treat my-work counts and links as server-derived workspace-scoped summaries;
+  never combine cached queues across workspace switches or infer access from a
+  visible row.
 - derive member-management and assignment-control states from server-provided
   workspace permissions; hidden or disabled controls are never authorization.
 
