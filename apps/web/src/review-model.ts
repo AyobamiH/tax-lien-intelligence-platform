@@ -41,6 +41,9 @@ import type {
   DiscussionAttentionResponse,
   WorkspaceAssignmentEntityType,
   WorkspaceAssignmentResponse,
+  ReviewChecklistProgress,
+  ReviewChecklistProgressStatus,
+  ReviewChecklistTargetEntityType,
 } from "@tax-lien/types";
 
 export function workspaceRoleLabel(role: WorkspaceRole): string {
@@ -69,6 +72,67 @@ export function canRemoveWorkspaceMember(
     targetRole !== "owner" &&
     (actorRole === "owner" || (actorRole === "admin" && targetRole === "member"))
   );
+}
+
+export function reviewChecklistTargetLabel(
+  targetEntityType: ReviewChecklistTargetEntityType,
+): string {
+  switch (targetEntityType) {
+    case "comparison_item":
+      return "Comparison item";
+    case "watchlist_item":
+      return "Watchlist item";
+    case "portfolio_item":
+      return "Portfolio item";
+  }
+}
+
+export function reviewChecklistStatusLabel(
+  status: ReviewChecklistProgressStatus,
+): string {
+  switch (status) {
+    case "not_configured":
+      return "Not configured";
+    case "not_started":
+      return "Not started";
+    case "in_progress":
+      return "In progress";
+    case "ready":
+      return "Review ready";
+  }
+}
+
+export function reviewChecklistStatusClassName(
+  status: ReviewChecklistProgressStatus,
+): string {
+  switch (status) {
+    case "not_configured":
+      return "border-line bg-field text-ink/65";
+    case "not_started":
+    case "in_progress":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+    case "ready":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+  }
+}
+
+export function reviewChecklistReadinessMessage(
+  progress: ReviewChecklistProgress,
+): string {
+  switch (progress.status) {
+    case "not_configured":
+      return "No review checklist is configured for this record type.";
+    case "not_started":
+      return `${progress.incompleteRequiredItems} required review ${
+        progress.incompleteRequiredItems === 1 ? "item is" : "items are"
+      } still incomplete.`;
+    case "in_progress":
+      return `${progress.incompleteRequiredItems} required review ${
+        progress.incompleteRequiredItems === 1 ? "item remains" : "items remain"
+      } before this record is review ready.`;
+    case "ready":
+      return "All required review items are complete.";
+  }
 }
 
 export function approvalStatusLabel(status: ApprovalRequestStatus): string {

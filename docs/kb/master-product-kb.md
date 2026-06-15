@@ -73,6 +73,11 @@ Phase 38 adds deliberate follow subscriptions for important datasets,
 comparison items, watchlist items, and portfolio items. Followed records remain
 visible in My Work and can produce bounded, preference-aware alerts for
 consequential changes. It is stakeholder awareness, not social following.
+Phase 39 adds workspace review checklist templates and record-level completion
+for comparison, watchlist, and portfolio records. Required items produce a
+visible review-readiness signal near consequential comparison actions. It is a
+lightweight decision-discipline layer, not compliance evidence or a workflow
+engine.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -134,6 +139,9 @@ Current evidence:
 - workspace members can follow important accessible records without accepting
   assignment, then return to a separate informational queue and receive bounded
   updates under their personal notification preferences.
+- workspace members can complete repeatable required/optional review
+  checklists, while owners/admins manage templates and readiness remains a
+  transparent nonblocking signal.
 
 ## What This SaaS Is
 
@@ -171,6 +179,8 @@ The intended product loop is:
     followed records.
 19. a member can follow an important shared record without taking ownership and
     receive bounded updates for consequential changes.
+20. a member can verify required review items on an accessible comparison,
+    watchlist, or portfolio record before the team moves it forward.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
@@ -183,9 +193,11 @@ Reusable import profiles, comparison, the workspace-access foundation, activity,
 contextual comments, bounded discussion attention, and current responsibility
 assignments now exist. Role-aware workspace administration and permission
 hardening now exist. A focused comparison-to-portfolio approval checkpoint now
-exists. A member-focused my-work aggregation surface now exists. Broad county
+exists. A member-focused my-work aggregation surface now exists. Workspace
+review checklist templates and record completion now exist. Broad county
 coverage, live county sync, full spreadsheet editing, realtime chat, rich-text
-collaboration, compliance audit tooling, ML mapping suggestions, SMS/push alert delivery, user-facing
+collaboration, compliance audit tooling, automated checklist evidence, ML
+mapping suggestions, SMS/push alert delivery, user-facing
 scheduler policy controls, broader automatic refresh, advanced digest
 scheduling/templates/retries, multi-step approval governance, and richer
 automation remain future direction.

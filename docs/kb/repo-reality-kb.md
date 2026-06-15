@@ -73,6 +73,8 @@ Implemented today:
 - workspace-assignment model in `packages/db`;
 - workspace-scoped approval-request model in `packages/db`;
 - workspace-scoped follow-subscription model in `packages/db`;
+- workspace-scoped review-checklist template and instance models in
+  `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
 - authenticated workspace/member list, add, role-update, and deactivation APIs
   with owner/admin/member roles;
@@ -97,6 +99,10 @@ Implemented today:
   comparison items, watchlist items, and portfolio items;
 - duplicate-safe follows, active-member follower counts, current target-access
   revalidation, stale-target omission, and cross-workspace rejection;
+- authenticated review-checklist template management and record state/update
+  routes for comparison, watchlist, and portfolio items;
+- owner/admin template management, active-member item completion, template
+  version synchronization, completion attribution, and required-item readiness;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;
@@ -411,6 +417,9 @@ Current tests cover:
 - follow creation, duplicate safety, unfollow cleanup, stale/inaccessible
   filtering, cross-workspace rejection, bounded follower alerts, preference
   handling, and frontend API behavior.
+- checklist template management, role restrictions, completion/reopening,
+  required readiness, template revision preservation, stale-target rejection,
+  workspace isolation, and frontend API behavior.
 
 Tests do not yet cover:
 

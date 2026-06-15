@@ -86,6 +86,11 @@ It shows:
 - follow/unfollow controls and active follower count on dataset, comparison,
   watchlist, and portfolio detail surfaces;
 - a separate informational Following queue in My Work;
+- compact review checklists on comparison, watchlist, and portfolio detail,
+  with required/optional labels, completion attribution, and readiness progress;
+- workspace checklist-template management for owners/admins, with member
+  read-only visibility;
+- a nonblocking readiness message beside comparison handoff and approval;
 - comparison-detail approval request/status visibility for the supported
   comparison-to-portfolio checkpoint;
 - dedicated approval queue using `#/approvals`, with pending/resolved filters,
@@ -135,6 +140,10 @@ The current API surface is minimal:
 - `GET /follows/:entityType/:entityId`
 - `PUT /follows/:entityType/:entityId`
 - `DELETE /follows/:entityType/:entityId`
+- `GET /review-checklists/templates`
+- `PUT /review-checklists/templates/:entityType`
+- `GET /review-checklists/:entityType/:entityId`
+- `PATCH /review-checklists/:entityType/:entityId/items/:itemId`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -195,6 +204,7 @@ Documented in:
 - `docs/api/comments.md`
 - `docs/api/assignments.md`
 - `docs/api/approvals.md`
+- `docs/api/review-checklists.md`
 
 There is no standalone parcel API yet.
 

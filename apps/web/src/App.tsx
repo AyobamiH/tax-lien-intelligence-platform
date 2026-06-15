@@ -18,6 +18,10 @@ import type {
   FollowTargetEntityType,
   InternalJobResponse,
   MyWorkResponse,
+  ReviewChecklistProgress,
+  ReviewChecklistStateResponse,
+  ReviewChecklistTargetEntityType,
+  ReviewChecklistTemplateResponse,
   NotificationDeliveryHistoryItem,
   NotificationDigestBatchResponse,
   NotificationPreferenceCategory,
@@ -64,6 +68,7 @@ import {
   getFollowState,
   getJob,
   getMyWork,
+  getReviewChecklistState,
   getNotificationPreferences,
   getPortfolioSummary,
   handoffComparisonToPortfolio,
@@ -83,6 +88,7 @@ import {
   listWorkspaceComments,
   listAssignedToMe,
   listApprovalRequests,
+  listReviewChecklistTemplates,
   listWorkspaces,
   login,
   markAlertRead,
@@ -102,8 +108,10 @@ import {
   updateComparisonItem,
   updateNotificationPreferences,
   updatePortfolioItemStatus,
+  updateReviewChecklistItem,
   updateWorkspaceMemberRole,
   updateWorkspaceAssignment,
+  upsertReviewChecklistTemplate,
   unfollowEntity,
 } from "./api";
 import {
@@ -157,6 +165,10 @@ import {
   portfolioStatusOptions,
   primaryRecordLabel,
   reasoningPreview,
+  reviewChecklistReadinessMessage,
+  reviewChecklistStatusClassName,
+  reviewChecklistStatusLabel,
+  reviewChecklistTargetLabel,
   savedViewCriteriaLabel,
   scoreBand,
   sortAlertsForReview,
@@ -1768,6 +1780,7 @@ function App() {
           />
         ) : page.name === "workspace" ? (
           <WorkspacePage
+            token={session.token}
             state={workspace}
             currentUserId={session.user.id}
             onRetry={() => void refreshWorkspaceContext(session.token, workspace.current?.id)}
@@ -3590,12 +3603,15 @@ function ComparisonDetail({
   >(null);
   const [handoffError, setHandoffError] = useState<string | null>(null);
   const [hasPendingPortfolioApproval, setHasPendingPortfolioApproval] = useState(false);
+  const [checklistProgress, setChecklistProgress] =
+    useState<ReviewChecklistProgress | null>(null);
 
   useEffect(() => {
     setDraftDecision(item?.decision ?? "undecided");
     setDraftNote(item?.note ?? "");
     setHandoffResult(null);
     setHandoffError(null);
+    setChecklistProgress(null);
   }, [item?.id, item?.decision, item?.note]);
 
   useEffect(() => {
@@ -3746,8 +3762,24 @@ function ComparisonDetail({
       >
         {isSaving ? "Saving..." : "Save decision"}
       </button>
+      <ReviewChecklist
+        token={token}
+        entityType="comparison_item"
+        entityId={item.id}
+        onProgressChange={setChecklistProgress}
+      />
       <section className="mt-5 border border-line bg-field p-3">
         <h4 className="text-sm font-semibold">Decision Handoff</h4>
+        {checklistProgress && checklistProgress.status !== "ready" ? (
+          <p className="mt-2 border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+            {reviewChecklistReadinessMessage(checklistProgress)} This is a readiness warning,
+            not an automatic block.
+          </p>
+        ) : checklistProgress?.status === "ready" ? (
+          <p className="mt-2 border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs leading-5 text-emerald-900">
+            {reviewChecklistReadinessMessage(checklistProgress)}
+          </p>
+        ) : null}
         <div className="mt-3 grid gap-2">
           <button
             type="button"
@@ -4741,6 +4773,11 @@ function PortfolioDetail({
         entityType="portfolio_item"
         entityId={item.id}
       />
+      <ReviewChecklist
+        token={token}
+        entityType="portfolio_item"
+        entityId={item.id}
+      />
       <FollowControl token={token} entityType="portfolio_item" entityId={item.id} />
       <WorkspaceAssignmentControl token={token} entityType="portfolio_item" entityId={item.id} />
     </aside>
@@ -5143,6 +5180,7 @@ function WorkspaceActivityPage({
 }
 
 function WorkspacePage({
+  token,
   state,
   currentUserId,
   onRetry,
@@ -5150,6 +5188,7 @@ function WorkspacePage({
   onRoleChange,
   onRemoveMember,
 }: {
+  token: string;
   state: WorkspaceState;
   currentUserId: string;
   onRetry: () => void;
@@ -5339,6 +5378,308 @@ function WorkspacePage({
           </tbody>
         </table>
       </div>
+      <ReviewChecklistTemplateManager
+        token={token}
+        canManage={state.current.permissions.canManageSharedData}
+      />
+    </section>
+  );
+}
+
+const reviewChecklistTargetTypes: ReviewChecklistTargetEntityType[] = [
+  "comparison_item",
+  "watchlist_item",
+  "portfolio_item",
+];
+
+interface ReviewChecklistTemplateDraftItem {
+  id?: string;
+  label: string;
+  required: boolean;
+}
+
+function ReviewChecklistTemplateManager({
+  token,
+  canManage,
+}: {
+  token: string;
+  canManage: boolean;
+}) {
+  const [templates, setTemplates] = useState<ReviewChecklistTemplateResponse[]>([]);
+  const [selectedType, setSelectedType] =
+    useState<ReviewChecklistTargetEntityType>("comparison_item");
+  const [name, setName] = useState("");
+  const [active, setActive] = useState(true);
+  const [items, setItems] = useState<ReviewChecklistTemplateDraftItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+    void listReviewChecklistTemplates(token)
+      .then((result) => {
+        if (!cancelled) {
+          setTemplates(result.templates);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  useEffect(() => {
+    const template = templates.find(
+      (candidate) => candidate.targetEntityType === selectedType,
+    );
+    setName(template?.name ?? `${reviewChecklistTargetLabel(selectedType)} review`);
+    setActive(template?.active ?? true);
+    setItems(
+      template?.items.map((item) => ({
+        id: item.id,
+        label: item.label,
+        required: item.required,
+      })) ?? [],
+    );
+  }, [selectedType, templates]);
+
+  async function saveTemplate(): Promise<void> {
+    const normalizedItems = items
+      .map((item) => ({ ...item, label: item.label.trim() }))
+      .filter((item) => item.label);
+    if (!name.trim() || normalizedItems.length === 0) {
+      setError("Add a template name and at least one checklist item.");
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await upsertReviewChecklistTemplate(token, selectedType, {
+        name: name.trim(),
+        active,
+        items: normalizedItems.map((item) => ({
+          ...(item.id ? { id: item.id } : {}),
+          label: item.label,
+          required: item.required,
+        })),
+      });
+      setTemplates((current) => [
+        ...current.filter(
+          (template) => template.targetEntityType !== selectedType,
+        ),
+        result.template,
+      ]);
+      setSuccess("Review checklist template saved.");
+    } catch (saveError: unknown) {
+      setError(errorMessage(saveError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="mt-8 border-t border-line pt-6" aria-labelledby="review-checklist-templates">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">
+            Decision discipline
+          </p>
+          <h3 id="review-checklist-templates" className="mt-1 text-lg font-semibold">
+            Review checklist templates
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+            Required items determine review readiness. They provide a visible signal and do not
+            automatically block handoff or approval.
+          </p>
+        </div>
+        <span className="text-sm font-semibold text-ink/60">
+          {canManage ? "Owner and admin controls" : "View only"}
+        </span>
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Checklist record type">
+        {reviewChecklistTargetTypes.map((targetType) => {
+          const template = templates.find(
+            (candidate) => candidate.targetEntityType === targetType,
+          );
+          return (
+            <button
+              key={targetType}
+              type="button"
+              role="tab"
+              aria-selected={selectedType === targetType}
+              onClick={() => {
+                setSelectedType(targetType);
+                setError(null);
+                setSuccess(null);
+              }}
+              className={`border px-3 py-2 text-sm font-semibold ${
+                selectedType === targetType
+                  ? "border-pine bg-pine text-white"
+                  : "border-line bg-white text-ink"
+              }`}
+            >
+              {reviewChecklistTargetLabel(targetType)}
+              {template ? (template.active ? " · Active" : " · Inactive") : " · None"}
+            </button>
+          );
+        })}
+      </div>
+
+      {isLoading ? (
+        <PanelMessage label="Loading review checklist templates..." />
+      ) : canManage ? (
+        <div className="mt-4 border-y border-line bg-white py-4">
+          {error ? (
+            <p className="mb-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+              {error}
+            </p>
+          ) : null}
+          {success ? (
+            <p className="mb-4 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+              {success}
+            </p>
+          ) : null}
+          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <label className="text-sm font-semibold">
+              Template name
+              <input
+                type="text"
+                value={name}
+                maxLength={80}
+                onChange={(event) => setName(event.target.value)}
+                className="mt-2 w-full border border-line px-3 py-2 font-normal"
+              />
+            </label>
+            <label className="flex items-center gap-2 border border-line bg-field px-3 py-2 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={active}
+                onChange={(event) => setActive(event.target.checked)}
+              />
+              Active
+            </label>
+          </div>
+          <div className="mt-4 space-y-2">
+            {items.length === 0 ? (
+              <p className="border-y border-line py-4 text-sm text-ink/65">
+                No checklist items yet.
+              </p>
+            ) : null}
+            {items.map((item, index) => (
+              <div
+                key={item.id ?? `new-${index}`}
+                className="grid gap-2 border border-line p-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center"
+              >
+                <input
+                  type="text"
+                  value={item.label}
+                  maxLength={120}
+                  aria-label={`Checklist item ${index + 1}`}
+                  onChange={(event) =>
+                    setItems((current) =>
+                      current.map((candidate, candidateIndex) =>
+                        candidateIndex === index
+                          ? { ...candidate, label: event.target.value }
+                          : candidate,
+                      ),
+                    )
+                  }
+                  className="w-full border border-line px-3 py-2 text-sm"
+                  placeholder="Review item"
+                />
+                <label className="flex items-center gap-2 text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={item.required}
+                    onChange={(event) =>
+                      setItems((current) =>
+                        current.map((candidate, candidateIndex) =>
+                          candidateIndex === index
+                            ? { ...candidate, required: event.target.checked }
+                            : candidate,
+                        ),
+                      )
+                    }
+                  />
+                  Required
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setItems((current) =>
+                      current.filter((_, candidateIndex) => candidateIndex !== index),
+                    )
+                  }
+                  className="border border-line bg-white px-3 py-2 text-xs font-semibold"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={items.length >= 20}
+              onClick={() =>
+                setItems((current) => [
+                  ...current,
+                  { label: "", required: true },
+                ])
+              }
+              className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-50"
+            >
+              Add item
+            </button>
+            <button
+              type="button"
+              disabled={isSaving}
+              onClick={() => void saveTemplate()}
+              className="bg-pine px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {isSaving ? "Saving" : "Save template"}
+            </button>
+          </div>
+        </div>
+      ) : error ? (
+        <p className="mt-4 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {error}
+        </p>
+      ) : (
+        <div className="mt-4 border-y border-line bg-white py-4">
+          {items.length === 0 ? (
+            <p className="text-sm text-ink/65">
+              No checklist template is configured for this record type.
+            </p>
+          ) : (
+            <ol className="space-y-2">
+              {items.map((item, index) => (
+                <li key={item.id ?? index} className="flex items-center justify-between gap-3 text-sm">
+                  <span>{item.label}</span>
+                  <span className="text-xs font-semibold text-ink/60">
+                    {item.required ? "Required" : "Optional"}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      )}
     </section>
   );
 }
@@ -5870,6 +6211,11 @@ function WatchlistDetail({
       </section>
       <WorkspaceCommentThread
         key={`watchlist_item:${item.id}`}
+        token={token}
+        entityType="watchlist_item"
+        entityId={item.id}
+      />
+      <ReviewChecklist
         token={token}
         entityType="watchlist_item"
         entityId={item.id}
@@ -6670,6 +7016,145 @@ function AssignedToMePage({
           ))}
         </ol>
       )}
+    </section>
+  );
+}
+
+function ReviewChecklist({
+  token,
+  entityType,
+  entityId,
+  onProgressChange,
+}: {
+  token: string;
+  entityType: ReviewChecklistTargetEntityType;
+  entityId: string;
+  onProgressChange?: (progress: ReviewChecklistProgress) => void;
+}) {
+  const [state, setState] = useState<ReviewChecklistStateResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState(null);
+    setIsLoading(true);
+    setError(null);
+    void getReviewChecklistState(token, entityType, entityId)
+      .then((result) => {
+        if (!cancelled) {
+          setState(result);
+          onProgressChange?.(result.progress);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, entityType, entityId, onProgressChange]);
+
+  async function toggleItem(itemId: string, completed: boolean): Promise<void> {
+    setActionId(itemId);
+    setError(null);
+    try {
+      const result = await updateReviewChecklistItem(
+        token,
+        entityType,
+        entityId,
+        itemId,
+        completed,
+      );
+      setState(result.state);
+      onProgressChange?.(result.state.progress);
+    } catch (saveError: unknown) {
+      setError(errorMessage(saveError));
+    } finally {
+      setActionId(null);
+    }
+  }
+
+  return (
+    <section className="mt-5 border-t border-line pt-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h4 className="text-sm font-semibold">Review checklist</h4>
+          <p className="mt-1 text-xs leading-5 text-ink/60">
+            Required items indicate whether this record is review ready.
+          </p>
+        </div>
+        {state ? (
+          <span
+            className={`border px-2 py-1 text-xs font-semibold ${reviewChecklistStatusClassName(
+              state.progress.status,
+            )}`}
+          >
+            {reviewChecklistStatusLabel(state.progress.status)}
+          </span>
+        ) : null}
+      </div>
+      {error ? (
+        <p className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+          {error}
+        </p>
+      ) : null}
+      {isLoading ? (
+        <p className="mt-3 text-sm text-ink/60">Loading review checklist...</p>
+      ) : state?.progress.status === "not_configured" ? (
+        <p className="mt-3 border-y border-line py-3 text-sm text-ink/65">
+          No active checklist is configured for this record type.
+        </p>
+      ) : state?.checklist ? (
+        <>
+          <p className="mt-3 text-sm font-semibold">{state.checklist.templateName}</p>
+          <p className="mt-1 text-xs text-ink/60">
+            {state.progress.completedItems} of {state.progress.totalItems} complete
+            {" · "}
+            {state.progress.incompleteRequiredItems} required remaining
+          </p>
+          <ol className="mt-3 divide-y divide-line border-y border-line">
+            {state.checklist.items.map((item) => (
+              <li key={item.id} className="py-3">
+                <label className="flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={item.completed}
+                    disabled={actionId === item.id}
+                    onChange={(event) =>
+                      void toggleItem(item.id, event.target.checked)
+                    }
+                    className="mt-1"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span
+                      className={`block text-sm ${
+                        item.completed ? "text-ink/60 line-through" : "text-ink"
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                    <span className="mt-1 block text-xs font-semibold text-ink/55">
+                      {item.required ? "Required" : "Optional"}
+                      {item.completedBy
+                        ? ` · Checked by ${item.completedBy.email}`
+                        : ""}
+                    </span>
+                  </span>
+                </label>
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : null}
     </section>
   );
 }

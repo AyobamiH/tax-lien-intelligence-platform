@@ -40,6 +40,8 @@ Current implementation:
   attention, follow, membership, and target-access boundaries;
 - follow-subscription model, store, service, and routes for four allowlisted
   shared record types;
+- review-checklist template and record-instance models, stores, service, and
+  routes for comparison, watchlist, and portfolio records;
 - selected-workspace membership middleware and explicit read/write,
   member-management, member-removal, role-management, approval-review, and
   sensitive-action checks;
@@ -134,6 +136,8 @@ Current implementation:
   persistence, selected-workspace scoping, and target-access validation;
 - bounded follower notification fan-out for assignment changes, portfolio
   status changes, and approval resolution;
+- owner/admin checklist-template management, active-member completion,
+  target-access revalidation, version synchronization, and required readiness;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -176,6 +180,8 @@ The backend should become the trusted boundary for:
 - member-focused operational queue aggregation without new task persistence;
 - personal workspace follow-subscription persistence and bounded stakeholder
   notification fan-out;
+- workspace review-template and record checklist persistence without treating
+  completion as compliance evidence;
 - workspace membership administration and inactive-membership lifecycle;
 - future compliance-grade audit events;
 - security enforcement.
@@ -766,7 +772,8 @@ Backend implementation order should stay disciplined:
 35. member-focused my-work dashboard and reviewer queues: implemented in Phase
     37;
 36. follow subscriptions and stakeholder awareness: implemented in Phase 38;
-37. later external automation.
+37. review checklists and evidence gates: implemented in Phase 39;
+38. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -788,6 +795,8 @@ Avoid:
   analytics, or AI prioritization;
 - turning follow subscriptions into social graphs, public feeds, arbitrary
   event rules, recommendations, or notification-on-every-change behavior;
+- turning review checklists into forms, compliance evidence repositories,
+  procedural manuals, hard workflow chains, or per-toggle alert streams;
 - AI workflows before deterministic scoring;
 - portfolio performance tracking, return calculators, or BI reporting before a
   separate financial analytics phase.

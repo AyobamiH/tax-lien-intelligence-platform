@@ -84,6 +84,10 @@ Current implementation:
   to existing surfaces;
 - compact follow/unfollow controls with follower count on dataset, comparison,
   watchlist, and portfolio detail surfaces;
+- compact required/optional review checklists on comparison, watchlist, and
+  portfolio detail, plus owner/admin template management in the workspace
+  surface;
+- a nonblocking review-readiness warning near comparison handoff and approval;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -144,6 +148,8 @@ Current and future page direction:
   aggregation;
 - implemented: stakeholder follow controls and informational followed-record
   queue;
+- implemented: review checklist completion, template management, and bounded
+  readiness visibility;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities
@@ -401,6 +407,8 @@ Future frontend work must:
 - treat follow state as server-derived personal workspace data; remount or
   reload it on workspace changes and never infer record access from a stored
   subscription.
+- treat checklist templates, completion, and readiness as server-derived
+  workspace data; client toggles never grant target access or action authority.
 - derive member-management and assignment-control states from server-provided
   workspace permissions; hidden or disabled controls are never authorization.
 

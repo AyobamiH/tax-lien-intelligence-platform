@@ -756,6 +756,27 @@ Following never grants record access, reviewer authority, assignment, or a
 workspace role. Social graphs, public feeds, recommendation logic, presence,
 and arbitrary event subscriptions remain out of scope.
 
+### Review Checklists
+
+Checklist state is a trust signal assembled from shared operational records,
+so the backend revalidates both workspace membership and target access.
+
+Current protection:
+
+- authenticated active selected-workspace membership for every route;
+- allowlisted target types and ObjectId validation;
+- owner/admin-only template mutation with member-readable templates;
+- current target-access checks before state or completion updates;
+- workspace/type/target-qualified record instances;
+- stable server-generated item ids with unknown and duplicate-id rejection;
+- server-derived completing actor and timestamp;
+- stale and cross-workspace targets rejected without disclosure;
+- no toggle alerts, activity spam, attachments, or executable content.
+
+Checklist completion does not grant approval, handoff, assignment, or record
+access. The Phase 39 readiness signal is not a compliance-grade audit record
+and does not hard-block actions.
+
 ### Automation Jobs And Workers
 
 Internal jobs now include tenant ownership, lifecycle status, safe

@@ -42,6 +42,7 @@ before writing specs, prompts, or implementation plans.
 - [Approval Checkpoint Architecture](architecture/approval-checkpoints.md)
 - [My Work Aggregation Architecture](architecture/my-work.md)
 - [Follow Subscriptions Architecture](architecture/follow-subscriptions.md)
+- [Review Checklists Architecture](architecture/review-checklists.md)
 - [Dependency Security And Supply-Chain Hygiene](architecture/dependency-security.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
@@ -66,6 +67,7 @@ before writing specs, prompts, or implementation plans.
 - [Approval Requests API](api/approvals.md)
 - [My Work API](api/my-work.md)
 - [Follow Subscriptions API](api/follows.md)
+- [Review Checklists API](api/review-checklists.md)
 
 ## Decisions
 

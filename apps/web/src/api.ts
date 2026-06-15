@@ -74,6 +74,12 @@ import type {
   FollowStateResponse,
   FollowTargetEntityType,
   MyWorkResponse,
+  ReviewChecklistStateResponse,
+  ReviewChecklistTargetEntityType,
+  ReviewChecklistTemplateListResponse,
+  UpdateReviewChecklistItemResponse,
+  UpsertReviewChecklistTemplateRequest,
+  UpsertReviewChecklistTemplateResponse,
   UnfollowEntityResponse,
 } from "@tax-lien/types";
 
@@ -269,6 +275,50 @@ export async function unfollowEntity(
   return requestJson<UnfollowEntityResponse>(
     `/follows/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
     { method: "DELETE", token },
+  );
+}
+
+export async function listReviewChecklistTemplates(
+  token: string,
+): Promise<ReviewChecklistTemplateListResponse> {
+  return requestJson<ReviewChecklistTemplateListResponse>(
+    "/review-checklists/templates",
+    { token },
+  );
+}
+
+export async function upsertReviewChecklistTemplate(
+  token: string,
+  entityType: ReviewChecklistTargetEntityType,
+  input: UpsertReviewChecklistTemplateRequest,
+): Promise<UpsertReviewChecklistTemplateResponse> {
+  return requestJson<UpsertReviewChecklistTemplateResponse>(
+    `/review-checklists/templates/${encodeURIComponent(entityType)}`,
+    { method: "PUT", token, body: JSON.stringify(input) },
+  );
+}
+
+export async function getReviewChecklistState(
+  token: string,
+  entityType: ReviewChecklistTargetEntityType,
+  entityId: string,
+): Promise<ReviewChecklistStateResponse> {
+  return requestJson<ReviewChecklistStateResponse>(
+    `/review-checklists/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { token },
+  );
+}
+
+export async function updateReviewChecklistItem(
+  token: string,
+  entityType: ReviewChecklistTargetEntityType,
+  entityId: string,
+  itemId: string,
+  completed: boolean,
+): Promise<UpdateReviewChecklistItemResponse> {
+  return requestJson<UpdateReviewChecklistItemResponse>(
+    `/review-checklists/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/items/${encodeURIComponent(itemId)}`,
+    { method: "PATCH", token, body: JSON.stringify({ completed }) },
   );
 }
 

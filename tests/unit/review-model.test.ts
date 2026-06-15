@@ -65,6 +65,10 @@ import {
   portfolioStatusLabel,
   portfolioStatusOptions,
   reasoningPreview,
+  reviewChecklistReadinessMessage,
+  reviewChecklistStatusClassName,
+  reviewChecklistStatusLabel,
+  reviewChecklistTargetLabel,
   savedViewCriteriaLabel,
   scoreBand,
   sortAlertsForReview,
@@ -339,6 +343,32 @@ describe("review model helpers", () => {
     expect(approvalStatusClassName("pending")).toContain("amber");
     expect(approvalStatusClassName("approved")).toContain("emerald");
     expect(approvalStatusClassName("rejected")).toContain("red");
+  });
+
+  it("presents checklist targets, progress, and review readiness clearly", () => {
+    expect(reviewChecklistTargetLabel("comparison_item")).toBe(
+      "Comparison item",
+    );
+    expect(reviewChecklistTargetLabel("watchlist_item")).toBe("Watchlist item");
+    expect(reviewChecklistTargetLabel("portfolio_item")).toBe("Portfolio item");
+    expect(reviewChecklistStatusLabel("not_configured")).toBe("Not configured");
+    expect(reviewChecklistStatusLabel("not_started")).toBe("Not started");
+    expect(reviewChecklistStatusLabel("in_progress")).toBe("In progress");
+    expect(reviewChecklistStatusLabel("ready")).toBe("Review ready");
+    expect(reviewChecklistStatusClassName("in_progress")).toContain("amber");
+    expect(reviewChecklistStatusClassName("ready")).toContain("emerald");
+    expect(
+      reviewChecklistReadinessMessage({
+        status: "in_progress",
+        totalItems: 3,
+        completedItems: 1,
+        incompleteItems: 2,
+        requiredItems: 2,
+        completedRequiredItems: 1,
+        incompleteRequiredItems: 1,
+        allRequiredComplete: false,
+      }),
+    ).toBe("1 required review item remains before this record is review ready.");
   });
 
   it("maps workspace activity categories and affected surfaces", () => {

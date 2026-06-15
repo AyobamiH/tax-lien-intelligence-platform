@@ -413,6 +413,104 @@ export interface FollowListResponse {
   follows: FollowSubscriptionResponse[];
 }
 
+export type ReviewChecklistTargetEntityType =
+  | "comparison_item"
+  | "watchlist_item"
+  | "portfolio_item";
+export type ReviewChecklistProgressStatus =
+  | "not_configured"
+  | "not_started"
+  | "in_progress"
+  | "ready";
+
+export interface ReviewChecklistTemplateItem {
+  id: string;
+  label: string;
+  required: boolean;
+  position: number;
+}
+
+export interface ReviewChecklistTemplateResponse {
+  id: string;
+  workspaceId: string;
+  targetEntityType: ReviewChecklistTargetEntityType;
+  name: string;
+  active: boolean;
+  version: number;
+  items: ReviewChecklistTemplateItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewChecklistTemplateListResponse {
+  templates: ReviewChecklistTemplateResponse[];
+}
+
+export interface UpsertReviewChecklistTemplateRequest {
+  name: string;
+  active?: boolean;
+  items: Array<{
+    id?: string;
+    label: string;
+    required: boolean;
+  }>;
+}
+
+export interface UpsertReviewChecklistTemplateResponse {
+  template: ReviewChecklistTemplateResponse;
+}
+
+export interface ReviewChecklistCompletedBy {
+  userId: string;
+  email: string;
+}
+
+export interface ReviewChecklistItemState extends ReviewChecklistTemplateItem {
+  completed: boolean;
+  completedBy?: ReviewChecklistCompletedBy;
+  completedAt?: string;
+}
+
+export interface ReviewChecklistInstanceResponse {
+  id: string;
+  workspaceId: string;
+  targetEntityType: ReviewChecklistTargetEntityType;
+  targetEntityId: string;
+  templateId: string;
+  templateName: string;
+  templateVersion: number;
+  items: ReviewChecklistItemState[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReviewChecklistProgress {
+  status: ReviewChecklistProgressStatus;
+  totalItems: number;
+  completedItems: number;
+  incompleteItems: number;
+  requiredItems: number;
+  completedRequiredItems: number;
+  incompleteRequiredItems: number;
+  allRequiredComplete: boolean;
+}
+
+export interface ReviewChecklistStateResponse {
+  targetEntityType: ReviewChecklistTargetEntityType;
+  targetEntityId: string;
+  template?: ReviewChecklistTemplateResponse;
+  checklist?: ReviewChecklistInstanceResponse;
+  progress: ReviewChecklistProgress;
+}
+
+export interface UpdateReviewChecklistItemRequest {
+  completed: boolean;
+}
+
+export interface UpdateReviewChecklistItemResponse {
+  state: ReviewChecklistStateResponse;
+}
+
 export interface MyWorkFollowingQueue {
   count: number;
   items: FollowSubscriptionResponse[];

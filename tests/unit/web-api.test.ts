@@ -16,6 +16,7 @@ import {
   followEntity,
   getFollowState,
   getMyWork,
+  getReviewChecklistState,
   getNotificationPreferences,
   getWorkspaceAssignment,
   getPortfolioSummary,
@@ -32,6 +33,7 @@ import {
   listAssignedToMe,
   listApprovalRequests,
   listFollows,
+  listReviewChecklistTemplates,
   listWorkspaces,
   markWorkspaceDiscussionRead,
   removeComparisonItem,
@@ -42,8 +44,10 @@ import {
   setActiveWorkspaceId,
   updateComparisonItem,
   updateNotificationPreferences,
+  updateReviewChecklistItem,
   updateWorkspaceMemberRole,
   updateWorkspaceAssignment,
+  upsertReviewChecklistTemplate,
   unfollowEntity,
 } from "../../apps/web/src/api.js";
 
@@ -469,6 +473,103 @@ describe("web API client", () => {
       expect(headers.get("Authorization")).toBe("Bearer test-token");
       expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
     }
+  });
+
+  it("loads, manages, and completes workspace review checklists", async () => {
+    const template = {
+      id: "template-1",
+      workspaceId: "workspace-1",
+      targetEntityType: "comparison_item",
+      name: "Comparison diligence",
+      active: true,
+      version: 1,
+      items: [
+        {
+          id: "item-1",
+          label: "Verify parcel identity",
+          required: true,
+          position: 0,
+        },
+      ],
+      createdAt: "2026-06-14T10:00:00.000Z",
+      updatedAt: "2026-06-14T10:00:00.000Z",
+    };
+    const state = {
+      targetEntityType: "comparison_item",
+      targetEntityId: "comparison-1",
+      template,
+      checklist: {
+        id: "checklist-1",
+        workspaceId: "workspace-1",
+        targetEntityType: "comparison_item",
+        targetEntityId: "comparison-1",
+        templateId: template.id,
+        templateName: template.name,
+        templateVersion: 1,
+        items: [{ ...template.items[0], completed: false }],
+        createdAt: "2026-06-14T10:00:00.000Z",
+        updatedAt: "2026-06-14T10:00:00.000Z",
+      },
+      progress: {
+        status: "not_started",
+        totalItems: 1,
+        completedItems: 0,
+        incompleteItems: 1,
+        requiredItems: 1,
+        completedRequiredItems: 0,
+        incompleteRequiredItems: 1,
+        allRequiredComplete: false,
+      },
+    };
+    const payloads = [
+      { templates: [template] },
+      { template },
+      state,
+      { state },
+    ];
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payloads.shift()), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await listReviewChecklistTemplates("test-token");
+    await upsertReviewChecklistTemplate("test-token", "comparison_item", {
+      name: "Comparison diligence",
+      active: true,
+      items: [{ label: "Verify parcel identity", required: true }],
+    });
+    await getReviewChecklistState(
+      "test-token",
+      "comparison_item",
+      "comparison-1",
+    );
+    await updateReviewChecklistItem(
+      "test-token",
+      "comparison_item",
+      "comparison-1",
+      "item-1",
+      true,
+    );
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/review-checklists/templates",
+      "http://localhost:4000/review-checklists/templates/comparison_item",
+      "http://localhost:4000/review-checklists/comparison_item/comparison-1",
+      "http://localhost:4000/review-checklists/comparison_item/comparison-1/items/item-1",
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual([
+      "GET",
+      "PUT",
+      "GET",
+      "PATCH",
+    ]);
+    expect(fetchMock.mock.calls[3]?.[1]?.body).toBe(
+      JSON.stringify({ completed: true }),
+    );
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

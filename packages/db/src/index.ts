@@ -56,6 +56,19 @@ export {
   type FollowTargetEntityTypeRecord,
 } from "./models/follow-subscription.js";
 export {
+  ReviewChecklistTemplateModel,
+  type ReviewChecklistTargetEntityTypeRecord,
+  type ReviewChecklistTemplateDocument,
+  type ReviewChecklistTemplateItemRecord,
+  type ReviewChecklistTemplateRecord,
+} from "./models/review-checklist-template.js";
+export {
+  ReviewChecklistInstanceModel,
+  type ReviewChecklistInstanceDocument,
+  type ReviewChecklistInstanceItemRecord,
+  type ReviewChecklistInstanceRecord,
+} from "./models/review-checklist-instance.js";
+export {
   DatasetModel,
   type DatasetDocument,
   type DatasetImportAdapterIdRecord,

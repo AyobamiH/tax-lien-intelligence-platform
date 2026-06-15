@@ -1215,6 +1215,32 @@ Phase 38 does not include:
 This is a deliberate operational awareness layer, not a social network or
 workflow automation engine.
 
+## Phase 39: Review Checklists And Evidence Gates
+
+Current status: implemented.
+
+Phase 39 includes:
+
+- one workspace checklist template for each supported comparison, watchlist,
+  and portfolio record type;
+- ordered required/optional items with stable ids, active state, and versioning;
+- lazy record snapshots with member completion attribution;
+- derived not-configured, not-started, in-progress, and ready states;
+- owner/admin template management and member completion on accessible records;
+- compact detail checklists and a nonblocking comparison readiness signal;
+- tests for role boundaries, progress, revision preservation, stale targets,
+  and workspace isolation.
+
+Phase 39 does not include:
+
+- compliance evidence repositories, attachments, e-signatures, or legal
+  attestation;
+- nested procedures, arbitrary forms, workflow builders, or multi-stage gates;
+- automatic review, SLA engines, or per-toggle notifications;
+- auction execution.
+
+This is a repeatable review-discipline layer, not compliance software.
+
 ## Later Phases
 
 Later phases may include:
@@ -1276,7 +1302,8 @@ Dependency order matters:
 34. focused approval requests and review checkpoints;
 35. member-focused my-work dashboard and reviewer queues;
 36. follow subscriptions and stakeholder awareness;
-37. broader automation.
+37. review checklists and evidence gates;
+38. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

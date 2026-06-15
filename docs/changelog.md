@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-06-15
+
+- Implemented Phase 39 workspace-scoped review checklist templates and
+  record-level completion for comparison, watchlist, and portfolio items.
+- Added owner/admin template management, stable item ids, template versioning,
+  lazy record snapshots, completion attribution, required/optional items, and
+  derived review-readiness states.
+- Added compact checklist controls to supported detail surfaces, workspace
+  template management, and a nonblocking readiness signal around comparison
+  handoff and approval.
+- Added tests for role restrictions, completion/reopening, required readiness,
+  optional items, template revision, stale targets, and workspace isolation.
+- Refreshed transitive lockfile resolutions for newly disclosed `form-data` and
+  Babel advisories; `npm audit` remains clean.
+- Kept compliance evidence storage, attachments, e-signatures, workflow
+  builders, hard action gates, and per-toggle notifications out of scope.
+
 ## 2026-06-14
 
 - Implemented Phase 38 workspace-scoped follow subscriptions for datasets,

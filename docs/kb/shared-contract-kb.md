@@ -713,6 +713,27 @@ Notification payloads contain bounded actor and target metadata, never record
 contents. The contract is not a social graph, presence, reaction, mention,
 recommendation, or arbitrary event-subscription model.
 
+## Review Checklist Contract
+
+The checklist contract is allowlisted to `comparison_item`, `watchlist_item`,
+and `portfolio_item`.
+
+Template responses contain server-derived workspace id, target type, bounded
+name, active state, version, stable ordered item ids, required flags, and
+timestamps. Owners/admins may submit a bounded replacement template. Existing
+item ids may only refer to the current template; new ids are server-generated.
+
+Record state contains the applicable template, a versioned record snapshot,
+item completion with optional verified actor/timestamp, and a derived progress
+summary. Status is `not_configured`, `not_started`, `in_progress`, or `ready`;
+readiness means all required items are complete.
+
+Clients submit only template content or one boolean completion change. They
+must not submit workspace identity, completing actor, timestamp, access
+decisions, readiness totals, or action authorization. Readiness is currently a
+nonblocking decision signal, not approval authority, compliance evidence, or a
+generic workflow contract.
+
 ## Saved View Contract
 
 Current saved-view contracts include:
@@ -868,6 +889,8 @@ possible or explicitly versioned.
   free of comment bodies or invented urgency metadata.
 - Keep follows actor/workspace qualified, duplicate-safe, target-revalidated,
   and incapable of granting access or authority.
+- Keep checklist templates workspace qualified, role managed, versioned,
+  bounded, and separate from record authorization and approval authority.
 - Do not represent scoring as a single number once explainable scoring exists.
 - Do not treat alert metadata as a raw logging or diagnostic payload.
 - Do not let enrichment contracts imply external verification when enrichment is

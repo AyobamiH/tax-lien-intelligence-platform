@@ -57,6 +57,9 @@ import { createMyWorkRouter } from "./routes/my-work.js";
 import { createFollowService } from "./follows/factory.js";
 import type { FollowService } from "./follows/follow-service.js";
 import { createFollowRouter } from "./routes/follows.js";
+import { createReviewChecklistService } from "./review-checklists/factory.js";
+import type { ReviewChecklistService } from "./review-checklists/review-checklist-service.js";
+import { createReviewChecklistRouter } from "./routes/review-checklists.js";
 
 export interface AppDependencies {
   authService?: AuthService;
@@ -77,6 +80,7 @@ export interface AppDependencies {
   approvalService?: ApprovalService;
   myWorkService?: MyWorkService;
   followService?: FollowService;
+  reviewChecklistService?: ReviewChecklistService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -110,6 +114,8 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const myWorkService =
     dependencies.myWorkService ??
     createMyWorkService(workspaceAssignmentService, approvalService, followService);
+  const reviewChecklistService =
+    dependencies.reviewChecklistService ?? createReviewChecklistService();
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -141,6 +147,14 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     ),
   );
   app.use("/follows", createFollowRouter(authService, workspaceService, followService));
+  app.use(
+    "/review-checklists",
+    createReviewChecklistRouter(
+      authService,
+      workspaceService,
+      reviewChecklistService,
+    ),
+  );
   app.use("/my-work", createMyWorkRouter(authService, workspaceService, myWorkService));
   app.use("/datasets", createDatasetRouter(authService, datasetService, workspaceService, workspaceActivityService));
   app.use("/datasets", createScoringRouter(authService, scoringService, workspaceService, workspaceActivityService));
