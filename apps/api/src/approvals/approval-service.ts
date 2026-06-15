@@ -10,6 +10,7 @@ import type {
   CreateApprovalRequestResponse,
 } from "@tax-lien/types";
 import { ApiError } from "../errors/api-error.js";
+import type { WorkspacePolicyService } from "../workspace-policies/workspace-policy-service.js";
 import type { WorkspaceAccessContext } from "../workspaces/workspace-service.js";
 import type { ApprovalRequestStore, StoredApprovalRequest } from "./approval-store.js";
 
@@ -39,6 +40,7 @@ export class ApprovalService {
   public constructor(
     private readonly store: ApprovalRequestStore,
     private readonly comparisonService: ApprovalActionExecutor,
+    private readonly policyService?: WorkspacePolicyService,
   ) {}
 
   public async create(
@@ -48,6 +50,11 @@ export class ApprovalService {
     requestNote: string,
   ): Promise<CreateApprovalRequestResponse> {
     await this.assertComparisonTarget(context, targetEntityId);
+    await this.policyService?.enforceComparisonAction(
+      context,
+      "approval_request_comparison_portfolio",
+      targetEntityId,
+    );
     const result = await this.store.createRequest({
       workspaceId: context.workspaceId,
       targetEntityType: "comparison_item",
@@ -120,6 +127,12 @@ export class ApprovalService {
     await this.claimPendingReview(context.workspaceId, request.id, reviewClaimToken);
     try {
       await this.assertComparisonTarget(context, request.targetEntityId);
+      await this.policyService?.enforceComparisonAction(
+        context,
+        "approval_execute_comparison_portfolio",
+        request.targetEntityId,
+        { approvalSatisfied: true },
+      );
       const handoff = await this.comparisonService.handoffToPortfolio(
         context.tenantUserId,
         request.targetEntityId,

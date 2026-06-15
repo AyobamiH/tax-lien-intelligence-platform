@@ -37,6 +37,10 @@ comparison item is accessible through the selected workspace.
 The request note is required plain text, trimmed, capped at 500 characters, and
 rejects unsupported control characters.
 
+When enabled, workspace assignment and required-checklist policies are checked
+before request creation. The approval-required policy does not block creation;
+the request is the supported way to satisfy that rule.
+
 Response:
 
 ```json
@@ -96,6 +100,10 @@ records the resulting portfolio item in `outcome`.
 
 The existing decision-history handoff event remains the record of the actual
 portfolio transition.
+
+Assignment and checklist policy evidence is rechecked before execution. If
+readiness changed after request creation, approval returns
+`workspace_policy_blocked`, releases its review claim, and remains pending.
 
 ## `POST /approvals/:approvalRequestId/reject`
 

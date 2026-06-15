@@ -16,6 +16,13 @@ Current shared types in `packages/types`:
 - `HealthResponse`;
 - `ApiErrorResponse`;
 - `TenantId`.
+- `WorkspacePolicyRules`;
+- `WorkspacePolicyResponse`;
+- `UpdateWorkspacePolicyRequest`;
+- `WorkspacePolicyAction`;
+- `WorkspacePolicyRequirementCode`;
+- `WorkspacePolicyUnmetRequirement`;
+- `WorkspacePolicyEvaluation`.
 - `AuthUserResponse`;
 - `AuthSuccessResponse`;
 - `AuthMeResponse`;
@@ -730,9 +737,18 @@ readiness means all required items are complete.
 
 Clients submit only template content or one boolean completion change. They
 must not submit workspace identity, completing actor, timestamp, access
-decisions, readiness totals, or action authorization. Readiness is currently a
-nonblocking decision signal, not approval authority, compliance evidence, or a
-generic workflow contract.
+decisions, readiness totals, or action authorization. Readiness is a decision
+signal and becomes an enforced prerequisite only when the selected workspace
+enables its fixed checklist policy. It is not approval authority, compliance
+evidence, or a generic workflow contract.
+
+## Workspace Policy Contract
+
+The workspace policy contract is a complete three-boolean rule object rather
+than arbitrary key/value data. Policy failures use the existing API error
+envelope and add structured `details` with the evaluated action and every unmet
+requirement. Clients must render server messages safely and must not infer that
+a hidden target exists from a policy failure.
 
 ## Saved View Contract
 

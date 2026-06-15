@@ -191,6 +191,12 @@ export {
   type WorkspaceMembershipStatusRecord,
 } from "./models/workspace-membership.js";
 export {
+  WorkspacePolicyModel,
+  type WorkspacePolicyDocument,
+  type WorkspacePolicyRecord,
+  type WorkspacePolicyRulesRecord,
+} from "./models/workspace-policy.js";
+export {
   WorkspaceActivityModel,
   type WorkspaceActivityCategoryRecord,
   type WorkspaceActivityDocument,

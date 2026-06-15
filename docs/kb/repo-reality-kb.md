@@ -75,6 +75,7 @@ Implemented today:
 - workspace-scoped follow-subscription model in `packages/db`;
 - workspace-scoped review-checklist template and instance models in
   `packages/db`;
+- workspace-scoped fixed policy model in `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
 - authenticated workspace/member list, add, role-update, and deactivation APIs
   with owner/admin/member roles;
@@ -103,6 +104,9 @@ Implemented today:
   routes for comparison, watchlist, and portfolio items;
 - owner/admin template management, active-member item completion, template
   version synchronization, completion attribution, and required-item readiness;
+- authenticated workspace policy retrieval/update with default-off
+  compatibility, owner/admin mutation, member visibility, and structured
+  enforcement on selected comparison and approval actions;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;

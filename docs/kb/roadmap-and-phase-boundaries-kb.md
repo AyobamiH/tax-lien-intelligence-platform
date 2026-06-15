@@ -1241,6 +1241,30 @@ Phase 39 does not include:
 
 This is a repeatable review-discipline layer, not compliance software.
 
+## Phase 40: Workspace Policy Rules And Gate Enforcement
+
+Current status: implemented.
+
+Phase 40 includes:
+
+- one fixed workspace policy record with three default-off switches;
+- assignment and required-checklist gates for comparison handoffs and approval;
+- an approval gate for direct comparison-to-portfolio handoff;
+- owner/admin policy management with member visibility;
+- structured blocked-action requirements and practical resolution guidance;
+- readiness rechecks before an approved portfolio transition executes;
+- tests for compatibility, role boundaries, workspace isolation, and gate
+  behavior.
+
+Phase 40 does not include:
+
+- arbitrary expressions, custom workflow graphs, or per-user exceptions;
+- policy packs, legal controls, compliance audit history, or SLA engines;
+- policy-click alerts, automatic remediation, or AI interpretation;
+- auction execution.
+
+This is a minimal governance layer, not a workflow engine.
+
 ## Later Phases
 
 Later phases may include:

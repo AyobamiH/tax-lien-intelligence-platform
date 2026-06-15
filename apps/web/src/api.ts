@@ -81,6 +81,8 @@ import type {
   UpsertReviewChecklistTemplateRequest,
   UpsertReviewChecklistTemplateResponse,
   UnfollowEntityResponse,
+  UpdateWorkspacePolicyRequest,
+  WorkspacePolicyResponse,
 } from "@tax-lien/types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
@@ -99,12 +101,14 @@ export interface CreateDatasetInput {
 export class ApiClientError extends Error {
   public readonly code: string;
   public readonly status: number;
+  public readonly details?: unknown;
 
-  public constructor(status: number, code: string, message: string) {
+  public constructor(status: number, code: string, message: string, details?: unknown) {
     super(message);
     this.name = "ApiClientError";
     this.status = status;
     this.code = code;
+    this.details = details;
   }
 }
 
@@ -320,6 +324,23 @@ export async function updateReviewChecklistItem(
     `/review-checklists/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/items/${encodeURIComponent(itemId)}`,
     { method: "PATCH", token, body: JSON.stringify({ completed }) },
   );
+}
+
+export async function getWorkspacePolicy(
+  token: string,
+): Promise<WorkspacePolicyResponse> {
+  return requestJson<WorkspacePolicyResponse>("/workspace-policies", { token });
+}
+
+export async function updateWorkspacePolicy(
+  token: string,
+  input: UpdateWorkspacePolicyRequest,
+): Promise<WorkspacePolicyResponse> {
+  return requestJson<WorkspacePolicyResponse>("/workspace-policies", {
+    method: "PUT",
+    token,
+    body: JSON.stringify(input),
+  });
 }
 
 export async function listApprovalRequests(
@@ -819,7 +840,12 @@ async function requestJson<TResponse>(path: string, options: JsonRequestOptions 
 
   if (!response.ok) {
     const apiError = parseApiError(payload);
-    throw new ApiClientError(response.status, apiError.code, apiError.message);
+    throw new ApiClientError(
+      response.status,
+      apiError.code,
+      apiError.message,
+      apiError.details,
+    );
   }
 
   return payload as TResponse;
@@ -870,7 +896,11 @@ function parseApiError(payload: unknown): ApiErrorResponse["error"] {
       const code = errorValue.code;
       const message = errorValue.message;
       if (typeof code === "string" && typeof message === "string") {
-        return { code, message };
+        return {
+          code,
+          message,
+          ...("details" in errorValue ? { details: errorValue.details } : {}),
+        };
       }
     }
   }

@@ -42,6 +42,8 @@ Current implementation:
   shared record types;
 - review-checklist template and record-instance models, stores, service, and
   routes for comparison, watchlist, and portfolio records;
+- fixed workspace-policy model, store, evaluator, and authenticated
+  retrieval/update routes;
 - selected-workspace membership middleware and explicit read/write,
   member-management, member-removal, role-management, approval-review, and
   sensitive-action checks;
@@ -138,6 +140,8 @@ Current implementation:
   status changes, and approval resolution;
 - owner/admin checklist-template management, active-member completion,
   target-access revalidation, version synchronization, and required readiness;
+- owner/admin workspace-policy management, member-readable policy state,
+  default-off compatibility, and structured selected-action gate failures;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;

@@ -90,7 +90,12 @@ It shows:
   with required/optional labels, completion attribution, and readiness progress;
 - workspace checklist-template management for owners/admins, with member
   read-only visibility;
-- a nonblocking readiness message beside comparison handoff and approval;
+- workspace policy visibility and owner/admin switches for assignment,
+  checklist-readiness, and portfolio-approval gates;
+- policy-aware comparison handoff and approval messages that identify unmet
+  requirements and their resolutions;
+- checklist readiness remains informational unless the workspace explicitly
+  enables its checklist policy;
 - comparison-detail approval request/status visibility for the supported
   comparison-to-portfolio checkpoint;
 - dedicated approval queue using `#/approvals`, with pending/resolved filters,
@@ -144,6 +149,8 @@ The current API surface is minimal:
 - `PUT /review-checklists/templates/:entityType`
 - `GET /review-checklists/:entityType/:entityId`
 - `PATCH /review-checklists/:entityType/:entityId/items/:itemId`
+- `GET /workspace-policies`
+- `PUT /workspace-policies`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`

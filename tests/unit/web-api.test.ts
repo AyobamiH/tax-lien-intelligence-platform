@@ -19,6 +19,7 @@ import {
   getReviewChecklistState,
   getNotificationPreferences,
   getWorkspaceAssignment,
+  getWorkspacePolicy,
   getPortfolioSummary,
   handoffComparisonToPortfolio,
   handoffComparisonToWatchlist,
@@ -47,6 +48,7 @@ import {
   updateReviewChecklistItem,
   updateWorkspaceMemberRole,
   updateWorkspaceAssignment,
+  updateWorkspacePolicy,
   upsertReviewChecklistTemplate,
   unfollowEntity,
 } from "../../apps/web/src/api.js";
@@ -570,6 +572,77 @@ describe("web API client", () => {
     expect(fetchMock.mock.calls[3]?.[1]?.body).toBe(
       JSON.stringify({ completed: true }),
     );
+  });
+
+  it("loads and updates fixed workspace policy state", async () => {
+    const policy = {
+      workspaceId: "workspace-1",
+      rules: {
+        requireAssignmentBeforeComparisonHandoff: true,
+        requireChecklistBeforeComparisonHandoff: true,
+        requireApprovalForComparisonPortfolio: false,
+      },
+    };
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(policy), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await getWorkspacePolicy("test-token");
+    await updateWorkspacePolicy("test-token", { rules: policy.rules });
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/workspace-policies",
+      "http://localhost:4000/workspace-policies",
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual([
+      "GET",
+      "PUT",
+    ]);
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(
+      JSON.stringify({ rules: policy.rules }),
+    );
+  });
+
+  it("preserves structured workspace policy failure details", async () => {
+    const details = {
+      action: "comparison_handoff_to_portfolio",
+      allowed: false,
+      unmetRequirements: [
+        {
+          code: "approval_required",
+          message: "Approval is required.",
+          resolution: "Create an approval request.",
+        },
+      ],
+    };
+    globalThis.fetch = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          error: {
+            code: "workspace_policy_blocked",
+            message: "Approval is required. Create an approval request.",
+            details,
+          },
+        }),
+        {
+          status: 409,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    );
+
+    await expect(
+      handoffComparisonToPortfolio("test-token", "comparison-1"),
+    ).rejects.toMatchObject<ApiClientError>({
+      status: 409,
+      code: "workspace_policy_blocked",
+      details,
+    });
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

@@ -88,6 +88,12 @@ Current repo protections:
 - my-work aggregation derived from authenticated actor and verified workspace,
   with reviewer eligibility, stale-target filtering, bounded previews, and no
   comment body content;
+- workspace policy persistence scoped by selected workspace, owner/admin-only
+  mutation, active-member reads, exact allowlisted rule validation, default-off
+  compatibility, and cross-workspace rejection;
+- policy evidence derived from existing assignment and checklist access
+  boundaries, with approval satisfaction supplied only by the approved
+  execution path and readiness rechecked before execution;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
 - browser upload flow that uses the authenticated dataset upload endpoint;

@@ -87,7 +87,10 @@ Current implementation:
 - compact required/optional review checklists on comparison, watchlist, and
   portfolio detail, plus owner/admin template management in the workspace
   surface;
-- a nonblocking review-readiness warning near comparison handoff and approval;
+- compact workspace policy switches for owners/admins with read-only policy
+  visibility for members;
+- policy-aware blocked-action feedback near comparison handoff and approval,
+  while checklist readiness stays nonblocking when its policy is disabled;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -150,6 +153,8 @@ Current and future page direction:
   queue;
 - implemented: review checklist completion, template management, and bounded
   readiness visibility;
+- implemented: fixed workspace policy visibility, role-aware administration,
+  and explicit blocked-action requirement messaging;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities

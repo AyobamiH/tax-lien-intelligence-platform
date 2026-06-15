@@ -60,6 +60,9 @@ import { createFollowRouter } from "./routes/follows.js";
 import { createReviewChecklistService } from "./review-checklists/factory.js";
 import type { ReviewChecklistService } from "./review-checklists/review-checklist-service.js";
 import { createReviewChecklistRouter } from "./routes/review-checklists.js";
+import { createWorkspacePolicyService } from "./workspace-policies/factory.js";
+import type { WorkspacePolicyService } from "./workspace-policies/workspace-policy-service.js";
+import { createWorkspacePolicyRouter } from "./routes/workspace-policies.js";
 
 export interface AppDependencies {
   authService?: AuthService;
@@ -81,6 +84,7 @@ export interface AppDependencies {
   myWorkService?: MyWorkService;
   followService?: FollowService;
   reviewChecklistService?: ReviewChecklistService;
+  workspacePolicyService?: WorkspacePolicyService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -109,13 +113,16 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const workspaceAssignmentService =
     dependencies.workspaceAssignmentService ??
     createWorkspaceAssignmentService(alertService, workspaceActivityService, followService);
+  const reviewChecklistService =
+    dependencies.reviewChecklistService ?? createReviewChecklistService();
+  const workspacePolicyService =
+    dependencies.workspacePolicyService ??
+    createWorkspacePolicyService(workspaceAssignmentService, reviewChecklistService);
   const approvalService =
-    dependencies.approvalService ?? createApprovalService(comparisonService);
+    dependencies.approvalService ?? createApprovalService(comparisonService, workspacePolicyService);
   const myWorkService =
     dependencies.myWorkService ??
     createMyWorkService(workspaceAssignmentService, approvalService, followService);
-  const reviewChecklistService =
-    dependencies.reviewChecklistService ?? createReviewChecklistService();
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -155,6 +162,10 @@ export function createApp(dependencies: AppDependencies = {}): Express {
       reviewChecklistService,
     ),
   );
+  app.use(
+    "/workspace-policies",
+    createWorkspacePolicyRouter(authService, workspaceService, workspacePolicyService),
+  );
   app.use("/my-work", createMyWorkRouter(authService, workspaceService, myWorkService));
   app.use("/datasets", createDatasetRouter(authService, datasetService, workspaceService, workspaceActivityService));
   app.use("/datasets", createScoringRouter(authService, scoringService, workspaceService, workspaceActivityService));
@@ -181,6 +192,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
       workspaceService,
       workspaceActivityService,
       approvalService,
+      workspacePolicyService,
     ),
   );
   app.use("/saved-views", createSavedViewRouter(authService, savedViewService));

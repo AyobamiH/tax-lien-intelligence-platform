@@ -13,6 +13,7 @@ export interface ApiErrorResponse {
   error: {
     code: string;
     message: string;
+    details?: unknown;
   };
 }
 
@@ -509,6 +510,47 @@ export interface UpdateReviewChecklistItemRequest {
 
 export interface UpdateReviewChecklistItemResponse {
   state: ReviewChecklistStateResponse;
+}
+
+export interface WorkspacePolicyRules {
+  requireAssignmentBeforeComparisonHandoff: boolean;
+  requireChecklistBeforeComparisonHandoff: boolean;
+  requireApprovalForComparisonPortfolio: boolean;
+}
+
+export interface WorkspacePolicyResponse {
+  workspaceId: string;
+  rules: WorkspacePolicyRules;
+  updatedByUserId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface UpdateWorkspacePolicyRequest {
+  rules: WorkspacePolicyRules;
+}
+
+export type WorkspacePolicyAction =
+  | "comparison_handoff_to_watchlist"
+  | "comparison_handoff_to_portfolio"
+  | "approval_request_comparison_portfolio"
+  | "approval_execute_comparison_portfolio";
+
+export type WorkspacePolicyRequirementCode =
+  | "assignment_required"
+  | "checklist_required"
+  | "approval_required";
+
+export interface WorkspacePolicyUnmetRequirement {
+  code: WorkspacePolicyRequirementCode;
+  message: string;
+  resolution: string;
+}
+
+export interface WorkspacePolicyEvaluation {
+  action: WorkspacePolicyAction;
+  allowed: boolean;
+  unmetRequirements: WorkspacePolicyUnmetRequirement[];
 }
 
 export interface MyWorkFollowingQueue {

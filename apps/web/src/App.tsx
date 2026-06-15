@@ -43,6 +43,8 @@ import type {
   WorkspaceCommentResponse,
   WorkspaceAssignmentEntityType,
   WorkspaceAssignmentResponse,
+  WorkspacePolicyRules,
+  WorkspacePolicyResponse,
 } from "@tax-lien/types";
 import {
   ApiClientError,
@@ -95,6 +97,7 @@ import {
   markAllAlertsRead,
   markWorkspaceDiscussionRead,
   getWorkspaceAssignment,
+  getWorkspacePolicy,
   register,
   rejectApprovalRequest,
   removeComparisonItem,
@@ -111,6 +114,7 @@ import {
   updateReviewChecklistItem,
   updateWorkspaceMemberRole,
   updateWorkspaceAssignment,
+  updateWorkspacePolicy,
   upsertReviewChecklistTemplate,
   unfollowEntity,
 } from "./api";
@@ -5382,6 +5386,182 @@ function WorkspacePage({
         token={token}
         canManage={state.current.permissions.canManageSharedData}
       />
+      <WorkspacePolicyManager
+        token={token}
+        canManage={state.current.permissions.canManageSharedData}
+      />
+    </section>
+  );
+}
+
+const workspacePolicyRuleContent: Array<{
+  key: keyof WorkspacePolicyRules;
+  label: string;
+  description: string;
+}> = [
+  {
+    key: "requireAssignmentBeforeComparisonHandoff",
+    label: "Require assignment before comparison handoff",
+    description:
+      "Blocks comparison-to-watchlist and comparison-to-portfolio handoffs until responsibility is assigned.",
+  },
+  {
+    key: "requireChecklistBeforeComparisonHandoff",
+    label: "Require completed review checklist",
+    description:
+      "Requires an active comparison checklist with every required item complete before handoff or approval.",
+  },
+  {
+    key: "requireApprovalForComparisonPortfolio",
+    label: "Require approval before portfolio handoff",
+    description:
+      "Blocks direct portfolio handoff. A different owner or administrator must approve the request.",
+  },
+];
+
+function WorkspacePolicyManager({
+  token,
+  canManage,
+}: {
+  token: string;
+  canManage: boolean;
+}) {
+  const [policy, setPolicy] = useState<WorkspacePolicyResponse | null>(null);
+  const [rules, setRules] = useState<WorkspacePolicyRules | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    setError(null);
+    void getWorkspacePolicy(token)
+      .then((result) => {
+        if (!cancelled) {
+          setPolicy(result);
+          setRules(result.rules);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  async function savePolicy(): Promise<void> {
+    if (!rules) {
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await updateWorkspacePolicy(token, { rules });
+      setPolicy(result);
+      setRules(result.rules);
+      setSuccess("Workspace policy saved.");
+    } catch (saveError: unknown) {
+      setError(errorMessage(saveError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="mt-8 border-t border-line pt-6" aria-labelledby="workspace-policy-heading">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">
+            Governance
+          </p>
+          <h3 id="workspace-policy-heading" className="mt-1 text-lg font-semibold">
+            Workspace policy
+          </h3>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+            These rules gate selected comparison transitions. Blocked actions explain what is
+            missing and how to resolve it.
+          </p>
+        </div>
+        <span className="text-sm font-semibold text-ink/60">
+          {canManage ? "Owner and admin controls" : "View only"}
+        </span>
+      </div>
+
+      {isLoading ? (
+        <PanelMessage label="Loading workspace policy..." />
+      ) : error && !rules ? (
+        <div className="mt-4">
+          <PanelError message={error} />
+        </div>
+      ) : rules ? (
+        <div className="mt-4 border-y border-line bg-white py-2">
+          {error ? (
+            <p className="mx-3 mt-2 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+              {error}
+            </p>
+          ) : null}
+          {success ? (
+            <p className="mx-3 mt-2 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+              {success}
+            </p>
+          ) : null}
+          {workspacePolicyRuleContent.map((rule) => (
+            <label
+              key={rule.key}
+              className="flex items-start gap-3 border-b border-line px-3 py-4 last:border-b-0"
+            >
+              <input
+                type="checkbox"
+                checked={rules[rule.key]}
+                disabled={!canManage || isSaving}
+                onChange={(event) => {
+                  setRules((current) =>
+                    current
+                      ? { ...current, [rule.key]: event.target.checked }
+                      : current,
+                  );
+                  setSuccess(null);
+                }}
+                className="mt-1"
+              />
+              <span>
+                <span className="block text-sm font-semibold">{rule.label}</span>
+                <span className="mt-1 block text-sm leading-6 text-ink/65">
+                  {rule.description}
+                </span>
+              </span>
+            </label>
+          ))}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-3 py-4">
+            <p className="text-xs text-ink/55">
+              {policy?.updatedAt
+                ? `Last updated ${formatDateTime(policy.updatedAt)}`
+                : "Rules are disabled until an owner or administrator enables them."}
+            </p>
+            {canManage ? (
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => void savePolicy()}
+                className="bg-pine px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSaving ? "Saving" : "Save policy"}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

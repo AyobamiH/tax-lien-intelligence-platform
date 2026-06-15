@@ -78,6 +78,10 @@ for comparison, watchlist, and portfolio records. Required items produce a
 visible review-readiness signal near consequential comparison actions. It is a
 lightweight decision-discipline layer, not compliance evidence or a workflow
 engine.
+Phase 40 adds three explicit workspace governance switches for assignment,
+required checklist readiness, and approval before selected comparison
+transitions. Enabled rules block unsafe handoffs with actionable requirement
+messages. It is a minimal policy layer, not a workflow or compliance engine.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 

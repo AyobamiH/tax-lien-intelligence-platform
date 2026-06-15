@@ -13,6 +13,7 @@ import {
   type WorkspaceActivityService,
 } from "../workspace-activity/workspace-activity-service.js";
 import type { ApprovalService } from "../approvals/approval-service.js";
+import type { WorkspacePolicyService } from "../workspace-policies/workspace-policy-service.js";
 
 const comparisonDecisionSchema = z.enum(comparisonDecisions);
 const portfolioStatusSchema = z.enum(portfolioStatuses);
@@ -40,6 +41,7 @@ export function createComparisonRouter(
   workspaceService: WorkspaceService,
   activityService: WorkspaceActivityService,
   approvalService: ApprovalService,
+  policyService: WorkspacePolicyService,
 ): Router {
   const router = Router();
   const requireAuthenticatedUser = requireAuth(authService);
@@ -109,6 +111,11 @@ export function createComparisonRouter(
         throw new ApiError(400, "comparison_invalid_item_id", "Comparison item id is invalid.");
       }
 
+      await policyService.enforceComparisonAction(
+        request.workspace,
+        "comparison_handoff_to_watchlist",
+        comparisonItemId,
+      );
       const result = await comparisonService.handoffToWatchlist(request.workspace.tenantUserId, comparisonItemId);
       if (!result.alreadyExists) {
         await recordWorkspaceActivitySafely(activityService, {
@@ -147,6 +154,11 @@ export function createComparisonRouter(
       }
 
       await approvalService.assertNoPendingForTarget(request.workspace, comparisonItemId);
+      await policyService.enforceComparisonAction(
+        request.workspace,
+        "comparison_handoff_to_portfolio",
+        comparisonItemId,
+      );
       const result = await comparisonService.handoffToPortfolio(request.workspace.tenantUserId, comparisonItemId, {
         ...(parsed.data.status ? { status: parsed.data.status } : {}),
       });

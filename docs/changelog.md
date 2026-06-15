@@ -2,6 +2,22 @@
 
 ## 2026-06-15
 
+- Implemented Phase 40 workspace policy enforcement with three fixed,
+  default-off rules for comparison assignment, required checklist readiness,
+  and approval before portfolio handoff.
+- Added authenticated workspace policy retrieval/update APIs, owner/admin
+  management, member visibility, structured unmet-requirement responses, and
+  cross-workspace isolation.
+- Enforced enabled rules on comparison-to-watchlist, direct
+  comparison-to-portfolio, approval request, and approval resolution paths,
+  including readiness rechecks before approved execution.
+- Added a compact workspace policy management surface and clear blocked-action
+  messages that state both what is missing and how to resolve it.
+- Added integration tests for default compatibility, role restrictions,
+  workspace isolation, blocked and allowed actions, approval satisfaction, and
+  stale checklist state.
+- Kept arbitrary rules, expression languages, per-user exceptions, policy
+  notifications, compliance packs, and general workflow building out of scope.
 - Implemented Phase 39 workspace-scoped review checklist templates and
   record-level completion for comparison, watchlist, and portfolio items.
 - Added owner/admin template management, stable item ids, template versioning,

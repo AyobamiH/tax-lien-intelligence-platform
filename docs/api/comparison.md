@@ -227,6 +227,10 @@ Response:
 The real `item` uses the full watchlist item response shape documented in
 `docs/api/watchlist.md`.
 
+When enabled, workspace assignment and required-checklist policies are
+evaluated before this handoff. A blocked request returns
+`workspace_policy_blocked` with structured unmet requirements.
+
 ## `POST /comparison/:comparisonItemId/handoff/portfolio`
 
 Explicitly sends one workspace comparison item into the selected workspace's
@@ -235,6 +239,10 @@ This direct route is owner-only in Phase 36. Admin/member handoffs are requested
 through `POST /approvals` and execute this same service path after a different
 owner/admin approves them. If a request is already pending for the comparison
 item, direct owner handoff returns `approval_pending_review`.
+
+Phase 40 workspace policy may additionally require assignment, completed
+required checklist items, and an approved request. The approval rule disables
+the direct compatibility path until the existing approval workflow succeeds.
 
 Optional request body:
 

@@ -40,6 +40,7 @@ import type {
   WatchlistStore,
 } from "../../apps/api/src/watchlist/watchlist-store.js";
 import type { PortfolioStatus } from "@tax-lien/types";
+import { createDisabledWorkspacePolicyService } from "../support/in-memory-workspace-policy-store.js";
 
 const testJwtSecret = "test-comparison-secret-that-is-long-enough-for-jwt";
 
@@ -402,6 +403,7 @@ function createTestContext(): {
       ),
       workspaceService: createInMemoryWorkspaceService(userStore),
       workspaceActivityService: createInMemoryWorkspaceActivityService(userStore),
+      workspacePolicyService: createDisabledWorkspacePolicyService(),
     }),
     scoredRecordStore,
     watchlistStore,
