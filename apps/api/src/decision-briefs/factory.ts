@@ -1,6 +1,7 @@
 import type { ApprovalService } from "../approvals/approval-service.js";
 import type { ComparisonService } from "../comparison/comparison-service.js";
 import type { DatasetService } from "../datasets/dataset-service.js";
+import type { DecisionOutcomeService } from "../decision-outcomes/decision-outcome-service.js";
 import type { ReviewChecklistService } from "../review-checklists/review-checklist-service.js";
 import type { WorkspaceAssignmentService } from "../workspace-assignments/workspace-assignment-service.js";
 import type { WorkspaceCommentService } from "../workspace-comments/workspace-comment-service.js";
@@ -15,6 +16,7 @@ export function createDecisionBriefService(
   approvalService: ApprovalService,
   commentService: WorkspaceCommentService,
   policyService: WorkspacePolicyService,
+  outcomeService: DecisionOutcomeService,
 ): DecisionBriefService {
   return new DecisionBriefService(
     comparisonService,
@@ -24,5 +26,6 @@ export function createDecisionBriefService(
     approvalService,
     commentService,
     policyService,
+    outcomeService,
   );
 }

@@ -14,6 +14,9 @@ import type {
   DatasetScoringStatusResponse,
   DecisionBriefResponse,
   DecisionBriefTargetEntityType,
+  DecisionOutcomeStateResponse,
+  DecisionOutcomeStatus,
+  DecisionOutcomeTargetEntityType,
   DiscussionAttentionResponse,
   FollowStateResponse,
   FollowSubscriptionResponse,
@@ -68,6 +71,7 @@ import {
   deleteWorkspaceComment,
   getCurrentUser,
   getDecisionBrief,
+  getDecisionOutcomeState,
   getDataset,
   getDatasetScoringStatus,
   getFollowState,
@@ -106,6 +110,7 @@ import {
   removeComparisonItem,
   removePortfolioItem,
   removeWatchlistItem,
+  resolveDecisionOutcome,
   refreshDatasetScoring,
   saveDatasetImportProfile,
   saveDatasetManualMapping,
@@ -1731,6 +1736,7 @@ function App() {
             canExecuteSensitiveActions={
               workspace.current?.permissions.canExecuteSensitiveActions ?? false
             }
+            canResolveDecisions={workspace.current?.permissions.canManageSharedData ?? false}
             items={comparison.items}
             isLoading={comparison.isLoading}
             error={comparison.error}
@@ -1754,6 +1760,7 @@ function App() {
             token={session.token}
             entityType={page.entityType}
             entityId={page.entityId}
+            canResolveDecisions={workspace.current?.permissions.canManageSharedData ?? false}
             onBack={() => navigate({ name: "comparison" }, setPage)}
           />
         ) : page.name === "approvals" ? (
@@ -3359,6 +3366,7 @@ function AlertsPage({
 function ComparisonPage({
   token,
   canExecuteSensitiveActions,
+  canResolveDecisions,
   items,
   isLoading,
   error,
@@ -3374,6 +3382,7 @@ function ComparisonPage({
 }: {
   token: string;
   canExecuteSensitiveActions: boolean;
+  canResolveDecisions: boolean;
   items: ComparisonItemResponse[];
   isLoading: boolean;
   error: string | null;
@@ -3450,6 +3459,7 @@ function ComparisonPage({
           <ComparisonDetail
             token={token}
             canExecuteSensitiveActions={canExecuteSensitiveActions}
+            canResolveDecisions={canResolveDecisions}
             item={selectedItem}
             actionId={actionId}
             onUpdate={onUpdate}
@@ -3597,6 +3607,7 @@ function ComparisonMatrixRow({
 function ComparisonDetail({
   token,
   canExecuteSensitiveActions,
+  canResolveDecisions,
   item,
   actionId,
   onUpdate,
@@ -3609,6 +3620,7 @@ function ComparisonDetail({
 }: {
   token: string;
   canExecuteSensitiveActions: boolean;
+  canResolveDecisions: boolean;
   item: ComparisonItemResponse | null;
   actionId: string | null;
   onUpdate: (comparisonItemId: string, input: { decision?: ComparisonDecision; note?: string | null }) => Promise<void>;
@@ -3862,6 +3874,12 @@ function ComparisonDetail({
           onOpenPortfolio={onOpenPortfolio}
         />
       </section>
+      <DecisionOutcomePanel
+        token={token}
+        entityType="comparison_item"
+        entityId={item.id}
+        canResolve={canResolveDecisions}
+      />
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
         <DetailTerm label="Lien" value={formatMoney(item.normalizedFields.lienAmount)} />
         <DetailTerm label="Value" value={formatMoney(item.normalizedFields.estimatedValue)} />
@@ -3945,11 +3963,13 @@ function DecisionBriefPage({
   token,
   entityType,
   entityId,
+  canResolveDecisions,
   onBack,
 }: {
   token: string;
   entityType: DecisionBriefTargetEntityType;
   entityId: string;
+  canResolveDecisions: boolean;
   onBack: () => void;
 }) {
   const [brief, setBrief] = useState<DecisionBriefResponse | null>(null);
@@ -4139,6 +4159,14 @@ function DecisionBriefPage({
             <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Readiness Gates</h3>
             <div className="mt-3 space-y-3">
               <div className="border border-line bg-field p-3">
+                <p className="text-sm font-semibold">Final outcome</p>
+                <p className="mt-1 text-sm text-ink/70">
+                  {brief.outcome.outcome
+                    ? `${decisionOutcomeStatusLabel(brief.outcome.outcome.status)} by ${brief.outcome.outcome.resolver.email}`
+                    : "Active review"}
+                </p>
+              </div>
+              <div className="border border-line bg-field p-3">
                 <p className="text-sm font-semibold">Assignment</p>
                 <p className="mt-1 text-sm text-ink/70">
                   {brief.assignment ? `Assigned to ${brief.assignment.assignee.email}` : "Unassigned"}
@@ -4189,6 +4217,13 @@ function DecisionBriefPage({
               className="mt-3 w-full resize-y border border-line bg-field px-3 py-2 font-mono text-xs leading-5 text-ink/80"
             />
           </section>
+
+          <DecisionOutcomePanel
+            token={token}
+            entityType={entityType}
+            entityId={entityId}
+            canResolve={canResolveDecisions}
+          />
         </aside>
       </div>
     </section>
@@ -4239,6 +4274,8 @@ function decisionBriefReadinessLabel(status: DecisionBriefResponse["summary"]["r
       return "Needs review";
     case "not_configured":
       return "No checklist";
+    case "resolved":
+      return "Resolved";
   }
 }
 
@@ -4252,6 +4289,214 @@ function decisionBriefReadinessClassName(status: DecisionBriefResponse["summary"
       return "border-amber-200 bg-amber-50 text-amber-900";
     case "not_configured":
       return "border-line bg-field text-ink/75";
+    case "resolved":
+      return "border-pine bg-field text-pine";
+  }
+}
+
+const decisionOutcomeStatusOptions: DecisionOutcomeStatus[] = [
+  "approved",
+  "declined",
+  "deferred",
+  "archived",
+];
+
+function DecisionOutcomePanel({
+  token,
+  entityType,
+  entityId,
+  canResolve,
+}: {
+  token: string;
+  entityType: DecisionOutcomeTargetEntityType;
+  entityId: string;
+  canResolve: boolean;
+}) {
+  const [state, setState] = useState<DecisionOutcomeStateResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [status, setStatus] = useState<DecisionOutcomeStatus>("approved");
+  const [note, setNote] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setState(null);
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    void getDecisionOutcomeState(token, entityType, entityId)
+      .then((result) => {
+        if (!cancelled) {
+          setState(result);
+          if (result.outcome) {
+            setStatus(result.outcome.status);
+            setNote(result.outcome.note);
+          } else {
+            setStatus("approved");
+            setNote("");
+          }
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, entityType, entityId]);
+
+  async function saveOutcome(): Promise<void> {
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await resolveDecisionOutcome(token, entityType, entityId, status, note);
+      setState(result.state);
+      setSuccess(result.changed ? "Final outcome recorded." : "Final outcome unchanged.");
+      if (result.state.outcome) {
+        setStatus(result.state.outcome.status);
+        setNote(result.state.outcome.note);
+      }
+    } catch (saveError: unknown) {
+      setError(errorMessage(saveError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="mt-5 border border-line bg-field p-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h4 className="text-sm font-semibold">Final outcome</h4>
+          <p className="mt-1 text-xs leading-5 text-ink/60">
+            Record the conclusive internal decision when review is complete.
+          </p>
+        </div>
+        {state ? (
+          <span
+            className={`border px-2 py-1 text-xs font-semibold ${
+              state.outcome
+                ? decisionOutcomeStatusClassName(state.outcome.status)
+                : "border-line bg-white text-ink/65"
+            }`}
+          >
+            {state.outcome ? decisionOutcomeStatusLabel(state.outcome.status) : "Active review"}
+          </span>
+        ) : null}
+      </div>
+      {isLoading ? <p className="mt-3 text-sm text-ink/60">Loading final outcome...</p> : null}
+      {error ? (
+        <p className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
+      ) : null}
+      {success ? (
+        <p className="mt-3 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+          {success}
+        </p>
+      ) : null}
+      {state?.outcome ? (
+        <div className="mt-3 border border-line bg-white p-3">
+          <p className="text-sm font-semibold">
+            {decisionOutcomeStatusLabel(state.outcome.status)} by {state.outcome.resolver.email}
+          </p>
+          <p className="mt-1 text-xs text-ink/55">{formatDateTime(state.outcome.resolvedAt)}</p>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink/75">{state.outcome.note}</p>
+        </div>
+      ) : !isLoading ? (
+        <p className="mt-3 border-y border-line py-3 text-sm text-ink/65">
+          This item is still active and has no final outcome yet.
+        </p>
+      ) : null}
+      {canResolve ? (
+        <form
+          className="mt-3 space-y-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void saveOutcome();
+          }}
+        >
+          <label className="block text-xs font-semibold uppercase tracking-[0.08em] text-ink/55" htmlFor={`${entityId}-outcome-status`}>
+            Outcome
+          </label>
+          <select
+            id={`${entityId}-outcome-status`}
+            value={status}
+            disabled={isSaving}
+            onChange={(event) => setStatus(event.target.value as DecisionOutcomeStatus)}
+            className="w-full border border-line bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {decisionOutcomeStatusOptions.map((option) => (
+              <option key={option} value={option}>
+                {decisionOutcomeStatusLabel(option)}
+              </option>
+            ))}
+          </select>
+          <label className="block text-xs font-semibold uppercase tracking-[0.08em] text-ink/55" htmlFor={`${entityId}-outcome-note`}>
+            Rationale
+          </label>
+          <textarea
+            id={`${entityId}-outcome-note`}
+            value={note}
+            maxLength={1000}
+            disabled={isSaving}
+            rows={4}
+            onChange={(event) => setNote(event.target.value)}
+            className="w-full resize-y border border-line bg-white px-3 py-2 text-sm leading-6 disabled:cursor-not-allowed disabled:opacity-60"
+            placeholder="Why this final outcome was chosen"
+          />
+          <div className="flex items-center justify-between gap-3 text-xs text-ink/55">
+            <span>{note.length}/1000</span>
+            <span>{state?.outcome ? "Updates replace the current final outcome." : "Creates the final outcome."}</span>
+          </div>
+          <button
+            type="submit"
+            disabled={isSaving || note.trim().length === 0}
+            className="w-full bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSaving ? "Saving..." : state?.outcome ? "Update final outcome" : "Record final outcome"}
+          </button>
+        </form>
+      ) : (
+        <p className="mt-3 text-xs leading-5 text-ink/60">
+          Owners and admins can record the final outcome.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function decisionOutcomeStatusLabel(status: DecisionOutcomeStatus): string {
+  switch (status) {
+    case "approved":
+      return "Approved";
+    case "declined":
+      return "Declined";
+    case "deferred":
+      return "Deferred";
+    case "archived":
+      return "Archived";
+  }
+}
+
+function decisionOutcomeStatusClassName(status: DecisionOutcomeStatus): string {
+  switch (status) {
+    case "approved":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    case "declined":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "deferred":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+    case "archived":
+      return "border-line bg-white text-ink/65";
   }
 }
 

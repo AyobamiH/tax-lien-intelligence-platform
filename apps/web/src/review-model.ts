@@ -211,6 +211,7 @@ export function workspaceActivityDestination(
 
   switch (activity.eventType) {
     case "comparison_decision_changed":
+    case "decision_outcome_resolved":
       return { surface: "comparison" };
     case "comparison_handoff_to_watchlist":
       return { surface: "watchlist" };

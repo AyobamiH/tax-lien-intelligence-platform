@@ -135,7 +135,8 @@ export type WorkspaceActivityEventType =
   | "approval_requested"
   | "approval_approved"
   | "approval_rejected"
-  | "approval_cancelled";
+  | "approval_cancelled"
+  | "decision_outcome_resolved";
 export type WorkspaceActivityRelatedEntityType =
   | "dataset"
   | "job"
@@ -173,6 +174,9 @@ export interface WorkspaceActivityMetadata {
   approvalStatus?: ApprovalRequestStatus;
   approvalRequesterEmail?: string;
   approvalReviewerEmail?: string;
+  decisionOutcomeId?: string;
+  decisionOutcomeStatus?: DecisionOutcomeStatus;
+  decisionOutcomeResolverEmail?: string;
 }
 
 export interface WorkspaceActivityResponse {
@@ -294,6 +298,45 @@ export interface ApprovalRequestDetailResponse {
 
 export interface ResolveApprovalRequestRequest {
   responseNote?: string;
+}
+
+export type DecisionOutcomeTargetEntityType = "comparison_item";
+export type DecisionOutcomeStatus = "approved" | "declined" | "deferred" | "archived";
+
+export interface DecisionOutcomeActor {
+  userId: string;
+  email: string;
+  role: WorkspaceRole;
+}
+
+export interface DecisionOutcomeResponse {
+  id: string;
+  workspaceId: string;
+  targetEntityType: DecisionOutcomeTargetEntityType;
+  targetEntityId: string;
+  status: DecisionOutcomeStatus;
+  resolver: DecisionOutcomeActor;
+  note: string;
+  resolvedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DecisionOutcomeStateResponse {
+  targetEntityType: DecisionOutcomeTargetEntityType;
+  targetEntityId: string;
+  resolved: boolean;
+  outcome?: DecisionOutcomeResponse;
+}
+
+export interface UpsertDecisionOutcomeRequest {
+  status: DecisionOutcomeStatus;
+  note: string;
+}
+
+export interface UpsertDecisionOutcomeResponse {
+  state: DecisionOutcomeStateResponse;
+  changed: boolean;
 }
 
 export type WorkspaceCommentEntityType =
@@ -558,7 +601,8 @@ export type DecisionBriefReadinessStatus =
   | "ready"
   | "blocked"
   | "needs_review"
-  | "not_configured";
+  | "not_configured"
+  | "resolved";
 
 export interface DecisionBriefSummary {
   title: string;
@@ -600,6 +644,7 @@ export interface DecisionBriefResponse {
   summary: DecisionBriefSummary;
   target: ComparisonItemResponse;
   dataset?: DatasetResponse;
+  outcome: DecisionOutcomeStateResponse;
   assignment: WorkspaceAssignmentResponse | null;
   checklist: ReviewChecklistStateResponse;
   approvals: DecisionBriefApprovalSummary;

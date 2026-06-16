@@ -45,6 +45,7 @@ before writing specs, prompts, or implementation plans.
 - [Review Checklists Architecture](architecture/review-checklists.md)
 - [Workspace Policy Enforcement Architecture](architecture/workspace-policies.md)
 - [Decision Brief Architecture](architecture/decision-briefs.md)
+- [Decision Outcome Architecture](architecture/decision-outcomes.md)
 - [Dependency Security And Supply-Chain Hygiene](architecture/dependency-security.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
@@ -72,6 +73,7 @@ before writing specs, prompts, or implementation plans.
 - [Review Checklists API](api/review-checklists.md)
 - [Workspace Policies API](api/workspace-policies.md)
 - [Decision Briefs API](api/decision-briefs.md)
+- [Decision Outcomes API](api/decision-outcomes.md)
 
 ## Decisions
 

@@ -28,6 +28,9 @@ import type {
   CreateSavedViewRequest,
   CreateSavedViewResponse,
   CreateWorkspaceCommentResponse,
+  DecisionOutcomeStateResponse,
+  DecisionOutcomeStatus,
+  DecisionOutcomeTargetEntityType,
   DeletePortfolioItemResponse,
   DeleteSavedViewResponse,
   DeleteWorkspaceCommentResponse,
@@ -52,6 +55,7 @@ import type {
   SaveImportProfileFromDatasetResponse,
   SavedViewListResponse,
   UpdateComparisonItemResponse,
+  UpsertDecisionOutcomeResponse,
   UpdateNotificationPreferencesRequest,
   UpdateNotificationPreferencesResponse,
   UpdatePortfolioItemResponse,
@@ -342,6 +346,34 @@ export async function getDecisionBrief(
   return requestJson<DecisionBriefResponse>(
     `/decision-briefs/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
     { token },
+  );
+}
+
+export async function getDecisionOutcomeState(
+  token: string,
+  entityType: DecisionOutcomeTargetEntityType,
+  entityId: string,
+): Promise<DecisionOutcomeStateResponse> {
+  return requestJson<DecisionOutcomeStateResponse>(
+    `/decision-outcomes/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { token },
+  );
+}
+
+export async function resolveDecisionOutcome(
+  token: string,
+  entityType: DecisionOutcomeTargetEntityType,
+  entityId: string,
+  status: DecisionOutcomeStatus,
+  note: string,
+): Promise<UpsertDecisionOutcomeResponse> {
+  return requestJson<UpsertDecisionOutcomeResponse>(
+    `/decision-outcomes/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    {
+      method: "PUT",
+      token,
+      body: JSON.stringify({ status, note }),
+    },
   );
 }
 

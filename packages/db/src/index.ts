@@ -45,6 +45,14 @@ export {
   type DecisionHistoryTargetEntityTypeRecord,
 } from "./models/decision-history.js";
 export {
+  DecisionOutcomeModel,
+  type DecisionOutcomeDocument,
+  type DecisionOutcomeRecord,
+  type DecisionOutcomeResolverRoleRecord,
+  type DecisionOutcomeStatusRecord,
+  type DecisionOutcomeTargetEntityTypeRecord,
+} from "./models/decision-outcome.js";
+export {
   DiscussionAttentionModel,
   type DiscussionAttentionDocument,
   type DiscussionAttentionRecord,

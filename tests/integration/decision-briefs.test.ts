@@ -347,6 +347,13 @@ function createTestContext() {
           unmetRequirements: [],
         },
     },
+    {
+      getState: async (_context, _entityType, targetEntityId) => ({
+        targetEntityType: "comparison_item",
+        targetEntityId,
+        resolved: false,
+      }),
+    },
   );
 
   return {
@@ -405,6 +412,7 @@ describe("decision briefs", () => {
         progress: { status: "ready", allRequiredComplete: true },
       },
       approvals: { pendingCount: 1 },
+      outcome: { resolved: false },
       policy: { blocked: true },
       discussion: { totalComments: 1 },
       history: { totalEvents: 1 },

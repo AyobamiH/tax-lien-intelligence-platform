@@ -99,6 +99,11 @@ Current repo protections:
   assignment, checklist, approval, policy, history, or discussion evidence;
 - decision briefs are read-only and omit stale source datasets rather than
   weakening target access or fabricating evidence;
+- decision outcome state behind authentication, selected-workspace membership,
+  comparison target access, owner/admin mutation, safe bounded resolution-note
+  validation, and no rationale copying into activity metadata;
+- approved final outcomes check current governance prerequisites and reject
+  while approvals are still pending;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
 - browser upload flow that uses the authenticated dataset upload endpoint;

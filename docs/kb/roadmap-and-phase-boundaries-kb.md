@@ -1290,6 +1290,36 @@ Phase 41 does not include:
 This is a decision-support evidence pack, not a reporting platform or
 compliance system.
 
+## Phase 42: Final Decision Outcomes And Resolution
+
+Current status: implemented.
+
+Phase 42 includes:
+
+- authenticated comparison-item outcome state retrieval;
+- owner/admin final outcome resolution for approved, declined, deferred, and
+  archived states;
+- one current workspace-scoped outcome per comparison item;
+- resolver attribution, required rationale, and resolved timestamp;
+- active-vs-resolved visibility in comparison detail and decision brief
+  surfaces;
+- approved-outcome checks for current policy/checklist prerequisites and
+  pending approvals;
+- one bounded workspace activity event for changed outcomes;
+- tests for creation, updates, invalid states, governance blockers,
+  cross-workspace rejection, role restrictions, and resolver attribution.
+
+Phase 42 does not include:
+
+- reopen workflows;
+- legal/compliance records, signatures, contracts, or settlement tracking;
+- due-date/reminder systems;
+- external stakeholder portals;
+- auction execution;
+- ML/AI outcome recommendation.
+
+This is a final internal decision-resolution layer, not case management.
+
 ## Later Phases
 
 Later phases may include:
@@ -1308,6 +1338,7 @@ Later phases may include:
 - richer collaboration workflows;
 - broader evidence-pack target coverage when each entity has explicit access
   and history boundaries;
+- optional reopen support if a future workflow proves it is necessary and safe;
 - compliance-grade audit logging if product/legal requirements justify it.
 
 Later phases depend on secure auth, tenant-scoped data, ingestion, scoring, and

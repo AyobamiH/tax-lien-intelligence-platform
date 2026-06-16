@@ -93,6 +93,9 @@ Current implementation:
   while checklist readiness stays nonblocking when its policy is disabled;
 - comparison-item decision brief surface with readiness, evidence sections,
   recent history/discussion, and copy/print controls;
+- final outcome panels on comparison detail and decision brief surfaces with
+  active/resolved state, resolver/timestamp, rationale display, and owner/admin
+  outcome controls;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -158,6 +161,7 @@ Current and future page direction:
 - implemented: fixed workspace policy visibility, role-aware administration,
   and explicit blocked-action requirement messaging;
 - implemented: comparison-item decision brief/evidence pack surface;
+- implemented: comparison-item final outcome resolution surface;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities

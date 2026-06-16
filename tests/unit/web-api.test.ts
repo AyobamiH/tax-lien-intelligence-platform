@@ -15,6 +15,7 @@ import {
   deactivateWorkspaceMember,
   followEntity,
   getDecisionBrief,
+  getDecisionOutcomeState,
   getFollowState,
   getMyWork,
   getReviewChecklistState,
@@ -41,6 +42,7 @@ import {
   removeComparisonItem,
   rejectApprovalRequest,
   deleteWorkspaceComment,
+  resolveDecisionOutcome,
   saveDatasetImportProfile,
   saveDatasetManualMapping,
   setActiveWorkspaceId,
@@ -682,6 +684,11 @@ describe("web API client", () => {
         updatedAt: "2026-06-16T10:00:00.000Z",
       },
       assignment: null,
+      outcome: {
+        targetEntityType: "comparison_item",
+        targetEntityId: "comparison-1",
+        resolved: false,
+      },
       checklist: {
         targetEntityType: "comparison_item",
         targetEntityId: "comparison-1",
@@ -728,6 +735,68 @@ describe("web API client", () => {
     const headers = init.headers as Headers;
     expect(headers.get("Authorization")).toBe("Bearer test-token");
     expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
+  });
+
+  it("loads and resolves decision outcomes through the selected workspace", async () => {
+    const state = {
+      targetEntityType: "comparison_item",
+      targetEntityId: "comparison-1",
+      resolved: false,
+    };
+    const resolved = {
+      state: {
+        targetEntityType: "comparison_item",
+        targetEntityId: "comparison-1",
+        resolved: true,
+        outcome: {
+          id: "outcome-1",
+          workspaceId: "workspace-1",
+          targetEntityType: "comparison_item",
+          targetEntityId: "comparison-1",
+          status: "approved",
+          resolver: { userId: "user-1", email: "owner@example.com", role: "owner" },
+          note: "Approved after evidence review.",
+          resolvedAt: "2026-06-16T10:00:00.000Z",
+          createdAt: "2026-06-16T10:00:00.000Z",
+          updatedAt: "2026-06-16T10:00:00.000Z",
+        },
+      },
+      changed: true,
+    };
+    const payloads = [state, resolved];
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payloads.shift()), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await expect(getDecisionOutcomeState("test-token", "comparison_item", "comparison-1")).resolves.toEqual(state);
+    await expect(
+      resolveDecisionOutcome(
+        "test-token",
+        "comparison_item",
+        "comparison-1",
+        "approved",
+        "Approved after evidence review.",
+      ),
+    ).resolves.toEqual(resolved);
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "http://localhost:4000/decision-outcomes/comparison_item/comparison-1",
+      "http://localhost:4000/decision-outcomes/comparison_item/comparison-1",
+    ]);
+    expect(fetchMock.mock.calls.map(([, init]) => init?.method)).toEqual(["GET", "PUT"]);
+    expect(fetchMock.mock.calls[1]?.[1]?.body).toBe(
+      JSON.stringify({ status: "approved", note: "Approved after evidence review." }),
+    );
+    for (const [, init] of fetchMock.mock.calls) {
+      const headers = init?.headers as Headers;
+      expect(headers.get("Authorization")).toBe("Bearer test-token");
+      expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
+    }
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

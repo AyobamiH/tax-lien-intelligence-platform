@@ -130,6 +130,10 @@ Workspace activity is shared operational context in Phase 30. It complements
 comparison item history; it does not replace that item-level timeline and is
 not a compliance-grade audit API.
 
+Phase 42 final outcome changes can create `decision_outcome_resolved` activity
+in the `decisions` category. The activity stores target/outcome metadata and
+resolver identity, not the resolution rationale.
+
 Workspace comments are shared contextual discussion in Phase 31 and use their
 own `/comments` API. Active members may comment on accessible shared records;
 comments are not emitted into workspace activity.

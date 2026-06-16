@@ -31,6 +31,13 @@ Current shared types in `packages/types`:
 - `DecisionBriefDiscussionSummary`;
 - `DecisionBriefHistorySummary`;
 - `DecisionBriefResponse`.
+- `DecisionOutcomeTargetEntityType`;
+- `DecisionOutcomeStatus`;
+- `DecisionOutcomeActor`;
+- `DecisionOutcomeResponse`;
+- `DecisionOutcomeStateResponse`;
+- `UpsertDecisionOutcomeRequest`;
+- `UpsertDecisionOutcomeResponse`.
 - `AuthUserResponse`;
 - `AuthSuccessResponse`;
 - `AuthMeResponse`;

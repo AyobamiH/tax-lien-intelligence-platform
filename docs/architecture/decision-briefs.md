@@ -18,6 +18,7 @@ The brief aggregates:
 - current workspace assignment;
 - review checklist state and required-item progress;
 - approval request status for the comparison-to-portfolio checkpoint;
+- active/resolved final outcome state;
 - workspace policy evaluations for comparison handoff actions;
 - recent decision history;
 - latest discussion and caller-specific unread state;
@@ -43,6 +44,7 @@ record is ready, what remains blocked, and what evidence exists. They do not:
 - approve or reject requests;
 - complete checklist items;
 - execute handoff;
+- resolve final outcomes;
 - create public links;
 - create PDFs;
 - claim legal custody or compliance completeness;

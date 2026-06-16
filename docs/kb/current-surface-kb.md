@@ -97,6 +97,10 @@ It shows:
 - comparison-item decision brief route using
   `#/decision-briefs/comparison_item/:entityId`, with consolidated evidence,
   readiness gates, recent context, and copy/print controls;
+- final outcome visibility and owner/admin resolution controls on comparison
+  detail and decision brief surfaces, with active-vs-resolved state,
+  approved/declined/deferred/archived outcomes, resolver attribution, and
+  rationale display;
 - checklist readiness remains informational unless the workspace explicitly
   enables its checklist policy;
 - comparison-detail approval request/status visibility for the supported
@@ -155,6 +159,8 @@ The current API surface is minimal:
 - `GET /workspace-policies`
 - `PUT /workspace-policies`
 - `GET /decision-briefs/comparison_item/:entityId`
+- `GET /decision-outcomes/comparison_item/:entityId`
+- `PUT /decision-outcomes/comparison_item/:entityId`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`

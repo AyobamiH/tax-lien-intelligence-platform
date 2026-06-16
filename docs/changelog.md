@@ -2,6 +2,28 @@
 
 ## 2026-06-16
 
+- Implemented Phase 42 final decision outcomes for comparison items as a
+  practical internal resolution workflow.
+- Added workspace-scoped decision outcome persistence with one current final
+  outcome per comparison item, statuses for approved/declined/deferred/archived,
+  resolver attribution, required rationale, and resolved timestamps.
+- Added authenticated outcome state and resolve APIs with member read access,
+  owner/admin mutation, target access checks, invalid-state validation,
+  idempotent same-outcome retries, and cross-workspace rejection.
+- Kept approved outcomes coherent with governance by checking current
+  assignment/checklist policy prerequisites and rejecting approved resolution
+  while approvals are still pending.
+- Added final outcome visibility and owner/admin controls to comparison detail
+  and decision brief surfaces, with active-vs-resolved distinction and safe
+  note rendering.
+- Added one meaningful workspace activity event for changed final outcomes
+  without copying resolution rationale into activity metadata.
+- Added integration and frontend API contract tests for outcome creation,
+  updates, invalid payloads, governance blockers, role restrictions,
+  cross-workspace access, and resolver attribution.
+- Kept reopen workflows, legal/compliance record systems, signatures,
+  settlement tracking, reminders, external portals, auction execution, and AI
+  outcome recommendations out of scope.
 - Implemented Phase 41 decision briefs for comparison items as a bounded
   evidence-pack workflow.
 - Added authenticated `GET /decision-briefs/comparison_item/:entityId`, which

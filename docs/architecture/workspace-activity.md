@@ -29,6 +29,7 @@ Recorded events:
 - dataset refresh requested when a new job is queued;
 - comparison decision changed;
 - comparison handed off to watchlist or portfolio when a target is created;
+- comparison final outcome resolved or changed;
 - portfolio status changed;
 - workspace member added;
 - workspace member role changed.
@@ -95,3 +96,7 @@ target metadata, never task notes or record content.
 Phase 36 adds an `approvals` category for request, approval, rejection, and
 cancellation. It stores bounded identifiers/status and verified actor emails;
 request and reviewer notes are not copied into activity.
+
+Phase 42 adds `decision_outcome_resolved` in the `decisions` category for
+meaningful final outcome creation or changes. It stores target/outcome
+metadata and verified resolver email but does not copy the resolution rationale.

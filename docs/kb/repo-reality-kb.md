@@ -76,6 +76,7 @@ Implemented today:
 - workspace-scoped review-checklist template and instance models in
   `packages/db`;
 - workspace-scoped fixed policy model in `packages/db`;
+- workspace-scoped decision-outcome model in `packages/db`;
 - automatic personal owner-workspace bootstrap for existing and new users;
 - authenticated workspace/member list, add, role-update, and deactivation APIs
   with owner/admin/member roles;
@@ -110,6 +111,10 @@ Implemented today:
 - authenticated comparison-item decision brief retrieval that aggregates
   target, dataset, assignment, checklist, approval, policy, decision history,
   and discussion evidence without adding report persistence;
+- authenticated comparison-item final decision outcome retrieval and
+  owner/admin resolution with approved/declined/deferred/archived statuses,
+  resolver attribution, rationale, governance checks for approved outcomes,
+  and active-vs-resolved state;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;

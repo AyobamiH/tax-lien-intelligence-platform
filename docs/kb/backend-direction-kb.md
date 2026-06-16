@@ -47,6 +47,8 @@ Current implementation:
 - decision-brief aggregation service and authenticated route for comparison
   items, reusing existing target, assignment, checklist, approval, comment,
   policy, dataset, and history boundaries;
+- decision-outcome model, store, service, and authenticated routes for
+  comparison-item active/resolved state and owner/admin final resolution;
 - selected-workspace membership middleware and explicit read/write,
   member-management, member-removal, role-management, approval-review, and
   sensitive-action checks;
@@ -148,6 +150,9 @@ Current implementation:
 - read-only decision brief retrieval that consolidates comparison evidence
   without persisting reports, bypassing policy, or exposing cross-workspace
   records;
+- final decision outcome resolution with one current outcome per comparison
+  item, resolver attribution, required rationale, approved-outcome governance
+  checks, and bounded workspace activity;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -194,6 +199,8 @@ The backend should become the trusted boundary for:
   completion as compliance evidence;
 - read-only evidence-pack aggregation for supported decision records without
   becoming a public reporting or compliance-custody system;
+- internal final-outcome persistence for supported decision records without
+  becoming legal case management or downstream settlement tracking;
 - workspace membership administration and inactive-membership lifecycle;
 - future compliance-grade audit events;
 - security enforcement.

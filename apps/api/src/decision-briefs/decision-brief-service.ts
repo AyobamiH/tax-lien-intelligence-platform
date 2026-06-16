@@ -10,6 +10,7 @@ import type {
   DecisionBriefResponse,
   DecisionBriefSummary,
   DecisionBriefTargetEntityType,
+  DecisionOutcomeStateResponse,
   DecisionHistoryListResponse,
   ReviewChecklistStateResponse,
   WorkspaceAssignmentDetailResponse,
@@ -20,6 +21,7 @@ import type {
 import type { ApprovalService } from "../approvals/approval-service.js";
 import type { ComparisonService } from "../comparison/comparison-service.js";
 import type { DatasetService } from "../datasets/dataset-service.js";
+import type { DecisionOutcomeService } from "../decision-outcomes/decision-outcome-service.js";
 import { ApiError } from "../errors/api-error.js";
 import type { ReviewChecklistService } from "../review-checklists/review-checklist-service.js";
 import type { WorkspaceAssignmentService } from "../workspace-assignments/workspace-assignment-service.js";
@@ -43,6 +45,7 @@ export class DecisionBriefService {
     private readonly approvalService: Pick<ApprovalService, "list">,
     private readonly commentService: Pick<WorkspaceCommentService, "list">,
     private readonly policyService: Pick<WorkspacePolicyService, "evaluateComparisonAction">,
+    private readonly outcomeService: Pick<DecisionOutcomeService, "getState">,
   ) {}
 
   public async getBrief(
@@ -71,6 +74,7 @@ export class DecisionBriefService {
       history,
       discussion,
       policyEvaluations,
+      outcome,
     ] = await Promise.all([
       this.getDatasetSafely(target.datasetId, context.tenantUserId),
       this.assignmentService.get(context, "comparison_item", target.id),
@@ -101,11 +105,12 @@ export class DecisionBriefService {
           target.id,
         ),
       ]),
+      this.outcomeService.getState(context, "comparison_item", target.id),
     ]);
 
     const approvalSummary = buildApprovalSummary(approvals);
     const policySummary = buildPolicySummary(policyEvaluations);
-    const summary = buildSummary(target, checklist, policySummary, approvalSummary);
+    const summary = buildSummary(target, checklist, policySummary, approvalSummary, outcome);
     const historySummary = buildHistorySummary(history);
     const discussionSummary = buildDiscussionSummary(discussion);
 
@@ -117,6 +122,7 @@ export class DecisionBriefService {
       summary,
       target,
       ...(dataset ? { dataset } : {}),
+      outcome,
       assignment: assignment.assignment,
       checklist,
       approvals: approvalSummary,
@@ -128,6 +134,7 @@ export class DecisionBriefService {
         target,
         ...(dataset ? { dataset } : {}),
         summary,
+        outcome,
         assignment,
         checklist,
         approvals: approvalSummary,
@@ -205,22 +212,27 @@ function buildSummary(
   checklist: ReviewChecklistStateResponse,
   policy: DecisionBriefPolicySummary,
   approvals: DecisionBriefApprovalSummary,
+  outcome: DecisionOutcomeStateResponse,
 ): DecisionBriefSummary {
-  const readinessStatus = briefReadinessStatus(checklist, policy);
+  const readinessStatus = briefReadinessStatus(checklist, policy, outcome);
   return {
     title: comparisonTitle(target),
     subtitle: `Comparison item from row ${target.sourceRowNumber}`,
     readinessStatus,
     decision: target.decision,
     ...(target.note ? { currentNote: target.note } : {}),
-    nextAction: nextActionFor(readinessStatus, approvals, policy),
+    nextAction: nextActionFor(readinessStatus, approvals, policy, outcome),
   };
 }
 
 function briefReadinessStatus(
   checklist: ReviewChecklistStateResponse,
   policy: DecisionBriefPolicySummary,
+  outcome: DecisionOutcomeStateResponse,
 ): DecisionBriefReadinessStatus {
+  if (outcome.resolved) {
+    return "resolved";
+  }
   if (policy.blocked) {
     return "blocked";
   }
@@ -237,7 +249,11 @@ function nextActionFor(
   readinessStatus: DecisionBriefReadinessStatus,
   approvals: DecisionBriefApprovalSummary,
   policy: DecisionBriefPolicySummary,
+  outcome: DecisionOutcomeStateResponse,
 ): string {
+  if (outcome.outcome) {
+    return `Resolved as ${outcome.outcome.status} by ${outcome.outcome.resolver.email}.`;
+  }
   if (approvals.pendingCount > 0) {
     return "Resolve the pending approval request before treating the move-forward action as accepted.";
   }
@@ -266,6 +282,7 @@ function buildExportText(input: {
   target: ComparisonItemResponse;
   dataset?: DatasetDetailResponse["dataset"];
   summary: DecisionBriefSummary;
+  outcome: DecisionOutcomeStateResponse;
   assignment: WorkspaceAssignmentDetailResponse;
   checklist: ReviewChecklistStateResponse;
   approvals: DecisionBriefApprovalSummary;
@@ -279,6 +296,9 @@ function buildExportText(input: {
     `Target: comparison_item/${input.target.id}`,
     `Readiness: ${input.summary.readinessStatus}`,
     `Decision: ${input.target.decision}`,
+    input.outcome.outcome
+      ? `Final outcome: ${input.outcome.outcome.status} by ${input.outcome.outcome.resolver.email} at ${input.outcome.outcome.resolvedAt}`
+      : "Final outcome: active review",
     `Next action: ${input.summary.nextAction}`,
     "",
     "Score and Risk",

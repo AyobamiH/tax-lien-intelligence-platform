@@ -90,6 +90,7 @@ function categoryForEvent(eventType: WorkspaceActivityEventType): WorkspaceActiv
     case "comparison_decision_changed":
     case "comparison_handoff_to_watchlist":
     case "comparison_handoff_to_portfolio":
+    case "decision_outcome_resolved":
       return "decisions";
     case "portfolio_status_changed":
       return "portfolio";
@@ -148,6 +149,8 @@ function summaryForEvent(
       return `${safeName(metadata?.approvalReviewerEmail, "A workspace reviewer")} rejected a comparison-to-portfolio handoff.`;
     case "approval_cancelled":
       return `${safeName(metadata?.approvalRequesterEmail, "A workspace member")} cancelled a comparison-to-portfolio approval request.`;
+    case "decision_outcome_resolved":
+      return `${safeName(metadata?.decisionOutcomeResolverEmail, "A workspace member")} resolved a comparison item as ${decisionOutcomeLabel(metadata?.decisionOutcomeStatus)}.`;
   }
 }
 
@@ -166,6 +169,10 @@ function statusLabel(value: PortfolioStatus | undefined): string {
 
 function roleLabel(value: Exclude<WorkspaceRole, "owner"> | undefined): string {
   return value ?? "member";
+}
+
+function decisionOutcomeLabel(value: WorkspaceActivityMetadata["decisionOutcomeStatus"] | undefined): string {
+  return value ?? "resolved";
 }
 
 function entityLabel(metadata: WorkspaceActivityMetadata | undefined): string {

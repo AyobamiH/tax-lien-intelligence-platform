@@ -20,6 +20,7 @@ The response includes:
 - current assignment;
 - review checklist state and required-item progress;
 - pending/latest/recent approval state;
+- current active/resolved final outcome state;
 - workspace policy evaluations and unmet requirements;
 - recent decision history;
 - latest discussion comments plus the caller's unread discussion state;
@@ -35,7 +36,8 @@ Unsupported entity types return `400 validation_failed`.
 ## Scope Notes
 
 Decision briefs are read-only aggregation. They do not approve, hand off,
-complete checklist items, modify policy, or bypass existing enforcement.
+complete checklist items, modify policy, resolve outcomes, or bypass existing
+enforcement.
 
 The current implementation intentionally supports comparison items only. Future
 portfolio or watchlist briefs should reuse the same selected-workspace and

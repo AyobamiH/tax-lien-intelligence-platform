@@ -24,7 +24,8 @@ export type WorkspaceActivityEventTypeRecord =
   | "approval_requested"
   | "approval_approved"
   | "approval_rejected"
-  | "approval_cancelled";
+  | "approval_cancelled"
+  | "decision_outcome_resolved";
 export type WorkspaceActivityRelatedEntityTypeRecord =
   | "dataset"
   | "job"
@@ -56,6 +57,9 @@ export interface WorkspaceActivityMetadataRecord {
   approvalStatus?: "pending" | "approved" | "rejected" | "cancelled";
   approvalRequesterEmail?: string;
   approvalReviewerEmail?: string;
+  decisionOutcomeId?: string;
+  decisionOutcomeStatus?: "approved" | "declined" | "deferred" | "archived";
+  decisionOutcomeResolverEmail?: string;
 }
 
 export interface WorkspaceActivityRecord {
@@ -103,6 +107,9 @@ const workspaceActivityMetadataSchema = new Schema<WorkspaceActivityMetadataReco
     approvalStatus: { type: String, enum: ["pending", "approved", "rejected", "cancelled"] },
     approvalRequesterEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
     approvalReviewerEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
+    decisionOutcomeId: { type: String, trim: true },
+    decisionOutcomeStatus: { type: String, enum: ["approved", "declined", "deferred", "archived"] },
+    decisionOutcomeResolverEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
   },
   { _id: false, versionKey: false },
 );
@@ -138,6 +145,7 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
         "approval_approved",
         "approval_rejected",
         "approval_cancelled",
+        "decision_outcome_resolved",
       ],
       required: true,
       index: true,
