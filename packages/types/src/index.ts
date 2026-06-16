@@ -553,6 +553,62 @@ export interface WorkspacePolicyEvaluation {
   unmetRequirements: WorkspacePolicyUnmetRequirement[];
 }
 
+export type DecisionBriefTargetEntityType = "comparison_item";
+export type DecisionBriefReadinessStatus =
+  | "ready"
+  | "blocked"
+  | "needs_review"
+  | "not_configured";
+
+export interface DecisionBriefSummary {
+  title: string;
+  subtitle: string;
+  readinessStatus: DecisionBriefReadinessStatus;
+  decision?: ComparisonDecision;
+  currentNote?: string;
+  nextAction: string;
+}
+
+export interface DecisionBriefApprovalSummary {
+  pendingCount: number;
+  latest?: ApprovalRequestResponse;
+  recent: ApprovalRequestResponse[];
+}
+
+export interface DecisionBriefPolicySummary {
+  blocked: boolean;
+  evaluations: WorkspacePolicyEvaluation[];
+  unmetRequirements: WorkspacePolicyUnmetRequirement[];
+}
+
+export interface DecisionBriefDiscussionSummary {
+  totalComments: number;
+  comments: WorkspaceCommentResponse[];
+  attention: DiscussionAttentionResponse;
+}
+
+export interface DecisionBriefHistorySummary {
+  totalEvents: number;
+  events: DecisionHistoryEventResponse[];
+}
+
+export interface DecisionBriefResponse {
+  workspaceId: string;
+  generatedAt: string;
+  targetEntityType: DecisionBriefTargetEntityType;
+  targetEntityId: string;
+  summary: DecisionBriefSummary;
+  target: ComparisonItemResponse;
+  dataset?: DatasetResponse;
+  assignment: WorkspaceAssignmentResponse | null;
+  checklist: ReviewChecklistStateResponse;
+  approvals: DecisionBriefApprovalSummary;
+  policy: DecisionBriefPolicySummary;
+  history: DecisionBriefHistorySummary;
+  discussion: DecisionBriefDiscussionSummary;
+  exportText: string;
+}
+
 export interface MyWorkFollowingQueue {
   count: number;
   items: FollowSubscriptionResponse[];

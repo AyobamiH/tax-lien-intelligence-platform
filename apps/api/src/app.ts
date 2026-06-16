@@ -11,6 +11,8 @@ import type { ComparisonService } from "./comparison/comparison-service.js";
 import { apiConfig } from "./config/env.js";
 import type { DatasetService } from "./datasets/dataset-service.js";
 import { createDatasetService } from "./datasets/factory.js";
+import { createDecisionBriefService } from "./decision-briefs/factory.js";
+import type { DecisionBriefService } from "./decision-briefs/decision-brief-service.js";
 import { errorHandler, notFoundHandler } from "./errors/error-handler.js";
 import { createInternalJobService } from "./jobs/factory.js";
 import type { InternalJobService } from "./jobs/internal-job-service.js";
@@ -25,6 +27,7 @@ import { createAuthRouter } from "./routes/auth.js";
 import { createComparisonRouter } from "./routes/comparison.js";
 import { createWorkspaceCommentRouter } from "./routes/comments.js";
 import { createDatasetRouter } from "./routes/datasets.js";
+import { createDecisionBriefRouter } from "./routes/decision-briefs.js";
 import { createInternalJobRouter } from "./routes/jobs.js";
 import { createNotificationDeliveryRouter } from "./routes/notification-deliveries.js";
 import { createNotificationPreferenceRouter } from "./routes/notification-preferences.js";
@@ -85,6 +88,7 @@ export interface AppDependencies {
   followService?: FollowService;
   reviewChecklistService?: ReviewChecklistService;
   workspacePolicyService?: WorkspacePolicyService;
+  decisionBriefService?: DecisionBriefService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -123,6 +127,17 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const myWorkService =
     dependencies.myWorkService ??
     createMyWorkService(workspaceAssignmentService, approvalService, followService);
+  const decisionBriefService =
+    dependencies.decisionBriefService ??
+    createDecisionBriefService(
+      comparisonService,
+      datasetService,
+      workspaceAssignmentService,
+      reviewChecklistService,
+      approvalService,
+      workspaceCommentService,
+      workspacePolicyService,
+    );
 
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
@@ -167,6 +182,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     createWorkspacePolicyRouter(authService, workspaceService, workspacePolicyService),
   );
   app.use("/my-work", createMyWorkRouter(authService, workspaceService, myWorkService));
+  app.use("/decision-briefs", createDecisionBriefRouter(authService, workspaceService, decisionBriefService));
   app.use("/datasets", createDatasetRouter(authService, datasetService, workspaceService, workspaceActivityService));
   app.use("/datasets", createScoringRouter(authService, scoringService, workspaceService, workspaceActivityService));
   app.use("/jobs", createInternalJobRouter(authService, internalJobService, workspaceService));

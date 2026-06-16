@@ -82,6 +82,10 @@ Phase 40 adds three explicit workspace governance switches for assignment,
 required checklist readiness, and approval before selected comparison
 transitions. Enabled rules block unsafe handoffs with actionable requirement
 messages. It is a minimal policy layer, not a workflow or compliance engine.
+Phase 41 adds comparison-item decision briefs that consolidate score, dataset,
+assignment, checklist, approval, policy, history, and discussion evidence into
+a bounded review surface. It is an evidence pack, not a report builder,
+public sharing system, or compliance archive.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -146,6 +150,8 @@ Current evidence:
 - workspace members can complete repeatable required/optional review
   checklists, while owners/admins manage templates and readiness remains a
   transparent nonblocking signal.
+- workspace members can open a comparison-item decision brief that consolidates
+  key evidence and current readiness gates before deciding what to do next.
 
 ## What This SaaS Is
 
@@ -185,6 +191,8 @@ The intended product loop is:
     receive bounded updates for consequential changes.
 20. a member can verify required review items on an accessible comparison,
     watchlist, or portfolio record before the team moves it forward.
+21. a member can open a comparison decision brief to review consolidated
+    evidence, missing gates, recent history, and discussion before continuing.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
@@ -198,13 +206,14 @@ contextual comments, bounded discussion attention, and current responsibility
 assignments now exist. Role-aware workspace administration and permission
 hardening now exist. A focused comparison-to-portfolio approval checkpoint now
 exists. A member-focused my-work aggregation surface now exists. Workspace
-review checklist templates and record completion now exist. Broad county
-coverage, live county sync, full spreadsheet editing, realtime chat, rich-text
-collaboration, compliance audit tooling, automated checklist evidence, ML
-mapping suggestions, SMS/push alert delivery, user-facing
-scheduler policy controls, broader automatic refresh, advanced digest
-scheduling/templates/retries, multi-step approval governance, and richer
-automation remain future direction.
+review checklist templates and record completion now exist. Workspace policy
+rules and comparison-item decision briefs now exist. Broad county coverage,
+live county sync, full spreadsheet editing, realtime chat, rich-text
+collaboration, compliance audit tooling, automated checklist evidence, PDF
+brief generation, public evidence sharing, ML mapping suggestions, SMS/push
+alert delivery, user-facing scheduler policy controls, broader automatic
+refresh, advanced digest scheduling/templates/retries, multi-step approval
+governance, and richer automation remain future direction.
 
 ## What This SaaS Is Not
 

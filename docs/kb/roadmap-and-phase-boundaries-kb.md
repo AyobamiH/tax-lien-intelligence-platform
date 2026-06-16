@@ -1265,6 +1265,31 @@ Phase 40 does not include:
 
 This is a minimal governance layer, not a workflow engine.
 
+## Phase 41: Decision Briefs And Evidence Packs
+
+Current status: implemented.
+
+Phase 41 includes:
+
+- authenticated comparison-item decision brief retrieval;
+- consolidated target, score/risk, dataset/readiness, assignment, checklist,
+  approval, policy, decision-history, and discussion evidence;
+- stale source-dataset compatibility while preserving target-access checks;
+- frontend decision brief route with readiness visibility and copy/print
+  support;
+- tests for aggregation, stale evidence, unsupported targets, and workspace
+  isolation.
+
+Phase 41 does not include:
+
+- arbitrary report builders, PDF production suites, or public sharing links;
+- compliance custody, legal evidence management, e-signatures, or attestations;
+- AI-generated recommendation text or automatic brief writing;
+- auction execution.
+
+This is a decision-support evidence pack, not a reporting platform or
+compliance system.
+
 ## Later Phases
 
 Later phases may include:
@@ -1281,6 +1306,8 @@ Later phases may include:
 - scheduled ingestion;
 - external worker deployment hardening;
 - richer collaboration workflows;
+- broader evidence-pack target coverage when each entity has explicit access
+  and history boundaries;
 - compliance-grade audit logging if product/legal requirements justify it.
 
 Later phases depend on secure auth, tenant-scoped data, ingestion, scoring, and

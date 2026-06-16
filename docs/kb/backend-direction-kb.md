@@ -44,6 +44,9 @@ Current implementation:
   routes for comparison, watchlist, and portfolio records;
 - fixed workspace-policy model, store, evaluator, and authenticated
   retrieval/update routes;
+- decision-brief aggregation service and authenticated route for comparison
+  items, reusing existing target, assignment, checklist, approval, comment,
+  policy, dataset, and history boundaries;
 - selected-workspace membership middleware and explicit read/write,
   member-management, member-removal, role-management, approval-review, and
   sensitive-action checks;
@@ -142,6 +145,9 @@ Current implementation:
   target-access revalidation, version synchronization, and required readiness;
 - owner/admin workspace-policy management, member-readable policy state,
   default-off compatibility, and structured selected-action gate failures;
+- read-only decision brief retrieval that consolidates comparison evidence
+  without persisting reports, bypassing policy, or exposing cross-workspace
+  records;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -186,6 +192,8 @@ The backend should become the trusted boundary for:
   notification fan-out;
 - workspace review-template and record checklist persistence without treating
   completion as compliance evidence;
+- read-only evidence-pack aggregation for supported decision records without
+  becoming a public reporting or compliance-custody system;
 - workspace membership administration and inactive-membership lifecycle;
 - future compliance-grade audit events;
 - security enforcement.

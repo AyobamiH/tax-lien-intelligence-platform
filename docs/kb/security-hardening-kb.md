@@ -94,6 +94,11 @@ Current repo protections:
 - policy evidence derived from existing assignment and checklist access
   boundaries, with approval satisfaction supplied only by the approved
   execution path and readiness rechecked before execution;
+- decision brief aggregation behind authentication and selected-workspace
+  membership, with comparison target access checked before returning dataset,
+  assignment, checklist, approval, policy, history, or discussion evidence;
+- decision briefs are read-only and omit stale source datasets rather than
+  weakening target access or fabricating evidence;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
 - browser upload flow that uses the authenticated dataset upload endpoint;

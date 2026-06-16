@@ -14,6 +14,7 @@ import {
   createDataset,
   deactivateWorkspaceMember,
   followEntity,
+  getDecisionBrief,
   getFollowState,
   getMyWork,
   getReviewChecklistState,
@@ -636,13 +637,97 @@ describe("web API client", () => {
       ),
     );
 
-    await expect(
-      handoffComparisonToPortfolio("test-token", "comparison-1"),
-    ).rejects.toMatchObject<ApiClientError>({
-      status: 409,
-      code: "workspace_policy_blocked",
-      details,
-    });
+  await expect(
+    handoffComparisonToPortfolio("test-token", "comparison-1"),
+  ).rejects.toMatchObject<ApiClientError>({
+    status: 409,
+    code: "workspace_policy_blocked",
+    details,
+  });
+});
+
+  it("loads decision briefs through the selected workspace", async () => {
+    const payload = {
+      workspaceId: "workspace-1",
+      generatedAt: "2026-06-16T10:00:00.000Z",
+      targetEntityType: "comparison_item",
+      targetEntityId: "comparison-1",
+      summary: {
+        title: "PX-410",
+        subtitle: "Comparison item from row 12",
+        readinessStatus: "blocked",
+        decision: "move_forward",
+        nextAction: "Resolve the pending approval request.",
+      },
+      target: {
+        id: "comparison-1",
+        workspaceId: "default",
+        datasetId: "dataset-1",
+        scoredRecordId: "score-1",
+        sourceType: "score",
+        decision: "move_forward",
+        decisionUpdatedAt: "2026-06-16T10:00:00.000Z",
+        sourceRowNumber: 12,
+        normalizedFields: { propertyTypeCategory: "residential" },
+        investmentScore: 86,
+        riskScore: 22,
+        liquidityScore: 74,
+        redemptionProbability: 0.69,
+        confidenceScore: 91,
+        flags: [],
+        reasoning: [],
+        scoredAt: "2026-06-16T10:00:00.000Z",
+        addedAt: "2026-06-16T10:00:00.000Z",
+        createdAt: "2026-06-16T10:00:00.000Z",
+        updatedAt: "2026-06-16T10:00:00.000Z",
+      },
+      assignment: null,
+      checklist: {
+        targetEntityType: "comparison_item",
+        targetEntityId: "comparison-1",
+        progress: {
+          status: "not_configured",
+          totalItems: 0,
+          completedItems: 0,
+          incompleteItems: 0,
+          requiredItems: 0,
+          completedRequiredItems: 0,
+          incompleteRequiredItems: 0,
+          allRequiredComplete: false,
+        },
+      },
+      approvals: { pendingCount: 0, recent: [] },
+      policy: { blocked: false, evaluations: [], unmetRequirements: [] },
+      history: { totalEvents: 0, events: [] },
+      discussion: {
+        totalComments: 0,
+        comments: [],
+        attention: {
+          workspaceId: "workspace-1",
+          relatedEntityType: "comparison_item",
+          relatedEntityId: "comparison-1",
+          unreadCount: 0,
+          hasUnread: false,
+        },
+      },
+      exportText: "Decision Brief: PX-410",
+    };
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await expect(getDecisionBrief("test-token", "comparison_item", "comparison-1")).resolves.toEqual(payload);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("http://localhost:4000/decision-briefs/comparison_item/comparison-1");
+    const headers = init.headers as Headers;
+    expect(headers.get("Authorization")).toBe("Bearer test-token");
+    expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

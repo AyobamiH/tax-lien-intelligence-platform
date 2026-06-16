@@ -12,6 +12,8 @@ import type {
   DatasetManualMappingTarget,
   DatasetResponse,
   DatasetScoringStatusResponse,
+  DecisionBriefResponse,
+  DecisionBriefTargetEntityType,
   DiscussionAttentionResponse,
   FollowStateResponse,
   FollowSubscriptionResponse,
@@ -65,6 +67,7 @@ import {
   deleteSavedView,
   deleteWorkspaceComment,
   getCurrentUser,
+  getDecisionBrief,
   getDataset,
   getDatasetScoringStatus,
   getFollowState,
@@ -209,6 +212,7 @@ type PageState =
   | { name: "activity" }
   | { name: "assignments" }
   | { name: "approvals" }
+  | { name: "decision-brief"; entityType: DecisionBriefTargetEntityType; entityId: string }
   | { name: "workspace" };
 
 type AuthMode = "login" | "register";
@@ -1737,7 +1741,20 @@ function App() {
             onHandoffToPortfolio={handoffComparisonItemToPortfolio}
             onOpenWatchlist={() => navigate({ name: "watchlist" }, setPage)}
             onOpenPortfolio={() => navigate({ name: "portfolio" }, setPage)}
+            onOpenDecisionBrief={(comparisonItemId) =>
+              navigate(
+                { name: "decision-brief", entityType: "comparison_item", entityId: comparisonItemId },
+                setPage,
+              )
+            }
             onRemove={(comparisonItemId) => void removeFromComparison(comparisonItemId)}
+          />
+        ) : page.name === "decision-brief" ? (
+          <DecisionBriefPage
+            token={session.token}
+            entityType={page.entityType}
+            entityId={page.entityId}
+            onBack={() => navigate({ name: "comparison" }, setPage)}
           />
         ) : page.name === "approvals" ? (
           <ApprovalQueuePage
@@ -3352,6 +3369,7 @@ function ComparisonPage({
   onHandoffToPortfolio,
   onOpenWatchlist,
   onOpenPortfolio,
+  onOpenDecisionBrief,
   onRemove,
 }: {
   token: string;
@@ -3366,6 +3384,7 @@ function ComparisonPage({
   onHandoffToPortfolio: (comparisonItemId: string) => Promise<ComparisonHandoffToPortfolioResponse>;
   onOpenWatchlist: () => void;
   onOpenPortfolio: () => void;
+  onOpenDecisionBrief: (comparisonItemId: string) => void;
   onRemove: (comparisonItemId: string) => void;
 }) {
   const sortedItems = useMemo(() => sortComparisonItemsForReview(items), [items]);
@@ -3438,6 +3457,7 @@ function ComparisonPage({
             onHandoffToPortfolio={onHandoffToPortfolio}
             onOpenWatchlist={onOpenWatchlist}
             onOpenPortfolio={onOpenPortfolio}
+            onOpenDecisionBrief={onOpenDecisionBrief}
             onRemove={onRemove}
           />
         </div>
@@ -3584,6 +3604,7 @@ function ComparisonDetail({
   onHandoffToPortfolio,
   onOpenWatchlist,
   onOpenPortfolio,
+  onOpenDecisionBrief,
   onRemove,
 }: {
   token: string;
@@ -3595,6 +3616,7 @@ function ComparisonDetail({
   onHandoffToPortfolio: (comparisonItemId: string) => Promise<ComparisonHandoffToPortfolioResponse>;
   onOpenWatchlist: () => void;
   onOpenPortfolio: () => void;
+  onOpenDecisionBrief: (comparisonItemId: string) => void;
   onRemove: (comparisonItemId: string) => void;
 }) {
   const [draftDecision, setDraftDecision] = useState<ComparisonDecision>("undecided");
@@ -3725,6 +3747,13 @@ function ComparisonDetail({
           {isSaving ? "Working" : "Remove"}
         </button>
       </div>
+      <button
+        type="button"
+        onClick={() => onOpenDecisionBrief(item.id)}
+        className="mt-4 w-full border border-line bg-white px-3 py-2 text-sm font-semibold"
+      >
+        Open decision brief
+      </button>
       <label className="mt-4 block text-sm font-semibold" htmlFor="comparison-decision">
         Decision
       </label>
@@ -3910,6 +3939,320 @@ function ComparisonDetail({
       <WorkspaceAssignmentControl token={token} entityType="comparison_item" entityId={item.id} />
     </aside>
   );
+}
+
+function DecisionBriefPage({
+  token,
+  entityType,
+  entityId,
+  onBack,
+}: {
+  token: string;
+  entityType: DecisionBriefTargetEntityType;
+  entityId: string;
+  onBack: () => void;
+}) {
+  const [brief, setBrief] = useState<DecisionBriefResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setBrief(null);
+    setIsLoading(true);
+    setError(null);
+    setCopyStatus(null);
+    void getDecisionBrief(token, entityType, entityId)
+      .then((result) => {
+        if (!cancelled) {
+          setBrief(result);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, entityType, entityId]);
+
+  async function copyBrief(): Promise<void> {
+    if (!brief) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(brief.exportText);
+      setCopyStatus("Copied");
+    } catch {
+      setCopyStatus("Copy unavailable");
+    }
+  }
+
+  if (isLoading) {
+    return <PanelMessage label="Loading decision brief..." />;
+  }
+
+  if (error) {
+    return (
+      <section className="min-w-0 space-y-5">
+        <button type="button" onClick={onBack} className="border border-line bg-white px-3 py-2 text-sm font-semibold">
+          Back to comparison
+        </button>
+        <PanelError message={error} />
+      </section>
+    );
+  }
+
+  if (!brief) {
+    return <PanelMessage label="Decision brief is unavailable." />;
+  }
+
+  return (
+    <section className="min-w-0 space-y-5">
+      <div className="border border-line bg-white p-5">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-pine">Decision Brief</p>
+            <h2 className="mt-1 text-2xl font-semibold">{brief.summary.title}</h2>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-ink/70">{brief.summary.subtitle}</p>
+            <p className="mt-2 text-xs text-ink/55">Generated {formatDateTime(brief.generatedAt)}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={onBack} className="border border-line px-3 py-2 text-sm font-semibold">
+              Back
+            </button>
+            <button type="button" onClick={() => void copyBrief()} className="border border-line px-3 py-2 text-sm font-semibold">
+              {copyStatus ?? "Copy"}
+            </button>
+            <button type="button" onClick={() => window.print()} className="border border-line px-3 py-2 text-sm font-semibold">
+              Print
+            </button>
+          </div>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-4">
+          <Metric label="Readiness" value={decisionBriefReadinessLabel(brief.summary.readinessStatus)} />
+          <Metric label="Decision" value={comparisonDecisionLabel(brief.target.decision)} />
+          <Metric label="Pending approvals" value={String(brief.approvals.pendingCount)} />
+          <Metric label="Unread discussion" value={String(brief.discussion.attention.unreadCount)} />
+        </div>
+        <div className={`mt-4 border px-3 py-2 text-sm ${decisionBriefReadinessClassName(brief.summary.readinessStatus)}`}>
+          <p className="font-semibold">{brief.summary.nextAction}</p>
+          {brief.summary.currentNote ? <p className="mt-1 leading-6">{brief.summary.currentNote}</p> : null}
+        </div>
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-5">
+          <section className="border border-line bg-white p-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Score and Risk Evidence</h3>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <DetailTerm label="Investment" value={String(brief.target.investmentScore)} />
+              <DetailTerm label="Risk" value={String(brief.target.riskScore)} />
+              <DetailTerm label="Liquidity" value={String(brief.target.liquidityScore)} />
+              <DetailTerm label="Redemption" value={formatPercent(brief.target.redemptionProbability)} />
+              <DetailTerm label="Confidence" value={String(brief.target.confidenceScore)} />
+              <DetailTerm label="Coverage" value={formatRatio(brief.target.valueCoverageRatio)} />
+              <DetailTerm label="Lien" value={formatMoney(brief.target.normalizedFields.lienAmount)} />
+              <DetailTerm label="Value" value={formatMoney(brief.target.normalizedFields.estimatedValue)} />
+              <DetailTerm label="Scored" value={formatDateTime(brief.target.scoredAt)} />
+            </div>
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <EvidenceList title="Reasoning" items={brief.target.reasoning} emptyLabel="No reasoning returned." />
+              <EvidenceList title="Flags" items={brief.target.flags} emptyLabel="No flags returned." warning />
+            </div>
+          </section>
+
+          <section className="border border-line bg-white p-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Dataset and Import Context</h3>
+            {brief.dataset ? (
+              <>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <DetailTerm label="Dataset" value={brief.dataset.sourceLabel ?? brief.dataset.originalFilename} />
+                  <DetailTerm label="Rows" value={String(brief.dataset.rowCount)} />
+                  <DetailTerm label="Readiness" value={brief.dataset.readinessSummary.status} />
+                  <DetailTerm label="Adapter" value={brief.dataset.importSummary.adapterName} />
+                  <DetailTerm label="Confidence" value={brief.dataset.importSummary.confidence} />
+                  <DetailTerm label="Uploaded" value={formatDateTime(brief.dataset.uploadedAt)} />
+                </div>
+                <EvidenceList
+                  title="Readiness guidance"
+                  items={brief.dataset.readinessSummary.guidance}
+                  emptyLabel="No dataset guidance returned."
+                />
+              </>
+            ) : (
+              <p className="mt-3 border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                The source dataset is unavailable or no longer accessible, so this brief keeps the item snapshot only.
+              </p>
+            )}
+          </section>
+
+          <section className="border border-line bg-white p-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Recent Decision Context</h3>
+            {brief.history.events.length === 0 ? (
+              <p className="mt-3 text-sm text-ink/65">No decision history yet.</p>
+            ) : (
+              <ol className="mt-3 space-y-2">
+                {brief.history.events.map((event) => (
+                  <li key={event.id} className="border border-line bg-field px-3 py-2 text-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="font-semibold">{decisionHistoryEventLabel(event.eventType)}</span>
+                      <span className="shrink-0 text-xs text-ink/55">{formatDateTime(event.createdAt)}</span>
+                    </div>
+                    {event.noteSnapshot ? <p className="mt-2 leading-6 text-ink/75">{event.noteSnapshot}</p> : null}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+
+          <section className="border border-line bg-white p-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Latest Discussion</h3>
+            {brief.discussion.comments.length === 0 ? (
+              <p className="mt-3 text-sm text-ink/65">No discussion yet.</p>
+            ) : (
+              <ol className="mt-3 space-y-3">
+                {brief.discussion.comments.map((comment) => (
+                  <li key={comment.id} className="border border-line bg-field px-3 py-2">
+                    <div className="flex items-start justify-between gap-3 text-xs text-ink/55">
+                      <span className="font-semibold text-ink">{comment.author.email}</span>
+                      <span>{formatDateTime(comment.createdAt)}</span>
+                    </div>
+                    <WorkspaceCommentBody body={comment.body} />
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
+        </div>
+
+        <aside className="space-y-5 xl:sticky xl:top-4 xl:self-start">
+          <section className="border border-line bg-white p-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Readiness Gates</h3>
+            <div className="mt-3 space-y-3">
+              <div className="border border-line bg-field p-3">
+                <p className="text-sm font-semibold">Assignment</p>
+                <p className="mt-1 text-sm text-ink/70">
+                  {brief.assignment ? `Assigned to ${brief.assignment.assignee.email}` : "Unassigned"}
+                </p>
+              </div>
+              <div className="border border-line bg-field p-3">
+                <p className="text-sm font-semibold">Checklist</p>
+                <p className="mt-1 text-sm text-ink/70">
+                  {reviewChecklistStatusLabel(brief.checklist.progress.status)} ·{" "}
+                  {brief.checklist.progress.completedRequiredItems}/{brief.checklist.progress.requiredItems} required complete
+                </p>
+              </div>
+              <div className="border border-line bg-field p-3">
+                <p className="text-sm font-semibold">Approval</p>
+                <p className="mt-1 text-sm text-ink/70">
+                  {brief.approvals.latest
+                    ? `${approvalStatusLabel(brief.approvals.latest.status)} requested by ${brief.approvals.latest.requester.email}`
+                    : "No approval request recorded."}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="border border-line bg-white p-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Policy Requirements</h3>
+            {brief.policy.unmetRequirements.length === 0 ? (
+              <p className="mt-3 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                No blocking workspace policy requirements are currently unmet.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {brief.policy.unmetRequirements.map((requirement) => (
+                  <li key={`${requirement.code}:${requirement.message}`} className="border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                    <p className="font-semibold">{requirement.message}</p>
+                    <p className="mt-1 leading-6">{requirement.resolution}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section className="border border-line bg-white p-4">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Portable Summary</h3>
+            <textarea
+              readOnly
+              value={brief.exportText}
+              rows={14}
+              className="mt-3 w-full resize-y border border-line bg-field px-3 py-2 font-mono text-xs leading-5 text-ink/80"
+            />
+          </section>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function EvidenceList({
+  title,
+  items,
+  emptyLabel,
+  warning = false,
+}: {
+  title: string;
+  items: string[];
+  emptyLabel: string;
+  warning?: boolean;
+}) {
+  return (
+    <div className="mt-4">
+      <h4 className="text-sm font-semibold">{title}</h4>
+      {items.length === 0 ? (
+        <p className="mt-2 text-sm text-ink/65">{emptyLabel}</p>
+      ) : (
+        <ul className="mt-2 space-y-2">
+          {items.map((item) => (
+            <li
+              key={item}
+              className={`border px-3 py-2 text-sm leading-6 ${
+                warning ? "border-amber-200 bg-amber-50 text-amber-900" : "border-line bg-field text-ink/80"
+              }`}
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function decisionBriefReadinessLabel(status: DecisionBriefResponse["summary"]["readinessStatus"]): string {
+  switch (status) {
+    case "ready":
+      return "Ready";
+    case "blocked":
+      return "Blocked";
+    case "needs_review":
+      return "Needs review";
+    case "not_configured":
+      return "No checklist";
+  }
+}
+
+function decisionBriefReadinessClassName(status: DecisionBriefResponse["summary"]["readinessStatus"]): string {
+  switch (status) {
+    case "ready":
+      return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    case "blocked":
+      return "border-red-200 bg-red-50 text-red-800";
+    case "needs_review":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+    case "not_configured":
+      return "border-line bg-field text-ink/75";
+  }
 }
 
 function WatchlistPage({
@@ -7861,7 +8204,12 @@ function PanelError({ message, onRetry }: { message: string; onRetry?: () => voi
 }
 
 function navigate(page: PageState, setPage: (page: PageState) => void): void {
-  const hash = page.name === "dataset" ? `#/datasets/${page.datasetId}` : `#/${page.name}`;
+  const hash =
+    page.name === "dataset"
+      ? `#/datasets/${page.datasetId}`
+      : page.name === "decision-brief"
+        ? `#/decision-briefs/${page.entityType}/${encodeURIComponent(page.entityId)}`
+        : `#/${page.name}`;
   window.history.pushState(null, "", hash);
   setPage(page);
 }
@@ -7914,6 +8262,15 @@ function readRoute(): PageState {
   const match = window.location.hash.match(/^#\/datasets\/([^/]+)$/);
   if (match?.[1]) {
     return { name: "dataset", datasetId: decodeURIComponent(match[1]) };
+  }
+
+  const decisionBriefMatch = window.location.hash.match(/^#\/decision-briefs\/([^/]+)\/([^/]+)$/);
+  if (decisionBriefMatch?.[1] === "comparison_item" && decisionBriefMatch[2]) {
+    return {
+      name: "decision-brief",
+      entityType: "comparison_item",
+      entityId: decodeURIComponent(decisionBriefMatch[2]),
+    };
   }
 
   return { name: "my-work" };

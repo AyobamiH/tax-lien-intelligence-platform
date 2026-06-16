@@ -23,6 +23,14 @@ Current shared types in `packages/types`:
 - `WorkspacePolicyRequirementCode`;
 - `WorkspacePolicyUnmetRequirement`;
 - `WorkspacePolicyEvaluation`.
+- `DecisionBriefTargetEntityType`;
+- `DecisionBriefReadinessStatus`;
+- `DecisionBriefSummary`;
+- `DecisionBriefApprovalSummary`;
+- `DecisionBriefPolicySummary`;
+- `DecisionBriefDiscussionSummary`;
+- `DecisionBriefHistorySummary`;
+- `DecisionBriefResponse`.
 - `AuthUserResponse`;
 - `AuthSuccessResponse`;
 - `AuthMeResponse`;

@@ -94,6 +94,9 @@ It shows:
   checklist-readiness, and portfolio-approval gates;
 - policy-aware comparison handoff and approval messages that identify unmet
   requirements and their resolutions;
+- comparison-item decision brief route using
+  `#/decision-briefs/comparison_item/:entityId`, with consolidated evidence,
+  readiness gates, recent context, and copy/print controls;
 - checklist readiness remains informational unless the workspace explicitly
   enables its checklist policy;
 - comparison-detail approval request/status visibility for the supported
@@ -151,6 +154,7 @@ The current API surface is minimal:
 - `PATCH /review-checklists/:entityType/:entityId/items/:itemId`
 - `GET /workspace-policies`
 - `PUT /workspace-policies`
+- `GET /decision-briefs/comparison_item/:entityId`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`

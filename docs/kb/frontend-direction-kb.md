@@ -91,6 +91,8 @@ Current implementation:
   visibility for members;
 - policy-aware blocked-action feedback near comparison handoff and approval,
   while checklist readiness stays nonblocking when its policy is disabled;
+- comparison-item decision brief surface with readiness, evidence sections,
+  recent history/discussion, and copy/print controls;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -155,6 +157,7 @@ Current and future page direction:
   readiness visibility;
 - implemented: fixed workspace policy visibility, role-aware administration,
   and explicit blocked-action requirement messaging;
+- implemented: comparison-item decision brief/evidence pack surface;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities

@@ -10,6 +10,8 @@ import type {
   AddComparisonItemResponse,
   AddWatchlistItemResponse,
   DatasetDetailResponse,
+  DecisionBriefResponse,
+  DecisionBriefTargetEntityType,
   DatasetListResponse,
   DatasetScoreJobResponse,
   DatasetScoresResponse,
@@ -330,6 +332,17 @@ export async function getWorkspacePolicy(
   token: string,
 ): Promise<WorkspacePolicyResponse> {
   return requestJson<WorkspacePolicyResponse>("/workspace-policies", { token });
+}
+
+export async function getDecisionBrief(
+  token: string,
+  entityType: DecisionBriefTargetEntityType,
+  entityId: string,
+): Promise<DecisionBriefResponse> {
+  return requestJson<DecisionBriefResponse>(
+    `/decision-briefs/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { token },
+  );
 }
 
 export async function updateWorkspacePolicy(

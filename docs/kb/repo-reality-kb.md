@@ -107,6 +107,9 @@ Implemented today:
 - authenticated workspace policy retrieval/update with default-off
   compatibility, owner/admin mutation, member visibility, and structured
   enforcement on selected comparison and approval actions;
+- authenticated comparison-item decision brief retrieval that aggregates
+  target, dataset, assignment, checklist, approval, policy, decision history,
+  and discussion evidence without adding report persistence;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;

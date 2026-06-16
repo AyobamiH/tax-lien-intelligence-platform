@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-06-16
+
+- Implemented Phase 41 decision briefs for comparison items as a bounded
+  evidence-pack workflow.
+- Added authenticated `GET /decision-briefs/comparison_item/:entityId`, which
+  aggregates target summary, score/risk signals, source dataset readiness,
+  assignment, checklist readiness, approval status, workspace policy
+  requirements, recent decision history, latest discussion, and portable
+  plain-text summary.
+- Added tenant-safe aggregation that reuses existing comparison, dataset,
+  assignment, checklist, approval, comment, and policy access boundaries and
+  avoids returning evidence for inaccessible cross-workspace targets.
+- Added a comparison-detail entry point and `#/decision-briefs/...` frontend
+  surface with readiness visibility, copy/print controls, compact evidence
+  sections, and clear missing-dataset behavior.
+- Added integration and frontend API contract tests for brief retrieval,
+  stale dataset compatibility, unsupported target rejection, workspace
+  isolation, and selected-workspace request headers.
+- Kept PDFs, public sharing links, arbitrary report builders, legal evidence
+  custody, e-signatures, AI-written summaries, and auction execution out of
+  scope.
+
 ## 2026-06-15
 
 - Implemented Phase 40 workspace policy enforcement with three fixed,
