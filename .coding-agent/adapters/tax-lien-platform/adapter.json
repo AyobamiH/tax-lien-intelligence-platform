@@ -1,0 +1,96 @@
+{
+  "adapterId": "tax-lien-platform",
+  "adapterVersion": "1.0.0",
+  "project": {
+    "id": "tax-lien-platform",
+    "detection": {
+      "rootMarkers": [
+        {"kind": "file", "path": "package.json"},
+        {"kind": "file", "path": "README.md"}
+      ],
+      "maximumDepth": 1,
+      "scope": "declared-project-root",
+      "requireApprovalOutsideScope": true
+    }
+  },
+  "supportedSkills": [
+    {
+      "id": "repo-map",
+      "compatibleVersions": ["0.2.3"],
+      "declaredMode": "audit-only"
+    }
+  ],
+  "extensions": {
+    "safeReadPaths": [
+      "README.md",
+      "docs/README.md",
+      "docs/kb/README.md",
+      "package.json",
+      "apps/api/package.json",
+      "apps/web/package.json",
+      "packages/db/package.json",
+      "packages/scoring/package.json",
+      "packages/types/package.json",
+      "apps/api",
+      "apps/web",
+      "packages/db",
+      "packages/scoring",
+      "packages/types"
+    ],
+    "ignoredPaths": [
+      ".git",
+      "node_modules",
+      "dist",
+      "build",
+      "coverage",
+      "validation-output"
+    ],
+    "documentationPrecedence": [
+      "README.md",
+      "docs/README.md",
+      "docs/kb/README.md",
+      "docs/kb/repo-reality-kb.md",
+      "docs/kb/current-surface-kb.md",
+      "docs/kb/backend-direction-kb.md",
+      "docs/kb/frontend-direction-kb.md",
+      "docs/kb/shared-contract-kb.md",
+      "docs/kb/security-hardening-kb.md",
+      "docs/changelog.md"
+    ],
+    "commandAliases": [],
+    "safeStatusCommands": [],
+    "requiredEvidence": [
+      "repository root",
+      "branch state warning",
+      "root README",
+      "package map",
+      "documentation map",
+      "source package boundaries"
+    ],
+    "expectedRuntimeManagers": [],
+    "expectedPackageManagers": ["npm"]
+  },
+  "approvalRequirements": [],
+  "inheritance": {
+    "sharedRestrictions": "required",
+    "deniedOperationCategories": [
+      "file-write",
+      "package-install",
+      "deployment",
+      "git-mutation",
+      "unrestricted-scan",
+      "secret-read",
+      "process-mutation",
+      "service-mutation",
+      "migration-apply",
+      "privileged-api"
+    ],
+    "allowRestrictionRemoval": false,
+    "allowModeOverride": false,
+    "allowFailureSuppression": false,
+    "allowCompletionOverride": false,
+    "allowSecretExposure": false,
+    "allowRequiredEvidenceRemoval": false,
+    "allowScopeExpansionWithoutApproval": false
+  }
+}
