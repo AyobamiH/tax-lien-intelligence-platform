@@ -45,6 +45,7 @@ import type {
   MarkAllAlertsReadResponse,
   NotificationDeliveryHistoryResponse,
   NotificationPreferencesDetailResponse,
+  OutcomeReviewResponse,
   PortfolioDetailResponse,
   PortfolioListResponse,
   PortfolioStatus,
@@ -375,6 +376,15 @@ export async function resolveDecisionOutcome(
       body: JSON.stringify({ status, note }),
     },
   );
+}
+
+export async function getOutcomeReview(
+  token: string,
+  windowDays = 30,
+): Promise<OutcomeReviewResponse> {
+  const search = new URLSearchParams();
+  search.set("windowDays", String(windowDays));
+  return requestJson<OutcomeReviewResponse>(`/outcome-review?${search.toString()}`, { token });
 }
 
 export async function updateWorkspacePolicy(

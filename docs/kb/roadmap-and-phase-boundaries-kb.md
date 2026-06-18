@@ -1320,6 +1320,36 @@ Phase 42 does not include:
 
 This is a final internal decision-resolution layer, not case management.
 
+## Phase 43: Outcome Review And Retrospective Insights
+
+Current status: implemented.
+
+Phase 43 includes:
+
+- authenticated workspace outcome review retrieval;
+- final outcome counts by approved, declined, deferred, and archived status;
+- resolved versus unresolved comparison-item mix;
+- bounded recent-resolution windows;
+- recent declined/deferred counts;
+- current comparison target summaries for accessible records only;
+- stale/deleted target omission;
+- compact frontend outcome review surface with summary counts, outcome mix,
+  review signals, and links into decision briefs;
+- tests for summary retrieval, status counts, recent-window behavior,
+  empty states, stale target omission, invalid filters, and workspace
+  isolation.
+
+Phase 43 does not include:
+
+- BI/report builders;
+- export-heavy reporting workflows;
+- revenue, ROI, P&L, or financial performance modeling;
+- predictive analytics or AI-generated insights;
+- legal/compliance reporting;
+- auction execution.
+
+This is a lightweight operational retrospective layer, not an analytics suite.
+
 ## Later Phases
 
 Later phases may include:

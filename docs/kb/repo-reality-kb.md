@@ -115,6 +115,10 @@ Implemented today:
   owner/admin resolution with approved/declined/deferred/archived statuses,
   resolver attribution, rationale, governance checks for approved outcomes,
   and active-vs-resolved state;
+- authenticated outcome-review aggregation with workspace-scoped final outcome
+  counts, resolved/unresolved comparison mix, bounded recent-resolution
+  windows, stale-target omission, and retrospective signals grounded in
+  current outcome data;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;

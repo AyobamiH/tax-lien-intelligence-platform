@@ -23,6 +23,8 @@ import type {
   FollowTargetEntityType,
   InternalJobResponse,
   MyWorkResponse,
+  OutcomeReviewResolution,
+  OutcomeReviewResponse,
   ReviewChecklistProgress,
   ReviewChecklistStateResponse,
   ReviewChecklistTargetEntityType,
@@ -79,6 +81,7 @@ import {
   getMyWork,
   getReviewChecklistState,
   getNotificationPreferences,
+  getOutcomeReview,
   getPortfolioSummary,
   handoffComparisonToPortfolio,
   handoffComparisonToWatchlist,
@@ -215,6 +218,7 @@ type PageState =
   | { name: "notifications" }
   | { name: "delivery-history" }
   | { name: "activity" }
+  | { name: "outcome-review" }
   | { name: "assignments" }
   | { name: "approvals" }
   | { name: "decision-brief"; entityType: DecisionBriefTargetEntityType; entityId: string }
@@ -1806,6 +1810,21 @@ function App() {
             onRetry={() => void refreshWorkspaceActivity(session.token)}
             onOpen={openWorkspaceActivity}
           />
+        ) : page.name === "outcome-review" ? (
+          <OutcomeReviewPage
+            token={session.token}
+            workspaceId={workspace.current?.id ?? ""}
+            onOpenResolution={(resolution) =>
+              navigate(
+                {
+                  name: "decision-brief",
+                  entityType: "comparison_item",
+                  entityId: resolution.target.targetEntityId,
+                },
+                setPage,
+              )
+            }
+          />
         ) : page.name === "workspace" ? (
           <WorkspacePage
             token={session.token}
@@ -2052,6 +2071,15 @@ function AppHeader({
             }`}
           >
             Activity
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate({ name: "outcome-review" })}
+            className={`border border-line px-3 py-2 font-medium ${
+              page.name === "outcome-review" ? "bg-field" : "bg-white"
+            }`}
+          >
+            Outcomes
           </button>
           <button
             type="button"
@@ -5771,6 +5799,232 @@ function WorkspaceActivityPage({
   );
 }
 
+const outcomeReviewWindowOptions = [7, 30, 90] as const;
+
+function OutcomeReviewPage({
+  token,
+  workspaceId,
+  onOpenResolution,
+}: {
+  token: string;
+  workspaceId: string;
+  onOpenResolution: (resolution: OutcomeReviewResolution) => void;
+}) {
+  const [review, setReview] = useState<OutcomeReviewResponse | null>(null);
+  const [windowDays, setWindowDays] = useState<(typeof outcomeReviewWindowOptions)[number]>(30);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setReview(null);
+    setIsLoading(true);
+    setError(null);
+    void getOutcomeReview(token, windowDays)
+      .then((result) => {
+        if (!cancelled) {
+          setReview(result);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, workspaceId, windowDays, reloadVersion]);
+
+  return (
+    <section className="min-w-0">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-pine">Outcome Review</p>
+          <h2 className="mt-1 text-2xl font-semibold">Retrospective outcomes</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/70">
+            Review final comparison outcomes, recent resolution movement, and practical signals for follow-up.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-sm font-semibold">
+            Window
+            <select
+              value={windowDays}
+              disabled={isLoading}
+              onChange={(event) => setWindowDays(Number(event.target.value) as (typeof outcomeReviewWindowOptions)[number])}
+              className="ml-2 border border-line bg-white px-3 py-2 text-sm disabled:opacity-60"
+            >
+              {outcomeReviewWindowOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option} days
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() => setReloadVersion((version) => version + 1)}
+            disabled={isLoading}
+            className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {error ? (
+        <div className="mt-5">
+          <PanelError message={error} onRetry={() => setReloadVersion((version) => version + 1)} />
+        </div>
+      ) : null}
+
+      {!error && !review ? (
+        <div className="mt-5">
+          <PanelMessage label="Loading outcome review..." />
+        </div>
+      ) : null}
+
+      {review ? (
+        <>
+          <div className="mt-5 grid border border-line bg-white sm:grid-cols-2 xl:grid-cols-5">
+            <OutcomeMetric label="Comparison items" value={String(review.summary.totalComparisonItems)} />
+            <OutcomeMetric label="Resolved" value={String(review.summary.resolvedItems)} />
+            <OutcomeMetric label="Unresolved" value={String(review.summary.unresolvedItems)} />
+            <OutcomeMetric label="Resolution rate" value={`${review.summary.resolutionRate}%`} />
+            <OutcomeMetric label={`Recent ${review.windowDays}d`} value={String(review.summary.recentResolvedItems)} />
+          </div>
+
+          <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+            <section>
+              <div className="border-b border-line pb-3">
+                <h3 className="text-lg font-semibold">Recent resolutions</h3>
+                <p className="mt-1 text-sm text-ink/65">
+                  Current final outcomes recorded inside the selected review window.
+                </p>
+              </div>
+              {review.recentResolutions.length === 0 ? (
+                <div className="border-b border-line bg-white px-4 py-5">
+                  <p className="font-semibold">No recent final outcomes.</p>
+                  <p className="mt-2 text-sm leading-6 text-ink/70">
+                    Resolved comparison items will appear here when their final outcome falls inside this window.
+                  </p>
+                </div>
+              ) : (
+                <ol>
+                  {review.recentResolutions.map((resolution) => (
+                    <li
+                      key={resolution.outcome.id}
+                      className="grid gap-3 border-b border-line bg-white px-4 py-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-semibold">{resolution.target.label}</p>
+                          <span className={`border px-2 py-1 text-xs font-semibold ${decisionOutcomeStatusClassName(resolution.outcome.status)}`}>
+                            {decisionOutcomeStatusLabel(resolution.outcome.status)}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm leading-6 text-ink/70">
+                          {resolution.target.decision ? `${comparisonDecisionLabel(resolution.target.decision)} · ` : ""}
+                          {resolution.target.investmentScore !== undefined
+                            ? `Investment ${resolution.target.investmentScore}`
+                            : "Comparison item"}{" "}
+                          {resolution.target.riskScore !== undefined ? `· Risk ${resolution.target.riskScore}` : ""}
+                        </p>
+                        <p className="mt-1 text-xs text-ink/55">
+                          Resolved by {resolution.outcome.resolver.email} · {formatDateTime(resolution.outcome.resolvedAt)}
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-ink/75">{resolution.outcome.note}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onOpenResolution(resolution)}
+                        className="justify-self-start border border-line bg-white px-3 py-2 text-sm font-semibold lg:justify-self-end"
+                      >
+                        Open brief
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+
+            <aside className="space-y-5">
+              <section className="border border-line bg-white p-4">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Outcome Mix</h3>
+                <div className="mt-4 space-y-2">
+                  {review.summary.countsByStatus.map((count) => (
+                    <div key={count.status} className="flex items-center justify-between gap-3 border border-line bg-field px-3 py-2">
+                      <span className="text-sm font-semibold">{decisionOutcomeStatusLabel(count.status)}</span>
+                      <span className="text-sm text-ink/70">{count.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="border border-line bg-white p-4">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-ink/70">Review Signals</h3>
+                {review.signals.length === 0 ? (
+                  <p className="mt-3 text-sm leading-6 text-ink/65">
+                    No retrospective signals need attention for this window.
+                  </p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {review.signals.map((signal) => (
+                      <li
+                        key={signal.code}
+                        className={`border px-3 py-2 text-sm leading-6 ${outcomeReviewSignalClassName(signal.severity)}`}
+                      >
+                        <p className="font-semibold">
+                          {signal.label}
+                          {signal.count !== undefined ? ` (${signal.count})` : ""}
+                        </p>
+                        <p className="mt-1">{signal.detail}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+              <section className="border border-line bg-field p-4">
+                <h3 className="text-sm font-semibold">Retrospective boundary</h3>
+                <p className="mt-2 text-sm leading-6 text-ink/70">
+                  This view summarizes recorded final outcomes and current comparison records only. It does not predict results or model financial performance.
+                </p>
+                <p className="mt-3 text-xs text-ink/55">Updated {formatDateTime(review.generatedAt)}</p>
+              </section>
+            </aside>
+          </div>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
+function OutcomeMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border-b border-line px-4 py-4 sm:border-r xl:border-b-0">
+      <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/55">{label}</p>
+      <p className="mt-1 text-2xl font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function outcomeReviewSignalClassName(severity: "info" | "warning"): string {
+  switch (severity) {
+    case "info":
+      return "border-sky-200 bg-sky-50 text-sky-900";
+    case "warning":
+      return "border-amber-200 bg-amber-50 text-amber-900";
+  }
+}
+
 function WorkspacePage({
   token,
   state,
@@ -8490,6 +8744,10 @@ function readRoute(): PageState {
 
   if (window.location.hash === "#/activity") {
     return { name: "activity" };
+  }
+
+  if (window.location.hash === "#/outcome-review") {
+    return { name: "outcome-review" };
   }
 
   if (window.location.hash === "#/assignments") {

@@ -101,6 +101,9 @@ It shows:
   detail and decision brief surfaces, with active-vs-resolved state,
   approved/declined/deferred/archived outcomes, resolver attribution, and
   rationale display;
+- dedicated outcome review route using `#/outcome-review`, with final outcome
+  counts, recent resolution windows, outcome mix, grounded retrospective
+  signals, and navigation into existing decision briefs;
 - checklist readiness remains informational unless the workspace explicitly
   enables its checklist policy;
 - comparison-detail approval request/status visibility for the supported
@@ -161,6 +164,7 @@ The current API surface is minimal:
 - `GET /decision-briefs/comparison_item/:entityId`
 - `GET /decision-outcomes/comparison_item/:entityId`
 - `PUT /decision-outcomes/comparison_item/:entityId`
+- `GET /outcome-review`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -222,6 +226,7 @@ Documented in:
 - `docs/api/assignments.md`
 - `docs/api/approvals.md`
 - `docs/api/review-checklists.md`
+- `docs/api/outcome-review.md`
 
 There is no standalone parcel API yet.
 
@@ -280,6 +285,8 @@ Real workflows now present:
   shared record types.
 - a personal operational home aggregating assignments, approvals awaiting the
   actor's decision, and unread accessible discussions without creating tasks.
+- a workspace outcome review surface for learning from final comparison-item
+  outcomes without creating a BI/reporting suite.
 
 Real workflows not present:
 
@@ -333,6 +340,8 @@ The current API cannot:
 - provide due dates, SLA queues, workload balancing, urgency scoring, or a
   generic task-management dashboard.
 - run arbitrary saved-view query expressions or BI/report-builder workflows.
+- provide predictive outcome analytics, financial performance modeling, or
+  arbitrary outcome reporting beyond the bounded outcome review summary.
 - send SMS/push alerts or realtime notifications.
 
 ## Where The Current Surface Could Mislead Contributors

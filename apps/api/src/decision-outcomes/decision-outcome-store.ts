@@ -35,12 +35,20 @@ export interface UpsertDecisionOutcomeInput {
   resolvedAt: Date;
 }
 
+export interface ListDecisionOutcomesInput {
+  workspaceId: string;
+  targetEntityType?: DecisionOutcomeTargetEntityType;
+  status?: DecisionOutcomeStatus;
+  resolvedSince?: Date;
+}
+
 export interface DecisionOutcomeStore {
   findForTarget(
     workspaceId: string,
     targetEntityType: DecisionOutcomeTargetEntityType,
     targetEntityId: string,
   ): Promise<StoredDecisionOutcome | null>;
+  listForWorkspace(input: ListDecisionOutcomesInput): Promise<StoredDecisionOutcome[]>;
   upsertForTarget(input: UpsertDecisionOutcomeInput): Promise<StoredDecisionOutcome>;
 }
 
@@ -56,6 +64,19 @@ export class MongoDecisionOutcomeStore implements DecisionOutcomeStore {
       targetEntityId,
     }).exec();
     return document ? mapDecisionOutcome(document) : null;
+  }
+
+  public async listForWorkspace(input: ListDecisionOutcomesInput): Promise<StoredDecisionOutcome[]> {
+    const query: Record<string, unknown> = {
+      workspaceId: input.workspaceId,
+      ...(input.targetEntityType ? { targetEntityType: input.targetEntityType } : {}),
+      ...(input.status ? { status: input.status } : {}),
+      ...(input.resolvedSince ? { resolvedAt: { $gte: input.resolvedSince } } : {}),
+    };
+    const documents = await DecisionOutcomeModel.find(query)
+      .sort({ resolvedAt: -1, _id: -1 })
+      .exec();
+    return documents.map(mapDecisionOutcome);
   }
 
   public async upsertForTarget(input: UpsertDecisionOutcomeInput): Promise<StoredDecisionOutcome> {

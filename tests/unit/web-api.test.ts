@@ -20,6 +20,7 @@ import {
   getMyWork,
   getReviewChecklistState,
   getNotificationPreferences,
+  getOutcomeReview,
   getWorkspaceAssignment,
   getWorkspacePolicy,
   getPortfolioSummary,
@@ -797,6 +798,47 @@ describe("web API client", () => {
       expect(headers.get("Authorization")).toBe("Bearer test-token");
       expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
     }
+  });
+
+  it("loads outcome review through the selected workspace with a review window", async () => {
+    const payload = {
+      workspaceId: "workspace-1",
+      generatedAt: "2026-06-16T10:00:00.000Z",
+      windowDays: 30,
+      summary: {
+        totalComparisonItems: 2,
+        resolvedItems: 1,
+        unresolvedItems: 1,
+        resolutionRate: 50,
+        recentResolvedItems: 1,
+        recentDeferredOrDeclinedItems: 1,
+        countsByStatus: [
+          { status: "approved", count: 0 },
+          { status: "declined", count: 1 },
+          { status: "deferred", count: 0 },
+          { status: "archived", count: 0 },
+        ],
+        countsByEntityType: [{ targetEntityType: "comparison_item", count: 1 }],
+      },
+      recentResolutions: [],
+      signals: [],
+    };
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(payload), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    globalThis.fetch = fetchMock;
+    setActiveWorkspaceId("workspace-1");
+
+    await expect(getOutcomeReview("test-token", 30)).resolves.toEqual(payload);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("http://localhost:4000/outcome-review?windowDays=30");
+    const headers = init.headers as Headers;
+    expect(headers.get("Authorization")).toBe("Bearer test-token");
+    expect(headers.get("X-Workspace-Id")).toBe("workspace-1");
   });
 
   it("uploads datasets with multipart form data and bearer auth", async () => {

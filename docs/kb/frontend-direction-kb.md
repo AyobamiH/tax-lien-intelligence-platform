@@ -96,6 +96,9 @@ Current implementation:
 - final outcome panels on comparison detail and decision brief surfaces with
   active/resolved state, resolver/timestamp, rationale display, and owner/admin
   outcome controls;
+- dedicated outcome review surface with summary counts, recent-resolution
+  windows, outcome mix, grounded retrospective signals, and navigation into
+  comparison-item decision briefs;
 - loading, empty, and error states;
 - no batch upload, drag-and-drop mega uploader, or live county sync.
 
@@ -162,6 +165,8 @@ Current and future page direction:
   and explicit blocked-action requirement messaging;
 - implemented: comparison-item decision brief/evidence pack surface;
 - implemented: comparison-item final outcome resolution surface;
+- implemented: outcome review/retrospective surface over recorded final
+  comparison outcomes;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities

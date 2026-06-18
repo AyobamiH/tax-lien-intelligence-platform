@@ -49,6 +49,9 @@ Current implementation:
   policy, dataset, and history boundaries;
 - decision-outcome model, store, service, and authenticated routes for
   comparison-item active/resolved state and owner/admin final resolution;
+- outcome-review aggregation service and authenticated read-only route for
+  workspace-level final outcome summaries, recent resolution windows, and
+  grounded retrospective signals;
 - selected-workspace membership middleware and explicit read/write,
   member-management, member-removal, role-management, approval-review, and
   sensitive-action checks;
@@ -153,6 +156,9 @@ Current implementation:
 - final decision outcome resolution with one current outcome per comparison
   item, resolver attribution, required rationale, approved-outcome governance
   checks, and bounded workspace activity;
+- outcome review retrieval with stale-target omission, current comparison
+  access filtering, status/entity grouping, and no predictive or financial
+  modeling layer;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -201,6 +207,8 @@ The backend should become the trusted boundary for:
   becoming a public reporting or compliance-custody system;
 - internal final-outcome persistence for supported decision records without
   becoming legal case management or downstream settlement tracking;
+- read-only retrospective aggregation over recorded outcomes without becoming
+  BI, predictive analytics, or financial reporting;
 - workspace membership administration and inactive-membership lifecycle;
 - future compliance-grade audit events;
 - security enforcement.

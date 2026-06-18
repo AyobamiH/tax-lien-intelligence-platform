@@ -2,6 +2,24 @@
 
 ## 2026-06-16
 
+- Implemented Phase 43 outcome review and retrospective insights as a bounded
+  operational learning workflow.
+- Added authenticated `GET /outcome-review` with selected-workspace membership,
+  final outcome counts, resolved/unresolved comparison mix, recent resolution
+  windows, status/entity grouping, and grounded retrospective signals.
+- Filtered outcome review aggregation through current comparison access so
+  stale/deleted targets and cross-workspace records are not surfaced.
+- Added a compact `#/outcome-review` frontend surface with window selection,
+  summary metrics, outcome mix, recent resolutions, review signals, and
+  navigation into existing decision briefs.
+- Added integration and frontend API contract tests for summary retrieval,
+  status counts, recent-window behavior, empty states, stale target omission,
+  invalid filters, and workspace isolation.
+- Refreshed the lockfile to `multer@2.2.0` after a new high-severity upload
+  DoS advisory affected `multer@2.1.1`; `npm audit` is clean again.
+- Kept BI/report builders, financial performance modeling, predictive
+  analytics, AI insight generation, legal/compliance reporting, exports, and
+  auction execution out of scope.
 - Implemented Phase 42 final decision outcomes for comparison items as a
   practical internal resolution workflow.
 - Added workspace-scoped decision outcome persistence with one current final

@@ -22,6 +22,8 @@ import { createNotificationDeliveryService } from "./notification-delivery/facto
 import type { NotificationDeliveryService } from "./notification-delivery/notification-delivery-service.js";
 import { createNotificationPreferenceService } from "./notification-preferences/factory.js";
 import type { NotificationPreferenceService } from "./notification-preferences/notification-preference-service.js";
+import { createOutcomeReviewService } from "./outcome-review/factory.js";
+import type { OutcomeReviewService } from "./outcome-review/outcome-review-service.js";
 import { createPortfolioService } from "./portfolio/factory.js";
 import type { PortfolioService } from "./portfolio/portfolio-service.js";
 import { createAlertRouter } from "./routes/alerts.js";
@@ -34,6 +36,7 @@ import { createDecisionOutcomeRouter } from "./routes/decision-outcomes.js";
 import { createInternalJobRouter } from "./routes/jobs.js";
 import { createNotificationDeliveryRouter } from "./routes/notification-deliveries.js";
 import { createNotificationPreferenceRouter } from "./routes/notification-preferences.js";
+import { createOutcomeReviewRouter } from "./routes/outcome-review.js";
 import { createPortfolioRouter } from "./routes/portfolio.js";
 import { createSavedViewRouter } from "./routes/saved-views.js";
 import { createScoringRouter } from "./routes/scoring.js";
@@ -93,6 +96,7 @@ export interface AppDependencies {
   workspacePolicyService?: WorkspacePolicyService;
   decisionBriefService?: DecisionBriefService;
   decisionOutcomeService?: DecisionOutcomeService;
+  outcomeReviewService?: OutcomeReviewService;
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -134,6 +138,8 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   const decisionOutcomeService =
     dependencies.decisionOutcomeService ??
     createDecisionOutcomeService(comparisonService, approvalService, workspacePolicyService);
+  const outcomeReviewService =
+    dependencies.outcomeReviewService ?? createOutcomeReviewService(comparisonService);
   const decisionBriefService =
     dependencies.decisionBriefService ??
     createDecisionBriefService(
@@ -194,6 +200,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     "/decision-outcomes",
     createDecisionOutcomeRouter(authService, workspaceService, decisionOutcomeService, workspaceActivityService),
   );
+  app.use("/outcome-review", createOutcomeReviewRouter(authService, workspaceService, outcomeReviewService));
   app.use("/decision-briefs", createDecisionBriefRouter(authService, workspaceService, decisionBriefService));
   app.use("/datasets", createDatasetRouter(authService, datasetService, workspaceService, workspaceActivityService));
   app.use("/datasets", createScoringRouter(authService, scoringService, workspaceService, workspaceActivityService));

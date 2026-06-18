@@ -40,6 +40,8 @@ Current repo protections:
 - frontend compiler, CSS, and bundler packages classified as development-only;
 - Vite upgraded from vulnerable `7.3.3` to `8.0.16` and both esbuild paths
   consolidated on fixed `0.28.1`;
+- `multer` lockfile resolution refreshed to `2.2.0` after new upload DoS
+  advisories affected `2.1.1`;
 - full and production-only npm audits at Phase 34 completion report zero known
   vulnerabilities;
 - `JWT_SECRET` modeled in configuration;
@@ -104,6 +106,10 @@ Current repo protections:
   validation, and no rationale copying into activity metadata;
 - approved final outcomes check current governance prerequisites and reject
   while approvals are still pending;
+- outcome review aggregation behind authentication and selected-workspace
+  membership, with current comparison target filtering before counts or recent
+  resolution rows are returned so stale/deleted and cross-workspace outcomes do
+  not leak;
 - tenant-owned dataset records;
 - authenticated dataset upload/list/detail routes;
 - browser upload flow that uses the authenticated dataset upload endpoint;

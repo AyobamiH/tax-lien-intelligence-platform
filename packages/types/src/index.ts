@@ -339,6 +339,69 @@ export interface UpsertDecisionOutcomeResponse {
   changed: boolean;
 }
 
+export interface OutcomeReviewStatusCount {
+  status: DecisionOutcomeStatus;
+  count: number;
+}
+
+export interface OutcomeReviewEntityTypeCount {
+  targetEntityType: DecisionOutcomeTargetEntityType;
+  count: number;
+}
+
+export interface OutcomeReviewTargetSummary {
+  targetEntityType: DecisionOutcomeTargetEntityType;
+  targetEntityId: string;
+  label: string;
+  datasetId?: string;
+  decision?: ComparisonDecision;
+  investmentScore?: number;
+  riskScore?: number;
+  propertyTypeCategory?: string;
+  sourceRowNumber?: number;
+}
+
+export interface OutcomeReviewResolution {
+  outcome: DecisionOutcomeResponse;
+  target: OutcomeReviewTargetSummary;
+}
+
+export type OutcomeReviewSignalSeverity = "info" | "warning";
+export type OutcomeReviewSignalCode =
+  | "no_resolved_items"
+  | "unresolved_comparison_items"
+  | "deferred_outcomes"
+  | "recent_declines"
+  | "no_recent_resolutions";
+
+export interface OutcomeReviewSignal {
+  code: OutcomeReviewSignalCode;
+  severity: OutcomeReviewSignalSeverity;
+  label: string;
+  detail: string;
+  count?: number;
+}
+
+export interface OutcomeReviewSummary {
+  totalComparisonItems: number;
+  resolvedItems: number;
+  unresolvedItems: number;
+  resolutionRate: number;
+  recentResolvedItems: number;
+  recentDeferredOrDeclinedItems: number;
+  countsByStatus: OutcomeReviewStatusCount[];
+  countsByEntityType: OutcomeReviewEntityTypeCount[];
+}
+
+export interface OutcomeReviewResponse {
+  workspaceId: string;
+  generatedAt: string;
+  windowDays: number;
+  summary: OutcomeReviewSummary;
+  recentResolutions: OutcomeReviewResolution[];
+  signals: OutcomeReviewSignal[];
+}
+
 export type WorkspaceCommentEntityType =
   | "dataset"
   | "comparison_item"

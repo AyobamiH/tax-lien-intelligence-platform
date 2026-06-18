@@ -38,6 +38,15 @@ Current shared types in `packages/types`:
 - `DecisionOutcomeStateResponse`;
 - `UpsertDecisionOutcomeRequest`;
 - `UpsertDecisionOutcomeResponse`.
+- `OutcomeReviewStatusCount`;
+- `OutcomeReviewEntityTypeCount`;
+- `OutcomeReviewTargetSummary`;
+- `OutcomeReviewResolution`;
+- `OutcomeReviewSignalSeverity`;
+- `OutcomeReviewSignalCode`;
+- `OutcomeReviewSignal`;
+- `OutcomeReviewSummary`;
+- `OutcomeReviewResponse`.
 - `AuthUserResponse`;
 - `AuthSuccessResponse`;
 - `AuthMeResponse`;

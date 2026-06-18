@@ -90,6 +90,10 @@ Phase 42 adds final decision outcomes for comparison items, so teams can mark
 records approved, declined, deferred, or archived with resolver attribution,
 rationale, and active-vs-resolved visibility. It is internal decision closure,
 not legal case management or downstream settlement operations.
+Phase 43 adds outcome review so workspaces can inspect final outcome counts,
+recent resolution patterns, and bounded retrospective signals over current
+comparison work. It is operational learning, not BI, predictive analytics, or
+financial reporting.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -158,6 +162,8 @@ Current evidence:
   key evidence and current readiness gates before deciding what to do next.
 - workspace owners/admins can record a final comparison-item outcome while
   members can see whether the item is still active or resolved.
+- workspace members can review final outcome distribution and recent
+  resolutions without leaving the existing decision workflow.
 
 ## What This SaaS Is
 
@@ -201,6 +207,8 @@ The intended product loop is:
     evidence, missing gates, recent history, and discussion before continuing.
 22. an owner/admin can record the final internal outcome with rationale so the
     team can distinguish active review from resolved decision work.
+23. the workspace can review recent final outcomes, outcome mix, and bounded
+    follow-up signals to improve future decision discipline.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
@@ -216,10 +224,12 @@ hardening now exist. A focused comparison-to-portfolio approval checkpoint now
 exists. A member-focused my-work aggregation surface now exists. Workspace
 review checklist templates and record completion now exist. Workspace policy
 rules, comparison-item decision briefs, and final comparison-item outcomes now
-exist. Broad county coverage, live county sync, full spreadsheet editing,
+exist. Outcome review and retrospective summaries now exist for recorded final
+comparison outcomes. Broad county coverage, live county sync, full spreadsheet editing,
 realtime chat, rich-text collaboration, compliance audit tooling, automated
 checklist evidence, PDF brief generation, public evidence sharing, legal
-case-management workflows, reopen workflows, ML mapping suggestions, SMS/push
+case-management workflows, reopen workflows, predictive outcome analytics,
+financial performance reporting, ML mapping suggestions, SMS/push
 alert delivery, user-facing scheduler policy controls, broader automatic
 refresh, advanced digest scheduling/templates/retries, multi-step approval
 governance, and richer automation remain future direction.
