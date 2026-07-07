@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Added `npm run smoke:mongo` to recover the abandoned pre-Phase-45
+  verification gap: a real Mongo-backed follow-up workflow smoke for Phase 44.
+  The smoke uses a temporary database, exercises authenticated follow-up set,
+  queue, scheduler reminder generation, duplicate suppression, alert
+  persistence, and clear behavior, then drops only the temporary smoke database.
+
 ## 2026-06-16
 
 - Implemented Phase 44 follow-up dates, reminders, and review cadence as a

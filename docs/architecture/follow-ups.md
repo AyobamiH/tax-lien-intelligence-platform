@@ -101,6 +101,19 @@ Setting or clearing a follow-up records a bounded workspace activity event:
 Activity metadata includes only safe ids, due-state/date, and a note presence
 flag. It does not copy follow-up notes into the activity feed.
 
+## Runtime Smoke
+
+`npm run smoke:mongo` provides a bounded Mongo-backed follow-up workflow smoke.
+It builds the workspace, connects to `MONGODB_URI` using a unique temporary
+database name, starts the API app in-process, sets a due follow-up through the
+authenticated API, verifies the My Work queue, runs the scheduler reminder
+service, confirms one `follow_up_due` alert with duplicate suppression, clears
+the follow-up, and drops only the temporary smoke database.
+
+This is local runtime evidence for the follow-up reminder path. It is not
+deployed proof, browser-driver screenshot evidence, production data validation,
+or a recurring task platform.
+
 ## Security
 
 Follow-ups are workspace-scoped operational data.

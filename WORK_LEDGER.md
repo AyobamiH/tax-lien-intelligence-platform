@@ -605,3 +605,70 @@
 - Next safe step: continue from repo truth with the next bounded
   product-continuity or hardening task; Crabbox remains a verification gap
   unless a usable local CLI becomes available or can be safely installed.
+
+## 2026-07-07T12:45:00+01:00 - Pre-Phase-45 abandoned verification recovery
+
+- Requested task: identify and implement work that was left behind when Phase
+  44 was taken on before considering Phase 45.
+- Verified abandoned work from memory and ledger:
+  - real browser-driver screenshots remained unavailable;
+  - deployed proof remained a permission boundary;
+  - MongoDB-backed live follow-up workflow smoke remained unimplemented;
+  - Crabbox proof remained unavailable because the CLI was previously missing.
+- Current Crabbox state before this task:
+  - Crabbox CLI `0.36.0` is now installed locally;
+  - `crabbox doctor --provider local-container` passes;
+  - brokered/cloud proof still requires provider login/config.
+- Chosen next task and why: add a repeatable Mongo-backed follow-up smoke
+  before Phase 45 because it is the strongest abandoned verification gap that
+  can be implemented without production credentials, deployment, migrations, or
+  browser-driver setup.
+- Files changed:
+  - `package.json`;
+  - `scripts/mongo-follow-up-smoke.mjs`;
+  - `docs/changelog.md`;
+  - `WORK_LEDGER.md`.
+- Expected smoke behavior:
+  - builds the workspace;
+  - connects to a supplied MongoDB URI using a unique temporary database name;
+  - starts the API app in-process;
+  - registers an authenticated user and resolves the real workspace context;
+  - seeds one portfolio record through the Mongo model;
+  - sets a due follow-up through the authenticated API;
+  - verifies My Work/follow-up queue state;
+  - runs the real follow-up reminder service against Mongo;
+  - verifies one `follow_up_due` alert and duplicate suppression;
+  - clears the follow-up and verifies no further due scan candidates remain;
+  - drops only the temporary smoke database during cleanup.
+- Boundaries preserved:
+  - no production database, production credentials, deployment, migration, or
+    service lifecycle mutation;
+  - no browser-driver screenshot proof claimed;
+  - no brokered/cloud Crabbox proof claimed unless a later configured provider
+    run succeeds.
+- First verification:
+  - `git diff --check` passed;
+  - `npm run smoke:mongo` passed against a temporary local `mongo:7` container
+    and printed `mongo follow-up smoke passed`;
+  - the temporary Docker container was removed after the run;
+  - `crabbox doctor --provider local-container` passed with `leases=0`;
+  - `crabbox doctor --provider docker-sandbox` failed because `sbx` is not on
+    `PATH`;
+  - no Crabbox run proof is claimed because local-container run previously
+    stalled on default image SSH readiness and docker-sandbox lacks its provider
+    CLI.
+- Full verification:
+  - `npm install` passed with packages up to date and 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 39 files and 266 tests;
+  - `npm run build` passed;
+  - `npm audit` passed with 0 vulnerabilities;
+  - final `npm run smoke:mongo` passed against a temporary local `mongo:7`
+    container and printed `mongo follow-up smoke passed`;
+  - final `git diff --check` passed.
+- Remaining limits after this recovery:
+  - no deployed proof;
+  - no real browser-driver screenshots;
+  - no brokered/cloud Crabbox proof until a provider is configured;
+  - Phase 45 follow-up completion/snooze remains unimplemented and should be
+    started only after this verification recovery is committed and pushed.
