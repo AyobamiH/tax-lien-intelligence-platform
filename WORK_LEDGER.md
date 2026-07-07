@@ -415,3 +415,81 @@
 - Next safe step: continue to interactive browser-driver proof if a safe local
   browser tool is available, otherwise continue the next roadmap hardening
   task.
+
+## 2026-07-07T09:58:02+01:00 - Browser-like DOM smoke evidence
+
+- Requested task: continue autonomous Tax Lien project work from current repo
+  truth, prioritize local browser proof, diagnose/repair Crabbox if safely
+  possible, fall back to the strongest non-Crabbox verification if needed,
+  update control files, verify, commit, push, and continue unless blocked.
+- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`;
+  fallback typo path `/home/oneclickwebsitefactory/tax-lien-platform` was not
+  used.
+- Branch and starting HEAD: `main` at
+  `e091a56ee7e45ea58107a4b209c736c7155717e5`.
+- Starting state: clean working tree tracking `oneclick/main`.
+- What was inspected: git status, branch, remotes, recent commits, package
+  scripts, Vite/web package, API package, `scripts/local-runtime-smoke.mjs`,
+  project-control files, frontend entrypoints, app routing/session bootstrap,
+  existing tests, browser tool availability, and Crabbox wrapper/registry
+  availability.
+- Coding evidence tools used first:
+  - `coding_validate_project` completed;
+  - `coding_repo_map` completed;
+  - `coding_route_trace`, `coding_api_contract_audit`, `coding_env_audit`, and
+    `coding_secret_audit` were adapter-limited, so direct local inspection was
+    used for route/runtime/browser details.
+- Verified facts discovered:
+  - current HEAD is the previously pushed runtime-smoke ledger commit;
+  - no `crabbox` binary is available on PATH;
+  - the OpenClaw `crabbox-wrapper.mjs` is present but fails basic
+    `--help`/`run --help` sanity checks because no usable CLI is resolved;
+  - public npm has `@openclaw/crabbox-plugin@0.23.0`, but no `crabbox` CLI
+    package was found by `npm view crabbox`;
+  - no Chromium, Chrome, or Firefox binary is available on PATH;
+  - the repo already has `jsdom`, React, ReactDOM, and Vitest available for a
+    dependency-free browser-like DOM render smoke.
+- Assumptions made: jsdom render/bootstrap proof is the strongest safe local
+  browser-adjacent evidence available without adding a browser driver or
+  claiming screenshots/Crabbox proof.
+- Chosen next task and why: add `npm run smoke:browser` because it improves
+  local browser-surface confidence using existing dependencies and keeps the
+  evidence boundary honest.
+- Files changed:
+  - `package.json`;
+  - `tests/unit/web-app-smoke.test.ts`;
+  - `README.md`;
+  - `ACCEPTANCE.md`;
+  - `OPENCLAW_RUNBOOK.md`;
+  - `docs/architecture/frontend-review.md`;
+  - `WORK_LEDGER.md`.
+- Changed-state declaration: test/docs/control/package-script files changed.
+  No dependency install, deployment, migration, service lifecycle action,
+  production mutation, destructive action, or secret read was performed.
+- Verification:
+  - initial `npm run smoke:browser` passed with 1 test file and 2 tests;
+  - `git diff --check` passed;
+  - `npm run typecheck` passed;
+  - targeted `npm run smoke:browser` passed with 1 test file and 2 tests;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run test` passed with 38 files and 263 tests;
+  - `npm run build` passed;
+  - `npm run smoke:local` passed after building the workspace and verifying
+    API health/404 plus built web assets over local HTTP.
+- Crabbox result:
+  - `command -v crabbox` returned no binary;
+  - `node .../openclaw/scripts/crabbox-wrapper.mjs --help` failed sanity
+    checks;
+  - `node .../openclaw/scripts/crabbox-wrapper.mjs run --help` failed sanity
+    checks;
+  - `npm view crabbox` returned 404;
+  - `npm view @openclaw/crabbox-plugin` returned plugin metadata but no CLI
+    `bin`;
+  - no Crabbox run occurred and no Crabbox proof is claimed.
+- Remaining limits: `npm run smoke:browser` is browser-like DOM
+  render/bootstrap proof only. It is not a real browser-driver run, screenshot
+  evidence, MongoDB-backed end-to-end workflow proof, deployed proof, or
+  Crabbox proof.
+- Next safe step: commit and push the browser-like smoke evidence task, then
+  continue with the next bounded roadmap/hardening task unless a permission
+  boundary is reached.

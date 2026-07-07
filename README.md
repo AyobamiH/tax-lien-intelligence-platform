@@ -168,6 +168,7 @@ npm run typecheck
 npm run test
 npm run build
 npm run smoke:local
+npm run smoke:browser
 ```
 
 `npm run smoke:local` builds the workspace, starts the API app in-process,
@@ -175,3 +176,9 @@ serves the built web shell from `apps/web/dist`, verifies `/healthz`, verifies
 the structured unknown-route response, and fetches the built HTML/CSS/JS assets
 over local HTTP. It is a bounded local runtime smoke, not full browser
 automation or deployed proof.
+
+`npm run smoke:browser` mounts the real React app in a jsdom browser-like DOM,
+checks the unauthenticated app shell, and bootstraps the authenticated operator
+shell with mocked API responses. It is local render/bootstrap proof, not
+screenshot capture, browser-driver automation, MongoDB-backed end-to-end proof,
+Crabbox proof, or deployed proof.

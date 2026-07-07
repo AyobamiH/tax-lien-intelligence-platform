@@ -65,6 +65,9 @@ Implemented:
 - reusable review model helpers and unit tests.
 - bounded local runtime smoke via `npm run smoke:local`, which verifies the
   built web shell and API health/404 behavior over local HTTP.
+- browser-like DOM render/bootstrap smoke via `npm run smoke:browser`, which
+  mounts the real React app in jsdom, checks the unauthenticated shell, and
+  bootstraps the authenticated operator shell with mocked API responses.
 
 Not implemented:
 

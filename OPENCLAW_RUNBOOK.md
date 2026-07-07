@@ -50,6 +50,9 @@ Do not prioritize marketing, broad redesign, speculative rewrites, or fake AI.
   destructive actions.
 - If Crabbox is missing or broken, diagnose whether the issue is a missing PATH
   binary, broken wrapper, broken local config, or missing repo-local script.
+- If Crabbox and browser binaries remain unavailable, use `npm run
+  smoke:browser` as the strongest local browser-like DOM render/bootstrap check,
+  while recording that it is not screenshot or browser-driver evidence.
 - Repair Crabbox only when the current operator request explicitly authorizes
   local repair and the fix is limited to normal local tooling or repo/workspace
   configuration. Do not use paid providers, production credentials, or

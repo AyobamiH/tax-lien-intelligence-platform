@@ -51,6 +51,7 @@ Completion evidence may include:
 - successful `npm run test`;
 - successful `npm run build`;
 - successful `npm run smoke:local`;
+- successful `npm run smoke:browser`;
 - successful `npm run audit`;
 - focused test output when a narrow code path changes.
 
@@ -70,13 +71,14 @@ For source changes:
 - `npm run test`;
 - `npm run build`;
 - `npm run smoke:local` when runtime/API/browser-shell behavior is in scope;
+- `npm run smoke:browser` when browser render/bootstrap behavior is in scope;
 - `npm run audit` for dependency/security-sensitive changes.
 
 ## Unverified After This Run
 
 The following are not proven by static inspection alone:
 
-- browser screenshots or interactive browser smoke tests;
+- browser-driver screenshots or interactive browser smoke tests;
 - MongoDB-backed end-to-end flows outside automated tests;
 - production deployment posture;
 - production deployment behavior, secret rotation, and external worker
