@@ -61,7 +61,7 @@ It shows:
 - unread alert count and alert read/read-all actions;
 - dedicated notification preferences route using `#/notifications`;
 - notification controls for supported scoring, discussion, assignment, and
-  followed-item alert types, enabled state,
+  followed-item, and follow-up alert types, enabled state,
   in-app-only versus email-capable handling, and immediate versus digest-ready
   timing;
 - dedicated delivery history route using `#/delivery-history`;
@@ -86,6 +86,11 @@ It shows:
 - follow/unfollow controls and active follower count on dataset, comparison,
   watchlist, and portfolio detail surfaces;
 - a separate informational Following queue in My Work;
+- follow-up date controls on comparison, watchlist, and portfolio detail
+  surfaces, with due-state visibility, optional note context, update, and
+  clear actions;
+- an actionable Follow-ups queue in My Work for upcoming, due, and overdue
+  follow-ups assigned to or created by the current member;
 - compact review checklists on comparison, watchlist, and portfolio detail,
   with required/optional labels, completion attribution, and readiness progress;
 - workspace checklist-template management for owners/admins, with member
@@ -165,6 +170,10 @@ The current API surface is minimal:
 - `GET /decision-outcomes/comparison_item/:entityId`
 - `PUT /decision-outcomes/comparison_item/:entityId`
 - `GET /outcome-review`
+- `GET /follow-ups/queue`
+- `GET /follow-ups/:entityType/:entityId`
+- `PUT /follow-ups/:entityType/:entityId`
+- `DELETE /follow-ups/:entityType/:entityId`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -227,6 +236,7 @@ Documented in:
 - `docs/api/approvals.md`
 - `docs/api/review-checklists.md`
 - `docs/api/outcome-review.md`
+- `docs/api/follow-ups.md`
 
 There is no standalone parcel API yet.
 
@@ -265,15 +275,15 @@ Real workflows now present:
   work slices.
 - comparison workspace, decision state, and lightweight notes.
 - in-app alert review for scoring outcomes, bounded workspace discussion,
-  assignments, and followed-item changes.
+  assignments, followed-item changes, and follow-up reminders.
 - notification preference management for scoring, discussion, assignment, and
-  followed-item alert types.
+  followed-item, and follow-up alert types.
 - import readiness review before relying on score output.
 - focused import repair before rerunning readiness/scoring.
 - deterministic import profile reuse for repeated upload shapes.
 - deterministic saved views for repeated portfolio review filters.
 - notification preferences for controlling in-app-only versus email-capable
-  scoring, discussion, assignment, and followed-item alerts.
+  scoring, discussion, assignment, followed-item, and follow-up alerts.
 - env-driven immediate product-alert email for supported alerts when SMTP
   config is complete.
 - scheduled digest processing and owner-scoped delivery history.
@@ -284,7 +294,8 @@ Real workflows now present:
 - explicit current responsibility plus a personal assigned-to-me queue for four
   shared record types.
 - a personal operational home aggregating assignments, approvals awaiting the
-  actor's decision, and unread accessible discussions without creating tasks.
+  actor's decision, unread accessible discussions, and bounded follow-ups
+  without creating tasks.
 - a workspace outcome review surface for learning from final comparison-item
   outcomes without creating a BI/reporting suite.
 
@@ -337,8 +348,9 @@ The current API cannot:
 - provide chat, rich-text comments, mentions, task approvals, multi-step
   approval chains, realtime collaboration,
   compliance-grade audit exports, or auction execution.
-- provide due dates, SLA queues, workload balancing, urgency scoring, or a
-  generic task-management dashboard.
+- provide generic task objects, SLA queues, workload balancing, urgency
+  scoring, recurring calendar behavior, or a generic task-management
+  dashboard.
 - run arbitrary saved-view query expressions or BI/report-builder workflows.
 - provide predictive outcome analytics, financial performance modeling, or
   arbitrary outcome reporting beyond the bounded outcome review summary.

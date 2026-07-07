@@ -12,6 +12,11 @@ Phase 33 assignment alerts may appear when `workspace_item_assigned` is
 delivery-eligible. Their metadata is limited to workspace, assignment, actor,
 and related-record identifiers and excludes record content or task fields.
 
+Phase 44 follow-up reminders may appear when `follow_up_due` is
+delivery-eligible. Their metadata is limited to workspace, follow-up id, due
+date, due state, and related-record identifiers and excludes follow-up note text
+or record content.
+
 All routes require `Authorization: Bearer <jwt-access-token>`.
 
 ## `GET /notification-deliveries`

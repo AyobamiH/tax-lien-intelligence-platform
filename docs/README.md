@@ -47,6 +47,7 @@ before writing specs, prompts, or implementation plans.
 - [Decision Brief Architecture](architecture/decision-briefs.md)
 - [Decision Outcome Architecture](architecture/decision-outcomes.md)
 - [Outcome Review Architecture](architecture/outcome-review.md)
+- [Follow-Up Reminder Architecture](architecture/follow-ups.md)
 - [Dependency Security And Supply-Chain Hygiene](architecture/dependency-security.md)
 - [Worker And Scheduler Foundation](architecture/worker-and-scheduler.md)
 - [Repository Workflow](architecture/repository-workflow.md)
@@ -76,6 +77,7 @@ before writing specs, prompts, or implementation plans.
 - [Decision Briefs API](api/decision-briefs.md)
 - [Decision Outcomes API](api/decision-outcomes.md)
 - [Outcome Review API](api/outcome-review.md)
+- [Follow-Ups API](api/follow-ups.md)
 
 ## Decisions
 

@@ -201,6 +201,9 @@ export function mapAlert(document: AlertDocument): StoredAlert {
             ...(document.metadata.followActorEmail
               ? { followActorEmail: document.metadata.followActorEmail }
               : {}),
+            ...(document.metadata.followUpId ? { followUpId: document.metadata.followUpId } : {}),
+            ...(document.metadata.followUpDueAt ? { followUpDueAt: document.metadata.followUpDueAt } : {}),
+            ...(document.metadata.followUpDueState ? { followUpDueState: document.metadata.followUpDueState } : {}),
           },
         }
       : {}),
@@ -272,6 +275,15 @@ export function mapAlert(document: AlertDocument): StoredAlert {
                         : {}),
                       ...(document.deliveryPreparation.payload.metadata.followActorEmail
                         ? { followActorEmail: document.deliveryPreparation.payload.metadata.followActorEmail }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.followUpId
+                        ? { followUpId: document.deliveryPreparation.payload.metadata.followUpId }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.followUpDueAt
+                        ? { followUpDueAt: document.deliveryPreparation.payload.metadata.followUpDueAt }
+                        : {}),
+                      ...(document.deliveryPreparation.payload.metadata.followUpDueState
+                        ? { followUpDueState: document.deliveryPreparation.payload.metadata.followUpDueState }
                         : {}),
                     },
                   },

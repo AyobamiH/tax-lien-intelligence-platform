@@ -22,6 +22,7 @@ const envSchema = z.object({
   MAINTENANCE_MAX_DATASETS_PER_RUN: z.coerce.number().int().positive().max(250).default(25),
   MAINTENANCE_MIN_REFRESH_INTERVAL_HOURS: z.coerce.number().int().positive().max(720).default(24),
   MAINTENANCE_FAILURE_SUPPRESSION_HOURS: z.coerce.number().int().positive().max(720).default(24),
+  FOLLOW_UP_REMINDER_INTERVAL_MS: z.coerce.number().int().positive().default(3_600_000),
   CENSUS_GEOCODER_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
   CENSUS_GEOCODER_BASE_URL: z.string().url().default("https://geocoding.geo.census.gov"),
   CENSUS_GEOCODER_BENCHMARK: z.string().min(1).max(80).default("Public_AR_Current"),
@@ -92,6 +93,9 @@ export interface ApiConfig {
     minRefreshIntervalHours: number;
     failureSuppressionHours: number;
   };
+  followUps: {
+    reminderIntervalMs: number;
+  };
   externalEnrichment: {
     freshnessWindowDays: number;
     censusGeocoder: {
@@ -149,6 +153,9 @@ export const apiConfig: ApiConfig = {
     maxDatasetsPerRun: parsedEnv.MAINTENANCE_MAX_DATASETS_PER_RUN,
     minRefreshIntervalHours: parsedEnv.MAINTENANCE_MIN_REFRESH_INTERVAL_HOURS,
     failureSuppressionHours: parsedEnv.MAINTENANCE_FAILURE_SUPPRESSION_HOURS,
+  },
+  followUps: {
+    reminderIntervalMs: parsedEnv.FOLLOW_UP_REMINDER_INTERVAL_MS,
   },
   externalEnrichment: {
     freshnessWindowDays: parsedEnv.ENRICHMENT_FRESHNESS_WINDOW_DAYS,

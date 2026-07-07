@@ -117,7 +117,8 @@ export type WorkspaceActivityCategory =
   | "portfolio"
   | "members"
   | "responsibility"
-  | "approvals";
+  | "approvals"
+  | "cadence";
 export type WorkspaceActivityEventType =
   | "dataset_uploaded"
   | "dataset_scoring_requested"
@@ -138,7 +139,9 @@ export type WorkspaceActivityEventType =
   | "approval_approved"
   | "approval_rejected"
   | "approval_cancelled"
-  | "decision_outcome_resolved";
+  | "decision_outcome_resolved"
+  | "follow_up_set"
+  | "follow_up_cleared";
 export type WorkspaceActivityRelatedEntityType =
   | "dataset"
   | "job"
@@ -180,6 +183,10 @@ export interface WorkspaceActivityMetadata {
   decisionOutcomeId?: string;
   decisionOutcomeStatus?: DecisionOutcomeStatus;
   decisionOutcomeResolverEmail?: string;
+  followUpId?: string;
+  followUpDueAt?: string;
+  followUpPreviousDueAt?: string;
+  followUpNote?: string;
 }
 
 export interface WorkspaceActivityResponse {
@@ -467,6 +474,7 @@ export interface MyWorkCounts {
   unreadDiscussions: number;
   unreadMessages: number;
   following: number;
+  followUps: number;
   totalActionable: number;
 }
 
@@ -521,6 +529,80 @@ export interface UnfollowEntityResponse {
 
 export interface FollowListResponse {
   follows: FollowSubscriptionResponse[];
+}
+
+export type FollowUpTargetEntityType =
+  | "comparison_item"
+  | "watchlist_item"
+  | "portfolio_item";
+export type FollowUpDueState =
+  | "upcoming"
+  | "due"
+  | "overdue"
+  | "cleared"
+  | "none";
+export type FollowUpReminderState = "none" | "due" | "overdue";
+
+export interface FollowUpResponse {
+  id: string;
+  workspaceId: string;
+  targetEntityType: FollowUpTargetEntityType;
+  targetEntityId: string;
+  dueAt: string;
+  dueState: FollowUpDueState;
+  note?: string;
+  createdByUserId: string;
+  updatedByUserId: string;
+  clearedAt?: string;
+  clearedByUserId?: string;
+  lastReminderAt?: string;
+  lastReminderState: FollowUpReminderState;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FollowUpStateResponse {
+  targetEntityType: FollowUpTargetEntityType;
+  targetEntityId: string;
+  dueState: FollowUpDueState;
+  followUp: FollowUpResponse | null;
+}
+
+export interface UpsertFollowUpRequest {
+  dueAt: string;
+  note?: string | null;
+}
+
+export interface UpsertFollowUpResponse {
+  followUp: FollowUpResponse;
+  changed: boolean;
+}
+
+export interface ClearFollowUpResponse {
+  targetEntityType: FollowUpTargetEntityType;
+  targetEntityId: string;
+  cleared: boolean;
+}
+
+export interface FollowUpQueueResponse {
+  workspaceId: string;
+  generatedAt: string;
+  windowDays: number;
+  counts: {
+    upcoming: number;
+    due: number;
+    overdue: number;
+    total: number;
+  };
+  items: FollowUpResponse[];
+}
+
+export interface FollowUpReminderRunResponse {
+  generatedAt: string;
+  scanned: number;
+  remindersCreated: number;
+  suppressed: number;
+  stale: number;
 }
 
 export type ReviewChecklistTargetEntityType =
@@ -725,6 +807,11 @@ export interface MyWorkFollowingQueue {
   items: FollowSubscriptionResponse[];
 }
 
+export interface MyWorkFollowUpQueue {
+  count: number;
+  items: FollowUpResponse[];
+}
+
 export interface MyWorkResponse {
   workspaceId: string;
   generatedAt: string;
@@ -734,6 +821,7 @@ export interface MyWorkResponse {
     approvals: MyWorkApprovalQueue;
     discussions: MyWorkDiscussionQueue;
     following: MyWorkFollowingQueue;
+    followUps: MyWorkFollowUpQueue;
   };
 }
 
@@ -1126,7 +1214,8 @@ export type AlertType =
   | "scoring_job_failed"
   | "workspace_comment_added"
   | "workspace_item_assigned"
-  | "followed_item_changed";
+  | "followed_item_changed"
+  | "follow_up_due";
 export type AlertSeverity = "info" | "error";
 export type AlertStatus = "unread" | "read";
 export type AlertRelatedEntityType =
@@ -1153,6 +1242,9 @@ export interface AlertMetadata {
   followChangeType?: FollowedItemChangeType;
   followActorUserId?: string;
   followActorEmail?: string;
+  followUpId?: string;
+  followUpDueAt?: string;
+  followUpDueState?: FollowUpDueState;
 }
 
 export interface AlertResponse {

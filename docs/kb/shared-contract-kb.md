@@ -530,7 +530,8 @@ Current alert types:
 - `scoring_job_failed`;
 - `workspace_comment_added`;
 - `workspace_item_assigned`;
-- `followed_item_changed`.
+- `followed_item_changed`;
+- `follow_up_due`.
 
 Current alert metadata is limited to safe identifiers and summary values:
 
@@ -544,7 +545,8 @@ Current alert metadata is limited to safe identifiers and summary values:
 - workspace id, follow event id, allowlisted change type, and verified actor
   identity for followed-item updates;
 - workspace id, assignment id, and member-visible actor identity for assignment
-  alerts.
+  alerts;
+- workspace id, follow-up id, due date, and due state for follow-up alerts.
 
 Alert contracts must not expose raw job payloads, stack traces, source rows,
 tokens, secrets, provider responses, or another tenant's data. Email delivery
@@ -566,8 +568,8 @@ Current notification preference contracts include:
 - digest batch status and scheduler result contracts;
 - safe owner-facing delivery and digest history response contracts.
 
-Notification preferences cover supported scoring, workspace-discussion, and
-workspace-assignment alert types. They must not
+Notification preferences cover supported scoring, workspace-discussion,
+workspace-assignment, followed-item, and follow-up alert types. They must not
 become a broad messaging rules engine, marketing preference center, shared/team
 policy model, provider configuration payload, SMS/push contract, or realtime
 push contract without a separate product and security phase.
@@ -646,7 +648,7 @@ Current workspace activity contracts include:
 - workspace-scoped activity id;
 - actor user id and member-visible email;
 - category: `data`, `decisions`, `portfolio`, `members`, `responsibility`, or
-  `approvals`;
+  `approvals`, or `cadence`;
 - allowlisted event type;
 - related entity type/id;
 - server-derived summary;
@@ -682,6 +684,37 @@ Assignment contracts must not grow task status, due dates, reminders,
 priorities, subtasks, approval state, or arbitrary metadata without a separate
 phase.
 
+## Follow-Up Contract
+
+The current follow-up contract is allowlisted to `comparison_item`,
+`watchlist_item`, and `portfolio_item`.
+
+Follow-up responses include:
+
+- follow-up id;
+- workspace id;
+- target entity type/id;
+- due date;
+- derived due state: `none`, `upcoming`, `due`, `overdue`, or `cleared`;
+- reminder state;
+- optional bounded note;
+- creator/updater ids;
+- optional current assignee id;
+- optional cleared actor/timestamp;
+- created/updated timestamps.
+
+Clients submit only the target type/id in the URL and a bounded due date/note
+body for create/update. The backend derives workspace, actor, target access,
+assignee, due state, reminder state, activity, and alert recipients.
+
+`follow_up_due` alerts contain safe target metadata, follow-up id, due date,
+and due state only. They must not include follow-up note text, record contents,
+calendar payloads, recurrence rules, or SLA fields.
+
+This contract is a bounded operational cadence layer. It is not a generic task
+object, calendar event, recurrence engine, escalation policy, workforce plan,
+or auction-execution workflow.
+
 ## Workspace Discussion Attention Contract
 
 Current discussion attention contracts include:
@@ -704,12 +737,12 @@ acknowledges matching personal discussion alerts.
 The current my-work response composes existing contracts:
 
 - verified workspace id and server generation timestamp;
-- assigned, reviewable-approval, unread-thread, unread-message, and total
-  actionable counts, plus a separate followed-record count;
-- assignment, approval, discussion, and following queues with total count plus
-  at most eight preview items;
-- existing assignment, approval, discussion-attention, and follow-subscription
-  item shapes.
+- assigned, reviewable-approval, unread-thread, unread-message, follow-up, and
+  total actionable counts, plus a separate followed-record count;
+- assignment, approval, discussion, follow-up, and following queues with total
+  count plus at most eight preview items;
+- existing assignment, approval, discussion-attention, follow-up, and
+  follow-subscription item shapes.
 
 The authenticated actor is implicit. Clients must not submit a user id, role,
 workspace id in the body, target access decision, reviewer eligibility, unread
@@ -718,7 +751,7 @@ all target-backed entries must survive current access revalidation. Discussion
 entries never include comment body text.
 
 This contract is an aggregation response, not a task, priority, SLA, workload,
-or activity-feed contract.
+calendar, recurrence, or activity-feed contract.
 Following is informational and does not contribute to `totalActionable`.
 
 ## Follow Subscription Contract

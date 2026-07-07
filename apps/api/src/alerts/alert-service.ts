@@ -4,6 +4,8 @@ import type {
   AlertListResponse,
   AlertResponse,
   FollowedItemChangeType,
+  FollowUpDueState,
+  FollowUpTargetEntityType,
   InternalJobError,
   InternalJobRequestKind,
   InternalJobStatus,
@@ -65,6 +67,17 @@ export interface FollowedItemAlertEvent {
   relatedEntityId: string;
   followEventId: string;
   changeType: FollowedItemChangeType;
+}
+
+export interface FollowUpDueAlertEvent {
+  recipientUserId: string;
+  workspaceId: string;
+  relatedEntityType: FollowUpTargetEntityType;
+  relatedEntityId: string;
+  followUpId: string;
+  dueAt: Date;
+  dueState: Extract<FollowUpDueState, "due" | "overdue">;
+  note?: string;
 }
 
 export class AlertService implements JobAlertSink {
@@ -194,6 +207,23 @@ export class AlertService implements JobAlertSink {
     });
   }
 
+  public async recordFollowUpDue(event: FollowUpDueAlertEvent): Promise<void> {
+    await this.createPreferenceAwareAlert({
+      userId: event.recipientUserId,
+      type: "follow_up_due",
+      severity: event.dueState === "overdue" ? "error" : "info",
+      message: followUpDueMessage(event),
+      relatedEntityType: event.relatedEntityType,
+      relatedEntityId: event.relatedEntityId,
+      metadata: {
+        workspaceId: event.workspaceId,
+        followUpId: event.followUpId,
+        followUpDueAt: event.dueAt.toISOString(),
+        followUpDueState: event.dueState,
+      },
+    });
+  }
+
   private async createPreferenceAwareAlert(input: CreateAlertInput): Promise<void> {
     if (!this.notificationPreferenceService) {
       await this.createAlert(input);
@@ -306,6 +336,13 @@ function followedItemMessage(event: FollowedItemAlertEvent): string {
     case "approval_resolved":
       return `${event.actorEmail} resolved approval for ${targetLabel} you follow.`;
   }
+}
+
+function followUpDueMessage(event: FollowUpDueAlertEvent): string {
+  const label = workspaceAssignmentTargetLabel(event.relatedEntityType);
+  const when = event.dueState === "overdue" ? "overdue" : "due";
+  const note = event.note ? `: ${event.note.slice(0, 160)}` : ".";
+  return `Follow-up is ${when} for ${label}${note}`;
 }
 
 export function toAlertResponse(alert: StoredAlert): AlertResponse {

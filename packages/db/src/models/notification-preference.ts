@@ -30,6 +30,7 @@ const notificationPreferenceRuleSchema = new Schema<NotificationPreferenceRuleRe
         "workspace_comment_added",
         "workspace_item_assigned",
         "followed_item_changed",
+        "follow_up_due",
       ],
       required: true,
     },

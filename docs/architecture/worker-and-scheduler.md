@@ -11,6 +11,8 @@ task that can detect stale scored datasets and queue policy-gated maintenance
 jobs.
 Phase 28 registers bounded notification digest processing through the same
 internal scheduler.
+Phase 44 registers bounded follow-up reminder scanning through the same
+internal scheduler.
 
 This is groundwork. It is not an external automation product, distributed queue,
 cron platform, general-purpose messaging system, ML system, collaboration
@@ -40,6 +42,9 @@ Implemented:
   runs, recent policy refreshes, and recent policy refresh failures;
 - bounded notification digest processing groups current digest-ready product
   alerts by user/window and records tenant-owned batch outcomes;
+- bounded follow-up reminder scanning creates `follow_up_due` alerts for
+  revalidated due/overdue follow-ups and suppresses repeated alerts for the
+  same due state;
 - frontend score status polling after the scoring trigger returns a queued job;
 - unit tests for job claiming and scheduler behavior;
 - integration tests for worker-driven scoring success, failure, and stale
@@ -55,6 +60,7 @@ Not implemented:
 - worker fleet coordination;
 - SMS/push/realtime delivery;
 - external campaign or messaging scheduling;
+- recurring reminders or calendar scheduling;
 - additional external enrichment providers beyond the opt-in Census Geocoder
   adapter;
 - ML/AI;
@@ -141,6 +147,8 @@ Phase 10 it is used to poll for queued jobs. It supports:
 
 This scheduler is not a cloud scheduler and should not be treated as durable
 automation. Phase 15 uses it for bounded maintenance scans in the worker runtime.
+Phase 44 uses it for bounded follow-up reminder scans in the same worker
+runtime.
 Future scheduled product behavior still needs deployment planning, idempotency,
 visibility, rate limits, rollout controls, and failure policy before launch.
 
@@ -158,6 +166,8 @@ Rules:
 - invalid or stale job targets must fail safely.
 - maintenance decisions must be safe summaries, not raw scheduler internals;
 - policy-created refresh jobs must be distinguishable from manual refresh jobs.
+- follow-up reminder scans must revalidate target access before alerting and
+  must not copy note text or record contents into alert metadata.
 
 Future deployed workers will need explicit environment and service credentials
 review. Phase 10 does not introduce separate worker credentials.
@@ -173,6 +183,8 @@ Do not:
 - expose raw worker logs to the browser;
 - create job types without ownership, stale-reference, and failure-path tests.
 - turn maintenance scans into unlimited refresh loops.
+- turn follow-up reminder scans into recurring task engines, calendar sync, or
+  noisy repeated alerts.
 
 ## Update Rules
 

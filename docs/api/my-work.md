@@ -3,6 +3,8 @@
 Phase 37 adds one member-focused aggregation endpoint over existing workspace
 workflow signals. It does not create task records.
 Phase 38 adds followed records as a separate informational queue.
+Phase 44 adds bounded follow-up reminders as an actionable queue over supported
+records.
 
 All requests require bearer authentication and active membership in the
 workspace selected by `X-Workspace-Id`.
@@ -15,6 +17,8 @@ Returns the authenticated member's current operational queues:
 - pending approval requests that the member may review now;
 - accessible discussion threads with unread comments for that member.
 - accessible records the member deliberately follows.
+- accessible upcoming, due, or overdue follow-ups assigned to or created by the
+  member.
 
 Example response:
 
@@ -28,7 +32,8 @@ Example response:
     "unreadDiscussions": 1,
     "unreadMessages": 3,
     "following": 2,
-    "totalActionable": 4
+    "followUps": 1,
+    "totalActionable": 5
   },
   "queues": {
     "assignments": {
@@ -47,6 +52,10 @@ Example response:
     "following": {
       "count": 2,
       "items": []
+    },
+    "followUps": {
+      "count": 1,
+      "items": []
     }
   }
 }
@@ -54,13 +63,14 @@ Example response:
 
 Queue items use the existing `WorkspaceAssignmentResponse`,
 `ApprovalRequestResponse`, `DiscussionAttentionResponse`, and
-`FollowSubscriptionResponse` contracts. Each preview returns at most eight
-items. Counts reflect the complete bounded source results, which currently
-retrieve at most 100 records per source.
+`FollowSubscriptionResponse` contracts. Follow-up items use
+`FollowUpResponse`. Each preview returns at most eight items. Counts reflect
+the complete bounded source results, which currently retrieve at most 100
+records per source.
 
 `totalActionable` is the sum of assigned records, reviewable approvals, and
-unread discussion threads. `unreadMessages` is reported separately and is not
-added again.
+unread discussion threads, plus due/upcoming follow-ups. `unreadMessages` is
+reported separately and is not added again.
 `following` is informational and is intentionally excluded from
 `totalActionable`; following a record is not the same as accepting an
 assignment or review obligation.
@@ -78,13 +88,17 @@ assignment or review obligation.
 - Comment body text is never included.
 - Follow subscriptions must belong to the actor and selected workspace, and
   stale or inaccessible targets are omitted.
+- Follow-ups are returned only when the actor is the current assignee or, if no
+  active assignment exists, the creator; stale or inaccessible targets are
+  omitted.
 
 An empty state returns zero counts and empty arrays. An unknown or
 cross-workspace selection is rejected by workspace membership middleware.
 
 ## Boundary
 
-The endpoint does not add due dates, priorities, task status, SLAs, workload
-analytics, urgency scoring, general workspace activity, or AI prioritization.
-General activity is intentionally excluded because it is workspace-wide rather
-than a reliable personal action signal.
+The endpoint now includes bounded follow-up dates, but still does not add task
+objects, priorities, SLAs, workload analytics, urgency scoring, general
+workspace activity, recurrence rules, calendars, or AI prioritization. General
+activity is intentionally excluded because it is workspace-wide rather than a
+reliable personal action signal.

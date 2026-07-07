@@ -162,6 +162,7 @@ describe("notification preferences API", () => {
         { alertType: "workspace_comment_added", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
         { alertType: "workspace_item_assigned", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
         { alertType: "followed_item_changed", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
+        { alertType: "follow_up_due", enabled: true, deliveryMode: "in_app_only", cadence: "digest" },
       ],
     });
     expect(response.body.categories).toEqual(
@@ -171,6 +172,7 @@ describe("notification preferences API", () => {
         expect.objectContaining({ alertType: "workspace_comment_added", supportsDelivery: true }),
         expect.objectContaining({ alertType: "workspace_item_assigned", supportsDelivery: true }),
         expect.objectContaining({ alertType: "followed_item_changed", supportsDelivery: true }),
+        expect.objectContaining({ alertType: "follow_up_due", supportsDelivery: true }),
       ]),
     );
     expect(JSON.stringify(response.body)).not.toContain(owner.userId);

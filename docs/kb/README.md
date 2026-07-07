@@ -76,7 +76,7 @@ records the current implementation state:
 - saved views and built-in attention queues exist for reusable operational
   portfolio/comparison work slices.
 - notification preferences and delivery-ready classification exist for current
-  scoring alert types.
+  scoring, discussion, assignment, followed-item, and follow-up alert types.
 - email delivery outbox tracking and env-driven SMTP immediate send support
   exist for supported product alerts.
 - bounded scheduled digest processing, tenant-owned digest batches, and
@@ -103,6 +103,8 @@ records the current implementation state:
 - notification preference model exists.
 - notification delivery outbox model exists.
 - notification digest batch model exists.
+- follow-up model exists for bounded comparison, watchlist, and portfolio
+  review cadence.
 - workspace and workspace-membership models exist.
 - workspace-activity model exists.
 - comparison item model exists.
@@ -140,9 +142,10 @@ tenant-owned digest batches, bounded scheduled digest processing, owner-safe
 delivery history, env-driven SMTP config that is disabled by default, and
 notification delivery tests. It now has tenant-owned internal job records for
 scoring, controlled refresh/reprocessing, scheduled maintenance policy gates,
-and cross-user job tests. It does not yet have standalone parcel models, rate
-limiting, user-facing scheduler controls, full collaboration, auction execution,
-external automation, or full
+and cross-user job tests. It now has bounded follow-up reminders with
+target-access revalidation and safe alert metadata. It does not yet have
+standalone parcel models, user-facing scheduler controls, full collaboration,
+auction execution, external automation, or full
 cross-user tests for future resource types because those workflows do not exist
 yet.
 

@@ -343,6 +343,7 @@ describe("my-work dashboard aggregation", () => {
         unreadDiscussions: 1,
         unreadMessages: 1,
         following: 1,
+        followUps: 0,
         totalActionable: 3,
       },
       queues: {
@@ -388,6 +389,10 @@ describe("my-work dashboard aggregation", () => {
             },
           ],
         },
+        followUps: {
+          count: 0,
+          items: [],
+        },
       },
     });
     expect(response.body.generatedAt).toEqual(expect.any(String));
@@ -414,6 +419,7 @@ describe("my-work dashboard aggregation", () => {
       unreadDiscussions: 0,
       unreadMessages: 0,
       following: 0,
+      followUps: 0,
       totalActionable: 0,
     });
     expect(initiallyEmpty.body.queues).toMatchObject({
@@ -421,6 +427,7 @@ describe("my-work dashboard aggregation", () => {
       approvals: { count: 0, items: [] },
       discussions: { count: 0, unreadCount: 0, items: [] },
       following: { count: 0, items: [] },
+      followUps: { count: 0, items: [] },
     });
 
     const assignmentTargetId = new mongoose.Types.ObjectId().toString();

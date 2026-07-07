@@ -1350,6 +1350,40 @@ Phase 43 does not include:
 
 This is a lightweight operational retrospective layer, not an analytics suite.
 
+## Phase 44: Follow-Up Dates, Reminders, And Review Cadence
+
+Current status: implemented.
+
+Phase 44 includes:
+
+- one active workspace-scoped follow-up per supported comparison, watchlist, or
+  portfolio record;
+- authenticated follow-up state, set/update, clear, and personal queue APIs;
+- due-state calculation for no follow-up, upcoming, due, overdue, and cleared;
+- selected-workspace membership and target access revalidation for every read,
+  mutation, queue item, and reminder scan;
+- compact follow-up controls on supported record detail surfaces;
+- actionable upcoming/due/overdue follow-up queue integration in My Work;
+- scheduler-driven reminder scan in the worker runtime;
+- bounded `follow_up_due` alerts through existing notification preferences,
+  delivery, and digest infrastructure;
+- duplicate suppression by due-state transition;
+- workspace activity events for follow-up set/clear without copying note text;
+- tests for creation/update/clear, invalid dates, workspace isolation, My Work
+  queueing, scheduled reminder creation, and noisy duplicate suppression.
+
+Phase 44 does not include:
+
+- generic task objects;
+- arbitrary recurrence rules;
+- calendar integrations;
+- SLA tracking or escalation suites;
+- workforce planning;
+- auction execution;
+- AI scheduling assistance.
+
+This is a bounded operational cadence layer, not a calendar or task platform.
+
 ## Later Phases
 
 Later phases may include:
@@ -1415,7 +1449,9 @@ Dependency order matters:
 35. member-focused my-work dashboard and reviewer queues;
 36. follow subscriptions and stakeholder awareness;
 37. review checklists and evidence gates;
-38. broader automation.
+38. workspace policy enforcement, decision briefs, final outcomes, outcome
+    review, and bounded follow-up reminders;
+39. broader automation.
 
 Do not invert this order without an explicit architecture decision.
 

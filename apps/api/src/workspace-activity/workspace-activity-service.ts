@@ -109,6 +109,9 @@ function categoryForEvent(eventType: WorkspaceActivityEventType): WorkspaceActiv
     case "approval_rejected":
     case "approval_cancelled":
       return "approvals";
+    case "follow_up_set":
+    case "follow_up_cleared":
+      return "cadence";
   }
 }
 
@@ -157,6 +160,10 @@ function summaryForEvent(
       return `${safeName(metadata?.approvalRequesterEmail, "A workspace member")} cancelled a comparison-to-portfolio approval request.`;
     case "decision_outcome_resolved":
       return `${safeName(metadata?.decisionOutcomeResolverEmail, "A workspace member")} resolved a comparison item as ${decisionOutcomeLabel(metadata?.decisionOutcomeStatus)}.`;
+    case "follow_up_set":
+      return `Set a follow-up date for ${entityLabel(metadata)}.`;
+    case "follow_up_cleared":
+      return `Cleared the follow-up date for ${entityLabel(metadata)}.`;
   }
 }
 

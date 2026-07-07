@@ -16,6 +16,8 @@ Phase 33 adds preference-aware alerts when a workspace member becomes the new
 assignee for a supported shared record.
 Phase 38 adds bounded, preference-aware alerts for consequential changes on
 records the recipient follows.
+Phase 44 adds bounded follow-up due/overdue reminders through the same alert
+and notification preference infrastructure.
 
 Current alert sources:
 
@@ -32,6 +34,8 @@ Current alert sources:
   watchlist item, or portfolio item.
 - assignment, portfolio status, or approval resolution changes on an
   accessible record the recipient follows.
+- a supported comparison, watchlist, or portfolio follow-up becomes due or
+  overdue and has not already alerted for that due state.
 
 ## Security Model
 
@@ -52,6 +56,7 @@ Supported alert types:
 - `workspace_comment_added`
 - `workspace_item_assigned`
 - `followed_item_changed`
+- `follow_up_due`
 
 Supported severity values:
 
@@ -172,3 +177,8 @@ Followed-item alerts identify only the workspace, target, allowlisted change
 type, stable follow event id, and verified actor. The actor is excluded, and a
 new assignee does not receive a duplicate follower alert. Comments, ordinary
 note edits, and follow/unfollow actions do not create follower alerts.
+
+Follow-up alerts identify only the workspace, target, follow-up id, due date,
+and due state. They do not include follow-up note text or record contents. A
+follow-up can alert once when due and once again if it later becomes overdue,
+but scheduler ticks do not create repeated reminders for the same state.

@@ -6,6 +6,7 @@ import type {
 import type { ApprovalService } from "../approvals/approval-service.js";
 import type { DiscussionAttentionService } from "../discussion-attention/discussion-attention-service.js";
 import type { FollowService } from "../follows/follow-service.js";
+import type { FollowUpService } from "../follow-ups/follow-up-service.js";
 import type { WorkspaceAssignmentService } from "../workspace-assignments/workspace-assignment-service.js";
 import type { WorkspaceCommentTargetAccess } from "../workspace-comments/comment-target-access.js";
 import type { WorkspaceAccessContext } from "../workspaces/workspace-service.js";
@@ -19,17 +20,19 @@ export class MyWorkService {
     private readonly discussionAttentionService: DiscussionAttentionService,
     private readonly targetAccess: WorkspaceCommentTargetAccess,
     private readonly followService: FollowService,
+    private readonly followUpService?: FollowUpService,
   ) {}
 
   public async get(
     context: WorkspaceAccessContext,
     actorUserId: string,
   ): Promise<MyWorkResponse> {
-    const [assignmentResult, approvalResult, unreadDiscussionResult, followResult] = await Promise.all([
+    const [assignmentResult, approvalResult, unreadDiscussionResult, followResult, followUpResult] = await Promise.all([
       this.assignmentService.listMine(context, actorUserId),
       this.approvalService.list(context, actorUserId, { status: "pending" }),
       this.discussionAttentionService.listUnread(actorUserId, context.workspaceId),
       this.followService.listMine(context, actorUserId),
+      this.followUpService?.listQueue(context, actorUserId, { limit: maxQueueItems }) ?? Promise.resolve(null),
     ]);
 
     const approvals = await this.accessibleReviewableApprovals(
@@ -47,6 +50,7 @@ export class MyWorkService {
     const assignedCount = assignmentResult.assignments.length;
     const approvalCount = approvals.length;
     const discussionCount = discussions.length;
+    const followUpCount = followUpResult?.items.length ?? 0;
 
     return {
       workspaceId: context.workspaceId,
@@ -57,7 +61,8 @@ export class MyWorkService {
         unreadDiscussions: discussionCount,
         unreadMessages,
         following: followResult.follows.length,
-        totalActionable: assignedCount + approvalCount + discussionCount,
+        followUps: followUpCount,
+        totalActionable: assignedCount + approvalCount + discussionCount + followUpCount,
       },
       queues: {
         assignments: {
@@ -76,6 +81,10 @@ export class MyWorkService {
         following: {
           count: followResult.follows.length,
           items: followResult.follows.slice(0, maxQueueItems),
+        },
+        followUps: {
+          count: followUpResult?.counts.total ?? 0,
+          items: followUpResult?.items.slice(0, maxQueueItems) ?? [],
         },
       },
     };

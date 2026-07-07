@@ -7,6 +7,8 @@ import { createNotificationPreferenceService } from "./notification-preferences/
 import { InternalScheduler } from "./scheduler/internal-scheduler.js";
 import { createAlertService } from "./alerts/factory.js";
 import { createInternalJobService } from "./jobs/factory.js";
+import { createFollowUpService } from "./follow-ups/factory.js";
+import { createFollowUpReminderTask } from "./follow-ups/follow-up-reminder-scheduler.js";
 import { createScoringService } from "./scoring/factory.js";
 import { WorkerJobProcessor } from "./worker/worker-job-processor.js";
 
@@ -20,6 +22,7 @@ async function main(): Promise<void> {
   const notificationDeliveryService = createNotificationDeliveryService(notificationPreferenceService);
   const alertService = createAlertService(notificationPreferenceService, notificationDeliveryService);
   const internalJobService = createInternalJobService(alertService);
+  const followUpService = createFollowUpService(alertService);
   const scoringService = createScoringService(internalJobService);
   const maintenanceService = createMaintenanceService(internalJobService);
   const processor = new WorkerJobProcessor(internalJobService, scoringService, maintenanceService);
@@ -61,12 +64,16 @@ async function main(): Promise<void> {
   scheduler.register(
     createNotificationDigestTask(notificationDeliveryService, apiConfig.email.digest.processingIntervalMs),
   );
+  scheduler.register(
+    createFollowUpReminderTask(followUpService, apiConfig.followUps.reminderIntervalMs),
+  );
   scheduler.start(
     Math.min(
       apiConfig.schedulerTickIntervalMs,
       apiConfig.workerPollIntervalMs,
       apiConfig.maintenance.scanIntervalMs,
       apiConfig.email.digest.processingIntervalMs,
+      apiConfig.followUps.reminderIntervalMs,
     ),
   );
 

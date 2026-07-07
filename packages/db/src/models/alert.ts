@@ -5,7 +5,8 @@ export type AlertTypeRecord =
   | "scoring_job_failed"
   | "workspace_comment_added"
   | "workspace_item_assigned"
-  | "followed_item_changed";
+  | "followed_item_changed"
+  | "follow_up_due";
 export type AlertSeverityRecord = "info" | "error";
 export type AlertStatusRecord = "unread" | "read";
 export type AlertRelatedEntityTypeRecord =
@@ -32,6 +33,9 @@ export interface AlertMetadataRecord {
   followChangeType?: "assignment_changed" | "portfolio_status_changed" | "approval_resolved";
   followActorUserId?: string;
   followActorEmail?: string;
+  followUpId?: string;
+  followUpDueAt?: string;
+  followUpDueState?: "upcoming" | "due" | "overdue" | "cleared" | "none";
 }
 
 export interface AlertDeliveryPreparationPayloadRecord {
@@ -90,6 +94,9 @@ const alertMetadataSchema = new Schema<AlertMetadataRecord>(
     },
     followActorUserId: { type: String, trim: true },
     followActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
+    followUpId: { type: String, trim: true },
+    followUpDueAt: { type: String, trim: true },
+    followUpDueState: { type: String, enum: ["upcoming", "due", "overdue", "cleared", "none"] },
   },
   {
     _id: false,
@@ -128,6 +135,7 @@ const alertDeliveryPreparationSchema = new Schema<AlertDeliveryPreparationRecord
         "workspace_comment_added",
         "workspace_item_assigned",
         "followed_item_changed",
+        "follow_up_due",
       ],
       required: true,
     },
@@ -179,6 +187,7 @@ const alertSchema = new Schema<AlertRecord>(
         "workspace_comment_added",
         "workspace_item_assigned",
         "followed_item_changed",
+        "follow_up_due",
       ],
       required: true,
       index: true,

@@ -568,6 +568,9 @@ function sanitizeDeliveryMetadata(metadata: AlertMetadata | undefined): AlertMet
     ...(metadata?.followChangeType ? { followChangeType: metadata.followChangeType } : {}),
     ...(metadata?.followActorUserId ? { followActorUserId: metadata.followActorUserId } : {}),
     ...(metadata?.followActorEmail ? { followActorEmail: metadata.followActorEmail } : {}),
+    ...(metadata?.followUpId ? { followUpId: metadata.followUpId } : {}),
+    ...(metadata?.followUpDueAt ? { followUpDueAt: metadata.followUpDueAt } : {}),
+    ...(metadata?.followUpDueState ? { followUpDueState: metadata.followUpDueState } : {}),
   };
 }
 
@@ -583,6 +586,8 @@ function alertTypeLabel(alertType: StoredAlert["type"]): string {
       return "Workspace item assigned";
     case "followed_item_changed":
       return "Followed item updated";
+    case "follow_up_due":
+      return "Follow-up due";
   }
 }
 

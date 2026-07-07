@@ -6,7 +6,8 @@ export type WorkspaceActivityCategoryRecord =
   | "portfolio"
   | "members"
   | "responsibility"
-  | "approvals";
+  | "approvals"
+  | "cadence";
 export type WorkspaceActivityEventTypeRecord =
   | "dataset_uploaded"
   | "dataset_scoring_requested"
@@ -27,7 +28,9 @@ export type WorkspaceActivityEventTypeRecord =
   | "approval_approved"
   | "approval_rejected"
   | "approval_cancelled"
-  | "decision_outcome_resolved";
+  | "decision_outcome_resolved"
+  | "follow_up_set"
+  | "follow_up_cleared";
 export type WorkspaceActivityRelatedEntityTypeRecord =
   | "dataset"
   | "job"
@@ -63,6 +66,10 @@ export interface WorkspaceActivityMetadataRecord {
   decisionOutcomeId?: string;
   decisionOutcomeStatus?: "approved" | "declined" | "deferred" | "archived";
   decisionOutcomeResolverEmail?: string;
+  followUpId?: string;
+  followUpDueAt?: string;
+  followUpPreviousDueAt?: string;
+  followUpNote?: string;
 }
 
 export interface WorkspaceActivityRecord {
@@ -114,6 +121,10 @@ const workspaceActivityMetadataSchema = new Schema<WorkspaceActivityMetadataReco
     decisionOutcomeId: { type: String, trim: true },
     decisionOutcomeStatus: { type: String, enum: ["approved", "declined", "deferred", "archived"] },
     decisionOutcomeResolverEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
+    followUpId: { type: String, trim: true },
+    followUpDueAt: { type: String, trim: true },
+    followUpPreviousDueAt: { type: String, trim: true },
+    followUpNote: { type: String, trim: true, maxlength: 500 },
   },
   { _id: false, versionKey: false },
 );
@@ -125,7 +136,7 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
     actorEmail: { type: String, required: true, trim: true, lowercase: true, maxlength: 320 },
     category: {
       type: String,
-      enum: ["data", "decisions", "portfolio", "members", "responsibility", "approvals"],
+      enum: ["data", "decisions", "portfolio", "members", "responsibility", "approvals", "cadence"],
       required: true,
       index: true,
     },
@@ -152,6 +163,8 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
         "approval_rejected",
         "approval_cancelled",
         "decision_outcome_resolved",
+        "follow_up_set",
+        "follow_up_cleared",
       ],
       required: true,
       index: true,

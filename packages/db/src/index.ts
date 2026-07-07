@@ -64,6 +64,13 @@ export {
   type FollowTargetEntityTypeRecord,
 } from "./models/follow-subscription.js";
 export {
+  FollowUpModel,
+  type FollowUpDocument,
+  type FollowUpRecord,
+  type FollowUpReminderStateRecord,
+  type FollowUpTargetEntityTypeRecord,
+} from "./models/follow-up.js";
+export {
   ReviewChecklistTemplateModel,
   type ReviewChecklistTargetEntityTypeRecord,
   type ReviewChecklistTemplateDocument,

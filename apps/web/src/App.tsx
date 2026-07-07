@@ -21,6 +21,8 @@ import type {
   FollowStateResponse,
   FollowSubscriptionResponse,
   FollowTargetEntityType,
+  FollowUpStateResponse,
+  FollowUpTargetEntityType,
   InternalJobResponse,
   MyWorkResponse,
   OutcomeReviewResolution,
@@ -65,6 +67,7 @@ import {
   createSavedView,
   createWorkspaceComment,
   clearWorkspaceAssignment,
+  clearFollowUp,
   cancelApprovalRequest,
   createApprovalRequest,
   createDataset,
@@ -77,6 +80,7 @@ import {
   getDataset,
   getDatasetScoringStatus,
   getFollowState,
+  getFollowUpState,
   getJob,
   getMyWork,
   getReviewChecklistState,
@@ -128,6 +132,7 @@ import {
   updateWorkspacePolicy,
   upsertReviewChecklistTemplate,
   unfollowEntity,
+  upsertFollowUp,
 } from "./api";
 import {
   alertSeverityClassName,
@@ -3982,6 +3987,7 @@ function ComparisonDetail({
         entityId={item.id}
       />
       <FollowControl token={token} entityType="comparison_item" entityId={item.id} />
+      <FollowUpControl token={token} entityType="comparison_item" entityId={item.id} />
       <WorkspaceAssignmentControl token={token} entityType="comparison_item" entityId={item.id} />
     </aside>
   );
@@ -5399,6 +5405,7 @@ function PortfolioDetail({
         entityId={item.id}
       />
       <FollowControl token={token} entityType="portfolio_item" entityId={item.id} />
+      <FollowUpControl token={token} entityType="portfolio_item" entityId={item.id} />
       <WorkspaceAssignmentControl token={token} entityType="portfolio_item" entityId={item.id} />
     </aside>
   );
@@ -7243,6 +7250,7 @@ function WatchlistDetail({
         entityId={item.id}
       />
       <FollowControl token={token} entityType="watchlist_item" entityId={item.id} />
+      <FollowUpControl token={token} entityType="watchlist_item" entityId={item.id} />
       <WorkspaceAssignmentControl token={token} entityType="watchlist_item" entityId={item.id} />
     </aside>
   );
@@ -7487,6 +7495,7 @@ function MyWorkPage({
     { label: "Needs attention", count: myWork.counts.totalActionable },
     { label: "Assigned", count: myWork.counts.assigned },
     { label: "Approvals", count: myWork.counts.approvals },
+    { label: "Follow-ups", count: myWork.counts.followUps },
     { label: "Unread discussion", count: myWork.counts.unreadMessages },
     { label: "Following", count: myWork.counts.following },
   ];
@@ -7505,7 +7514,7 @@ function MyWorkPage({
         onRefresh={() => setReloadVersion((version) => version + 1)}
       />
 
-      <div className="mt-5 grid border border-line bg-white sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-5 grid border border-line bg-white sm:grid-cols-2 lg:grid-cols-6">
         {summaries.map((summary, index) => (
           <div
             key={summary.label}
@@ -7523,7 +7532,7 @@ function MyWorkPage({
         <div className="mt-5 border-y border-line bg-white px-4 py-6">
           <p className="font-semibold">You are caught up in this workspace.</p>
           <p className="mt-2 text-sm leading-6 text-ink/70">
-            New assignments, review requests, and unread discussions will appear here.
+            New assignments, review requests, follow-ups, and unread discussions will appear here.
           </p>
         </div>
       ) : null}
@@ -7598,6 +7607,54 @@ function MyWorkPage({
                     className="justify-self-start bg-pine px-3 py-2 text-sm font-semibold text-white sm:justify-self-end"
                   >
                     Review
+                  </button>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
+        <section aria-labelledby="my-work-follow-ups">
+          <div className="flex items-end justify-between gap-3 border-b border-line pb-3">
+            <div>
+              <h3 id="my-work-follow-ups" className="text-lg font-semibold">Follow-ups</h3>
+              <p className="mt-1 text-sm text-ink/65">Upcoming, due, or overdue records assigned to you or created by you.</p>
+            </div>
+            <span className="text-sm font-semibold text-ink/60">{myWork.queues.followUps.count}</span>
+          </div>
+          {myWork.queues.followUps.items.length === 0 ? (
+            <p className="border-b border-line bg-white px-4 py-4 text-sm text-ink/60">
+              No follow-ups are due in the current window.
+            </p>
+          ) : (
+            <ol>
+              {myWork.queues.followUps.items.map((followUp) => (
+                <li
+                  key={followUp.id}
+                  className="grid gap-3 border-b border-line bg-white px-4 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+                >
+                  <div className="min-w-0">
+                    <p className="font-semibold">{followTargetLabel(followUp.targetEntityType)}</p>
+                    <p className="mt-1 break-all text-sm text-ink/70">{followUp.targetEntityId}</p>
+                    <p className="mt-1 text-xs font-semibold text-ink/55">
+                      {followUpDueStateLabel(followUp.dueState)} · {formatDateTime(followUp.dueAt)}
+                    </p>
+                    {followUp.note ? <p className="mt-1 text-sm text-ink/70">{followUp.note}</p> : null}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onOpenFollow({
+                        id: followUp.id,
+                        workspaceId: followUp.workspaceId,
+                        targetEntityType: followUp.targetEntityType,
+                        targetEntityId: followUp.targetEntityId,
+                        followedAt: followUp.createdAt,
+                      })
+                    }
+                    className="justify-self-start border border-line bg-white px-3 py-2 text-sm font-semibold sm:justify-self-end"
+                  >
+                    Open
                   </button>
                 </li>
               ))}
@@ -8276,6 +8333,181 @@ function FollowControl({
   );
 }
 
+function FollowUpControl({
+  token,
+  entityType,
+  entityId,
+}: {
+  token: string;
+  entityType: FollowUpTargetEntityType;
+  entityId: string;
+}) {
+  const [state, setState] = useState<FollowUpStateResponse | null>(null);
+  const [dueDate, setDueDate] = useState("");
+  const [note, setNote] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setState(null);
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    void getFollowUpState(token, entityType, entityId)
+      .then((result) => {
+        if (!cancelled) {
+          setState(result);
+          setDueDate(result.followUp?.dueAt.slice(0, 10) ?? "");
+          setNote(result.followUp?.note ?? "");
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (!cancelled) {
+          setError(errorMessage(loadError));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [token, entityType, entityId, reloadVersion]);
+
+  async function saveFollowUp(): Promise<void> {
+    if (!dueDate) {
+      setError("Choose a follow-up date.");
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await upsertFollowUp(token, entityType, entityId, {
+        dueAt: `${dueDate}T12:00:00.000Z`,
+        note: note.trim() || null,
+      });
+      setState({
+        targetEntityType: entityType,
+        targetEntityId: entityId,
+        dueState: result.followUp.dueState,
+        followUp: result.followUp,
+      });
+      setSuccess(result.changed ? "Follow-up saved." : "Follow-up already matched this date.");
+    } catch (saveError) {
+      setError(errorMessage(saveError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function removeFollowUp(): Promise<void> {
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await clearFollowUp(token, entityType, entityId);
+      setState({
+        targetEntityType: entityType,
+        targetEntityId: entityId,
+        dueState: "none",
+        followUp: null,
+      });
+      setDueDate("");
+      setNote("");
+      setSuccess(result.cleared ? "Follow-up cleared." : "No follow-up was set.");
+    } catch (clearError) {
+      setError(errorMessage(clearError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="mt-5 border-t border-line pt-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h4 className="text-sm font-semibold">Follow-up</h4>
+          <p className="mt-1 text-sm text-ink/65">
+            {state?.followUp
+              ? `${followUpDueStateLabel(state.followUp.dueState)} · ${formatDateTime(state.followUp.dueAt)}`
+              : "No follow-up date is set."}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-ink/55">
+            Follow-up reminders appear in My Work and generate one bounded alert when due or overdue.
+          </p>
+        </div>
+        {isLoading ? <span className="text-xs text-ink/55">Loading...</span> : null}
+      </div>
+      {error ? <p className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p> : null}
+      {success ? <p className="mt-3 border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{success}</p> : null}
+      <div className="mt-3 grid gap-2 md:grid-cols-[180px_minmax(0,1fr)_auto_auto] md:items-end">
+        <label className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/60">
+          Date
+          <input
+            type="date"
+            value={dueDate}
+            disabled={isLoading || isSaving}
+            onChange={(event) => {
+              setDueDate(event.target.value);
+              setSuccess(null);
+            }}
+            className="mt-1 block w-full border border-line bg-white px-3 py-2 text-sm font-normal text-ink disabled:opacity-60"
+          />
+        </label>
+        <label className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/60">
+          Note
+          <input
+            type="text"
+            maxLength={500}
+            value={note}
+            disabled={isLoading || isSaving}
+            onChange={(event) => {
+              setNote(event.target.value);
+              setSuccess(null);
+            }}
+            placeholder="Why this needs a follow-up"
+            className="mt-1 block w-full border border-line bg-white px-3 py-2 text-sm font-normal text-ink disabled:opacity-60"
+          />
+        </label>
+        <button
+          type="button"
+          disabled={isLoading || isSaving || !dueDate}
+          onClick={() => void saveFollowUp()}
+          className="bg-pine px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSaving ? "Saving" : state?.followUp ? "Update" : "Set"}
+        </button>
+        {state?.followUp ? (
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => void removeFollowUp()}
+            className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:opacity-60"
+          >
+            Clear
+          </button>
+        ) : null}
+      </div>
+      {error && !isLoading ? (
+        <button
+          type="button"
+          onClick={() => setReloadVersion((version) => version + 1)}
+          className="mt-2 text-xs font-semibold text-pine underline"
+        >
+          Retry follow-up state
+        </button>
+      ) : null}
+    </section>
+  );
+}
+
 function WorkspaceAssignmentControl({
   token,
   entityType,
@@ -8876,6 +9108,21 @@ function followTargetLabel(entityType: FollowTargetEntityType): string {
       return "Watchlist item";
     case "portfolio_item":
       return "Portfolio item";
+  }
+}
+
+function followUpDueStateLabel(state: NonNullable<FollowUpStateResponse["followUp"]>["dueState"]): string {
+  switch (state) {
+    case "upcoming":
+      return "Upcoming";
+    case "due":
+      return "Due today";
+    case "overdue":
+      return "Overdue";
+    case "cleared":
+      return "Cleared";
+    case "none":
+      return "No follow-up";
   }
 }
 

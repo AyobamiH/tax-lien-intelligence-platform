@@ -52,6 +52,10 @@ Current implementation:
 - outcome-review aggregation service and authenticated read-only route for
   workspace-level final outcome summaries, recent resolution windows, and
   grounded retrospective signals;
+- follow-up model, store, service, and authenticated routes for bounded
+  follow-up dates on comparison, watchlist, and portfolio records;
+- scheduler-driven follow-up reminder scan that emits bounded `follow_up_due`
+  alerts through existing notification preferences and delivery infrastructure;
 - selected-workspace membership middleware and explicit read/write,
   member-management, member-removal, role-management, approval-review, and
   sensitive-action checks;
@@ -88,7 +92,7 @@ Current implementation:
 - notification delivery outbox model;
 - notification digest batch model;
 - authenticated notification preference get/update routes;
-- preference-driven scoring/discussion/assignment/followed-item alert
+- preference-driven scoring/discussion/assignment/followed-item/follow-up alert
   suppression and delivery classification;
 - provider-agnostic delivery-preparation metadata for supported alerts;
 - env-driven SMTP email transport boundary;
@@ -140,8 +144,8 @@ Current implementation:
   protection, self-review prevention, requester-only cancellation,
   stale-target revalidation, and workspace-qualified lookup;
 - authenticated my-work retrieval with reviewer filtering, unread discussion
-  aggregation, followed-record listing, stale-target omission, and bounded
-  queue previews;
+  aggregation, followed-record listing, follow-up queueing, stale-target
+  omission, and bounded queue previews;
 - authenticated follow state/create/delete/list behavior with duplicate-safe
   persistence, selected-workspace scoping, and target-access validation;
 - bounded follower notification fan-out for assignment changes, portfolio
@@ -159,6 +163,9 @@ Current implementation:
 - outcome review retrieval with stale-target omission, current comparison
   access filtering, status/entity grouping, and no predictive or financial
   modeling layer;
+- follow-up creation/update/clear and personal queue retrieval with date
+  validation, selected-workspace membership, target access revalidation,
+  stale-target omission, and duplicate reminder suppression by due state;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;
@@ -209,6 +216,8 @@ The backend should become the trusted boundary for:
   becoming legal case management or downstream settlement tracking;
 - read-only retrospective aggregation over recorded outcomes without becoming
   BI, predictive analytics, or financial reporting;
+- bounded follow-up reminder persistence and scheduler-driven alerting for
+  supported records without becoming a task/calendar/SLA system;
 - workspace membership administration and inactive-membership lifecycle;
 - future compliance-grade audit events;
 - security enforcement.
@@ -800,7 +809,9 @@ Backend implementation order should stay disciplined:
     37;
 36. follow subscriptions and stakeholder awareness: implemented in Phase 38;
 37. review checklists and evidence gates: implemented in Phase 39;
-38. later external automation.
+38. workspace policy enforcement, decision briefs, final outcomes, outcome
+    review, and bounded follow-up reminders: implemented through Phase 44;
+39. later external automation.
 
 Do not introduce automation before the manual workflow is correct.
 
@@ -818,8 +829,10 @@ Avoid:
   boards, general approvals, or automatic routing;
 - expanding the focused approval checkpoint into chains, policy builders,
   escalation, or compliance workflow without a separate architecture phase;
-- turning my-work aggregation into tasks, due dates, SLA scoring, workload
-  analytics, or AI prioritization;
+- turning my-work aggregation into generic tasks, SLA scoring, workload
+  analytics, recurrence scheduling, calendars, or AI prioritization;
+- turning bounded follow-up reminders into task management, arbitrary
+  recurrence, SLA escalation, workforce planning, or auction execution;
 - turning follow subscriptions into social graphs, public feeds, arbitrary
   event rules, recommendations, or notification-on-every-change behavior;
 - turning review checklists into forms, compliance evidence repositories,

@@ -77,6 +77,8 @@ import type {
   WorkspaceRole,
   CreateApprovalRequestResponse,
   FollowEntityResponse,
+  FollowUpStateResponse,
+  FollowUpTargetEntityType,
   FollowListResponse,
   FollowStateResponse,
   FollowTargetEntityType,
@@ -88,6 +90,7 @@ import type {
   UpsertReviewChecklistTemplateRequest,
   UpsertReviewChecklistTemplateResponse,
   UnfollowEntityResponse,
+  UpsertFollowUpResponse,
   UpdateWorkspacePolicyRequest,
   WorkspacePolicyResponse,
 } from "@tax-lien/types";
@@ -285,6 +288,40 @@ export async function unfollowEntity(
 ): Promise<UnfollowEntityResponse> {
   return requestJson<UnfollowEntityResponse>(
     `/follows/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { method: "DELETE", token },
+  );
+}
+
+export async function getFollowUpState(
+  token: string,
+  entityType: FollowUpTargetEntityType,
+  entityId: string,
+): Promise<FollowUpStateResponse> {
+  return requestJson<FollowUpStateResponse>(
+    `/follow-ups/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { token },
+  );
+}
+
+export async function upsertFollowUp(
+  token: string,
+  entityType: FollowUpTargetEntityType,
+  entityId: string,
+  input: { dueAt: string; note?: string | null },
+): Promise<UpsertFollowUpResponse> {
+  return requestJson<UpsertFollowUpResponse>(
+    `/follow-ups/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { method: "PUT", token, body: JSON.stringify(input) },
+  );
+}
+
+export async function clearFollowUp(
+  token: string,
+  entityType: FollowUpTargetEntityType,
+  entityId: string,
+): Promise<{ targetEntityType: FollowUpTargetEntityType; targetEntityId: string; cleared: boolean }> {
+  return requestJson<{ targetEntityType: FollowUpTargetEntityType; targetEntityId: string; cleared: boolean }>(
+    `/follow-ups/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
     { method: "DELETE", token },
   );
 }

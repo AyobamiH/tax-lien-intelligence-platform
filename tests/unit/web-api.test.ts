@@ -389,6 +389,7 @@ describe("web API client", () => {
         unreadDiscussions: 1,
         unreadMessages: 2,
         following: 1,
+        followUps: 0,
         totalActionable: 2,
       },
       queues: {
@@ -396,6 +397,7 @@ describe("web API client", () => {
         approvals: { count: 0, items: [] },
         discussions: { count: 1, unreadCount: 2, items: [] },
         following: { count: 1, items: [] },
+        followUps: { count: 0, items: [] },
       },
     };
     const fetchMock = vi.fn(async () =>

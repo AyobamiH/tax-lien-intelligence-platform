@@ -193,6 +193,8 @@ export function workspaceActivityCategoryLabel(category: WorkspaceActivityCatego
       return "Responsibility";
     case "approvals":
       return "Approvals";
+    case "cadence":
+      return "Cadence";
   }
 }
 
@@ -232,6 +234,11 @@ export function workspaceActivityDestination(
     case "entity_assigned":
     case "entity_reassigned":
     case "entity_assignment_cleared":
+      return activity.metadata?.targetEntityType
+        ? assignmentSurfaceDestination(activity.metadata.targetEntityType, activity.relatedEntityId)
+        : null;
+    case "follow_up_set":
+    case "follow_up_cleared":
       return activity.metadata?.targetEntityType
         ? assignmentSurfaceDestination(activity.metadata.targetEntityType, activity.relatedEntityId)
         : null;
@@ -952,6 +959,8 @@ export function alertTypeLabel(type: AlertType): string {
       return "Workspace assignment";
     case "followed_item_changed":
       return "Followed item update";
+    case "follow_up_due":
+      return "Follow-up due";
   }
 }
 

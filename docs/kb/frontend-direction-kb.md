@@ -53,9 +53,10 @@ Current implementation:
 - maintenance mode/message visibility for scored datasets;
 - alerts route with unread count and read/read-all actions;
 - alert entries for scoring completion/failure, bounded discussion outcomes,
-  direct responsibility assignments, and consequential followed-item changes;
+  direct responsibility assignments, consequential followed-item changes, and
+  due/overdue follow-up reminders;
 - notification preferences route with controls for supported scoring and
-  discussion, assignment, and followed-item alert types,
+  discussion, assignment, followed-item, and follow-up alert types,
   enabled state, in-app-only versus email-capable handling, and timing;
 - delivery history route with safe immediate and digest outcomes;
 - workspace context, selected role, and read-only visibility in the header;
@@ -80,8 +81,11 @@ Current implementation:
   reviewer rationale, owner/admin approve/reject actions, and requester
   cancellation;
 - default my-work route with compact counts and bounded assigned, reviewable
-  approval, unread discussion, and informational followed-record queues linked
-  to existing surfaces;
+  approval, unread discussion, actionable follow-up, and informational
+  followed-record queues linked to existing surfaces;
+- compact follow-up controls on comparison, watchlist, and portfolio detail
+  surfaces, with due date, optional note, due-state label, update, and clear
+  actions;
 - compact follow/unfollow controls with follower count on dataset, comparison,
   watchlist, and portfolio detail surfaces;
 - compact required/optional review checklists on comparison, watchlist, and
@@ -159,6 +163,7 @@ Current and future page direction:
   aggregation;
 - implemented: stakeholder follow controls and informational followed-record
   queue;
+- implemented: bounded follow-up date controls and My Work follow-up queue;
 - implemented: review checklist completion, template management, and bounded
   readiness visibility;
 - implemented: fixed workspace policy visibility, role-aware administration,
@@ -167,6 +172,8 @@ Current and future page direction:
 - implemented: comparison-item final outcome resolution surface;
 - implemented: outcome review/retrospective surface over recorded final
   comparison outcomes;
+- implemented: follow-up due-state visibility for comparison, watchlist, and
+  portfolio records;
 - future: broader personal account/settings page.
 
 ## Page Responsibilities

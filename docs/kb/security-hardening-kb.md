@@ -94,6 +94,13 @@ Current repo protections:
 - my-work aggregation derived from authenticated actor and verified workspace,
   with reviewer eligibility, stale-target filtering, bounded previews, and no
   comment body content;
+- workspace-scoped follow-ups for comparison, watchlist, and portfolio records
+  with selected-workspace membership, target-access revalidation, safe date/note
+  validation, stale-target omission, and assignee/creator recipient resolution
+  derived server-side;
+- follow-up reminder alerts use allowlisted metadata only and do not include
+  follow-up note text, record contents, calendar payloads, or arbitrary task
+  fields;
 - workspace policy persistence scoped by selected workspace, owner/admin-only
   mutation, active-member reads, exact allowlisted rule validation, default-off
   compatibility, and cross-workspace rejection;

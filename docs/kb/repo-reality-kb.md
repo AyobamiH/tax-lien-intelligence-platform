@@ -119,6 +119,12 @@ Implemented today:
   counts, resolved/unresolved comparison mix, bounded recent-resolution
   windows, stale-target omission, and retrospective signals grounded in
   current outcome data;
+- authenticated follow-up state/set/clear/queue routes for comparison,
+  watchlist, and portfolio records, with due-state calculation and
+  selected-workspace target revalidation;
+- worker-scheduled follow-up reminder scans that create bounded
+  `follow_up_due` alerts through existing notification preferences and delivery
+  infrastructure;
 - password hashing;
 - JWT issuance and verification;
 - auth middleware that attaches authenticated identity to the request;

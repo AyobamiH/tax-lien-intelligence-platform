@@ -515,3 +515,65 @@
   product-continuity or hardening task; if a safe browser binary or real
   Crabbox CLI later becomes available, use it for screenshots/browser-driver
   evidence.
+
+## 2026-07-07T11:48:00+01:00 - Phase 44 follow-up reminder workflow
+
+- Requested task: resume the interrupted Phase 44 implementation from the
+  current local repo state, finish it without restarting, verify, commit, push,
+  and explicitly state whether local commit `94f965a` was pushed.
+- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`.
+- Branch and starting state:
+  - local `main` at `94f965a11c35cb23c780b476aec815e5660ad1ec`;
+  - remote `oneclick/main` at
+    `937e2119725cebcf4cac44a91c5203c1b1976edb`;
+  - local `main` ahead by one ledger/docs commit;
+  - working tree had preserved uncommitted Phase 44 edits, so the prompt's
+    clean-tree/push-only condition was false.
+- Decision: do not push `94f965a` alone while the Phase 44 patch is dirty;
+  preserve the patch, finish Phase 44, then push the local-ahead commit and
+  Phase 44 commit together after verification.
+- Work completed:
+  - added shared follow-up DTOs, due/reminder state types, follow-up alert
+    metadata, My Work follow-up queue contracts, and cadence activity types;
+  - added a Mongo follow-up model and exports;
+  - added follow-up store, service, router, factory, and worker scheduler scan;
+  - wired follow-up state into the API app, My Work aggregation, alert service,
+    notification preferences, notification delivery metadata, workspace
+    activity summaries, and worker scheduler config;
+  - added compact web follow-up controls to comparison, watchlist, and
+    portfolio detail surfaces;
+  - added actionable follow-up queue visibility to My Work;
+  - added in-memory follow-up store support and integration/frontend contract
+    coverage;
+  - updated `.env.example`, API docs, architecture docs, changelog, README
+    index, and KB truth for Phase 44;
+  - preserved the boundary that follow-ups are a bounded operational cadence
+    layer, not task management, calendar recurrence, SLA escalation, workforce
+    planning, auction execution, or AI scheduling.
+- Verification:
+  - early `npm run typecheck` failed on exact optional property and new
+    review-model exhaustiveness gaps, then passed after fixes;
+  - `npx vitest run tests/integration/follow-ups.test.ts --testTimeout=60000`
+    passed with 1 file and 3 tests;
+  - `npm run typecheck` passed;
+  - `npx vitest run tests/integration/follow-ups.test.ts tests/integration/my-work.test.ts tests/unit/web-api.test.ts tests/unit/web-app-smoke.test.ts --testTimeout=60000`
+    passed with 4 files and 31 tests;
+  - `git diff --check` passed;
+  - `npm install` completed with packages up to date and 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - first full `npm run test` failed because
+    `tests/integration/notification-preferences.test.ts` still expected the
+    pre-Phase-44 default preference rule list;
+  - updated that test to include `follow_up_due`;
+  - `npx vitest run tests/integration/notification-preferences.test.ts --testTimeout=60000`
+    passed with 1 file and 7 tests;
+  - full `npm run test` passed with 39 files and 266 tests;
+  - `npm run build` passed;
+  - `npm audit` passed with 0 vulnerabilities;
+  - final `git diff --check` passed;
+  - final `npm run typecheck` passed.
+- Changed-state declaration: local code, tests, docs, and ledger are modified.
+  No deployment, migration, production mutation, service lifecycle action,
+  destructive action, or secret read was performed.
+- Remaining action before completion: final git identity check, commit, push,
+  and local/remote match verification.

@@ -94,6 +94,11 @@ Phase 43 adds outcome review so workspaces can inspect final outcome counts,
 recent resolution patterns, and bounded retrospective signals over current
 comparison work. It is operational learning, not BI, predictive analytics, or
 financial reporting.
+Phase 44 adds bounded follow-up dates and reminders on comparison, watchlist,
+and portfolio records so members can see upcoming, due, and overdue operational
+follow-through in My Work and receive controlled reminders through the existing
+alert and notification infrastructure. It is a review-cadence layer, not a
+task manager, calendar system, SLA suite, or AI scheduler.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 
@@ -164,6 +169,9 @@ Current evidence:
   members can see whether the item is still active or resolved.
 - workspace members can review final outcome distribution and recent
   resolutions without leaving the existing decision workflow.
+- workspace members can set, clear, and return to bounded follow-up dates on
+  important comparison, watchlist, and portfolio records without introducing a
+  general task or calendar system.
 
 ## What This SaaS Is
 
@@ -209,6 +217,8 @@ The intended product loop is:
     team can distinguish active review from resolved decision work.
 23. the workspace can review recent final outcomes, outcome mix, and bounded
     follow-up signals to improve future decision discipline.
+24. members can attach bounded follow-up dates to important records and return
+    to due or overdue work through My Work and controlled reminders.
 
 This loop is partially implemented. Auth, dataset upload APIs, internal source
 row storage, first-pass score APIs, browser score review, watchlist
@@ -223,9 +233,9 @@ assignments now exist. Role-aware workspace administration and permission
 hardening now exist. A focused comparison-to-portfolio approval checkpoint now
 exists. A member-focused my-work aggregation surface now exists. Workspace
 review checklist templates and record completion now exist. Workspace policy
-rules, comparison-item decision briefs, and final comparison-item outcomes now
-exist. Outcome review and retrospective summaries now exist for recorded final
-comparison outcomes. Broad county coverage, live county sync, full spreadsheet editing,
+rules, comparison-item decision briefs, final comparison-item outcomes, outcome
+review, and bounded follow-up reminders now exist. Broad county coverage, live
+county sync, full spreadsheet editing,
 realtime chat, rich-text collaboration, compliance audit tooling, automated
 checklist evidence, PDF brief generation, public evidence sharing, legal
 case-management workflows, reopen workflows, predictive outcome analytics,

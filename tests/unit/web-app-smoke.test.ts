@@ -129,6 +129,7 @@ function payloadFor(pathname: string): unknown {
           unreadDiscussions: 0,
           unreadMessages: 0,
           following: 0,
+          followUps: 0,
           totalActionable: 0,
         },
         queues: {
@@ -136,6 +137,7 @@ function payloadFor(pathname: string): unknown {
           approvals: { count: 0, items: [] },
           discussions: { count: 0, unreadCount: 0, items: [] },
           following: { count: 0, items: [] },
+          followUps: { count: 0, items: [] },
         },
       };
     default:

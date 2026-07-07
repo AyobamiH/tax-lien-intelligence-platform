@@ -2,6 +2,27 @@
 
 ## 2026-06-16
 
+- Implemented Phase 44 follow-up dates, reminders, and review cadence as a
+  bounded operational reminder layer for comparison, watchlist, and portfolio
+  records.
+- Added authenticated follow-up state, set/update, clear, and personal queue
+  APIs with selected-workspace membership, target access revalidation,
+  invalid-date rejection, one-active-follow-up-per-target behavior, and
+  stale-target omission.
+- Added due-state calculation for upcoming, due, overdue, cleared, and no
+  follow-up states, plus compact frontend controls on supported record detail
+  surfaces and an actionable follow-up queue in My Work.
+- Added scheduler-driven `follow_up_due` alert generation through existing
+  alert, notification preference, delivery, and digest infrastructure, with
+  bounded duplicate suppression by due-state transition.
+- Added workspace activity for follow-up set/clear events without copying note
+  text into activity metadata.
+- Added integration and frontend contract tests for follow-up creation/update,
+  invalid dates, clear behavior, cross-workspace rejection, My Work
+  aggregation, reminder generation, and reminder noise suppression.
+- Kept full task management, recurring reminders, calendar integrations,
+  SLA/escalation suites, workforce planning, auction execution, and AI
+  scheduling assistance out of scope.
 - Implemented Phase 43 outcome review and retrospective insights as a bounded
   operational learning workflow.
 - Added authenticated `GET /outcome-review` with selected-workspace membership,

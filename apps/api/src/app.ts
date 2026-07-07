@@ -67,6 +67,9 @@ import { createMyWorkRouter } from "./routes/my-work.js";
 import { createFollowService } from "./follows/factory.js";
 import type { FollowService } from "./follows/follow-service.js";
 import { createFollowRouter } from "./routes/follows.js";
+import { createFollowUpService } from "./follow-ups/factory.js";
+import type { FollowUpService } from "./follow-ups/follow-up-service.js";
+import { createFollowUpRouter } from "./routes/follow-ups.js";
 import { createReviewChecklistService } from "./review-checklists/factory.js";
 import type { ReviewChecklistService } from "./review-checklists/review-checklist-service.js";
 import { createReviewChecklistRouter } from "./routes/review-checklists.js";
@@ -93,6 +96,7 @@ export interface AppDependencies {
   approvalService?: ApprovalService;
   myWorkService?: MyWorkService;
   followService?: FollowService;
+  followUpService?: FollowUpService;
   reviewChecklistService?: ReviewChecklistService;
   workspacePolicyService?: WorkspacePolicyService;
   decisionBriefService?: DecisionBriefService;
@@ -147,6 +151,8 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     dependencies.workspaceCommentService ?? createWorkspaceCommentService(alertService);
   const followService =
     dependencies.followService ?? createFollowService(alertService);
+  const followUpService =
+    dependencies.followUpService ?? createFollowUpService(alertService);
   const workspaceAssignmentService =
     dependencies.workspaceAssignmentService ??
     createWorkspaceAssignmentService(alertService, workspaceActivityService, followService);
@@ -159,7 +165,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     dependencies.approvalService ?? createApprovalService(comparisonService, workspacePolicyService);
   const myWorkService =
     dependencies.myWorkService ??
-    createMyWorkService(workspaceAssignmentService, approvalService, followService);
+    createMyWorkService(workspaceAssignmentService, approvalService, followService, followUpService);
   const decisionOutcomeService =
     dependencies.decisionOutcomeService ??
     createDecisionOutcomeService(comparisonService, approvalService, workspacePolicyService);
@@ -208,6 +214,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     ),
   );
   app.use("/follows", createFollowRouter(authService, workspaceService, followService));
+  app.use("/follow-ups", createFollowUpRouter(authService, workspaceService, followUpService));
   app.use(
     "/review-checklists",
     createReviewChecklistRouter(

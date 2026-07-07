@@ -26,6 +26,7 @@ export const notificationAlertTypes = [
   "workspace_comment_added",
   "workspace_item_assigned",
   "followed_item_changed",
+  "follow_up_due",
 ] as const;
 export const notificationDeliveryModes = ["in_app_only", "delivery_eligible"] as const;
 export const notificationCadences = ["immediate", "digest"] as const;
@@ -96,6 +97,19 @@ const notificationCategories: NotificationPreferenceCategory[] = [
     supportsDigest: true,
     defaultRule: {
       alertType: "followed_item_changed",
+      enabled: true,
+      deliveryMode: "in_app_only",
+      cadence: "digest",
+    },
+  },
+  {
+    alertType: "follow_up_due",
+    label: "Follow-up reminders",
+    description: "A comparison, watchlist, or portfolio record reached its bounded follow-up date.",
+    supportsDelivery: true,
+    supportsDigest: true,
+    defaultRule: {
+      alertType: "follow_up_due",
       enabled: true,
       deliveryMode: "in_app_only",
       cadence: "digest",
@@ -270,6 +284,8 @@ function notificationSubject(alertType: AlertType, severity: AlertSeverity): str
       return "Workspace item assigned";
     case "followed_item_changed":
       return "Followed item updated";
+    case "follow_up_due":
+      return "Follow-up due";
   }
 }
 
@@ -291,6 +307,9 @@ function sanitizeAlertMetadata(metadata: AlertMetadata | undefined): NonNullable
     ...(metadata?.followChangeType ? { followChangeType: metadata.followChangeType } : {}),
     ...(metadata?.followActorUserId ? { followActorUserId: metadata.followActorUserId } : {}),
     ...(metadata?.followActorEmail ? { followActorEmail: metadata.followActorEmail } : {}),
+    ...(metadata?.followUpId ? { followUpId: metadata.followUpId } : {}),
+    ...(metadata?.followUpDueAt ? { followUpDueAt: metadata.followUpDueAt } : {}),
+    ...(metadata?.followUpDueState ? { followUpDueState: metadata.followUpDueState } : {}),
   };
 }
 
