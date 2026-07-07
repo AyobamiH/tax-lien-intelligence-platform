@@ -792,3 +792,32 @@
 - Blockers: none after local verification.
 - Next safe step: commit and push Phase 45 after setting the requested Git
   identity, then verify local and remote `main` match.
+
+## 2026-07-07T13:44:00+01:00 - Phase 45 push completion
+
+- Commit created: `9d7d801`
+  (`feat: implement phase 45 follow-up control workflow`).
+- Push target: tracked upstream `oneclick/main`.
+- Push result: succeeded, advancing `oneclick/main` from
+  `5868f1b` to `9d7d801`.
+- Pre-push hook result:
+  - dependency install check reported packages up to date and 0
+    vulnerabilities;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 39 files and 268 tests;
+  - `npm run build` passed.
+- Post-push verification:
+  - local `HEAD`, local `oneclick/main`, and remote `refs/heads/main` all
+    resolved to `9d7d80118f96acb1915d3f07189fcc45e1db8853`;
+  - working tree was clean before this ledger completion entry.
+- Phase 45 completion:
+  - follow-up completion and snooze/reschedule control is now implemented on
+    main;
+  - completion suppresses future queue/reminder behavior;
+  - snooze resets reminder state and defers reminders until the new due date;
+  - recurring reminders, calendar integration, task-board workflows, SLA
+    engines, and AI reminder optimization remain out of scope.
+- Next safe step: run a bounded Mongo-backed Phase 45 smoke or browser-driver
+  proof when a suitable local verification path is selected; do not claim
+  deployed, screenshot, or brokered Crabbox proof until actually run.
