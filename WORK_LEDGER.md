@@ -983,3 +983,32 @@
 - Blockers: none before final checks.
 - Next safe step: run the required gates, commit, push, and verify local and
   remote `main` match if all checks pass.
+
+## 2026-07-07T18:14:00+01:00 - Phase 46 browser-like smoke push completion
+
+- Commit created: `54b9c8c`
+  (`test: add follow-up browser runtime smoke proof`).
+- Push target: tracked upstream `oneclick/main`.
+- Push result: succeeded after a resumed push, advancing `oneclick/main` from
+  `d859470` to `54b9c8c`.
+- Pre-push hook result:
+  - dependency install check reported packages up to date and 0
+    vulnerabilities;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 40 files and 269 tests;
+  - `npm run build` passed.
+- Post-push verification:
+  - local `HEAD`, local `oneclick/main`, and remote `refs/heads/main` all
+    resolved to `54b9c8cca26f495c0ce3d6fe43ae695d98111bdc`.
+- Completion:
+  - Phase 46 browser-like follow-up lifecycle smoke proof is now on main;
+  - `npm run smoke:browser` includes the follow-up lifecycle smoke;
+  - focused evidence remains local JSON/browser-like proof, not deployed,
+    screenshot, production, or brokered Crabbox proof.
+- Remaining limits:
+  - no deployed or production proof;
+  - no browser-driver screenshot proof;
+  - no brokered/cloud Crabbox proof.
+- Next safe step: continue from clean repo truth into the next roadmap
+  hardening/product-continuity task.
