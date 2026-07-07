@@ -10,10 +10,13 @@ It does not replace issue planning or implementation specs.
 
 ## Delivery Workflow Boundary
 
-Current roadmap marker: Phase 45 follow-up completion and snooze control is
-implemented in the local patch as a bounded follow-through layer. Recurring
-rules, calendar integration, task boards, SLA engines, and AI reminder
-optimization remain outside the phase boundary.
+Current roadmap marker: Phase 46 browser-like follow-up smoke proof is
+implemented as a bounded verification layer for the existing follow-up
+lifecycle. It proves due-state rendering plus update, completion, and
+snooze/reschedule controls in the React shell with synthetic local data.
+Recurring rules, calendar integration, task boards, SLA engines, AI reminder
+optimization, deployed smoke, and screenshot galleries remain outside the phase
+boundary.
 
 The current delivery workflow is direct-to-`main` after local verification. A
 phase should not be pushed until:

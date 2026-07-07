@@ -15,6 +15,9 @@ Current shared types in `packages/types`:
   completion metadata, snooze metadata, prior due-date context, explicit
   complete/snooze response DTOs, and a narrower alert due-state contract that
   only allows `due` or `overdue` in `follow_up_due` alert metadata;
+- Phase 46 adds browser-like contract smoke coverage for follow-up state,
+  upsert, complete, and snooze calls from the React shell. It verifies auth and
+  workspace headers against the existing DTOs without changing shared types;
 
 - `RuntimeEnvironment`;
 - `HealthStatus`;

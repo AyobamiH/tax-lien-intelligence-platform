@@ -89,6 +89,9 @@ It shows:
 - follow-up date controls on comparison, watchlist, and portfolio detail
   surfaces, with due-state visibility, optional note context, update,
   complete, snooze/reschedule, and clear actions;
+- repeatable browser-like follow-up lifecycle smoke coverage for the portfolio
+  follow-up control surface, proving due-state rendering plus update,
+  completion, and snooze/reschedule control behavior with synthetic local data;
 - an actionable Follow-ups queue in My Work for upcoming, due, and overdue
   follow-ups assigned to or created by the current member, with inline
   completion and snooze controls;

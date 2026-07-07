@@ -130,6 +130,20 @@ This is local runtime evidence for the follow-up reminder path. It is not
 deployed proof, browser-driver screenshot evidence, production data validation,
 or a recurring task platform.
 
+## Browser-Like Smoke
+
+`npm run smoke:follow-ups:browser` provides focused browser-like proof for the
+follow-up control surface. It mounts the real React app in jsdom with synthetic
+local data, selects the portfolio surface, renders a due follow-up, drives
+update, complete, and snooze controls, verifies authenticated follow-up API
+calls carry the selected workspace header, and writes bounded JSON evidence to
+`/tmp/tax-lien-follow-up-browser-smoke.json` by default.
+
+The smoke proves local render/control behavior for the follow-up lifecycle,
+including a real snooze date change and reminder-state reset in the mocked API
+contract. It does not use production data, hit deployed services, capture
+screenshots, or provide browser-driver proof.
+
 ## Security
 
 Follow-ups are workspace-scoped operational data.

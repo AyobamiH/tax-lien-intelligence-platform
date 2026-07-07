@@ -179,6 +179,12 @@ automation or deployed proof.
 
 `npm run smoke:browser` mounts the real React app in a jsdom browser-like DOM,
 checks the unauthenticated app shell, and bootstraps the authenticated operator
-shell with mocked API responses. It is local render/bootstrap proof, not
-screenshot capture, browser-driver automation, MongoDB-backed end-to-end proof,
-Crabbox proof, or deployed proof.
+shell with mocked API responses. It also runs the follow-up lifecycle browser
+smoke for due-state rendering plus update, complete, and snooze controls.
+
+`npm run smoke:follow-ups:browser` runs only the focused follow-up lifecycle
+browser-like smoke and writes local JSON evidence to
+`/tmp/tax-lien-follow-up-browser-smoke.json` by default. These browser smoke
+commands are local render/control proof, not screenshot capture,
+browser-driver automation, MongoDB-backed end-to-end proof, Crabbox proof, or
+deployed proof.

@@ -18,7 +18,9 @@ turns county parcel and tax lien datasets into structured investment decisions.
 The current workflow now includes bounded follow-up control: teams can set
 follow-up dates, receive due/overdue reminders, complete handled follow-ups,
 and snooze relevant follow-ups to a new date without turning the product into a
-general task or calendar platform.
+general task or calendar platform. The current follow-up lifecycle also has
+browser-like smoke proof for due-state rendering plus update, completion, and
+snooze/reschedule controls.
 
 The product is not yet fully implemented. The current repo now includes the
 baseline, auth foundation, dataset upload foundation, first-pass scoring
@@ -104,6 +106,11 @@ and portfolio records so members can see upcoming, due, and overdue operational
 follow-through in My Work and receive controlled reminders through the existing
 alert and notification infrastructure. It is a review-cadence layer, not a
 task manager, calendar system, SLA suite, or AI scheduler.
+Phase 45 adds completion and snooze/reschedule control to keep follow-up
+reminders bounded and trustworthy.
+Phase 46 adds focused browser-like follow-up lifecycle proof over the existing
+React shell and follow-up API contract. It is verification hardening, not a new
+workflow feature, screenshot gallery, deployed smoke, or calendar/task system.
 The product identity is visible through the README, package description,
 architecture docs, and frontend review/watchlist/portfolio/comparison surfaces.
 

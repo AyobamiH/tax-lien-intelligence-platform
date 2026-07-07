@@ -15,6 +15,8 @@ The current product state is acceptable only when these claims remain true:
   outcome, and outcome review workflows are represented in code and tests.
 - Follow-up reminders include bounded completion and snooze/reschedule controls
   with scheduler suppression/deferral behavior covered by tests.
+- Follow-up lifecycle controls have repeatable browser-like smoke proof for
+  due-state rendering, update, complete, and snooze/reschedule behavior.
 - Notification, comment, assignment, follow, activity, and my-work surfaces do
   not leak private workspace content across tenants.
 - Expensive scoring and refresh request paths have bounded abuse protection.
@@ -38,6 +40,9 @@ This autonomous run is complete when:
   task-management, calendar, recurrence, SLA, or AI scheduling layer;
 - completed follow-ups are no longer active queue/reminder candidates, and
   snoozed follow-ups reset reminder state against the new due date;
+- Phase 46 browser-like smoke proof exercises the real React shell with local
+  synthetic data and records bounded evidence for due-state, completion, and
+  snooze behavior;
 - Crabbox is used for verification or a capability-gap result is recorded after
   repo/workspace-local diagnosis;
 - `WORK_LEDGER.md` records the run with evidence, checks, and next step;
@@ -58,6 +63,7 @@ Completion evidence may include:
 - successful `npm run build`;
 - successful `npm run smoke:local`;
 - successful `npm run smoke:browser`;
+- successful `npm run smoke:follow-ups:browser`;
 - successful `npm run audit`;
 - focused test output when a narrow code path changes.
 
@@ -78,13 +84,16 @@ For source changes:
 - `npm run build`;
 - `npm run smoke:local` when runtime/API/browser-shell behavior is in scope;
 - `npm run smoke:browser` when browser render/bootstrap behavior is in scope;
+- `npm run smoke:follow-ups:browser` when follow-up UI lifecycle proof is in
+  scope;
 - `npm run audit` for dependency/security-sensitive changes.
 
 ## Unverified After This Run
 
 The following are not proven by static inspection alone:
 
-- browser-driver screenshots or interactive browser smoke tests;
+- browser-driver screenshots or interactive browser smoke tests beyond the
+  local jsdom browser-like smoke;
 - MongoDB-backed end-to-end flows outside automated tests;
 - production deployment posture;
 - production deployment behavior, secret rotation, and external worker

@@ -906,3 +906,80 @@
 - Next safe step: continue roadmap hardening from clean repo truth, with a
   browser-driver smoke for Phase 45 follow-up controls as the next strongest
   verification candidate.
+
+## 2026-07-07T17:36:00+01:00 - Phase 46 browser-like follow-up smoke proof
+
+- Requested task: implement the next action end to end after the Phase 46
+  browser-proof follow-up smoke was interrupted.
+- Repo path: `/home/oneclickwebsitedesignfactory/tax-lien-platform`.
+- Branch and starting HEAD: `main` at
+  `d859470d7414ecbbbd9bf315363c37b063aae6a6`.
+- Verified facts:
+  - local `HEAD` and `oneclick/main` matched at `d859470` before this work;
+  - the interrupted patch contained `package.json` and a new
+    `tests/unit/follow-up-browser-smoke.test.ts`;
+  - Phase 45 product behavior and Mongo-backed smoke hardening were already on
+    `main`.
+- Assumptions made:
+  - a focused jsdom smoke is the strongest bounded local browser-like proof
+    available without deploying, using production data, or adding a wide E2E
+    suite;
+  - screenshot and brokered/cloud Crabbox proof remain separate evidence paths.
+- Chosen next task and why: finish the Phase 46 follow-up browser-like smoke,
+  because the remaining verified gap was UI lifecycle proof for due-state,
+  completion, and snooze controls.
+- Files changed:
+  - `package.json`;
+  - `tests/unit/follow-up-browser-smoke.test.ts`;
+  - `README.md`;
+  - `ACCEPTANCE.md`;
+  - `OPENCLAW_RUNBOOK.md`;
+  - `docs/api/follow-ups.md`;
+  - `docs/architecture/follow-ups.md`;
+  - `docs/changelog.md`;
+  - `docs/kb/automation-and-intelligence-kb.md`;
+  - `docs/kb/backend-direction-kb.md`;
+  - `docs/kb/current-surface-kb.md`;
+  - `docs/kb/frontend-direction-kb.md`;
+  - `docs/kb/master-product-kb.md`;
+  - `docs/kb/repo-reality-kb.md`;
+  - `docs/kb/roadmap-and-phase-boundaries-kb.md`;
+  - `docs/kb/security-hardening-kb.md`;
+  - `docs/kb/shared-contract-kb.md`;
+  - `WORK_LEDGER.md`.
+- Work completed:
+  - added `npm run smoke:follow-ups:browser`;
+  - extended `npm run smoke:browser` to include the follow-up lifecycle smoke;
+  - added a browser-like jsdom smoke that mounts the authenticated React shell,
+    opens the portfolio surface, renders a due follow-up, drives update,
+    complete, and snooze controls, verifies follow-up requests carry bearer
+    auth and selected workspace headers, and writes bounded JSON evidence;
+  - tightened the smoke so snooze changes the due date to a later date and
+    verifies reminder state resets to `none`;
+  - updated docs and KB files to record this as browser-like/runtime proof, not
+    screenshot, deployed, production, or brokered Crabbox proof.
+- Checks run:
+  - initial `npm run smoke:follow-ups:browser` passed, but evidence showed the
+    snooze date had not changed;
+  - the smoke harness was fixed to update the controlled date input through
+    the native input setter;
+  - `npm run smoke:follow-ups:browser` passed and wrote
+    `/tmp/tax-lien-follow-up-browser-smoke.json` with final due date
+    `2026-07-14T12:00:00.000Z`, final due state `upcoming`, reminder state
+    `none`, and previous due date `2026-07-07T12:00:00.000Z`.
+  - `npm install` passed with packages up to date and 0 vulnerabilities;
+  - `git diff --check` passed;
+  - `npm run typecheck` passed;
+  - `npm run smoke:follow-ups:browser` passed with 1 file and 1 test;
+  - `npm run smoke:browser` passed with 2 files and 3 tests;
+  - `npm run test` passed with 40 files and 269 tests;
+  - `npm run build` passed;
+  - `npm audit` passed with 0 vulnerabilities;
+  - `npm run audit` passed with 0 high-severity vulnerabilities.
+- Remaining limits:
+  - no deployed or production proof;
+  - no browser-driver screenshot proof;
+  - no brokered/cloud Crabbox proof.
+- Blockers: none before final checks.
+- Next safe step: run the required gates, commit, push, and verify local and
+  remote `main` match if all checks pass.

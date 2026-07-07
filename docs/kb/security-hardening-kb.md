@@ -37,6 +37,9 @@ The product must earn trust through secure boundaries and explainable output.
 - Snoozed follow-ups reset reminder state only after a validated new due date;
   alert metadata remains limited to actual `due`/`overdue` reminder states, and
   follow-up notes are not copied into workspace activity metadata.
+- Phase 46 adds browser-like follow-up lifecycle proof that verifies follow-up
+  API calls from the React shell include both the bearer token and selected
+  workspace header while using only synthetic local data and no screenshots.
 
 ### Current Implemented Protections
 

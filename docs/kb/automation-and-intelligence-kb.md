@@ -13,6 +13,8 @@ Current implementation:
 - bounded follow-up automation includes scheduler-driven due/overdue
   `follow_up_due` alerts plus Phase 45 suppression after completion and
   deferral after explicit snooze/reschedule;
+- Phase 46 adds browser-like verification evidence for follow-up lifecycle
+  controls, but does not add new automation behavior;
 - follow-up control is deterministic workflow automation, not AI scheduling,
   arbitrary recurrence, calendar sync, or a task-management engine;
 

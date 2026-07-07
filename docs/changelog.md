@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Added Phase 46 browser-like follow-up lifecycle smoke proof. The new
+  `npm run smoke:follow-ups:browser` command mounts the authenticated React app
+  shell in jsdom with synthetic local data, renders portfolio follow-up
+  due-state, drives update, complete, and snooze controls, verifies auth and
+  workspace headers on follow-up API calls, and writes bounded JSON evidence to
+  `/tmp/tax-lien-follow-up-browser-smoke.json` by default.
+- Extended `npm run smoke:browser` to include the follow-up lifecycle smoke
+  alongside the existing app-shell smoke. This remains browser-like runtime
+  proof, not screenshot, deployed, production, or browser-driver evidence.
 - Implemented Phase 45 follow-up completion, snooze, and follow-through
   control as a bounded operational reminder layer, not a task or calendar
   system.

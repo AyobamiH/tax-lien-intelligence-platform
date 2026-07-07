@@ -55,6 +55,9 @@ Current implementation:
 - follow-up model, store, service, and authenticated routes for bounded
   follow-up dates, completion, and snooze/reschedule control on comparison,
   watchlist, and portfolio records;
+- local browser-like follow-up smoke coverage that verifies the frontend calls
+  the existing follow-up endpoints with bearer auth and selected-workspace
+  headers;
 - scheduler-driven follow-up reminder scan that emits bounded `follow_up_due`
   alerts through existing notification preferences and delivery infrastructure;
 - selected-workspace membership middleware and explicit read/write,

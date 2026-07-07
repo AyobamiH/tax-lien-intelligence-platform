@@ -10,7 +10,10 @@ sequencing and the master product KB for product identity.
 
 ## Current Phase Truth
 
-- Phase 45 follow-up control is implemented in the local patch: supported
+- Phase 46 follow-up proof is implemented: the repo has a
+  focused browser-like smoke command for follow-up due-state rendering, update,
+  completion, and snooze/reschedule controls using synthetic local data.
+- Phase 45 follow-up control is implemented on main: supported
   comparison, watchlist, and portfolio follow-ups can be completed or
   snoozed/rescheduled through authenticated, workspace-scoped APIs and visible
   web controls.
@@ -18,6 +21,9 @@ sequencing and the master product KB for product identity.
   from My Work follow-up queues and scheduler-driven `follow_up_due` alerts.
 - Snoozed follow-ups record previous/new due context, reset reminder state, and
   defer future reminders until the new due date.
+- The Phase 46 smoke is jsdom/browser-like render/control proof. It is not
+  deployed proof, screenshot evidence, production data validation, or
+  brokered/cloud Crabbox proof.
 
 ## Source-Of-Truth Repo
 

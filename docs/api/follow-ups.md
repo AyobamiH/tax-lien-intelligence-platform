@@ -240,6 +240,15 @@ and, if it remains open into a later day, one `overdue` reminder. Updating or
 snoozing the date resets that bounded reminder state. Completing or clearing
 the follow-up removes it from future reminder scans.
 
+## Local Verification
+
+`npm run smoke:follow-ups:browser` exercises the existing portfolio follow-up
+API contract from the React shell with synthetic local responses. The smoke
+verifies `GET`, `PUT`, `complete`, and `snooze` calls include bearer auth and
+the selected `X-Workspace-Id`, and records local JSON evidence for due,
+completed, and snoozed/upcoming UI states. This is browser-like contract proof,
+not a deployed API call or screenshot capture.
+
 ## Error Codes
 
 Possible follow-up errors:

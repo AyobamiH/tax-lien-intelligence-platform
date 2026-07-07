@@ -16,6 +16,10 @@ Current implementation:
   detail surfaces and My Work follow-up queues expose completion,
   snooze/reschedule, current status, completed timestamp, and snoozed-from
   context without adding calendar or task-board chrome;
+- Phase 46 adds repeatable browser-like smoke proof for the follow-up control
+  UI. It renders the authenticated shell in jsdom, drives due-state, update,
+  complete, and snooze behavior, and records bounded local evidence without
+  screenshots or production data;
 
 - React 19;
 - Vite;
