@@ -329,3 +329,67 @@
   next roadmap hardening task. Production deploy, migrations, service lifecycle
   changes, paid/provider Crabbox setup, and production credentials remain
   permission boundaries.
+
+## 2026-07-07T09:20:00+01:00 - Local runtime smoke evidence
+
+- Requested task: continue autonomous Tax Lien project work from the existing
+  repo, inspect current truth first, choose the next safest valuable task,
+  implement it, verify it, record it, and commit/push if checks pass.
+- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`;
+  fallback typo path `/home/oneclickwebsitefactory/tax-lien-platform` was not
+  present.
+- Branch and starting HEAD: `main` at
+  `da8d581dc4cdcb30a5ad99aebdd14b385ffd4de4`.
+- Starting state: clean working tree tracking `oneclick/main`.
+- What was inspected: repo path, git status, branch, remotes, recent commits,
+  package scripts, project-control files, docs/KB inventory, CI workflow,
+  API/web/package/source structure, API startup path, API health route, web app
+  shell, API client base URL, and existing runtime/browser-smoke gaps.
+- Coding evidence tools used first:
+  - `coding_validate_project` completed;
+  - `coding_repo_map` completed;
+  - `coding_route_trace`, `coding_api_contract_audit`, and
+    `coding_env_audit` were adapter-limited, so narrow direct inspection was
+    used for route/runtime details.
+- Verified facts discovered:
+  - the repo already has strong unit/integration/build/audit gates;
+  - `ACCEPTANCE.md` still listed live local API and browser runtime behavior as
+    unverified;
+  - the API process entrypoint requires MongoDB before listening, but
+    `createApp()` can be started in-process for health/404 runtime smoke
+    without reading secrets or connecting to production services;
+  - the built Vite shell can be served from `apps/web/dist` and checked over
+    local HTTP without adding browser-driver dependencies.
+- Assumptions made: a dependency-free HTTP smoke is valuable as local runtime
+  proof, but it is not equivalent to browser-driver screenshots, deployed
+  proof, MongoDB-backed end-to-end proof, or Crabbox proof.
+- Chosen next task and why: add `npm run smoke:local` because the next recorded
+  gap after the committed hardening was bounded local API/browser-shell runtime
+  smoke evidence.
+- Files changed:
+  - `package.json`;
+  - `scripts/local-runtime-smoke.mjs`;
+  - `README.md`;
+  - `ACCEPTANCE.md`;
+  - `docs/architecture/frontend-review.md`;
+  - `WORK_LEDGER.md`.
+- Changed-state declaration: local script/docs/control files changed. No
+  deployment, migration, service lifecycle action, production mutation,
+  dependency change, package install, or secret read was performed.
+- Verification:
+  - first `npm run smoke:local` run failed because the new smoke script tried
+    to close the Express app object instead of the HTTP server returned by
+    `app.listen()`;
+  - fixed the smoke script to close the returned HTTP server;
+  - `git diff --check` passed;
+  - `npm run smoke:local` passed, including build, API `/healthz`, structured
+    API 404, built web index, and built JS/CSS asset fetches over local HTTP;
+  - `npm run typecheck` passed;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run build` passed;
+  - `npm run test` passed with 37 files and 261 tests.
+- Result: local API/web-shell runtime smoke is now repeatable through
+  `npm run smoke:local`.
+- Next safe step: commit and push the smoke evidence task, then continue with
+  either interactive browser-driver proof if a safe tool is available or the
+  next roadmap hardening task.

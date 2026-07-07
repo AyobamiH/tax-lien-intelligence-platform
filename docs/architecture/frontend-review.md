@@ -63,6 +63,8 @@ Implemented:
 - alert links back to related datasets when available;
 - loading, empty, and error states;
 - reusable review model helpers and unit tests.
+- bounded local runtime smoke via `npm run smoke:local`, which verifies the
+  built web shell and API health/404 behavior over local HTTP.
 
 Not implemented:
 
@@ -70,6 +72,7 @@ Not implemented:
 - automation;
 - ML/AI features;
 - final design polish or advanced filtering.
+- browser-driver screenshots or interactive browser automation.
 
 ## Route Model
 

@@ -167,4 +167,11 @@ npm run audit
 npm run typecheck
 npm run test
 npm run build
+npm run smoke:local
 ```
+
+`npm run smoke:local` builds the workspace, starts the API app in-process,
+serves the built web shell from `apps/web/dist`, verifies `/healthz`, verifies
+the structured unknown-route response, and fetches the built HTML/CSS/JS assets
+over local HTTP. It is a bounded local runtime smoke, not full browser
+automation or deployed proof.
