@@ -672,3 +672,29 @@
   - no brokered/cloud Crabbox proof until a provider is configured;
   - Phase 45 follow-up completion/snooze remains unimplemented and should be
     started only after this verification recovery is committed and pushed.
+
+## 2026-07-07T12:50:00+01:00 - Mongo follow-up smoke push completion
+
+- Commit created: `354a53a`
+  (`test: add mongo follow-up smoke`).
+- Push target: tracked upstream `oneclick/main`.
+- Push result: succeeded, advancing `oneclick/main` from `ff4e0e7` to
+  `354a53a`.
+- Pre-push hook result:
+  - dependency install check reported packages up to date and 0
+    vulnerabilities;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 39 files and 266 tests;
+  - `npm run build` passed.
+- Post-push verification:
+  - local `HEAD`, local `oneclick/main`, and remote `refs/heads/main` all
+    resolved to `354a53a7f384d8b4e03def8cf3be6443d424ce53`;
+  - working tree was clean before this ledger completion entry.
+- Abandoned pre-Phase-45 work recovered:
+  - MongoDB-backed follow-up workflow smoke is now repeatable via
+    `npm run smoke:mongo`;
+  - Crabbox is installed and doctor-ready locally, but no brokered/cloud run
+    proof is claimed without provider configuration.
+- Next safe step: begin Phase 45 follow-up completion/snooze/control workflow
+  from the clean pushed repo truth.
