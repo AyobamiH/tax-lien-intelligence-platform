@@ -120,8 +120,11 @@ flag. It does not copy follow-up notes into the activity feed.
 It builds the workspace, connects to `MONGODB_URI` using a unique temporary
 database name, starts the API app in-process, sets a due follow-up through the
 authenticated API, verifies the My Work queue, runs the scheduler reminder
-service, confirms one `follow_up_due` alert with duplicate suppression, clears
-the follow-up, and drops only the temporary smoke database.
+service, confirms one `follow_up_due` alert with duplicate suppression,
+completes the follow-up and confirms reminder suppression, snoozes it to a new
+future due date with prior-date context, confirms reminder deferral and reset
+state, emits one new due reminder after the snoozed date, clears the follow-up,
+and drops only the temporary smoke database.
 
 This is local runtime evidence for the follow-up reminder path. It is not
 deployed proof, browser-driver screenshot evidence, production data validation,

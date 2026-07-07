@@ -17,6 +17,13 @@
 - Added integration coverage for completion, queue/reminder suppression,
   invalid snooze date rejection, snooze metadata, and reminder reset after
   reschedule.
+- Extended `npm run smoke:mongo` to cover Phase 45 completion and
+  snooze/reschedule behavior against the built API and real Mongo store path,
+  including completed-record reminder suppression, snooze reminder reset, and
+  a second bounded due reminder after the snoozed date.
+- Fixed Mongo follow-up previous-record lookup so reschedule/snooze metadata is
+  derived from the workspace/entity target key rather than the full mutation
+  input.
 - Added `npm run smoke:mongo` to recover the abandoned pre-Phase-45
   verification gap: a real Mongo-backed follow-up workflow smoke for Phase 44.
   The smoke uses a temporary database, exercises authenticated follow-up set,

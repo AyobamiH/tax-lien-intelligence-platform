@@ -64,6 +64,49 @@ async function main() {
     }).exec();
     assertEqual(alertCount, 1, "follow_up_due alert count");
 
+    const completed = await fetchJson(`${baseUrl}/follow-ups/portfolio_item/${targetId}/complete`, {
+      method: "POST",
+      headers: authHeaders(owner.token, workspaceId),
+    });
+    assertEqual(completed.completed, true, "follow-up completed flag");
+    assertEqual(completed.followUp?.dueState, "completed", "completed follow-up due state");
+    assertPresent(completed.followUp?.completedAt, "completed follow-up timestamp");
+
+    const afterComplete = await followUpService.runReminderScan(new Date(now.getTime() + 60_000));
+    assertEqual(afterComplete.scanned, 0, "reminder scan after complete");
+
+    const queueAfterComplete = await fetchJson(`${baseUrl}/follow-ups/queue`, {
+      headers: authHeaders(owner.token, workspaceId),
+    });
+    assertEqual(queueAfterComplete.counts?.total, 0, "follow-up queue total after complete");
+
+    const snoozedDueAt = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+    const snoozed = await fetchJson(`${baseUrl}/follow-ups/portfolio_item/${targetId}/snooze`, {
+      method: "POST",
+      headers: authHeaders(owner.token, workspaceId),
+      body: JSON.stringify({ dueAt: snoozedDueAt, note: "Mongo smoke snoozed follow-up." }),
+    });
+    assertEqual(snoozed.changed, true, "follow-up snoozed changed flag");
+    assertEqual(snoozed.followUp?.dueState, "upcoming", "snoozed follow-up due state");
+    assertEqual(snoozed.followUp?.dueAt, snoozedDueAt, "snoozed follow-up due date");
+    assertEqual(snoozed.followUp?.lastReminderState, "none", "snoozed follow-up reminder reset");
+    assertEqual(snoozed.followUp?.previousDueAt, dueAt, "snoozed follow-up previous due date");
+    assertPresent(snoozed.followUp?.snoozedAt, "snoozed follow-up timestamp");
+
+    const deferredReminder = await followUpService.runReminderScan(now);
+    assertEqual(deferredReminder.scanned, 0, "reminder scan while snoozed into future");
+
+    const dueAgainReminder = await followUpService.runReminderScan(new Date(new Date(snoozedDueAt).getTime() + 60_000));
+    assertEqual(dueAgainReminder.remindersCreated, 1, "snoozed follow-up due reminder count");
+
+    const alertCountAfterSnooze = await AlertModel.countDocuments({
+      userId: owner.userId,
+      type: "follow_up_due",
+      relatedEntityType: "portfolio_item",
+      relatedEntityId: targetId,
+    }).exec();
+    assertEqual(alertCountAfterSnooze, 2, "follow_up_due alert count after snooze");
+
     const cleared = await fetchJson(`${baseUrl}/follow-ups/portfolio_item/${targetId}`, {
       method: "DELETE",
       headers: authHeaders(owner.token, workspaceId),
@@ -79,7 +122,7 @@ async function main() {
     assertEqual(emptyQueue.counts?.total, 0, "follow-up queue total after clear");
 
     console.log(
-      `mongo follow-up smoke passed: db=${smokeDbName} workspace=${workspaceId} target=${targetId} reminderAlerts=${alertCount}`,
+      `mongo follow-up smoke passed: db=${smokeDbName} workspace=${workspaceId} target=${targetId} reminderAlerts=${alertCountAfterSnooze}`,
     );
   } finally {
     await close(server);
@@ -193,6 +236,12 @@ function localUrl(server) {
 function assertEqual(actual, expected, label) {
   if (actual !== expected) {
     throw new Error(`${label}: expected ${expected}, got ${actual}`);
+  }
+}
+
+function assertPresent(actual, label) {
+  if (!actual) {
+    throw new Error(`${label}: expected value to be present`);
   }
 }
 

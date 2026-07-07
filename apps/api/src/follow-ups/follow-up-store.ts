@@ -62,7 +62,12 @@ export class MongoFollowUpStore implements FollowUpStore {
   }
 
   public async saveFollowUp(input: SaveFollowUpInput): Promise<SaveFollowUpResult> {
-    const previous = await this.findForTarget(input);
+    const followUpTarget = {
+      workspaceId: input.workspaceId,
+      targetEntityType: input.targetEntityType,
+      targetEntityId: input.targetEntityId,
+    };
+    const previous = await this.findForTarget(followUpTarget);
     const update = {
       $set: {
         dueAt: input.dueAt,

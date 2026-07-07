@@ -821,3 +821,61 @@
 - Next safe step: run a bounded Mongo-backed Phase 45 smoke or browser-driver
   proof when a suitable local verification path is selected; do not claim
   deployed, screenshot, or brokered Crabbox proof until actually run.
+
+## 2026-07-07T13:55:00+01:00 - Phase 45 Mongo smoke hardening
+
+- Requested task: continue the roadmap hardening task after Phase 45.
+- Repo path: `/home/oneclickwebsitedesignfactory/tax-lien-platform`.
+- Branch and starting HEAD: `main` at
+  `a2686d4eb57d8046512fb75a1f07ddc4e3dd72c4`.
+- Verified facts:
+  - working tree was clean at the start of this hardening pass;
+  - Phase 45 was already committed and pushed;
+  - the next documented safe task was a bounded Mongo-backed Phase 45 smoke for
+    completion and snooze behavior.
+- Assumptions made:
+  - local Docker-backed `mongo:7` smoke execution is acceptable runtime
+    verification because the existing smoke script already uses that pattern;
+  - browser-driver and brokered Crabbox proof remain separate evidence paths.
+- Chosen next task and why: extend `npm run smoke:mongo` to prove Phase 45
+  completion/snooze behavior against the built API and real Mongo store path,
+  because this was the strongest missing local runtime proof after Phase 45.
+- Files changed:
+  - `apps/api/src/follow-ups/follow-up-store.ts`;
+  - `docs/architecture/follow-ups.md`;
+  - `docs/changelog.md`;
+  - `scripts/mongo-follow-up-smoke.mjs`;
+  - `WORK_LEDGER.md`.
+- Work completed:
+  - extended the Mongo follow-up smoke to complete a due follow-up, verify
+    queue/reminder suppression, snooze the same target to a future date, verify
+    reminder reset and previous-due-date context, and confirm a new bounded
+    due reminder after the snoozed date;
+  - fixed the Mongo follow-up store previous-record lookup so snooze metadata
+    is derived from the workspace/entity target key instead of the full
+    mutation input;
+  - updated changelog and architecture docs to record the Phase 45 smoke
+    coverage.
+- Checks run:
+  - `npm run smoke:mongo` initially exposed the Mongo previous-record lookup
+    issue, then passed after the store fix against a temporary local `mongo:7`
+    container and printed `mongo follow-up smoke passed`;
+  - `git diff --check` passed;
+  - `npm run typecheck` passed;
+  - `npx vitest run tests/integration/follow-ups.test.ts --testTimeout=60000`
+    passed with 1 file and 5 tests;
+  - `npm run test` passed with 39 files and 268 tests;
+  - `npm run build` passed;
+  - `npm audit` passed with 0 vulnerabilities.
+- Results:
+  - Phase 45 completion and snooze behavior now has real Mongo-backed runtime
+    coverage in addition to automated unit/integration tests;
+  - the smoke covers reminder suppression after completion and reminder
+    deferral/reset after snooze.
+- Remaining limits:
+  - no deployed proof;
+  - no browser-driver screenshot proof;
+  - no brokered/cloud Crabbox proof.
+- Blockers: none before final checks.
+- Next safe step: run the required checks, commit, push, and verify local and
+  remote `main` match if all checks pass.
