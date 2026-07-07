@@ -393,3 +393,25 @@
 - Next safe step: commit and push the smoke evidence task, then continue with
   either interactive browser-driver proof if a safe tool is available or the
   next roadmap hardening task.
+
+## 2026-07-07T09:34:00+01:00 - Local runtime smoke push completion
+
+- Commit created: `976a4e5` (`test: add local runtime smoke`).
+- Push target: tracked upstream `oneclick/main`.
+- Push result: succeeded, advancing `oneclick/main` from `da8d581` to
+  `976a4e5`.
+- Pre-push hook result:
+  - dependency install check reported packages up to date and 0
+    vulnerabilities;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 37 files and 261 tests;
+  - `npm run build` passed.
+- Post-push state expected: clean working tree on `main` tracking
+  `oneclick/main` after this ledger completion entry is committed and pushed.
+- Remaining limits: `npm run smoke:local` proves local HTTP API/web-shell
+  runtime behavior but does not provide browser-driver screenshots, real
+  MongoDB-backed end-to-end proof, deployed proof, or Crabbox proof.
+- Next safe step: continue to interactive browser-driver proof if a safe local
+  browser tool is available, otherwise continue the next roadmap hardening
+  task.
