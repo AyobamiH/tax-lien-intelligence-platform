@@ -202,10 +202,12 @@ The API:
 - returns an active queued/running dataset job rather than creating duplicate
   refresh work.
 - distinguishes policy-created refresh from manual refresh with `requestKind`.
+- rate-limits expensive score and refresh route requests by authenticated user,
+  selected workspace, method, and route shape.
 
 Remaining hardening:
 
-- rate limits for repeated scoring;
+- distributed or persisted rate limits for multi-instance deployments;
 - retry/idempotency design before automatic reruns;
 - audit trail for scoring runs;
 - SMS/push delivery security if scoring alerts move beyond the current email

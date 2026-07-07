@@ -6,7 +6,10 @@ import { AuthService } from "../../apps/api/src/auth/auth-service.js";
 import type { CreateUserInput, StoredUser, UserStore } from "../../apps/api/src/auth/user-store.js";
 import { createApp } from "../../apps/api/src/app.js";
 import { createInMemoryWorkspaceService } from "../support/in-memory-workspace-store.js";
-import { createInMemoryWorkspaceActivityService } from "../support/in-memory-workspace-activity-store.js";
+import {
+  createInMemoryWorkspaceActivityService,
+  InMemoryWorkspaceActivityStore,
+} from "../support/in-memory-workspace-activity-store.js";
 import { DatasetService } from "../../apps/api/src/datasets/dataset-service.js";
 import type {
   CreateDatasetInput,
@@ -213,7 +216,13 @@ class InMemoryScoredRecordStore implements ScoredRecordStore {
   }
 }
 
-function createTestContext(options: { enrichmentService?: EnrichmentService; maintenancePolicy?: MaintenancePolicy } = {}): {
+function createTestContext(
+  options: {
+    enrichmentService?: EnrichmentService;
+    maintenancePolicy?: MaintenancePolicy;
+    scoringRequestLimit?: { windowMs: number; maxRequests: number };
+  } = {},
+): {
   app: ReturnType<typeof createApp>;
   datasetStore: InMemoryDatasetStore;
   scoredRecordStore: InMemoryScoredRecordStore;
@@ -222,12 +231,14 @@ function createTestContext(options: { enrichmentService?: EnrichmentService; mai
   maintenanceService: MaintenanceService;
   alertStore: InMemoryAlertStore;
   workerProcessor: WorkerJobProcessor;
+  workspaceActivityStore: InMemoryWorkspaceActivityStore;
 } {
   const userStore = new InMemoryUserStore();
   const datasetStore = new InMemoryDatasetStore();
   const scoredRecordStore = new InMemoryScoredRecordStore();
   const internalJobStore = new InMemoryInternalJobStore();
   const alertStore = new InMemoryAlertStore();
+  const workspaceActivityStore = new InMemoryWorkspaceActivityStore();
   const authService = new AuthService(userStore, {
     jwtSecret: testJwtSecret,
     jwtExpiresIn: "1h",
@@ -262,7 +273,8 @@ function createTestContext(options: { enrichmentService?: EnrichmentService; mai
       scoringService,
       alertService,
       workspaceService: createInMemoryWorkspaceService(userStore),
-      workspaceActivityService: createInMemoryWorkspaceActivityService(userStore),
+      workspaceActivityService: createInMemoryWorkspaceActivityService(userStore, workspaceActivityStore),
+      ...(options.scoringRequestLimit ? { scoringRequestLimit: options.scoringRequestLimit } : {}),
     }),
     datasetStore,
     scoredRecordStore,
@@ -271,6 +283,7 @@ function createTestContext(options: { enrichmentService?: EnrichmentService; mai
     maintenanceService,
     alertStore,
     workerProcessor,
+    workspaceActivityStore,
   };
 }
 
@@ -384,6 +397,86 @@ describe("dataset scoring API", () => {
         },
       ],
     });
+  });
+
+  it("rate limits repeated scoring requests for the same workspace actor", async () => {
+    const { app, internalJobStore } = createTestContext({
+      scoringRequestLimit: { windowMs: 60_000, maxRequests: 1 },
+    });
+    const owner = await registerUser(app, "scoring-limit-owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-904-L,1000,12000,Single family residence\n",
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+
+    const limited = await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(429);
+
+    expect(limited.body).toMatchObject({
+      error: {
+        code: "rate_limit_exceeded",
+        message: "Too many requests. Please wait before trying again.",
+        details: {
+          retryAfterMs: expect.any(Number),
+        },
+      },
+    });
+    expect(internalJobStore.listJobsForUser(owner.userId)).toHaveLength(1);
+
+    const activity = await request(app)
+      .get("/workspaces/current/activity?category=data")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(activity.body.activities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          eventType: "dataset_scoring_rate_limited",
+          relatedEntityType: "dataset",
+          relatedEntityId: datasetId,
+          metadata: expect.objectContaining({
+            datasetId,
+            requestKind: "score",
+            rateLimitRetryAfterMs: expect.any(Number),
+          }),
+        }),
+      ]),
+    );
+    expect(
+      (activity.body.activities as Array<{ eventType: string }>).filter(
+        (entry) => entry.eventType === "dataset_scoring_rate_limited",
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("keeps scoring and refresh request limits independent", async () => {
+    const { app } = createTestContext({
+      scoringRequestLimit: { windowMs: 60_000, maxRequests: 1 },
+    });
+    const owner = await registerUser(app, "scoring-refresh-limit-owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      "parcel_id,lien_amount,estimated_value,property_type\nA-904-R,1000,12000,Single family residence\n",
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+
+    await request(app)
+      .post(`/datasets/${datasetId}/refresh`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
   });
 
   it("retrieves scored results for the dataset owner", async () => {

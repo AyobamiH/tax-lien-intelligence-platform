@@ -117,9 +117,9 @@ It shows:
   owner state, and action feedback;
 - loading, empty, and error states.
 
-This is the first real user-facing review and decision-tracking workflow. It is
-now also includes a practical browser upload path. It is not a batch import,
-live county sync, or automation workspace.
+This is the first real user-facing review and decision-tracking workflow. It now
+also includes a practical browser upload path. It is not a batch import, live
+county sync, or automation workspace.
 
 ## Current API Surface
 

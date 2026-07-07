@@ -122,6 +122,8 @@ export type WorkspaceActivityEventType =
   | "dataset_uploaded"
   | "dataset_scoring_requested"
   | "dataset_refresh_requested"
+  | "dataset_scoring_rate_limited"
+  | "dataset_refresh_rate_limited"
   | "comparison_decision_changed"
   | "comparison_handoff_to_watchlist"
   | "comparison_handoff_to_portfolio"
@@ -155,6 +157,7 @@ export interface WorkspaceActivityMetadata {
   datasetName?: string;
   jobId?: string;
   requestKind?: "score" | "refresh";
+  rateLimitRetryAfterMs?: number;
   previousDecision?: ComparisonDecision;
   newDecision?: ComparisonDecision;
   targetEntityType?: WorkspaceAssignmentEntityType;

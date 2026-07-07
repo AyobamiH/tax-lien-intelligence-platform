@@ -11,6 +11,8 @@ export type WorkspaceActivityEventTypeRecord =
   | "dataset_uploaded"
   | "dataset_scoring_requested"
   | "dataset_refresh_requested"
+  | "dataset_scoring_rate_limited"
+  | "dataset_refresh_rate_limited"
   | "comparison_decision_changed"
   | "comparison_handoff_to_watchlist"
   | "comparison_handoff_to_portfolio"
@@ -38,6 +40,7 @@ export interface WorkspaceActivityMetadataRecord {
   datasetName?: string;
   jobId?: string;
   requestKind?: "score" | "refresh";
+  rateLimitRetryAfterMs?: number;
   previousDecision?: "undecided" | "keep_reviewing" | "move_forward" | "rejected";
   newDecision?: "undecided" | "keep_reviewing" | "move_forward" | "rejected";
   targetEntityType?: "dataset" | "comparison_item" | "watchlist_item" | "portfolio_item";
@@ -85,6 +88,7 @@ const workspaceActivityMetadataSchema = new Schema<WorkspaceActivityMetadataReco
     datasetName: { type: String, trim: true, maxlength: 255 },
     jobId: { type: String, trim: true },
     requestKind: { type: String, enum: ["score", "refresh"] },
+    rateLimitRetryAfterMs: { type: Number, min: 0, max: 3_600_000 },
     previousDecision: { type: String, enum: ["undecided", "keep_reviewing", "move_forward", "rejected"] },
     newDecision: { type: String, enum: ["undecided", "keep_reviewing", "move_forward", "rejected"] },
     targetEntityType: {
@@ -131,6 +135,8 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
         "dataset_uploaded",
         "dataset_scoring_requested",
         "dataset_refresh_requested",
+        "dataset_scoring_rate_limited",
+        "dataset_refresh_rate_limited",
         "comparison_decision_changed",
         "comparison_handoff_to_watchlist",
         "comparison_handoff_to_portfolio",

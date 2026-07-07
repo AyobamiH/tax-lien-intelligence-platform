@@ -48,7 +48,11 @@ Current repo protections:
 - production startup fails when `JWT_SECRET` is missing;
 - Helmet middleware enabled in the API;
 - JSON request body limit set to `1mb`;
-- CORS middleware configured;
+- CORS middleware configured with dev/test reflected-origin ergonomics and a
+  production allowlist controlled by `CORS_ALLOWED_ORIGINS`;
+- fixed-window scoring and refresh request limits for expensive dataset scoring
+  routes, configured by `SCORING_REQUEST_LIMIT_WINDOW_MS` and
+  `SCORING_REQUEST_LIMIT_MAX`;
 - structured JSON 404 responses;
 - global API error handling;
 - password hashing for registration;
@@ -218,17 +222,17 @@ Not yet implemented:
 - tenant-owned parcel models;
 - authorization checks for future resource types;
 - cross-user isolation tests for future parcel resources;
-- rate limiting;
+- broad per-user/API rate limiting beyond the scoring and refresh route guard;
 - standalone normalized parcel/lien upload validation;
 - richer manual field-mapping validation and audit trail;
 - audit logging;
 - ownership transfer and recovery workflow beyond the protected single-owner
   model;
 - SSO/SAML, SCIM, custom roles, and enterprise policy administration;
-- production CORS restrictions;
+- multi-environment production CORS rollout guidance;
 - final browser session architecture beyond the current session-scoped JWT;
 - deployed worker authorization and credential isolation model;
-- rate limits for repeated refresh requests;
+- distributed or persisted rate limits for repeated refresh requests;
 - SMS/push alert delivery security;
 - digest retry/rate-limit policy beyond the current bounded one-attempt batch;
 - secret rotation guidance.
@@ -390,26 +394,44 @@ Logging should support debugging without becoming a data exposure path.
 
 ### Rate Limiting
 
-Not implemented yet.
+Current:
+
+- expensive scoring and refresh requests have an in-process fixed-window
+  limiter after authentication and workspace write checks;
+- limits are scoped by authenticated user, selected workspace, HTTP method, and
+  route shape;
+- exceeded limits return `429 rate_limit_exceeded` with a bounded retry hint;
+- authenticated workspace-scoped score/refresh limit blocks write bounded
+  workspace activity events without storing source row values or request
+  payloads;
+- defaults are controlled by `SCORING_REQUEST_LIMIT_WINDOW_MS` and
+  `SCORING_REQUEST_LIMIT_MAX`.
 
 Future rate limiting should cover:
 
 - registration;
 - login;
 - upload;
-- expensive scoring requests;
 - future automation triggers.
+
+Production hardening still needs distributed or persisted rate limiting before
+multi-instance deployment.
 
 ### CORS And Headers
 
 Current:
 
 - Helmet is enabled.
-- CORS allows reflected origins with credentials.
+- development and test CORS allow reflected origins with credentials for local
+  browser workflows.
+- production CORS denies browser origins unless `CORS_ALLOWED_ORIGINS` contains
+  exact allowed origins.
+- requests without a browser `Origin` header remain allowed so health checks and
+  server-to-server callers are not blocked by the browser CORS layer.
 
 Future:
 
-- production CORS should restrict known frontend origins;
+- production deployments must set the explicit frontend origin allowlist;
 - headers should be verified in deployment;
 - credentials should not be enabled for arbitrary origins.
 
@@ -487,6 +509,7 @@ events:
 
 - dataset uploads;
 - score/refresh requests;
+- bounded score/refresh rate-limit blocks;
 - comparison decision changes and successful handoffs;
 - portfolio status changes;
 - membership and role changes.

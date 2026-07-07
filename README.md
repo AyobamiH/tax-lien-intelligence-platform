@@ -9,11 +9,12 @@ This repository contains the baseline monorepo plus authenticated dataset
 upload, first-pass explainable scoring, scored-results review, watchlist,
 portfolio/status tracking, comparison, decision history, decision handoff,
 saved operational views, internal jobs, alerts, worker/scheduler groundwork,
-enrichment, import repair, reusable import profiles, saved views, notification
-preferences, email delivery, digest processing/delivery history, and the Phase
-29 workspace/team-access foundation plus the Phase 30 workspace activity feed.
-Phase 34 adds a clean audited dependency graph and high-severity supply-chain
-gates.
+enrichment, import repair, reusable import profiles, notification preferences,
+email delivery, digest processing/delivery history, workspace access, activity,
+comments, assignment, approvals, my-work queues, follows, review checklists,
+workspace policies, decision briefs, final decision outcomes, and outcome
+review. Phase 34 adds a clean audited dependency graph and high-severity
+supply-chain gates.
 
 Current packages:
 
@@ -25,7 +26,9 @@ Current packages:
   internal-job, alert, watchlist, portfolio, comparison, decision-history, and
   import-profile/saved-view/notification-preference/notification-delivery/
   notification-digest-batch, workspace, workspace-membership, and
-  workspace-activity models
+  workspace-activity, workspace-comment, workspace-assignment,
+  approval-request, follow-subscription, review-checklist, workspace-policy,
+  decision-outcome, and discussion-attention models
 - `packages/scoring`: pure explainable scoring engine
 - `packages/types`: shared API types
 
@@ -40,7 +43,37 @@ Implemented API surfaces:
 - `GET /workspaces/current/members`
 - `POST /workspaces/current/members`
 - `PATCH /workspaces/current/members/:membershipId`
+- `DELETE /workspaces/current/members/:membershipId`
 - `GET /workspaces/current/activity`
+- `GET /comments/:entityType/:entityId`
+- `POST /comments/:entityType/:entityId`
+- `PATCH /comments/:entityType/:entityId/read`
+- `DELETE /comments/:commentId`
+- `GET /assignments/mine`
+- `GET /assignments/:entityType/:entityId`
+- `PATCH /assignments/:entityType/:entityId`
+- `DELETE /assignments/:entityType/:entityId`
+- `GET /approvals`
+- `POST /approvals`
+- `GET /approvals/:approvalRequestId`
+- `POST /approvals/:approvalRequestId/approve`
+- `POST /approvals/:approvalRequestId/reject`
+- `POST /approvals/:approvalRequestId/cancel`
+- `GET /my-work`
+- `GET /follows`
+- `GET /follows/:entityType/:entityId`
+- `PUT /follows/:entityType/:entityId`
+- `DELETE /follows/:entityType/:entityId`
+- `GET /review-checklists/templates`
+- `PUT /review-checklists/templates/:entityType`
+- `GET /review-checklists/:entityType/:entityId`
+- `PATCH /review-checklists/:entityType/:entityId/items/:itemId`
+- `GET /workspace-policies`
+- `PUT /workspace-policies`
+- `GET /decision-briefs/comparison_item/:entityId`
+- `GET /decision-outcomes/comparison_item/:entityId`
+- `PUT /decision-outcomes/comparison_item/:entityId`
+- `GET /outcome-review`
 - `POST /datasets`
 - `GET /datasets`
 - `GET /datasets/:datasetId`
@@ -89,18 +122,15 @@ review delivery and digest outcomes at `#/delivery-history`; otherwise the API
 records provider-disabled outbox state. SMS, push, campaigns, and marketing
 messaging are future work.
 
-Phase 29 uses an explicit `X-Workspace-Id` selection boundary. Existing users
-receive a personal owner workspace automatically. Datasets, scoring/jobs,
-watchlist, portfolio, comparison, and decision history can be shared with
-verified workspace members; owners/admins may mutate them and members are
-read-only. Alerts, notification settings/history, and saved views remain
-personal. This is a team-access foundation, not full collaboration.
-
-Phase 30 adds a membership-protected workspace activity feed at `#/activity`.
-It records a focused set of successful dataset, scoring/refresh request,
-comparison decision/handoff, portfolio status, and membership actions with
-safe actor attribution. It is an operational awareness layer, not chat,
-realtime collaboration, or a compliance-grade audit log.
+Workspace access uses an explicit `X-Workspace-Id` selection boundary. Existing
+users receive a personal owner workspace automatically. Datasets, scoring/jobs,
+watchlist, portfolio, comparison, decision history, comments, assignments,
+approvals, follows, review checklists, policies, decision briefs, final
+outcomes, and outcome review operate inside verified workspace membership and
+role boundaries. Alerts, notification settings/history, and saved views remain
+personal. The workspace layer is a practical operating system for shared review,
+not enterprise IAM, realtime collaboration, legal case management, or a
+compliance-grade audit log.
 
 ## Local Development
 

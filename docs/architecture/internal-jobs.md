@@ -149,12 +149,14 @@ Current protections:
 - scheduled maintenance jobs verify dataset ownership before making refresh
   decisions.
 - policy-created refresh jobs are distinguishable from manual refresh jobs.
+- scoring and manual refresh route requests are bounded by an authenticated
+  fixed-window rate limit before job creation.
 
 Future protections needed before external automation:
 
 - retry policy;
 - idempotency rules;
-- rate limits;
+- distributed or persisted rate limits for multi-instance deployments;
 - job logs or audit entries that avoid raw sensitive data;
 - worker authorization model for deployed worker runtimes.
 

@@ -204,7 +204,9 @@ export function workspaceActivityDestination(
     datasetId &&
     (activity.eventType === "dataset_uploaded" ||
       activity.eventType === "dataset_scoring_requested" ||
-      activity.eventType === "dataset_refresh_requested")
+      activity.eventType === "dataset_refresh_requested" ||
+      activity.eventType === "dataset_scoring_rate_limited" ||
+      activity.eventType === "dataset_refresh_rate_limited")
   ) {
     return { surface: "dataset", datasetId };
   }
@@ -236,6 +238,8 @@ export function workspaceActivityDestination(
     case "dataset_uploaded":
     case "dataset_scoring_requested":
     case "dataset_refresh_requested":
+    case "dataset_scoring_rate_limited":
+    case "dataset_refresh_rate_limited":
       return null;
   }
 }

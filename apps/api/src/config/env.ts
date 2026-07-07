@@ -12,6 +12,9 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1).default("mongodb://localhost:27017/tax_lien_platform"),
   MONGODB_DB_NAME: z.string().min(1).default("tax_lien_platform"),
   JWT_SECRET: z.string().min(32).optional(),
+  CORS_ALLOWED_ORIGINS: z.preprocess(emptyStringToUndefined, z.string().optional()),
+  SCORING_REQUEST_LIMIT_WINDOW_MS: z.coerce.number().int().positive().max(3_600_000).default(60_000),
+  SCORING_REQUEST_LIMIT_MAX: z.coerce.number().int().positive().max(1_000).default(20),
   WORKER_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(5000),
   SCHEDULER_TICK_INTERVAL_MS: z.coerce.number().int().positive().default(60000),
   MAINTENANCE_SCAN_INTERVAL_MS: z.coerce.number().int().positive().default(3_600_000),
@@ -59,6 +62,11 @@ if (parsedEnv.CENSUS_GEOCODER_ENABLED && !parsedEnv.CENSUS_GEOCODER_BASE_URL.sta
 const emailDeliveryEnabled =
   parsedEnv.EMAIL_DELIVERY_ENABLED && Boolean(parsedEnv.EMAIL_FROM_ADDRESS && parsedEnv.SMTP_HOST);
 
+const allowedCorsOrigins =
+  parsedEnv.CORS_ALLOWED_ORIGINS?.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean) ?? [];
+
 export interface ApiConfig {
   nodeEnv: RuntimeEnvironment;
   port: number;
@@ -66,6 +74,15 @@ export interface ApiConfig {
   mongoDbName: string;
   jwtSecret: string;
   jwtExpiresIn: "1h";
+  cors: {
+    allowedOrigins: string[];
+  };
+  rateLimits: {
+    scoringRequests: {
+      windowMs: number;
+      maxRequests: number;
+    };
+  };
   workerPollIntervalMs: number;
   schedulerTickIntervalMs: number;
   maintenance: {
@@ -115,6 +132,15 @@ export const apiConfig: ApiConfig = {
   mongoDbName: parsedEnv.MONGODB_DB_NAME,
   jwtSecret: parsedEnv.JWT_SECRET ?? developmentJwtSecret,
   jwtExpiresIn: "1h",
+  cors: {
+    allowedOrigins: allowedCorsOrigins,
+  },
+  rateLimits: {
+    scoringRequests: {
+      windowMs: parsedEnv.SCORING_REQUEST_LIMIT_WINDOW_MS,
+      maxRequests: parsedEnv.SCORING_REQUEST_LIMIT_MAX,
+    },
+  },
   workerPollIntervalMs: parsedEnv.WORKER_POLL_INTERVAL_MS,
   schedulerTickIntervalMs: parsedEnv.SCHEDULER_TICK_INTERVAL_MS,
   maintenance: {

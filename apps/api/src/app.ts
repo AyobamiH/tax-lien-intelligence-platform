@@ -1,4 +1,4 @@
-import cors from "cors";
+import cors, { type CorsOptions } from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
 import type { HealthResponse } from "@tax-lien/types";
@@ -26,6 +26,7 @@ import { createOutcomeReviewService } from "./outcome-review/factory.js";
 import type { OutcomeReviewService } from "./outcome-review/outcome-review-service.js";
 import { createPortfolioService } from "./portfolio/factory.js";
 import type { PortfolioService } from "./portfolio/portfolio-service.js";
+import type { FixedWindowRateLimitOptions } from "./middleware/rate-limit.js";
 import { createAlertRouter } from "./routes/alerts.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createComparisonRouter } from "./routes/comparison.js";
@@ -97,6 +98,30 @@ export interface AppDependencies {
   decisionBriefService?: DecisionBriefService;
   decisionOutcomeService?: DecisionOutcomeService;
   outcomeReviewService?: OutcomeReviewService;
+  scoringRequestLimit?: FixedWindowRateLimitOptions;
+}
+
+export function buildCorsOptions(config: typeof apiConfig = apiConfig): CorsOptions {
+  const allowedOrigins = new Set(config.cors.allowedOrigins);
+
+  if (allowedOrigins.size === 0) {
+    return {
+      origin: config.nodeEnv === "production" ? false : true,
+      credentials: true,
+    };
+  }
+
+  return {
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(null, false);
+    },
+    credentials: true,
+  };
 }
 
 export function createApp(dependencies: AppDependencies = {}): Express {
@@ -154,7 +179,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     );
 
   app.use(helmet());
-  app.use(cors({ origin: true, credentials: true }));
+  app.use(cors(buildCorsOptions()));
   app.use(express.json({ limit: "1mb" }));
 
   app.get("/healthz", (_request, response) => {
@@ -203,7 +228,16 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use("/outcome-review", createOutcomeReviewRouter(authService, workspaceService, outcomeReviewService));
   app.use("/decision-briefs", createDecisionBriefRouter(authService, workspaceService, decisionBriefService));
   app.use("/datasets", createDatasetRouter(authService, datasetService, workspaceService, workspaceActivityService));
-  app.use("/datasets", createScoringRouter(authService, scoringService, workspaceService, workspaceActivityService));
+  app.use(
+    "/datasets",
+    createScoringRouter(
+      authService,
+      scoringService,
+      workspaceService,
+      workspaceActivityService,
+      dependencies.scoringRequestLimit ?? apiConfig.rateLimits.scoringRequests,
+    ),
+  );
   app.use("/jobs", createInternalJobRouter(authService, internalJobService, workspaceService));
   app.use("/alerts", createAlertRouter(authService, alertService));
   app.use("/notification-deliveries", createNotificationDeliveryRouter(authService, notificationDeliveryService));

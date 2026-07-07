@@ -130,6 +130,10 @@ Workspace activity is shared operational context in Phase 30. It complements
 comparison item history; it does not replace that item-level timeline and is
 not a compliance-grade audit API.
 
+Score and refresh rate-limit blocks can create bounded data-category activity
+with dataset id, request kind, and retry window metadata, not request payloads
+or source rows.
+
 Phase 42 final outcome changes can create `decision_outcome_resolved` activity
 in the `decisions` category. The activity stores target/outcome metadata and
 resolver identity, not the resolution rationale.

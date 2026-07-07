@@ -52,6 +52,22 @@ describe("workspace activity service", () => {
       service.record({
         workspaceId,
         actorUserId: userStore.user.id,
+        eventType: "dataset_scoring_rate_limited",
+        relatedEntityType: "dataset",
+        relatedEntityId: "dataset-1",
+        metadata: { datasetId: "dataset-1", requestKind: "score", rateLimitRetryAfterMs: 30_000 },
+      }),
+      service.record({
+        workspaceId,
+        actorUserId: userStore.user.id,
+        eventType: "dataset_refresh_rate_limited",
+        relatedEntityType: "dataset",
+        relatedEntityId: "dataset-1",
+        metadata: { datasetId: "dataset-1", requestKind: "refresh", rateLimitRetryAfterMs: 30_000 },
+      }),
+      service.record({
+        workspaceId,
+        actorUserId: userStore.user.id,
         eventType: "comparison_decision_changed",
         relatedEntityType: "comparison_item",
         relatedEntityId: "comparison-1",
@@ -149,6 +165,8 @@ describe("workspace activity service", () => {
     expect(events.map((event) => event.category)).toEqual([
       "data",
       "data",
+      "data",
+      "data",
       "decisions",
       "decisions",
       "decisions",
@@ -162,6 +180,8 @@ describe("workspace activity service", () => {
     expect(events.map((event) => event.summary)).toEqual([
       "Queued scoring for a dataset.",
       "Queued a scoring refresh for a dataset.",
+      "Blocked repeated scoring requests for a dataset.",
+      "Blocked repeated scoring refresh requests for a dataset.",
       "Changed a comparison decision from undecided to move forward.",
       "Moved a comparison candidate to the watchlist.",
       "Moved a comparison candidate into portfolio tracking.",

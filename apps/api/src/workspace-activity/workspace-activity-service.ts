@@ -86,6 +86,8 @@ function categoryForEvent(eventType: WorkspaceActivityEventType): WorkspaceActiv
     case "dataset_uploaded":
     case "dataset_scoring_requested":
     case "dataset_refresh_requested":
+    case "dataset_scoring_rate_limited":
+    case "dataset_refresh_rate_limited":
       return "data";
     case "comparison_decision_changed":
     case "comparison_handoff_to_watchlist":
@@ -121,6 +123,10 @@ function summaryForEvent(
       return `Queued scoring for ${safeName(metadata?.datasetName, "a dataset")}.`;
     case "dataset_refresh_requested":
       return `Queued a scoring refresh for ${safeName(metadata?.datasetName, "a dataset")}.`;
+    case "dataset_scoring_rate_limited":
+      return `Blocked repeated scoring requests for ${safeName(metadata?.datasetName, "a dataset")}.`;
+    case "dataset_refresh_rate_limited":
+      return `Blocked repeated scoring refresh requests for ${safeName(metadata?.datasetName, "a dataset")}.`;
     case "comparison_decision_changed":
       return `Changed a comparison decision from ${decisionLabel(metadata?.previousDecision)} to ${decisionLabel(metadata?.newDecision)}.`;
     case "comparison_handoff_to_watchlist":
