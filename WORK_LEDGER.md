@@ -306,3 +306,26 @@
   authorized commit/push step.
 - Next safe step: commit and push the verified hardening patch, then continue
   with the next bounded product-roadmap or runtime-smoke task.
+
+## 2026-07-07T07:49:00+01:00 - Commit and push completion record
+
+- Commit created: `72fb06c38d71dcabff82957de07605c37a6495cc`
+  (`feat: harden scoring request limits`).
+- Push target: tracked upstream `oneclick/main`.
+- Push result: succeeded, advancing `oneclick/main` from `c548b1a` to
+  `72fb06c`.
+- Pre-push hook result:
+  - dependency install check reported packages up to date and 0
+    vulnerabilities;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 37 files and 261 tests;
+  - `npm run build` passed.
+- Post-push state: working tree clean on `main` tracking `oneclick/main`.
+- Remaining limits: no Crabbox proof was produced because no Crabbox CLI or
+  repo/workspace-local repair target was available; live browser/runtime smoke
+  remains the next verification target.
+- Next safe step: perform a bounded local runtime/browser smoke or continue the
+  next roadmap hardening task. Production deploy, migrations, service lifecycle
+  changes, paid/provider Crabbox setup, and production credentials remain
+  permission boundaries.
