@@ -493,3 +493,25 @@
 - Next safe step: commit and push the browser-like smoke evidence task, then
   continue with the next bounded roadmap/hardening task unless a permission
   boundary is reached.
+
+## 2026-07-07T10:12:00+01:00 - Browser-like DOM smoke push completion
+
+- Commit created: `937e211` (`test: add browser render smoke`).
+- Push target: tracked upstream `oneclick/main`.
+- Push result: succeeded, advancing `oneclick/main` from `e091a56` to
+  `937e211`.
+- Pre-push hook result:
+  - dependency install check reported packages up to date and 0
+    vulnerabilities;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 38 files and 263 tests;
+  - `npm run build` passed.
+- Post-push state expected: clean working tree on `main` tracking
+  `oneclick/main` after this ledger completion entry is committed and pushed.
+- Remaining limits: no real browser-driver screenshots, no MongoDB-backed live
+  end-to-end smoke, no deployed proof, and no Crabbox proof.
+- Next safe step: continue from repo truth with the next bounded
+  product-continuity or hardening task; if a safe browser binary or real
+  Crabbox CLI later becomes available, use it for screenshots/browser-driver
+  evidence.
