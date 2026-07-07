@@ -29,6 +29,15 @@ The product must earn trust through secure boundaries and explainable output.
 
 ## 2. Current Security Posture
 
+- Phase 45 follow-up control remains workspace-scoped: complete and
+  snooze/reschedule routes require authenticated selected-workspace write
+  access and target access revalidation before mutation.
+- Completed follow-ups are omitted from personal queues and scheduler reminder
+  scans so stale due alerts do not continue after resolution.
+- Snoozed follow-ups reset reminder state only after a validated new due date;
+  alert metadata remains limited to actual `due`/`overdue` reminder states, and
+  follow-up notes are not copied into workspace activity metadata.
+
 ### Current Implemented Protections
 
 Current repo protections:

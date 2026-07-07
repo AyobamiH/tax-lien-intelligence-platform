@@ -53,7 +53,8 @@ Current implementation:
   workspace-level final outcome summaries, recent resolution windows, and
   grounded retrospective signals;
 - follow-up model, store, service, and authenticated routes for bounded
-  follow-up dates on comparison, watchlist, and portfolio records;
+  follow-up dates, completion, and snooze/reschedule control on comparison,
+  watchlist, and portfolio records;
 - scheduler-driven follow-up reminder scan that emits bounded `follow_up_due`
   alerts through existing notification preferences and delivery infrastructure;
 - selected-workspace membership middleware and explicit read/write,
@@ -163,9 +164,10 @@ Current implementation:
 - outcome review retrieval with stale-target omission, current comparison
   access filtering, status/entity grouping, and no predictive or financial
   modeling layer;
-- follow-up creation/update/clear and personal queue retrieval with date
-  validation, selected-workspace membership, target access revalidation,
-  stale-target omission, and duplicate reminder suppression by due state;
+- follow-up creation/update/clear/complete/snooze and personal queue retrieval
+  with date validation, selected-workspace membership, target access
+  revalidation, stale-target omission, completed-record suppression, snooze
+  deferral, and duplicate reminder suppression by due state;
 - saved view model;
 - authenticated saved-view create/list/apply/update/delete routes;
 - server-side validation for saved portfolio/comparison criteria;

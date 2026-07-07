@@ -12,6 +12,9 @@ Phase 38 adds low-noise alerts for consequential changes on deliberately
 followed records.
 Phase 44 adds low-noise due/overdue reminders for explicit follow-up dates on
 supported operational records.
+Phase 45 keeps those reminders bounded by suppressing completed follow-ups and
+resetting reminder state only when a follow-up is explicitly snoozed or
+rescheduled.
 
 ## Purpose
 
@@ -112,6 +115,9 @@ Current alert sources are:
 - due/overdue follow-ups create `follow_up_due` for the current assignee, or
   creator fallback, only after target access is revalidated and only once per
   due-state transition.
+- completed follow-ups do not create further `follow_up_due` alerts;
+- snoozed follow-ups defer reminders until the new due date and then emit only
+  the bounded due/overdue transition alerts.
 
 Job alert recording is attached to outcome handling. Comment alert recording is
 attached to the discussion-attention coordinator after comment persistence.

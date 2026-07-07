@@ -28,6 +28,13 @@ export class InMemoryFollowUpStore implements FollowUpStore {
       ...(input.note ? { note: input.note } : {}),
       createdByUserId: previous?.createdByUserId ?? input.actorUserId,
       updatedByUserId: input.actorUserId,
+      ...(input.snoozedAt
+        ? {
+            snoozedAt: input.snoozedAt,
+            snoozedByUserId: input.actorUserId,
+            ...(previous ? { previousDueAt: previous.dueAt } : {}),
+          }
+        : {}),
       lastReminderState: "none",
       createdAt: previous?.createdAt ?? now,
       updatedAt: now,
@@ -59,6 +66,25 @@ export class InMemoryFollowUpStore implements FollowUpStore {
     return cleared;
   }
 
+  public async completeFollowUp(
+    target: FollowUpTarget & { actorUserId: string; completedAt: Date },
+  ): Promise<StoredFollowUp | null> {
+    const key = this.key(target);
+    const previous = this.followUps.get(key) ?? null;
+    if (!previous || previous.clearedAt || previous.completedAt) {
+      return null;
+    }
+    const completed: StoredFollowUp = {
+      ...previous,
+      completedAt: target.completedAt,
+      completedByUserId: target.actorUserId,
+      updatedByUserId: target.actorUserId,
+      updatedAt: new Date(),
+    };
+    this.followUps.set(key, completed);
+    return completed;
+  }
+
   public async listActiveForWorkspace(
     workspaceId: string,
     _now: Date,
@@ -70,6 +96,7 @@ export class InMemoryFollowUpStore implements FollowUpStore {
         (followUp) =>
           followUp.workspaceId === workspaceId &&
           !followUp.clearedAt &&
+          !followUp.completedAt &&
           followUp.dueAt.getTime() <= upcomingUntil.getTime(),
       )
       .sort((left, right) => left.dueAt.getTime() - right.dueAt.getTime() || left.id.localeCompare(right.id))
@@ -78,7 +105,7 @@ export class InMemoryFollowUpStore implements FollowUpStore {
 
   public async listDueForReminder(now: Date, limit: number): Promise<StoredFollowUp[]> {
     return [...this.followUps.values()]
-      .filter((followUp) => !followUp.clearedAt && followUp.dueAt.getTime() <= now.getTime())
+      .filter((followUp) => !followUp.clearedAt && !followUp.completedAt && followUp.dueAt.getTime() <= now.getTime())
       .sort((left, right) => left.dueAt.getTime() - right.dueAt.getTime() || left.id.localeCompare(right.id))
       .slice(0, limit);
   }
@@ -89,7 +116,7 @@ export class InMemoryFollowUpStore implements FollowUpStore {
     remindedAt: Date,
   ): Promise<StoredFollowUp | null> {
     const followUp = [...this.followUps.values()].find((candidate) => candidate.id === followUpId) ?? null;
-    if (!followUp || followUp.clearedAt) {
+    if (!followUp || followUp.clearedAt || followUp.completedAt) {
       return null;
     }
     const updated = {

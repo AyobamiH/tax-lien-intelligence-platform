@@ -104,7 +104,7 @@ records the current implementation state:
 - notification delivery outbox model exists.
 - notification digest batch model exists.
 - follow-up model exists for bounded comparison, watchlist, and portfolio
-  review cadence.
+  review cadence, completion, and snooze/reschedule control.
 - workspace and workspace-membership models exist.
 - workspace-activity model exists.
 - comparison item model exists.
@@ -143,7 +143,8 @@ delivery history, env-driven SMTP config that is disabled by default, and
 notification delivery tests. It now has tenant-owned internal job records for
 scoring, controlled refresh/reprocessing, scheduled maintenance policy gates,
 and cross-user job tests. It now has bounded follow-up reminders with
-target-access revalidation and safe alert metadata. It does not yet have
+completion/snooze control, target-access revalidation, and safe alert metadata.
+It does not yet have
 standalone parcel models, user-facing scheduler controls, full collaboration,
 auction execution, external automation, or full
 cross-user tests for future resource types because those workflows do not exist

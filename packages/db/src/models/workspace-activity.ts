@@ -30,7 +30,9 @@ export type WorkspaceActivityEventTypeRecord =
   | "approval_cancelled"
   | "decision_outcome_resolved"
   | "follow_up_set"
-  | "follow_up_cleared";
+  | "follow_up_cleared"
+  | "follow_up_completed"
+  | "follow_up_snoozed";
 export type WorkspaceActivityRelatedEntityTypeRecord =
   | "dataset"
   | "job"
@@ -70,6 +72,8 @@ export interface WorkspaceActivityMetadataRecord {
   followUpDueAt?: string;
   followUpPreviousDueAt?: string;
   followUpNote?: string;
+  followUpCompletedAt?: string;
+  followUpSnoozedAt?: string;
 }
 
 export interface WorkspaceActivityRecord {
@@ -125,6 +129,8 @@ const workspaceActivityMetadataSchema = new Schema<WorkspaceActivityMetadataReco
     followUpDueAt: { type: String, trim: true },
     followUpPreviousDueAt: { type: String, trim: true },
     followUpNote: { type: String, trim: true, maxlength: 500 },
+    followUpCompletedAt: { type: String, trim: true },
+    followUpSnoozedAt: { type: String, trim: true },
   },
   { _id: false, versionKey: false },
 );
@@ -165,6 +171,8 @@ const workspaceActivitySchema = new Schema<WorkspaceActivityRecord>(
         "decision_outcome_resolved",
         "follow_up_set",
         "follow_up_cleared",
+        "follow_up_completed",
+        "follow_up_snoozed",
       ],
       required: true,
       index: true,

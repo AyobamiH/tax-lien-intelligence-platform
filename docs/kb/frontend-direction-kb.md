@@ -12,6 +12,11 @@ direction.
 
 Current implementation:
 
+- Phase 45 follow-up controls are part of the operational UI: supported record
+  detail surfaces and My Work follow-up queues expose completion,
+  snooze/reschedule, current status, completed timestamp, and snoozed-from
+  context without adding calendar or task-board chrome;
+
 - React 19;
 - Vite;
 - TypeScript;

@@ -3,6 +3,8 @@
 Phase 44 adds bounded follow-up dates for important operational records. This
 is a due-date and reminder layer over existing records, not a task-management
 suite, calendar integration, SLA engine, or recurrence system.
+Phase 45 adds explicit completion and snooze controls so due reminders can be
+resolved or deferred without creating task objects or recurring rules.
 
 All routes require `Authorization: Bearer <jwt-access-token>` and active
 membership in the workspace selected by `X-Workspace-Id`.
@@ -15,7 +17,7 @@ Supported targets:
 
 Each supported target may have at most one active follow-up in a workspace.
 The backend verifies target access before reading, creating, updating, clearing,
-or reminding.
+completing, snoozing, or reminding.
 
 ## Due State
 
@@ -25,6 +27,7 @@ Follow-up state is derived from the stored due date:
 - `upcoming`: due after today;
 - `due`: due today or earlier in the current UTC day;
 - `overdue`: due before today;
+- `completed`: explicitly completed and retained as operational context;
 - `cleared`: a previously active follow-up was cleared.
 
 The API accepts ISO date/time strings. Dates must be valid and no more than one
@@ -43,7 +46,13 @@ Response `200`:
 {
   "workspaceId": "workspace-id",
   "generatedAt": "2026-06-16T10:00:00.000Z",
-  "count": 1,
+  "windowDays": 14,
+  "counts": {
+    "upcoming": 1,
+    "due": 0,
+    "overdue": 0,
+    "total": 1
+  },
   "items": [
     {
       "id": "follow-up-id",
@@ -52,11 +61,10 @@ Response `200`:
       "targetEntityId": "comparison-id",
       "dueAt": "2026-06-17T12:00:00.000Z",
       "dueState": "upcoming",
-      "reminderState": "pending",
+      "lastReminderState": "none",
       "note": "Recheck after reviewer response.",
       "createdByUserId": "creator-id",
       "updatedByUserId": "creator-id",
-      "currentAssigneeUserId": "assignee-id",
       "createdAt": "2026-06-16T10:00:00.000Z",
       "updatedAt": "2026-06-16T10:00:00.000Z"
     }
@@ -105,7 +113,7 @@ Response `200`:
     "targetEntityId": "portfolio-id",
     "dueAt": "2026-06-20T12:00:00.000Z",
     "dueState": "upcoming",
-    "reminderState": "pending",
+    "lastReminderState": "none",
     "note": "Review after title search.",
     "createdByUserId": "creator-id",
     "updatedByUserId": "creator-id",
@@ -117,6 +125,75 @@ Response `200`:
 
 Setting a new due date resets reminder state so a future scheduler scan may
 emit one bounded reminder for the new due state.
+
+## `POST /follow-ups/:entityType/:entityId/complete`
+
+Completes an active follow-up. Completed follow-ups stay inspectable on the
+target, but no longer appear in active queues or scheduler reminder scans.
+
+Response `200`:
+
+```json
+{
+  "targetEntityType": "portfolio_item",
+  "targetEntityId": "portfolio-id",
+  "completed": true,
+  "followUp": {
+    "id": "follow-up-id",
+    "workspaceId": "workspace-id",
+    "targetEntityType": "portfolio_item",
+    "targetEntityId": "portfolio-id",
+    "dueAt": "2026-06-20T12:00:00.000Z",
+    "dueState": "completed",
+    "completedAt": "2026-06-20T15:00:00.000Z",
+    "completedByUserId": "user-id",
+    "lastReminderState": "due",
+    "createdByUserId": "creator-id",
+    "updatedByUserId": "user-id",
+    "createdAt": "2026-06-16T10:00:00.000Z",
+    "updatedAt": "2026-06-20T15:00:00.000Z"
+  }
+}
+```
+
+## `POST /follow-ups/:entityType/:entityId/snooze`
+
+Reschedules an existing follow-up to a new due date and resets reminder state.
+Snoozing can reactivate a completed follow-up, but does not revive a cleared
+follow-up.
+
+Request:
+
+```json
+{
+  "dueAt": "2026-06-27T12:00:00.000Z",
+  "note": "Wait for county update."
+}
+```
+
+Response `200`:
+
+```json
+{
+  "changed": true,
+  "followUp": {
+    "id": "follow-up-id",
+    "workspaceId": "workspace-id",
+    "targetEntityType": "portfolio_item",
+    "targetEntityId": "portfolio-id",
+    "dueAt": "2026-06-27T12:00:00.000Z",
+    "dueState": "upcoming",
+    "previousDueAt": "2026-06-20T12:00:00.000Z",
+    "snoozedAt": "2026-06-20T15:10:00.000Z",
+    "snoozedByUserId": "user-id",
+    "lastReminderState": "none",
+    "createdByUserId": "creator-id",
+    "updatedByUserId": "user-id",
+    "createdAt": "2026-06-16T10:00:00.000Z",
+    "updatedAt": "2026-06-20T15:10:00.000Z"
+  }
+}
+```
 
 ## `DELETE /follow-ups/:entityType/:entityId`
 
@@ -134,7 +211,7 @@ Response `200`:
     "targetEntityId": "portfolio-id",
     "dueAt": "2026-06-20T12:00:00.000Z",
     "dueState": "cleared",
-    "reminderState": "cleared",
+    "lastReminderState": "none",
     "clearedAt": "2026-06-18T09:00:00.000Z",
     "clearedByUserId": "user-id",
     "createdByUserId": "creator-id",
@@ -159,8 +236,9 @@ The scan:
 5. marks the follow-up with the reminder state and timestamp.
 
 This suppresses repeated noisy alerts. A follow-up can emit one `due` reminder
-and, if it remains open into a later day, one `overdue` reminder. Updating the
-date or clearing the follow-up resets that bounded reminder state.
+and, if it remains open into a later day, one `overdue` reminder. Updating or
+snoozing the date resets that bounded reminder state. Completing or clearing
+the follow-up removes it from future reminder scans.
 
 ## Error Codes
 
@@ -176,6 +254,7 @@ Possible follow-up errors:
 - `follow_up_invalid_due_at`
 - `follow_up_due_at_too_far`
 - `follow_up_invalid_note`
+- `follow_up_not_found`
 
 ## Boundary
 

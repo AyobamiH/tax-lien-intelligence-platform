@@ -8,6 +8,17 @@ today, what is placeholder, and what must not be assumed.
 It does not define the full product roadmap. Use the roadmap KB for phase
 sequencing and the master product KB for product identity.
 
+## Current Phase Truth
+
+- Phase 45 follow-up control is implemented in the local patch: supported
+  comparison, watchlist, and portfolio follow-ups can be completed or
+  snoozed/rescheduled through authenticated, workspace-scoped APIs and visible
+  web controls.
+- Completed follow-ups remain inspectable on their target, but are suppressed
+  from My Work follow-up queues and scheduler-driven `follow_up_due` alerts.
+- Snoozed follow-ups record previous/new due context, reset reminder state, and
+  defer future reminders until the new due date.
+
 ## Source-Of-Truth Repo
 
 Primary startup repo:

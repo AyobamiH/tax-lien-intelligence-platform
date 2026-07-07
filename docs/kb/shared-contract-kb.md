@@ -11,6 +11,11 @@ It does not replace endpoint-specific API docs or implementation tests.
 
 Current shared types in `packages/types`:
 
+- Phase 45 extends the follow-up contract with `completed` due state,
+  completion metadata, snooze metadata, prior due-date context, explicit
+  complete/snooze response DTOs, and a narrower alert due-state contract that
+  only allows `due` or `overdue` in `follow_up_due` alert metadata;
+
 - `RuntimeEnvironment`;
 - `HealthStatus`;
 - `HealthResponse`;

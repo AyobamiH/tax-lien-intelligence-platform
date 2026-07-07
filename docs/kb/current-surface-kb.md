@@ -87,10 +87,11 @@ It shows:
   watchlist, and portfolio detail surfaces;
 - a separate informational Following queue in My Work;
 - follow-up date controls on comparison, watchlist, and portfolio detail
-  surfaces, with due-state visibility, optional note context, update, and
-  clear actions;
+  surfaces, with due-state visibility, optional note context, update,
+  complete, snooze/reschedule, and clear actions;
 - an actionable Follow-ups queue in My Work for upcoming, due, and overdue
-  follow-ups assigned to or created by the current member;
+  follow-ups assigned to or created by the current member, with inline
+  completion and snooze controls;
 - compact review checklists on comparison, watchlist, and portfolio detail,
   with required/optional labels, completion attribution, and readiness progress;
 - workspace checklist-template management for owners/admins, with member

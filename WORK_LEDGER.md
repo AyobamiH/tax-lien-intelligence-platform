@@ -698,3 +698,97 @@
     proof is claimed without provider configuration.
 - Next safe step: begin Phase 45 follow-up completion/snooze/control workflow
   from the clean pushed repo truth.
+
+## 2026-07-07T13:36:00+01:00 - Phase 45 follow-up control workflow
+
+- Requested task: finish Phase 45 follow-up completion, snooze, and
+  follow-through control from the interrupted local patch.
+- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`.
+- Branch and starting HEAD: `main` at
+  `5868f1bf2ace6970af396773521df31d33a00572`.
+- Verified facts discovered:
+  - Phase 44 follow-up reminders and Mongo smoke recovery were already pushed;
+  - the interrupted Phase 45 patch was preserved as uncommitted local edits;
+  - local branch tracked `oneclick/main`;
+  - no Phase 45 commit had been created before this run.
+- Assumptions made:
+  - completion should suppress future reminders while keeping the follow-up
+    inspectable on the target;
+  - snooze should be an explicit reschedule action that resets reminder state
+    and records previous/new due context;
+  - acknowledgement/seen state is not justified yet because completion and
+    snooze solve the reminder-fatigue problem without extra workflow.
+- Work completed:
+  - added shared follow-up completion/snooze response contracts, completion
+    due state, snooze metadata, and narrowed follow-up alert due-state
+    metadata to actual `due`/`overdue` alerts;
+  - extended Mongo and in-memory follow-up stores with completion and snooze
+    persistence plus active-list/reminder suppression for completed records;
+  - added authenticated complete and snooze routes with selected-workspace
+    write access and target access revalidation;
+  - updated follow-up service behavior so completion suppresses future scans
+    and snooze resets reminder state against the new due date;
+  - added bounded workspace activity events for completion and snooze while
+    avoiding note text in activity metadata;
+  - added frontend complete and snooze controls on supported follow-up surfaces
+    and My Work follow-up queue cards;
+  - added integration coverage for completion, queue/reminder suppression,
+    invalid snooze dates, snooze metadata, and reminder reset after snooze;
+  - updated API docs, alert/follow-up architecture, KBs, changelog, and
+    acceptance controls to reflect Phase 45 truth.
+- Files changed:
+  - `ACCEPTANCE.md`;
+  - `apps/api/src/follow-ups/follow-up-service.ts`;
+  - `apps/api/src/follow-ups/follow-up-store.ts`;
+  - `apps/api/src/routes/follow-ups.ts`;
+  - `apps/api/src/workspace-activity/workspace-activity-service.ts`;
+  - `apps/web/src/App.tsx`;
+  - `apps/web/src/api.ts`;
+  - `apps/web/src/review-model.ts`;
+  - `docs/api/follow-ups.md`;
+  - `docs/architecture/alerts.md`;
+  - `docs/architecture/follow-ups.md`;
+  - `docs/changelog.md`;
+  - `docs/kb/README.md`;
+  - `docs/kb/automation-and-intelligence-kb.md`;
+  - `docs/kb/backend-direction-kb.md`;
+  - `docs/kb/current-surface-kb.md`;
+  - `docs/kb/frontend-direction-kb.md`;
+  - `docs/kb/master-product-kb.md`;
+  - `docs/kb/repo-reality-kb.md`;
+  - `docs/kb/roadmap-and-phase-boundaries-kb.md`;
+  - `docs/kb/security-hardening-kb.md`;
+  - `docs/kb/shared-contract-kb.md`;
+  - `packages/db/src/models/alert.ts`;
+  - `packages/db/src/models/follow-up.ts`;
+  - `packages/db/src/models/workspace-activity.ts`;
+  - `packages/types/src/index.ts`;
+  - `tests/integration/follow-ups.test.ts`;
+  - `tests/support/in-memory-follow-up-store.ts`;
+  - `WORK_LEDGER.md`.
+- Checks run:
+  - `git diff --check` passed;
+  - `npm install` passed with packages up to date and 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npx vitest run tests/integration/follow-ups.test.ts tests/unit/web-api.test.ts tests/unit/web-app-smoke.test.ts --testTimeout=60000`
+    passed with 3 files and 30 tests;
+  - `npm run test` passed with 39 files and 268 tests;
+  - `npm run build` passed;
+  - `npm audit` passed with 0 vulnerabilities.
+- Results:
+  - supported records can now have follow-ups completed or snoozed safely;
+  - completed follow-ups no longer appear in active queues or scheduler scans;
+  - snoozed follow-ups reset reminder state and defer reminders until the new
+    due date;
+  - UI exposes practical follow-up status, completion, and snooze controls;
+  - docs and KBs reflect that this remains a bounded reminder layer, not a
+    task/calendar system.
+- Remaining limits:
+  - no deployed proof;
+  - no real browser-driver screenshots;
+  - no brokered/cloud Crabbox proof;
+  - Mongo-backed smoke remains Phase 44 coverage and was not rerun in this
+    Phase 45 pass.
+- Blockers: none after local verification.
+- Next safe step: commit and push Phase 45 after setting the requested Git
+  identity, then verify local and remote `main` match.

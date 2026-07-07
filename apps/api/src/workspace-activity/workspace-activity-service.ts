@@ -111,6 +111,8 @@ function categoryForEvent(eventType: WorkspaceActivityEventType): WorkspaceActiv
       return "approvals";
     case "follow_up_set":
     case "follow_up_cleared":
+    case "follow_up_completed":
+    case "follow_up_snoozed":
       return "cadence";
   }
 }
@@ -164,6 +166,10 @@ function summaryForEvent(
       return `Set a follow-up date for ${entityLabel(metadata)}.`;
     case "follow_up_cleared":
       return `Cleared the follow-up date for ${entityLabel(metadata)}.`;
+    case "follow_up_completed":
+      return `Completed the follow-up for ${entityLabel(metadata)}.`;
+    case "follow_up_snoozed":
+      return `Snoozed the follow-up for ${entityLabel(metadata)}.`;
   }
 }
 

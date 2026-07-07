@@ -141,7 +141,9 @@ export type WorkspaceActivityEventType =
   | "approval_cancelled"
   | "decision_outcome_resolved"
   | "follow_up_set"
-  | "follow_up_cleared";
+  | "follow_up_cleared"
+  | "follow_up_completed"
+  | "follow_up_snoozed";
 export type WorkspaceActivityRelatedEntityType =
   | "dataset"
   | "job"
@@ -187,6 +189,8 @@ export interface WorkspaceActivityMetadata {
   followUpDueAt?: string;
   followUpPreviousDueAt?: string;
   followUpNote?: string;
+  followUpCompletedAt?: string;
+  followUpSnoozedAt?: string;
 }
 
 export interface WorkspaceActivityResponse {
@@ -539,9 +543,11 @@ export type FollowUpDueState =
   | "upcoming"
   | "due"
   | "overdue"
+  | "completed"
   | "cleared"
   | "none";
 export type FollowUpReminderState = "none" | "due" | "overdue";
+export type FollowUpAlertDueState = Extract<FollowUpDueState, "due" | "overdue">;
 
 export interface FollowUpResponse {
   id: string;
@@ -555,6 +561,11 @@ export interface FollowUpResponse {
   updatedByUserId: string;
   clearedAt?: string;
   clearedByUserId?: string;
+  completedAt?: string;
+  completedByUserId?: string;
+  snoozedAt?: string;
+  snoozedByUserId?: string;
+  previousDueAt?: string;
   lastReminderAt?: string;
   lastReminderState: FollowUpReminderState;
   createdAt: string;
@@ -582,6 +593,23 @@ export interface ClearFollowUpResponse {
   targetEntityType: FollowUpTargetEntityType;
   targetEntityId: string;
   cleared: boolean;
+}
+
+export interface CompleteFollowUpResponse {
+  targetEntityType: FollowUpTargetEntityType;
+  targetEntityId: string;
+  completed: boolean;
+  followUp: FollowUpResponse | null;
+}
+
+export interface SnoozeFollowUpRequest {
+  dueAt: string;
+  note?: string | null;
+}
+
+export interface SnoozeFollowUpResponse {
+  followUp: FollowUpResponse;
+  changed: boolean;
 }
 
 export interface FollowUpQueueResponse {
@@ -1244,7 +1272,7 @@ export interface AlertMetadata {
   followActorEmail?: string;
   followUpId?: string;
   followUpDueAt?: string;
-  followUpDueState?: FollowUpDueState;
+  followUpDueState?: FollowUpAlertDueState;
 }
 
 export interface AlertResponse {

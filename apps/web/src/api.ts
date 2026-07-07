@@ -76,6 +76,7 @@ import type {
   UpdateWorkspaceAssignmentResponse,
   WorkspaceRole,
   CreateApprovalRequestResponse,
+  CompleteFollowUpResponse,
   FollowEntityResponse,
   FollowUpStateResponse,
   FollowUpTargetEntityType,
@@ -90,6 +91,7 @@ import type {
   UpsertReviewChecklistTemplateRequest,
   UpsertReviewChecklistTemplateResponse,
   UnfollowEntityResponse,
+  SnoozeFollowUpResponse,
   UpsertFollowUpResponse,
   UpdateWorkspacePolicyRequest,
   WorkspacePolicyResponse,
@@ -323,6 +325,29 @@ export async function clearFollowUp(
   return requestJson<{ targetEntityType: FollowUpTargetEntityType; targetEntityId: string; cleared: boolean }>(
     `/follow-ups/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
     { method: "DELETE", token },
+  );
+}
+
+export async function completeFollowUp(
+  token: string,
+  entityType: FollowUpTargetEntityType,
+  entityId: string,
+): Promise<CompleteFollowUpResponse> {
+  return requestJson<CompleteFollowUpResponse>(
+    `/follow-ups/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/complete`,
+    { method: "POST", token },
+  );
+}
+
+export async function snoozeFollowUp(
+  token: string,
+  entityType: FollowUpTargetEntityType,
+  entityId: string,
+  input: { dueAt: string; note?: string | null },
+): Promise<SnoozeFollowUpResponse> {
+  return requestJson<SnoozeFollowUpResponse>(
+    `/follow-ups/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}/snooze`,
+    { method: "POST", token, body: JSON.stringify(input) },
   );
 }
 

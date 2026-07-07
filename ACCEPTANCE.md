@@ -13,6 +13,8 @@ The current product state is acceptable only when these claims remain true:
   support.
 - Watchlist, portfolio, comparison, approval, checklist, decision brief, final
   outcome, and outcome review workflows are represented in code and tests.
+- Follow-up reminders include bounded completion and snooze/reschedule controls
+  with scheduler suppression/deferral behavior covered by tests.
 - Notification, comment, assignment, follow, activity, and my-work surfaces do
   not leak private workspace content across tenants.
 - Expensive scoring and refresh request paths have bounded abuse protection.
@@ -32,6 +34,10 @@ This autonomous run is complete when:
 - any documentation drift found during inspection is corrected narrowly;
 - the current security/product-hardening patch is verified or strengthened
   within local code/tests/docs;
+- Phase 45 follow-up completion/snooze control is implemented without adding a
+  task-management, calendar, recurrence, SLA, or AI scheduling layer;
+- completed follow-ups are no longer active queue/reminder candidates, and
+  snoozed follow-ups reset reminder state against the new due date;
 - Crabbox is used for verification or a capability-gap result is recorded after
   repo/workspace-local diagnosis;
 - `WORK_LEDGER.md` records the run with evidence, checks, and next step;

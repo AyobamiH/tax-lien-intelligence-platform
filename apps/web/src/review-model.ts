@@ -239,6 +239,8 @@ export function workspaceActivityDestination(
         : null;
     case "follow_up_set":
     case "follow_up_cleared":
+    case "follow_up_completed":
+    case "follow_up_snoozed":
       return activity.metadata?.targetEntityType
         ? assignmentSurfaceDestination(activity.metadata.targetEntityType, activity.relatedEntityId)
         : null;

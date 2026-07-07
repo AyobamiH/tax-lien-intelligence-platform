@@ -68,6 +68,7 @@ import {
   createWorkspaceComment,
   clearWorkspaceAssignment,
   clearFollowUp,
+  completeFollowUp,
   cancelApprovalRequest,
   createApprovalRequest,
   createDataset,
@@ -123,6 +124,7 @@ import {
   saveDatasetManualMapping,
   scoreDataset,
   setActiveWorkspaceId,
+  snoozeFollowUp,
   updateComparisonItem,
   updateNotificationPreferences,
   updatePortfolioItemStatus,
@@ -7656,6 +7658,9 @@ function MyWorkPage({
                   >
                     Open
                   </button>
+                  <div className="sm:col-span-2">
+                    <FollowUpControl token={token} entityType={followUp.targetEntityType} entityId={followUp.targetEntityId} />
+                  </div>
                 </li>
               ))}
             </ol>
@@ -8344,6 +8349,7 @@ function FollowUpControl({
 }) {
   const [state, setState] = useState<FollowUpStateResponse | null>(null);
   const [dueDate, setDueDate] = useState("");
+  const [snoozeDate, setSnoozeDate] = useState("");
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -8362,6 +8368,7 @@ function FollowUpControl({
         if (!cancelled) {
           setState(result);
           setDueDate(result.followUp?.dueAt.slice(0, 10) ?? "");
+          setSnoozeDate(result.followUp?.dueAt.slice(0, 10) ?? "");
           setNote(result.followUp?.note ?? "");
         }
       })
@@ -8399,6 +8406,8 @@ function FollowUpControl({
         dueState: result.followUp.dueState,
         followUp: result.followUp,
       });
+      setDueDate(result.followUp.dueAt.slice(0, 10));
+      setSnoozeDate(result.followUp.dueAt.slice(0, 10));
       setSuccess(result.changed ? "Follow-up saved." : "Follow-up already matched this date.");
     } catch (saveError) {
       setError(errorMessage(saveError));
@@ -8420,10 +8429,61 @@ function FollowUpControl({
         followUp: null,
       });
       setDueDate("");
+      setSnoozeDate("");
       setNote("");
       setSuccess(result.cleared ? "Follow-up cleared." : "No follow-up was set.");
     } catch (clearError) {
       setError(errorMessage(clearError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function finishFollowUp(): Promise<void> {
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await completeFollowUp(token, entityType, entityId);
+      setState({
+        targetEntityType: entityType,
+        targetEntityId: entityId,
+        dueState: result.followUp?.dueState ?? "none",
+        followUp: result.followUp,
+      });
+      setSuccess(result.completed ? "Follow-up completed." : "No active follow-up was available.");
+    } catch (completeError) {
+      setError(errorMessage(completeError));
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function snoozeExistingFollowUp(): Promise<void> {
+    if (!snoozeDate) {
+      setError("Choose a snooze date.");
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await snoozeFollowUp(token, entityType, entityId, {
+        dueAt: `${snoozeDate}T12:00:00.000Z`,
+        note: note.trim() || null,
+      });
+      setState({
+        targetEntityType: entityType,
+        targetEntityId: entityId,
+        dueState: result.followUp.dueState,
+        followUp: result.followUp,
+      });
+      setDueDate(result.followUp.dueAt.slice(0, 10));
+      setSnoozeDate(result.followUp.dueAt.slice(0, 10));
+      setNote(result.followUp.note ?? "");
+      setSuccess(result.changed ? "Follow-up snoozed." : "Follow-up already matched this snooze date.");
+    } catch (snoozeError) {
+      setError(errorMessage(snoozeError));
     } finally {
       setIsSaving(false);
     }
@@ -8439,6 +8499,14 @@ function FollowUpControl({
               ? `${followUpDueStateLabel(state.followUp.dueState)} · ${formatDateTime(state.followUp.dueAt)}`
               : "No follow-up date is set."}
           </p>
+          {state?.followUp?.completedAt ? (
+            <p className="mt-1 text-xs text-emerald-800">Completed {formatDateTime(state.followUp.completedAt)}</p>
+          ) : null}
+          {state?.followUp?.snoozedAt && state.followUp.previousDueAt ? (
+            <p className="mt-1 text-xs text-ink/55">
+              Snoozed from {formatDateTime(state.followUp.previousDueAt)} on {formatDateTime(state.followUp.snoozedAt)}
+            </p>
+          ) : null}
           <p className="mt-1 text-xs leading-5 text-ink/55">
             Follow-up reminders appear in My Work and generate one bounded alert when due or overdue.
           </p>
@@ -8495,6 +8563,39 @@ function FollowUpControl({
           </button>
         ) : null}
       </div>
+      {state?.followUp ? (
+        <div className="mt-3 grid gap-2 md:grid-cols-[auto_180px_auto] md:items-end">
+          <button
+            type="button"
+            disabled={isSaving || state.followUp.dueState === "completed"}
+            onClick={() => void finishFollowUp()}
+            className="border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Complete
+          </button>
+          <label className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/60">
+            Snooze to
+            <input
+              type="date"
+              value={snoozeDate}
+              disabled={isSaving}
+              onChange={(event) => {
+                setSnoozeDate(event.target.value);
+                setSuccess(null);
+              }}
+              className="mt-1 block w-full border border-line bg-white px-3 py-2 text-sm font-normal text-ink disabled:opacity-60"
+            />
+          </label>
+          <button
+            type="button"
+            disabled={isSaving || !snoozeDate}
+            onClick={() => void snoozeExistingFollowUp()}
+            className="border border-line bg-white px-3 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Snooze
+          </button>
+        </div>
+      ) : null}
       {error && !isLoading ? (
         <button
           type="button"
@@ -9119,6 +9220,8 @@ function followUpDueStateLabel(state: NonNullable<FollowUpStateResponse["followU
       return "Due today";
     case "overdue":
       return "Overdue";
+    case "completed":
+      return "Completed";
     case "cleared":
       return "Cleared";
     case "none":

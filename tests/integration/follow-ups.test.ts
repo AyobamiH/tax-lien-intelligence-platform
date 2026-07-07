@@ -299,4 +299,114 @@ describe("follow-up reminders API", () => {
     expect(secondRun).toMatchObject({ scanned: 1, remindersCreated: 0, suppressed: 1 });
     expect(await alertStore.listAlertsForUser(admin.userId)).toHaveLength(2);
   });
+
+  it("completes follow-ups and suppresses further reminders and queue visibility", async () => {
+    const { app, alertStore, followUpService, targetAccess } = createTestContext();
+    const owner = await register(app, "owner@example.com");
+    const workspaceId = await currentWorkspaceId(app, owner.token);
+    const targetId = new mongoose.Types.ObjectId().toString();
+    targetAccess.allow("portfolio_item", targetId, owner.userId);
+
+    await request(app)
+      .put(`/follow-ups/portfolio_item/${targetId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ dueAt: "2026-07-07T12:00:00.000Z", note: "Verify payoff." })
+      .expect(200);
+
+    const firstRun = await followUpService.runReminderScan(new Date("2026-07-07T12:30:00.000Z"));
+    expect(firstRun).toMatchObject({ scanned: 1, remindersCreated: 1 });
+    expect((await alertStore.listAlertsForUser(owner.userId)).filter((alert) => alert.type === "follow_up_due")).toHaveLength(1);
+
+    const completed = await request(app)
+      .post(`/follow-ups/portfolio_item/${targetId}/complete`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(completed.body).toMatchObject({
+      targetEntityType: "portfolio_item",
+      targetEntityId: targetId,
+      completed: true,
+      followUp: {
+        dueState: "completed",
+        completedByUserId: owner.userId,
+      },
+    });
+    expect(completed.body.followUp.completedAt).toBeTruthy();
+
+    const state = await request(app)
+      .get(`/follow-ups/portfolio_item/${targetId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(state.body).toMatchObject({
+      dueState: "completed",
+      followUp: {
+        dueState: "completed",
+        targetEntityId: targetId,
+      },
+    });
+
+    const queue = await request(app)
+      .get("/follow-ups/queue")
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .expect(200);
+    expect(queue.body.counts.total).toBe(0);
+
+    const secondRun = await followUpService.runReminderScan(new Date("2026-07-08T12:30:00.000Z"));
+    expect(secondRun).toMatchObject({ scanned: 0, remindersCreated: 0 });
+    expect((await alertStore.listAlertsForUser(owner.userId)).filter((alert) => alert.type === "follow_up_due")).toHaveLength(1);
+  });
+
+  it("snoozes follow-ups, resets reminder state, and rejects invalid snooze dates", async () => {
+    const { app, alertStore, followUpService, targetAccess } = createTestContext();
+    const owner = await register(app, "owner@example.com");
+    const workspaceId = await currentWorkspaceId(app, owner.token);
+    const targetId = new mongoose.Types.ObjectId().toString();
+    targetAccess.allow("comparison_item", targetId, owner.userId);
+
+    await request(app)
+      .put(`/follow-ups/comparison_item/${targetId}`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ dueAt: "2026-07-07T12:00:00.000Z", note: "Confirm lien status." })
+      .expect(200);
+
+    await followUpService.runReminderScan(new Date("2026-07-07T12:30:00.000Z"));
+    expect((await alertStore.listAlertsForUser(owner.userId)).filter((alert) => alert.type === "follow_up_due")).toHaveLength(1);
+
+    const invalid = await request(app)
+      .post(`/follow-ups/comparison_item/${targetId}/snooze`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ dueAt: "not-a-date" })
+      .expect(400);
+    expect(invalid.body.error.code).toBe("follow_up_invalid_due_at");
+
+    const snoozed = await request(app)
+      .post(`/follow-ups/comparison_item/${targetId}/snooze`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .set("X-Workspace-Id", workspaceId)
+      .send({ dueAt: "2026-07-08T12:00:00.000Z", note: "Snoozed until county update." })
+      .expect(200);
+    expect(snoozed.body).toMatchObject({
+      changed: true,
+      followUp: {
+        dueAt: "2026-07-08T12:00:00.000Z",
+        dueState: "upcoming",
+        previousDueAt: "2026-07-07T12:00:00.000Z",
+        lastReminderState: "none",
+        note: "Snoozed until county update.",
+      },
+    });
+    expect(snoozed.body.followUp.snoozedAt).toBeTruthy();
+
+    const deferredRun = await followUpService.runReminderScan(new Date("2026-07-07T13:00:00.000Z"));
+    expect(deferredRun).toMatchObject({ scanned: 0, remindersCreated: 0 });
+
+    const dueAgainRun = await followUpService.runReminderScan(new Date("2026-07-08T12:30:00.000Z"));
+    expect(dueAgainRun).toMatchObject({ scanned: 1, remindersCreated: 1 });
+    expect((await alertStore.listAlertsForUser(owner.userId)).filter((alert) => alert.type === "follow_up_due")).toHaveLength(2);
+  });
 });

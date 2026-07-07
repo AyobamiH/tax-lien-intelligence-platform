@@ -20,6 +20,8 @@ const upsertSchema = z.object({
   note: z.string().max(500).optional().nullable(),
 });
 
+const snoozeSchema = upsertSchema;
+
 export function createFollowUpRouter(
   authService: AuthService,
   workspaceService: WorkspaceService,
@@ -72,6 +74,46 @@ export function createFollowUpRouter(
         },
       );
       response.status(result.changed ? 200 : 200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:entityType/:entityId/complete", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+      const { entityType, entityId } = parseTarget(request);
+      response.status(200).json(
+        await followUpService.complete(requireWorkspace(request), request.auth.userId, entityType, entityId),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:entityType/:entityId/snooze", requireAuthenticatedUser, requireWorkspaceWrite, async (request, response, next) => {
+    try {
+      if (!request.auth) {
+        throw new ApiError(401, "auth_missing_token", "Authentication token is required.");
+      }
+      const { entityType, entityId } = parseTarget(request);
+      const parsed = snoozeSchema.safeParse(request.body);
+      if (!parsed.success) {
+        throw toValidationError();
+      }
+      const result = await followUpService.snooze(
+        requireWorkspace(request),
+        request.auth.userId,
+        entityType,
+        entityId,
+        {
+          dueAt: new Date(parsed.data.dueAt),
+          ...(parsed.data.note ? { note: parsed.data.note } : {}),
+        },
+      );
+      response.status(200).json(result);
     } catch (error) {
       next(error);
     }

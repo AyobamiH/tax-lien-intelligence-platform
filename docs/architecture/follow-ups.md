@@ -3,6 +3,8 @@
 Phase 44 adds a bounded time-aware follow-through layer for operational
 records. It helps members see what should be reviewed soon without turning the
 product into a task manager or calendar suite.
+Phase 45 adds explicit completion and snooze controls so members can resolve or
+defer reminders without leaving them endlessly open.
 
 ## Scope
 
@@ -28,6 +30,8 @@ workspace/target pair. Records include:
 - optional current assignee id snapshot;
 - reminder state and last reminder timestamp;
 - optional cleared timestamp/actor;
+- optional completed timestamp/actor;
+- optional snoozed timestamp/actor and previous due date;
 - created/updated timestamps.
 
 The unique workspace/target key prevents parallel follow-ups for the same
@@ -47,6 +51,7 @@ Due-state rules are deliberately simple:
 - future day: `upcoming`;
 - same UTC day or due earlier today: `due`;
 - before today: `overdue`;
+- completed follow-up: `completed`;
 - cleared follow-up: `cleared`;
 - missing follow-up: `none`.
 
@@ -60,6 +65,8 @@ trimmed, and bounded.
 - `GET /follow-ups/queue`;
 - `GET /follow-ups/:entityType/:entityId`;
 - `PUT /follow-ups/:entityType/:entityId`;
+- `POST /follow-ups/:entityType/:entityId/complete`;
+- `POST /follow-ups/:entityType/:entityId/snooze`;
 - `DELETE /follow-ups/:entityType/:entityId`.
 
 Routes require authentication plus selected-workspace membership. Mutations use
@@ -79,6 +86,9 @@ in-app, becomes immediate email, or enters digest processing.
 Duplicate suppression is based on the last reminded due state. This means a
 record can alert once when due and once again if it later becomes overdue, but
 it does not repeatedly alert on every scheduler tick.
+Completing a follow-up removes it from future scans. Snoozing sets a new due
+date, records the prior due date, resets reminder state to `none`, and defers
+future alert generation until the new date becomes due.
 
 ## My Work And Frontend
 
@@ -87,16 +97,19 @@ it does not repeatedly alert on every scheduler tick.
 on comparison, watchlist, and portfolio detail panels, then surfaces upcoming
 and overdue follow-ups in `#/my-work`.
 
-The UI stays operational: one date input, one note field, clear/update actions,
-due-state labels, and navigation back to the owning record. It does not expose
-a calendar, recurrence builder, board, or workload planner.
+The UI stays operational: one date input, one note field, update, complete,
+snooze, and clear actions, due-state labels, and navigation back to the owning
+record. It does not expose a calendar, recurrence builder, board, or workload
+planner.
 
 ## Activity
 
 Setting or clearing a follow-up records a bounded workspace activity event:
 
 - `follow_up_set`;
-- `follow_up_cleared`.
+- `follow_up_cleared`;
+- `follow_up_completed`;
+- `follow_up_snoozed`.
 
 Activity metadata includes only safe ids, due-state/date, and a note presence
 flag. It does not copy follow-up notes into the activity feed.

@@ -10,6 +10,11 @@ It does not replace issue planning or implementation specs.
 
 ## Delivery Workflow Boundary
 
+Current roadmap marker: Phase 45 follow-up completion and snooze control is
+implemented in the local patch as a bounded follow-through layer. Recurring
+rules, calendar integration, task boards, SLA engines, and AI reminder
+optimization remain outside the phase boundary.
+
 The current delivery workflow is direct-to-`main` after local verification. A
 phase should not be pushed until:
 

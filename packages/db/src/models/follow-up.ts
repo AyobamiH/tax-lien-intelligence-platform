@@ -14,6 +14,11 @@ export interface FollowUpRecord {
   updatedByUserId: string;
   clearedAt?: Date;
   clearedByUserId?: string;
+  completedAt?: Date;
+  completedByUserId?: string;
+  snoozedAt?: Date;
+  snoozedByUserId?: string;
+  previousDueAt?: Date;
   lastReminderAt?: Date;
   lastReminderState: FollowUpReminderStateRecord;
   createdAt: Date;
@@ -37,6 +42,11 @@ const followUpSchema = new Schema<FollowUpRecord>(
     updatedByUserId: { type: String, required: true, trim: true },
     clearedAt: { type: Date, index: true },
     clearedByUserId: { type: String, trim: true },
+    completedAt: { type: Date, index: true },
+    completedByUserId: { type: String, trim: true },
+    snoozedAt: { type: Date },
+    snoozedByUserId: { type: String, trim: true },
+    previousDueAt: { type: Date },
     lastReminderAt: { type: Date },
     lastReminderState: {
       type: String,
@@ -53,6 +63,7 @@ followUpSchema.index(
   { unique: true },
 );
 followUpSchema.index({ workspaceId: 1, clearedAt: 1, dueAt: 1, _id: 1 });
+followUpSchema.index({ workspaceId: 1, completedAt: 1, dueAt: 1, _id: 1 });
 
 export const FollowUpModel: Model<FollowUpRecord> =
   mongoose.models.FollowUp ?? mongoose.model<FollowUpRecord>("FollowUp", followUpSchema);

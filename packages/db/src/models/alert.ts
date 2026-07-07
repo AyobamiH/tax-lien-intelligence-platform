@@ -35,7 +35,7 @@ export interface AlertMetadataRecord {
   followActorEmail?: string;
   followUpId?: string;
   followUpDueAt?: string;
-  followUpDueState?: "upcoming" | "due" | "overdue" | "cleared" | "none";
+  followUpDueState?: "due" | "overdue";
 }
 
 export interface AlertDeliveryPreparationPayloadRecord {
@@ -96,7 +96,7 @@ const alertMetadataSchema = new Schema<AlertMetadataRecord>(
     followActorEmail: { type: String, trim: true, lowercase: true, maxlength: 320 },
     followUpId: { type: String, trim: true },
     followUpDueAt: { type: String, trim: true },
-    followUpDueState: { type: String, enum: ["upcoming", "due", "overdue", "cleared", "none"] },
+    followUpDueState: { type: String, enum: ["due", "overdue"] },
   },
   {
     _id: false,

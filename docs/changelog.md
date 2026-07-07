@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Implemented Phase 45 follow-up completion, snooze, and follow-through
+  control as a bounded operational reminder layer, not a task or calendar
+  system.
+- Added explicit follow-up completion and snooze APIs, persisted completion and
+  snooze metadata, due-state visibility for completed follow-ups, and activity
+  events for meaningful completion/snooze transitions.
+- Updated reminder scans and queues so completed follow-ups no longer generate
+  due alerts, snoozed follow-ups reset reminder state and defer alert
+  generation to the new due date, and alert metadata remains limited to actual
+  due/overdue alert states.
+- Added frontend controls for completing and snoozing follow-ups on supported
+  entity surfaces and the My Work follow-up queue.
+- Added integration coverage for completion, queue/reminder suppression,
+  invalid snooze date rejection, snooze metadata, and reminder reset after
+  reschedule.
 - Added `npm run smoke:mongo` to recover the abandoned pre-Phase-45
   verification gap: a real Mongo-backed follow-up workflow smoke for Phase 44.
   The smoke uses a temporary database, exercises authenticated follow-up set,

@@ -10,6 +10,12 @@ automation should support the core SaaS rather than become a separate product.
 
 Current implementation:
 
+- bounded follow-up automation includes scheduler-driven due/overdue
+  `follow_up_due` alerts plus Phase 45 suppression after completion and
+  deferral after explicit snooze/reschedule;
+- follow-up control is deterministic workflow automation, not AI scheduling,
+  arbitrary recurrence, calendar sync, or a task-management engine;
+
 - no broad external automation;
 - no external background worker fleet;
 - no AI;

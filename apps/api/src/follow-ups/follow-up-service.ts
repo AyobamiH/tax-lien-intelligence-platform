@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
 import type {
   ClearFollowUpResponse,
+  CompleteFollowUpResponse,
   FollowUpDueState,
   FollowUpQueueResponse,
   FollowUpReminderRunResponse,
   FollowUpResponse,
   FollowUpStateResponse,
+  SnoozeFollowUpResponse,
   FollowUpTargetEntityType,
   UpsertFollowUpResponse,
 } from "@tax-lien/types";
@@ -90,7 +92,6 @@ export class FollowUpService {
           followUpId: result.followUp.id,
           followUpDueAt: result.followUp.dueAt.toISOString(),
           ...(result.previous ? { followUpPreviousDueAt: result.previous.dueAt.toISOString() } : {}),
-          ...(result.followUp.note ? { followUpNote: result.followUp.note } : {}),
         },
       });
     }
@@ -128,6 +129,88 @@ export class FollowUpService {
       });
     }
     return { targetEntityType, targetEntityId, cleared: Boolean(cleared) };
+  }
+
+  public async complete(
+    context: WorkspaceAccessContext,
+    actorUserId: string,
+    targetEntityType: FollowUpTargetEntityType,
+    targetEntityId: string,
+    now = new Date(),
+  ): Promise<CompleteFollowUpResponse> {
+    await this.assertTargetAccess(targetEntityType, targetEntityId, context.tenantUserId);
+    const completed = await this.store.completeFollowUp({
+      ...target(context.workspaceId, targetEntityType, targetEntityId),
+      actorUserId,
+      completedAt: now,
+    });
+    if (completed) {
+      await recordWorkspaceActivitySafely(this.activityService, {
+        workspaceId: context.workspaceId,
+        actorUserId,
+        eventType: "follow_up_completed",
+        relatedEntityType: targetEntityType,
+        relatedEntityId: targetEntityId,
+        metadata: {
+          targetEntityType,
+          followUpId: completed.id,
+          followUpDueAt: completed.dueAt.toISOString(),
+          followUpCompletedAt: completed.completedAt?.toISOString() ?? now.toISOString(),
+        },
+      });
+    }
+    return {
+      targetEntityType,
+      targetEntityId,
+      completed: Boolean(completed),
+      followUp: completed ? toResponse(completed, now) : null,
+    };
+  }
+
+  public async snooze(
+    context: WorkspaceAccessContext,
+    actorUserId: string,
+    targetEntityType: FollowUpTargetEntityType,
+    targetEntityId: string,
+    input: { dueAt: Date; note?: string },
+    now = new Date(),
+  ): Promise<SnoozeFollowUpResponse> {
+    await this.assertTargetAccess(targetEntityType, targetEntityId, context.tenantUserId);
+    const existing = await this.store.findForTarget(target(context.workspaceId, targetEntityType, targetEntityId));
+    if (!existing || existing.clearedAt) {
+      throw new ApiError(404, "follow_up_not_found", "Follow-up was not found.");
+    }
+    const dueAt = this.assertUsableDueDate(input.dueAt, now);
+    const note = normalizeNote(input.note);
+    const result = await this.store.saveFollowUp({
+      ...target(context.workspaceId, targetEntityType, targetEntityId),
+      dueAt,
+      ...(note ? { note } : {}),
+      actorUserId,
+      snoozedAt: now,
+    });
+
+    if (result.changed) {
+      await recordWorkspaceActivitySafely(this.activityService, {
+        workspaceId: context.workspaceId,
+        actorUserId,
+        eventType: "follow_up_snoozed",
+        relatedEntityType: targetEntityType,
+        relatedEntityId: targetEntityId,
+        metadata: {
+          targetEntityType,
+          followUpId: result.followUp.id,
+          followUpDueAt: result.followUp.dueAt.toISOString(),
+          ...(result.previous ? { followUpPreviousDueAt: result.previous.dueAt.toISOString() } : {}),
+          followUpSnoozedAt: now.toISOString(),
+        },
+      });
+    }
+
+    return {
+      followUp: toResponse(result.followUp, now),
+      changed: result.changed,
+    };
   }
 
   public async listQueue(
@@ -258,6 +341,9 @@ export class FollowUpService {
 }
 
 export function dueStateFor(followUp: StoredFollowUp, now = new Date()): FollowUpDueState {
+  if (followUp.completedAt) {
+    return "completed";
+  }
   if (followUp.clearedAt) {
     return "cleared";
   }
@@ -281,6 +367,11 @@ export function toResponse(followUp: StoredFollowUp, now = new Date()): FollowUp
     updatedByUserId: followUp.updatedByUserId,
     ...(followUp.clearedAt ? { clearedAt: followUp.clearedAt.toISOString() } : {}),
     ...(followUp.clearedByUserId ? { clearedByUserId: followUp.clearedByUserId } : {}),
+    ...(followUp.completedAt ? { completedAt: followUp.completedAt.toISOString() } : {}),
+    ...(followUp.completedByUserId ? { completedByUserId: followUp.completedByUserId } : {}),
+    ...(followUp.snoozedAt ? { snoozedAt: followUp.snoozedAt.toISOString() } : {}),
+    ...(followUp.snoozedByUserId ? { snoozedByUserId: followUp.snoozedByUserId } : {}),
+    ...(followUp.previousDueAt ? { previousDueAt: followUp.previousDueAt.toISOString() } : {}),
     ...(followUp.lastReminderAt ? { lastReminderAt: followUp.lastReminderAt.toISOString() } : {}),
     lastReminderState: followUp.lastReminderState,
     createdAt: followUp.createdAt.toISOString(),

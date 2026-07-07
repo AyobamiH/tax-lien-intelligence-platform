@@ -15,6 +15,11 @@ direction KB, and shared contract KB.
 The Tax Lien Intelligence Platform is intended to be a multi-tenant SaaS that
 turns county parcel and tax lien datasets into structured investment decisions.
 
+The current workflow now includes bounded follow-up control: teams can set
+follow-up dates, receive due/overdue reminders, complete handled follow-ups,
+and snooze relevant follow-ups to a new date without turning the product into a
+general task or calendar platform.
+
 The product is not yet fully implemented. The current repo now includes the
 baseline, auth foundation, dataset upload foundation, first-pass scoring
 foundation, frontend scored-results review surface, watchlist decision workflow,
