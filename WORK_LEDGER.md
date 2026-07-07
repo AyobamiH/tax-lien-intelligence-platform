@@ -879,3 +879,30 @@
 - Blockers: none before final checks.
 - Next safe step: run the required checks, commit, push, and verify local and
   remote `main` match if all checks pass.
+
+## 2026-07-07T14:08:00+01:00 - Phase 45 Mongo smoke hardening push completion
+
+- Commit created: `86eeb9a`
+  (`test: harden phase 45 mongo follow-up smoke`).
+- Push target: tracked upstream `oneclick/main`.
+- Push result: succeeded, advancing `oneclick/main` from
+  `a2686d4` to `86eeb9a`.
+- Pre-push hook result:
+  - dependency install check reported packages up to date and 0
+    vulnerabilities;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 39 files and 268 tests;
+  - `npm run build` passed.
+- Completion:
+  - Mongo-backed Phase 45 complete/snooze smoke hardening is now on main;
+  - the smoke verifies completed follow-up reminder suppression and snoozed
+    follow-up reminder deferral/reset against the real Mongo store path;
+  - the Mongo previous-record lookup fix is included on main.
+- Remaining limits:
+  - no deployed proof;
+  - no browser-driver screenshot proof;
+  - no brokered/cloud Crabbox proof.
+- Next safe step: continue roadmap hardening from clean repo truth, with a
+  browser-driver smoke for Phase 45 follow-up controls as the next strongest
+  verification candidate.
