@@ -1,5 +1,26 @@
 # Work Ledger
 
+## 2026-07-08T12:55:00+01:00 - Repo-local agent entry point
+
+- Requested task: run the next safe step after the workflow investigation.
+- Workflow lane: repo hygiene and local documentation control.
+- Risk classification: safe local docs edit; no source runtime code, package
+  install, dependency update, commit, push, deploy, migration, service
+  lifecycle action, production mutation, external action, or secret-file read.
+- What was inspected: current git status, `OPENCLAW_RUNBOOK.md`,
+  `WORK_LEDGER.md`, `MISSION.md`, `ACCEPTANCE.md`, `README.md`, and
+  `docs/README.md`.
+- Work completed:
+  - added a thin repo-local `AGENTS.md` entry point;
+  - pointed future agents to the existing mission, acceptance, runbook, ledger,
+    and docs index;
+  - recorded the canonical OpenClaw bounded path under `workspace/projects/`;
+  - preserved existing approval boundaries and verification expectations.
+- Changed-state declaration: local documentation/control files changed only.
+- Validation: `git diff --check -- AGENTS.md WORK_LEDGER.md` passed.
+- Next safe step: review the doc-only diff and decide whether to commit it;
+  commit and push remain approval-bound unless explicitly authorized.
+
 ## 2026-07-06T23:41:35+01:00 - Autonomous repo continuation startup
 
 - Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`.
