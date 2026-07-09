@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import request from "supertest";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AlertService } from "../../apps/api/src/alerts/alert-service.js";
 import { ApprovalService } from "../../apps/api/src/approvals/approval-service.js";
 import { createApp } from "../../apps/api/src/app.js";
@@ -27,6 +27,7 @@ import {
 } from "../support/in-memory-workspace-store.js";
 
 const testJwtSecret = "test-follow-up-secret-that-is-long-enough-for-jwt";
+const reminderTestNow = new Date("2026-07-06T09:00:00.000Z");
 
 class InMemoryUserStore implements UserStore {
   private readonly users = new Map<string, StoredUser>();
@@ -163,6 +164,15 @@ async function addMember(
 }
 
 describe("follow-up reminders API", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(reminderTestNow);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("sets, updates, clears, and queues follow-ups for the responsible member", async () => {
     const { app, targetAccess } = createTestContext();
     const owner = await register(app, "owner@example.com");
