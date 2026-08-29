@@ -96,7 +96,7 @@ The current scoring model uses only fields that may be present in uploaded data:
 - simple access, buildability, and utility signals if present;
 - missing-data confidence.
 
-It produces:
+The legacy response currently produces:
 
 - `investmentScore` from 0 to 100;
 - `riskScore` from 0 to 100;
@@ -119,8 +119,30 @@ Examples:
 - no road access caps investment score near zero;
 - vacant land is heavily penalized unless future enrichment proves quality.
 
-This is not fake precision. Missing data is a product signal, not something the
-scoring engine should hide.
+These values are fixed-rule prioritization signals. In particular,
+`redemptionProbability` starts from a hard-coded baseline and is adjusted by
+property type, value coverage, and access. It is not trained against verified
+historical redemption outcomes, is not calibrated, and must not be represented
+as a real probability outside this legacy response. Missing data remains a
+product signal that the engine must expose rather than hide.
+
+## Phase 47 Contract Boundary
+
+`packages/engine-contract` now defines runtime-validated
+`CandidateEvidenceV1` and `EngineResultV1` contracts plus matching JSON
+Schemas. The new contract separates observed, derived, unknown, and
+not-applicable evidence and requires field-level provenance.
+
+Engine signals identify whether their method is deterministic, heuristic,
+model-backed, or not computed. An available `redemption_probability` is valid
+only when it references a versioned model artifact, training-dataset version,
+artifact SHA-256 digest, and evaluation report. Fixed rules must use the
+distinct `redemption_heuristic_signal` key and a non-probability unit.
+
+The existing scoring package and response remain unchanged for compatibility
+in this contract node. Platform integration must relabel the legacy redemption
+field at the compatibility boundary and expose `insufficient_evidence` when a
+model-backed probability is unavailable. See `docs/engine/contracts.md`.
 
 ## Normalization Boundary
 
@@ -222,5 +244,6 @@ Do not duplicate scoring logic outside `packages/scoring`.
 
 Do not add frontend score displays that invent fields not returned by the API.
 
-Do not add automation, AI, or additional enrichment providers before the current
-worker-scoring and enrichment boundaries remain stable under tests.
+Do not let an LLM calculate, modify, or fill missing engine values. ChatGPT may
+explain stored results and cited evidence only through a tenant-authorized tool
+boundary.

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T04:50:00Z",
+  "updatedAt": "2026-08-29T09:04:39Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
   "goal": "Deliver a versioned, evidence-first intelligence engine and a read-only ChatGPT evidence interface without fabricated predictions.",
@@ -44,20 +44,20 @@
     {
       "id": "P47-020-contracts",
       "title": "Define CandidateEvidenceV1 and EngineResultV1",
-      "status": "ready",
+      "status": "completed",
       "ownerRole": "contract-engineer",
       "dependencies": ["P47-010-governance"],
       "scope": ["shared TypeScript contracts", "JSON Schema", "provenance", "applicability", "abstention", "version manifest"],
       "acceptance": ["contracts reject unsupported precision", "all signals distinguish heuristic, deterministic, model, unknown, and unavailable", "compatibility impact is documented"],
       "documentation": ["docs/api/scoring.md", "docs/architecture/scoring.md", "docs/kb/shared-contract-kb.md", "docs/engine/status.md"],
-      "verification": ["contract tests", "schema examples", "npm run typecheck", "npm run test", "npm run build"],
-      "evidence": [],
+      "verification": ["runtime validator tests", "JSON Schema and manifest shape tests", "npm run audit", "npm run validate:work-graph", "npm run typecheck", "npm run test", "npm run build", "git diff --check"],
+      "evidence": ["packages/engine-contract", "tests/unit/engine-contract.test.ts: 9 tests passed", "full repository suite: 41 files and 279 tests passed", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
       "id": "P47-030-rule-engine",
       "title": "Create versioned jurisdiction rule packs",
-      "status": "planned",
+      "status": "ready",
       "ownerRole": "domain-rules-engineer",
       "dependencies": ["P47-020-contracts"],
       "scope": ["rule-pack interface", "Arizona and Maricopa applicability", "hard exclusions", "source citations", "rule versioning"],

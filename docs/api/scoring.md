@@ -4,6 +4,13 @@ Phase 4 adds the first explainable scoring foundation. Phase 29 makes scoring
 routes workspace-aware: members may read and owners/admins may start score or
 refresh jobs.
 
+> Phase 47 compatibility notice: this endpoint still returns the legacy
+> fixed-rule scoring shape. Its `redemptionProbability` field is a heuristic,
+> not a trained or calibrated probability. The versioned engine contract is
+> documented in `docs/engine/contracts.md`; it forbids exposing an available
+> `redemption_probability` without a versioned model artifact and evaluation
+> reference.
+
 ## Security Model
 
 - All scoring routes require `Authorization: Bearer <jwt-access-token>`.
@@ -285,6 +292,13 @@ explicit enrichment orchestration, fallback outcomes, and freshness/reprocess
 metadata. Scoring is still not a final institutional underwriting model. It uses
 fields that can be mapped or safely inferred from the uploaded dataset, plus
 safe external enrichment metadata when the Census provider is enabled.
+
+The route does not yet return `EngineResultV1`. During the future platform
+integration, the existing field must map to `redemption_heuristic_signal`, not
+`redemption_probability`, and real probability must remain unavailable until a
+verified model artifact passes the promotion gates. Compatibility work must
+preserve current user workflows while making this distinction explicit in API
+and UI output.
 
 Phase 5 adds a frontend review surface that calls these routes directly for the
 signed-in user. Phase 6 adds watchlist actions on top of scored records. Phase 7

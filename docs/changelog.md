@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Added the versioned `@tax-lien/engine-contract` package with
+  `CandidateEvidenceV1`, `EngineResultV1`, strict runtime validation, JSON
+  Schemas, and a machine-readable version manifest.
+- Enforced provenance and truthful abstention at the contract boundary:
+  observed and derived evidence requires cited sources, non-available signals
+  cannot carry values, and an available redemption probability requires a
+  versioned model artifact, training-dataset version, digest, and evaluation
+  report reference.
+- Documented the existing scoring API's `redemptionProbability` as a legacy
+  fixed-rule heuristic and reserved `redemption_probability` in the new engine
+  contract for evaluated model output. Compatibility integration remains a
+  separate graph node.
 - Established Phase 47 intelligence-engine governance with a machine-readable
   dependency graph, deterministic graph validator, CI gate, agent handoff
   protocol, current-status ledger, architecture decision, and documented

@@ -9,6 +9,25 @@ It does not replace endpoint-specific API docs or implementation tests.
 
 ## Current Shared Types
 
+Phase 47 adds an independent engine-boundary package at
+`packages/engine-contract`:
+
+- `CandidateEvidenceV1` with versioned, field-level provenance and explicit
+  observed, derived, unknown, and not-applicable states;
+- `EngineResultV1` with assessed, insufficient-evidence, and out-of-scope
+  outcomes;
+- method and availability distinctions for deterministic, heuristic,
+  model-backed, unknown, unavailable, and not-applicable signals;
+- `ModelArtifactRefV1` with artifact digest, training-dataset version, and
+  evaluation-report reference;
+- dependency-free runtime validators and strict JSON Schemas;
+- a hard contract rule that a redemption probability is available only from a
+  versioned model artifact.
+
+The existing `packages/scoring` output remains a compatibility contract. Its
+`redemptionProbability` value is a fixed heuristic and must be renamed to
+`redemption_heuristic_signal` when mapped into `EngineResultV1`.
+
 Current shared types in `packages/types`:
 
 - Phase 45 extends the follow-up contract with `completed` due state,

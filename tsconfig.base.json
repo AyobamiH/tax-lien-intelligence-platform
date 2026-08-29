@@ -15,6 +15,7 @@
     "baseUrl": ".",
     "paths": {
       "@tax-lien/db": ["packages/db/src/index.ts"],
+      "@tax-lien/engine-contract": ["packages/engine-contract/src/index.ts"],
       "@tax-lien/scoring": ["packages/scoring/src/index.ts"],
       "@tax-lien/types": ["packages/types/src/index.ts"]
     },

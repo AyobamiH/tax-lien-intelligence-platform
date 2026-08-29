@@ -1110,3 +1110,74 @@
   - no brokered/cloud Crabbox proof.
 - Next safe step: continue from clean repo truth into the next roadmap
   hardening/product-continuity task.
+
+## 2026-08-29T09:04:39Z - Phase 47 versioned intelligence contracts
+
+- Requested task: begin autonomous, graph-governed intelligence-engine work
+  without mock production intelligence and document every completed work unit.
+- Graph node: `P47-020-contracts`.
+- Repository: `AyobamiH/tax-lien-intelligence-platform`.
+- Branch and starting commit:
+  `feature/intelligence-engine-foundation` at `f236b72`.
+- Verified assumptions:
+  - the current scoring package is a deterministic rules implementation;
+  - its `redemptionProbability` is a fixed heuristic, not a trained or
+    calibrated probability;
+  - no verified model artifact or historical redemption outcome dataset exists
+    in this repository;
+  - current API compatibility must be preserved while the engine boundary is
+    introduced.
+- Work completed:
+  - added `@tax-lien/engine-contract` as an independently buildable TypeScript
+    workspace package;
+  - defined versioned candidate-evidence, provenance, jurisdiction,
+    applicability, engine-result, finding, signal, and model-artifact types;
+  - added dependency-free runtime validators that reject unknown properties,
+    invalid versions, broken source references, values without provenance,
+    invalid timestamps and digests, duplicate signals, and inconsistent result
+    states;
+  - made unknown, unavailable, not-applicable, deterministic, heuristic,
+    model-backed, and not-computed states explicit;
+  - prohibited available redemption probability unless it is a bounded model
+    output with a versioned artifact and evaluation reference;
+  - reserved `redemption_heuristic_signal` for fixed-rule redemption output and
+    prohibited it from using a probability unit;
+  - published strict JSON Schemas and a schema version manifest for future
+    cross-language service parity;
+  - documented the current API compatibility boundary and corrected the legacy
+    heuristic's precision claim without breaking its response shape.
+- Tests added:
+  - 9 runtime contract and schema-manifest tests covering provenance, explicit
+    abstention, unsupported values, heuristic/probability separation, and
+    model-artifact requirements.
+- Checks run:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:work-graph` passed with 10 nodes;
+  - `npm run typecheck` passed;
+  - focused contract tests passed with 1 file and 9 tests;
+  - `npm run test` passed with 41 files and 279 tests;
+  - `npm run build` passed for API, web, DB, scoring, types, and engine-contract
+    workspaces;
+  - JSON Schema parse check and `git diff --check` passed.
+- Documentation updated:
+  - `docs/engine/contracts.md`;
+  - `docs/engine/status.md`;
+  - `docs/engine/work-graph.json`;
+  - `docs/architecture/scoring.md`;
+  - `docs/api/scoring.md`;
+  - `docs/kb/shared-contract-kb.md`;
+  - `docs/README.md`;
+  - `docs/changelog.md`;
+  - `WORK_LEDGER.md`.
+- Verified limits:
+  - this node defines and enforces contracts but does not claim live county
+    ingestion, jurisdiction-rule correctness, trained models, calibration,
+    deployed service behavior, or ChatGPT tool readiness;
+  - deterministic contract vectors validate shape only and are not production
+    intelligence or model evidence;
+  - the external OneClickPostFactory repository was not verified or mutated,
+    and no cross-repository sync is claimed.
+- Blockers: none for the next rule-engine node.
+- Newly ready nodes:
+  - `P47-030-rule-engine`;
+  - `P47-060-data-inventory` remains independently ready.

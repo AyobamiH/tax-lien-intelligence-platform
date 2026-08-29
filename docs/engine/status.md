@@ -9,8 +9,12 @@ Last updated: 2026-08-29
 - Active branch: `feature/intelligence-engine-foundation`.
 - Starting main commit: `f7b6cbeab0d35712a60933c598e6fcfa39ffdd5d`.
 - Baseline recovery is published at `ba1b0cb`.
-- Existing application gates pass after baseline recovery: audit, typecheck,
-  270 tests, and build.
+- Graph governance is published at `f236b72`.
+- `P47-020-contracts` adds the versioned `CandidateEvidenceV1` and
+  `EngineResultV1` TypeScript contracts, dependency-free runtime validators,
+  strict JSON Schemas, and a machine-readable schema manifest.
+- Current application gates pass: audit with 0 vulnerabilities, graph
+  validation, typecheck, 279 tests across 41 files, and every workspace build.
 - Current `packages/scoring` implementation is deterministic rules-based
   prioritization, not a calibrated prediction engine.
 - One Maricopa-style import adapter and generic fallback exist.
@@ -29,12 +33,14 @@ claimed.
 
 ## Current Work
 
-`P47-010-governance` is verified locally and ready for its remote checkpoint.
-The next implementation node is `P47-020-contracts`.
+`P47-020-contracts` is verified. An available redemption probability now
+requires a versioned model artifact, training-dataset version, artifact digest,
+and evaluation-report reference. The legacy API remains compatible, but its
+fixed-rule value is explicitly documented as a heuristic.
 
 ## Next Ready Work
 
-- `P47-020-contracts`: versioned evidence and result contracts.
+- `P47-030-rule-engine`: versioned, source-cited jurisdiction rule packs.
 - `P47-060-data-inventory`: Maricopa data-source and outcome-label inventory.
 
 ## Explicitly Unproven

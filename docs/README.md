@@ -10,6 +10,7 @@ knowledge-base documentation for the Tax Lien Intelligence Platform.
 - [Current engine status](engine/status.md)
 - [Machine-readable work graph](engine/work-graph.json)
 - [Open-source component decisions](engine/open-source-components.md)
+- [Versioned engine contracts](engine/contracts.md)
 
 ## Knowledge Base
 
