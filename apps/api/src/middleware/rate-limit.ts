@@ -5,6 +5,7 @@ export interface FixedWindowRateLimitOptions {
   windowMs: number;
   maxRequests: number;
   keyPrefix?: string;
+  key?: (request: Request) => string;
   now?: () => number;
   onLimit?: (request: Request, context: { retryAfterMs: number }) => void | Promise<void>;
 }
@@ -21,7 +22,7 @@ export function createFixedWindowRateLimit(options: FixedWindowRateLimitOptions)
   return async (request, _response, next) => {
     try {
       const timestamp = now();
-      const key = rateLimitKey(request, options.keyPrefix ?? "request");
+      const key = options.key?.(request) ?? rateLimitKey(request, options.keyPrefix ?? "request");
       const current = buckets.get(key);
       const bucket =
         current && current.resetAt > timestamp

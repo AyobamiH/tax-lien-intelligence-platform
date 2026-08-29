@@ -44,6 +44,16 @@ The product must earn trust through secure boundaries and explainable output.
   Identity comes only from the verified bearer token, workspace membership is
   resolved before tenant data access, and no tool can mutate workflow state or
   execute an external action.
+- The ChatGPT boundary now includes OAuth 2.1 protected-resource and
+  authorization-server discovery, explicit consent/denial, exact public-client
+  and redirect allowlists, resource indicators, mandatory PKCE S256, scoped
+  short-lived access tokens, rotating hashed refresh tokens, refresh-family
+  replay revocation, persisted access-token revocation, and current-user
+  checks. OAuth-enabled MCP does not accept the application login JWT.
+- OAuth code is repository-tested but not deployed or connected from ChatGPT.
+  Stable HTTPS, ingress/proxy validation, multi-instance rate limiting, secret
+  custody, live tenancy/load/redaction/rollback evidence, and named
+  privacy/support/incident owners remain release controls.
 - MCP evidence responses exclude access tokens, user emails, member lists,
   free-form notes, comments, approval notes, raw rows, and exported brief text.
   Filenames and source labels remain untrusted cited data.
@@ -81,6 +91,8 @@ Current repo protections:
 - tests for common auth failure modes;
 - MCP tool authentication, denied workspace, input-bound, and prompt-like
   source-data tests;
+- OAuth discovery, consent, PKCE, one-time code, refresh rotation/replay,
+  access-token revocation, and OAuth-only MCP tests;
 - explicit workspace and membership persistence;
 - selected-workspace membership and minimal owner/admin/member role checks;
 - owner-only non-owner role updates with no admin/member self-escalation path;

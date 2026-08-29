@@ -21,6 +21,7 @@ knowledge-base documentation for the Tax Lien Intelligence Platform.
 
 - [Priority-one product and release plan](product/chatgpt-priority-plan.md)
 - [ChatGPT release evaluation manifest](product/chatgpt-release-evaluation.json)
+- [Private staging runbook](product/chatgpt-private-staging-runbook.md)
 - [Decision 0003: Thin ChatGPT product boundary](decisions/0003-chatgpt-product-boundary.md)
 
 ## Knowledge Base
@@ -44,6 +45,7 @@ before writing specs, prompts, or implementation plans.
 - [Scoring Foundation Architecture](architecture/scoring.md)
 - [Intelligence Service Architecture](architecture/intelligence-service.md)
 - [ChatGPT MCP Architecture](architecture/chatgpt-mcp.md)
+- [ChatGPT OAuth threat model](architecture/chatgpt-oauth-threat-model.md)
 - [Enrichment Architecture](architecture/enrichment.md)
 - [Frontend Review Surface Architecture](architecture/frontend-review.md)
 - [Watchlist Workflow Architecture](architecture/watchlist.md)
@@ -82,6 +84,7 @@ before writing specs, prompts, or implementation plans.
 - [Scoring API](api/scoring.md)
 - [Intelligence Service API](api/intelligence-service.md)
 - [ChatGPT MCP API](api/mcp.md)
+- [ChatGPT OAuth API](api/oauth.md)
 - [Internal Jobs API](api/jobs.md)
 - [Alerts API](api/alerts.md)
 - [Notification Preferences API](api/notification-preferences.md)

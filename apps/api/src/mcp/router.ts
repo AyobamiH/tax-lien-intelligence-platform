@@ -5,6 +5,8 @@ import * as z from "zod/v4";
 import type { AuthService } from "../auth/auth-service.js";
 import { ApiError } from "../errors/api-error.js";
 import { requireAuth } from "../middleware/auth.js";
+import { requireMcpOAuth } from "../middleware/oauth.js";
+import type { OAuthService } from "../oauth/oauth-service.js";
 import {
   MCP_TOOL_CONTRACT_VERSION,
   type McpEvidenceServiceContract,
@@ -21,9 +23,10 @@ const outputSchema = {
 export function createMcpRouter(
   authService: AuthService,
   evidenceService: McpEvidenceServiceContract,
+  oauthService: OAuthService | null = null,
 ): Router {
   const router = Router();
-  router.use(requireAuth(authService));
+  router.use(oauthService ? requireMcpOAuth(oauthService) : requireAuth(authService));
 
   router.post("/", async (request, response) => {
     if (!request.auth) {

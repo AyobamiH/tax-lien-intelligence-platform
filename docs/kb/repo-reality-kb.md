@@ -23,6 +23,10 @@ sequencing and the master product KB for product identity.
   six read-only tools. It projects authorized stored evidence, labels legacy
   heuristics, returns explicit unknowns, and has no mutation or bid tool. It is
   not deployed or connected publicly to ChatGPT.
+- The feature branch has a production-oriented OAuth 2.1/PKCE source boundary
+  for MCP and a thin source-only package under `products/chatgpt`. It has no
+  invented MCP URL or live receipt. The planned separate release repository
+  does not exist, and the connected GitHub integration cannot create it.
 - Phase 46 follow-up proof is implemented: the repo has a
   focused browser-like smoke command for follow-up due-state rendering, update,
   completion, and snooze/reschedule controls using synthetic local data.
@@ -80,6 +84,8 @@ The repo is an npm workspace monorepo:
 - `packages/jurisdiction-rules`: source-cited deterministic rule evaluator.
 - `services/intelligence`: authenticated Python engine-service boundary.
 - `apps/api/src/mcp`: authenticated read-only MCP evidence projection.
+- `apps/api/src/oauth`: ChatGPT OAuth discovery, grants, tokens, and revocation.
+- `products/chatgpt`: thin source-only connector metadata and provenance.
 - `docs`: architecture, API, decisions, changelog, and this KB.
 - `tests`: root-level unit and integration tests.
 - `infra/docker`: local MongoDB compose file.

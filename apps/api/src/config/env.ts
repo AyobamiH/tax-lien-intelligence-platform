@@ -9,6 +9,7 @@ const emptyStringToUndefined = (value: unknown): unknown => (value === "" ? unde
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   API_PORT: z.coerce.number().int().positive().default(4000),
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(10).default(0),
   MONGODB_URI: z.string().min(1).default("mongodb://localhost:27017/tax_lien_platform"),
   MONGODB_DB_NAME: z.string().min(1).default("tax_lien_platform"),
   JWT_SECRET: z.string().min(32).optional(),
@@ -35,6 +36,18 @@ const envSchema = z.object({
   INTELLIGENCE_SERVICE_TIMEOUT_MS: z.coerce.number().int().positive().max(30000).default(5000),
   INTELLIGENCE_SERVICE_MAX_CONCURRENCY: z.coerce.number().int().positive().max(32).default(8),
   MCP_APP_BASE_URL: z.preprocess(emptyStringToUndefined, z.string().url().optional()),
+  MCP_OAUTH_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
+  MCP_OAUTH_ISSUER_URL: z.preprocess(emptyStringToUndefined, z.string().url().optional()),
+  MCP_OAUTH_RESOURCE_URL: z.preprocess(emptyStringToUndefined, z.string().url().optional()),
+  MCP_OAUTH_ALLOWED_CLIENT_IDS: z.string().default("https://chatgpt.com/oauth/client.json"),
+  MCP_OAUTH_ALLOWED_REDIRECT_URIS: z.string().default("https://chatgpt.com/connector_platform_oauth_redirect"),
+  MCP_OAUTH_SCOPE: z.string().trim().min(1).max(120).default("tax_lien:read"),
+  MCP_OAUTH_SIGNING_SECRET: z.preprocess(emptyStringToUndefined, z.string().min(32).optional()),
+  MCP_OAUTH_AUTHORIZATION_CODE_TTL_SECONDS: z.coerce.number().int().min(60).max(600).default(300),
+  MCP_OAUTH_ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(300).max(3600).default(900),
+  MCP_OAUTH_REFRESH_TOKEN_TTL_SECONDS: z.coerce.number().int().min(3600).max(2_592_000).default(604800),
+  MCP_OAUTH_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().min(1000).max(3_600_000).default(60_000),
+  MCP_OAUTH_RATE_LIMIT_MAX: z.coerce.number().int().min(1).max(1_000).default(30),
   EMAIL_DELIVERY_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
   EMAIL_FROM_ADDRESS: z.preprocess(emptyStringToUndefined, z.string().email().optional()),
   EMAIL_FROM_NAME: z.preprocess(
@@ -78,6 +91,54 @@ if (
   throw new Error("MCP_APP_BASE_URL must use https in production.");
 }
 
+if (
+  parsedEnv.MCP_OAUTH_ENABLED &&
+  (!parsedEnv.MCP_OAUTH_ISSUER_URL ||
+    !parsedEnv.MCP_OAUTH_RESOURCE_URL ||
+    !parsedEnv.MCP_OAUTH_SIGNING_SECRET)
+) {
+  throw new Error(
+    "MCP_OAUTH_ISSUER_URL, MCP_OAUTH_RESOURCE_URL, and MCP_OAUTH_SIGNING_SECRET are required when MCP OAuth is enabled.",
+  );
+}
+
+if (
+  parsedEnv.NODE_ENV === "production" &&
+  parsedEnv.MCP_OAUTH_ENABLED &&
+  (!parsedEnv.MCP_OAUTH_ISSUER_URL?.startsWith("https://") ||
+    !parsedEnv.MCP_OAUTH_RESOURCE_URL?.startsWith("https://"))
+) {
+  throw new Error("MCP OAuth issuer and resource URLs must use https in production.");
+}
+
+const oauthAllowedClientIds = parsedEnv.MCP_OAUTH_ALLOWED_CLIENT_IDS.split(",").map((value) => value.trim()).filter(Boolean);
+const oauthAllowedRedirectUris = parsedEnv.MCP_OAUTH_ALLOWED_REDIRECT_URIS.split(",").map((value) => value.trim()).filter(Boolean);
+
+if (parsedEnv.MCP_OAUTH_ENABLED) {
+  const issuer = new URL(parsedEnv.MCP_OAUTH_ISSUER_URL as string);
+  const resource = new URL(parsedEnv.MCP_OAUTH_RESOURCE_URL as string);
+  if (
+    issuer.pathname !== "/" ||
+    issuer.search ||
+    issuer.hash ||
+    resource.origin !== issuer.origin ||
+    resource.pathname.replace(/\/$/, "") !== "/mcp" ||
+    resource.search ||
+    resource.hash
+  ) {
+    throw new Error("MCP OAuth must use an origin-only issuer and the same origin's /mcp resource URL.");
+  }
+  if (oauthAllowedClientIds.length === 0 || oauthAllowedRedirectUris.length === 0) {
+    throw new Error("MCP OAuth requires non-empty exact client and redirect URI allowlists.");
+  }
+  for (const value of [...oauthAllowedClientIds, ...oauthAllowedRedirectUris]) {
+    const url = new URL(value);
+    if (parsedEnv.NODE_ENV === "production" && url.protocol !== "https:") {
+      throw new Error("MCP OAuth client identifiers and redirect URIs must use https in production.");
+    }
+  }
+}
+
 const emailDeliveryEnabled =
   parsedEnv.EMAIL_DELIVERY_ENABLED && Boolean(parsedEnv.EMAIL_FROM_ADDRESS && parsedEnv.SMTP_HOST);
 
@@ -89,6 +150,7 @@ const allowedCorsOrigins =
 export interface ApiConfig {
   nodeEnv: RuntimeEnvironment;
   port: number;
+  trustProxyHops: number;
   mongoUri: string;
   mongoDbName: string;
   jwtSecret: string;
@@ -133,6 +195,22 @@ export interface ApiConfig {
   };
   mcp: {
     appBaseUrl?: string;
+    oauth: {
+      enabled: boolean;
+      issuerUrl: string;
+      resourceUrl: string;
+      allowedClientIds: string[];
+      allowedRedirectUris: string[];
+      scope: string;
+      signingSecret: string;
+      authorizationCodeTtlSeconds: number;
+      accessTokenTtlSeconds: number;
+      refreshTokenTtlSeconds: number;
+      rateLimit: {
+        windowMs: number;
+        maxRequests: number;
+      };
+    };
   };
   email: {
     enabled: boolean;
@@ -160,6 +238,7 @@ export interface ApiConfig {
 export const apiConfig: ApiConfig = {
   nodeEnv: parsedEnv.NODE_ENV,
   port: parsedEnv.API_PORT,
+  trustProxyHops: parsedEnv.TRUST_PROXY_HOPS,
   mongoUri: parsedEnv.MONGODB_URI,
   mongoDbName: parsedEnv.MONGODB_DB_NAME,
   jwtSecret: parsedEnv.JWT_SECRET ?? developmentJwtSecret,
@@ -206,6 +285,22 @@ export const apiConfig: ApiConfig = {
   },
   mcp: {
     ...(parsedEnv.MCP_APP_BASE_URL ? { appBaseUrl: parsedEnv.MCP_APP_BASE_URL } : {}),
+    oauth: {
+      enabled: parsedEnv.MCP_OAUTH_ENABLED,
+      issuerUrl: parsedEnv.MCP_OAUTH_ISSUER_URL?.replace(/\/$/, "") ?? "",
+      resourceUrl: parsedEnv.MCP_OAUTH_RESOURCE_URL?.replace(/\/$/, "") ?? "",
+      allowedClientIds: oauthAllowedClientIds,
+      allowedRedirectUris: oauthAllowedRedirectUris,
+      scope: parsedEnv.MCP_OAUTH_SCOPE,
+      signingSecret: parsedEnv.MCP_OAUTH_SIGNING_SECRET ?? "",
+      authorizationCodeTtlSeconds: parsedEnv.MCP_OAUTH_AUTHORIZATION_CODE_TTL_SECONDS,
+      accessTokenTtlSeconds: parsedEnv.MCP_OAUTH_ACCESS_TOKEN_TTL_SECONDS,
+      refreshTokenTtlSeconds: parsedEnv.MCP_OAUTH_REFRESH_TOKEN_TTL_SECONDS,
+      rateLimit: {
+        windowMs: parsedEnv.MCP_OAUTH_RATE_LIMIT_WINDOW_MS,
+        maxRequests: parsedEnv.MCP_OAUTH_RATE_LIMIT_MAX,
+      },
+    },
   },
   email: {
     enabled: emailDeliveryEnabled,

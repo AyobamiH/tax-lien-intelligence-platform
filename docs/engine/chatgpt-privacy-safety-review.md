@@ -9,8 +9,9 @@ Scope: read-only MCP tools in `apps/api/src/mcp`
 The first ChatGPT surface is intentionally evidence retrieval, not an
 autonomous investment agent. It is safe to validate internally because it
 cannot write platform state or execute an external action. It is not ready for
-public connection until OAuth, stable HTTPS deployment, production observability,
-and live authorization tests are complete.
+public connection until the implemented OAuth boundary is validated through
+stable HTTPS, production observability, and live ChatGPT authorization and
+tenancy tests.
 
 ## Data Handling
 
@@ -69,7 +70,7 @@ traces, database queries, environment values, or credentials.
 
 | Risk | Current state | Required before public ChatGPT use |
 |---|---|---|
-| Application bearer JWT is not a publishable ChatGPT OAuth flow | Blocked | Implement OAuth 2.1 authorization, discovery, token lifecycle, and revocation |
+| OAuth code exists but is not validated through the real ChatGPT and staging ingress | Repository-tested | Deploy exact source and run discovery, PKCE, expiry, refresh, revocation, and role cases live |
 | MCP endpoint is not deployed on stable public HTTPS | Blocked | Deploy with approved infrastructure and validate from ChatGPT |
 | Production traffic and abuse behavior are unmeasured | Blocked | Add payload-safe metrics, latency/error alerts, rate limits, and load tests |
 | User uploads may contain inaccurate or unlawfully obtained data | Open | Preserve source qualification and add operator terms and provenance controls |

@@ -32,6 +32,9 @@ The required gate runs:
 
 - `npm ci`
 - `npm run audit`
+- `npm run validate:work-graph`
+- `npm run validate:data-inventory`
+- `npm run validate:chatgpt-release`
 - `npm run typecheck`
 - `npm run test`
 - `npm run build`
@@ -48,6 +51,7 @@ The current operating model is direct-to-`main` after local verification:
 - run `git diff --check`;
 - run `npm install`;
 - run `npm run audit`;
+- run all three governed-state validators;
 - run `npm run typecheck`;
 - run `npm run test`;
 - run `npm run build`;
@@ -81,6 +85,9 @@ The hook runs:
 
 - `npm install`
 - `npm run audit`
+- `npm run validate:work-graph`
+- `npm run validate:data-inventory`
+- `npm run validate:chatgpt-release`
 - `npm run typecheck`
 - `npm run test`
 - `npm run build`

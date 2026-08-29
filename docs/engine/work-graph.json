@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T15:40:00Z",
+  "updatedAt": "2026-08-29T16:00:00Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
@@ -140,7 +140,7 @@
     {
       "id": "P47-070-trained-models",
       "title": "Train valuation, redemption, and liquidity baselines",
-      "status": "blocked",
+      "status": "planned",
       "ownerRole": "applied-ml-engineer",
       "dependencies": ["P47-040-service", "P47-065-lawful-data-acquisition"],
       "scope": ["interpretable baseline", "survival model", "valuation interval", "artifact versioning"],
@@ -228,7 +228,7 @@
     {
       "id": "P47-093-chatgpt-private-staging",
       "title": "Connect a private ChatGPT staging product",
-      "status": "blocked",
+      "status": "in_progress",
       "ownerRole": "chatgpt-release-engineer",
       "dependencies": ["P47-092-chatgpt-product-definition"],
       "scope": [
@@ -259,10 +259,15 @@
         "load, rate-limit, redaction, health, and rollback tests",
         "full repository gates"
       ],
-      "evidence": [],
+      "evidence": [
+        "apps/api/src/oauth implements OAuth discovery, explicit consent, PKCE S256, exact client/redirect/resource/scope validation, code exchange, refresh rotation/replay protection, and revocation",
+        "tests/integration/oauth.test.ts covers repository-level OAuth lifecycle and OAuth-only MCP access",
+        "products/chatgpt/tax-lien-intelligence is the validated source-only release package with pinned engine provenance and no fabricated endpoint",
+        "docs/product/chatgpt-private-staging-runbook.md and docs/architecture/chatgpt-oauth-threat-model.md record promotion, rollback, and residual risk"
+      ],
       "blockers": [
-        "creation and publication of the thin release repository and staging deployment are not explicitly authorized",
-        "the stable staging domain, deployment target, OAuth provider ownership, client registration, and authorization owner are not supplied",
+        "the GitHub integration cannot create the planned separate thin repository, so the canonical source-only package remains isolated inside this project until repository creation is available",
+        "the stable staging domain, deployment target, deployment credentials, OAuth secret ownership, and authorization owner are not supplied",
         "the privacy/security approver, retention and deletion decisions, pilot consent owner, support owner, and incident owner are not assigned"
       ]
     },

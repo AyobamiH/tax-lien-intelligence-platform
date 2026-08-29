@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0.0",
+  "releaseStatus": "source_only",
+  "product": "tax-lien-intelligence",
+  "systemOfRecord": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "branch": "feature/intelligence-engine-foundation",
+    "engineRevision": "5a88d7c99f9ce6d75170d570b99f30c0d23c2bf4",
+    "mcpContractVersion": "1.0.0"
+  },
+  "connection": {
+    "mcpUrl": null,
+    "oauthIssuer": null,
+    "scope": "tax_lien:read"
+  },
+  "approvedTools": [
+    "list_workspaces",
+    "list_datasets",
+    "list_dataset_candidates",
+    "get_candidate_evidence",
+    "compare_candidates",
+    "get_decision_brief"
+  ],
+  "permissions": {
+    "readOnly": true,
+    "writes": false,
+    "bidding": false,
+    "legalConclusions": false
+  },
+  "liveEvidence": {
+    "deploymentReceipt": null,
+    "chatgptConnectionReceipt": null,
+    "rollbackReceipt": null
+  }
+}

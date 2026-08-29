@@ -39,7 +39,7 @@ Last updated: 2026-08-29
   prioritization, not a calibrated prediction engine.
 - One Maricopa-style import adapter and generic fallback exist.
 - No verified historical redemption dataset, trained model artifact, temporal
-  evaluation report, deployed intelligence service, public OAuth flow, or
+  evaluation report, deployed intelligence service, live public OAuth flow, or
   deployed ChatGPT connection exists yet.
 - The feature branch now contains an authenticated stateless MCP endpoint with
   six read-only evidence tools, explicit tenant resolution, cited stored
@@ -53,6 +53,12 @@ Last updated: 2026-08-29
 - `P47-092-chatgpt-product-definition` is complete at `81f4664`. GitHub Actions
   run `33251144894`, quality-gates job `99096911716`, passed all graph, source,
   audit, typecheck, test, build, real-service, and real-Mongo gates.
+- `P47-093-chatgpt-private-staging` is in progress. The platform now contains
+  a real OAuth 2.1/PKCE boundary with persistent one-time grants, rotating
+  refresh tokens, replay-family revocation, access-token revocation, exact
+  resource/client/redirect/scope checks, and OAuth-only MCP enforcement when
+  enabled. The source-only ChatGPT package is isolated under `products/chatgpt`
+  with pinned engine provenance and no invented connection URL.
 - The graph enforces ChatGPT product priority one with WIP 1. The data
   acquisition and model track is deferred pending real-user pilot evidence or
   public release.
@@ -68,11 +74,13 @@ claimed.
 
 ## Current Work
 
-No Phase 47 node is in progress. `P47-093-chatgpt-private-staging` is the named
-next node and is blocked on explicit release-repository and deployment
-authority; a stable staging domain/target; OAuth ownership and registration;
-and assigned privacy, retention, deletion, consent, support, and incident
-owners. No deferred node becomes runnable while this product gate is blocked.
+`P47-093-chatgpt-private-staging` is the only in-progress node. Repository
+implementation and source packaging are authorized. The remaining work is the
+real stable HTTPS deployment, private ChatGPT connection, live tenancy and
+load/redaction/rollback verification, and ownership decisions. The connected
+GitHub API cannot create the planned separate release repository, so the
+validated thin package remains inside this project without duplicating runtime
+logic. No deferred node becomes runnable while this product gate is active.
 
 ## Next Graph Work
 
@@ -80,9 +88,9 @@ The single active sequence is:
 
 1. `P47-092-chatgpt-product-definition`: completed with the user, three jobs,
    product promise, thin release boundary, journey, pilot measures, and owners;
-2. `P47-093-chatgpt-private-staging`: next, but blocked; connect the real service through stable
-   HTTPS and approved OAuth, then verify tenancy, safety, observability, and
-   rollback;
+2. `P47-093-chatgpt-private-staging`: in progress; deploy the implemented OAuth
+   and MCP service through stable HTTPS, connect it privately in ChatGPT, then
+   verify tenancy, safety, observability, load, and rollback;
 3. `P47-094-chatgpt-real-user-pilot`: validate at least five target users, ten
    real tasks, and thirty scripted safety/grounding scenarios;
 4. `P47-095-chatgpt-public-release`: approve policy/listing material and release

@@ -119,5 +119,8 @@ and remote-ref verification are all present. Partial work remains
 - `P47-092-chatgpt-product-definition`: primary user, three jobs, six-tool
   journey, thin release boundary, WIP-1 governance, owners, telemetry boundary,
   and 30-case live evaluation manifest are published at `81f4664`. GitHub
-  Actions run `33251144894` passed every gate. `P47-093` remains blocked on
-  external staging, OAuth, privacy, support, and incident ownership inputs.
+  Actions run `33251144894` passed every gate.
+- `P47-093-chatgpt-private-staging`: in progress with the repository OAuth
+  2.1/PKCE lifecycle and source-only thin package implemented. It remains open
+  on real stable HTTPS deployment, private ChatGPT connection, live tenancy,
+  load/redaction/rollback evidence, and privacy, support, and incident owners.

@@ -42,6 +42,15 @@ export class AuthService {
   }
 
   public async login(payload: LoginPayload): Promise<AuthSuccessResponse> {
+    const user = await this.verifyCredentials(payload);
+    return this.authSuccess(user);
+  }
+
+  public async authenticateUser(payload: LoginPayload): Promise<AuthUserResponse> {
+    return toAuthUserResponse(await this.verifyCredentials(payload));
+  }
+
+  private async verifyCredentials(payload: LoginPayload): Promise<StoredUser> {
     const user = await this.userStore.findByEmail(payload.email);
     if (!user) {
       throw new ApiError(401, "auth_invalid_credentials", "Email or password is incorrect.");
@@ -52,7 +61,7 @@ export class AuthService {
       throw new ApiError(401, "auth_invalid_credentials", "Email or password is incorrect.");
     }
 
-    return this.authSuccess(user);
+    return user;
   }
 
   public verifyToken(token: string): AuthenticatedPrincipal {

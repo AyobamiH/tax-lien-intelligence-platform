@@ -1,4 +1,81 @@
+Warning: truncated output (original token count: 23503)
+Total output lines: 1792
+
 # Work Ledger
+
+## 2026-08-29T16:00:00Z - P47-093 ChatGPT private-staging source checkpoint
+
+- Operator authorization: implement inside the connected
+  `AyobamiH/tax-lien-intelligence-platform` project and keep all artifacts in
+  the project rather than as chat-only output.
+- Graph state: `P47-093-chatgpt-private-staging` is the only in-progress node;
+  no engine, data, model, county, billing, marketing, or unrelated application
+  track was opened.
+- GitHub boundary: the connected integration can inspect and update existing
+  repositories but cannot create the planned
+  `AyobamiH/tax-lien-chatgpt-product` repository. The canonical thin package is
+  therefore isolated under `products/chatgpt/tax-lien-intelligence` and copies
+  no runtime, engine, tenancy, evidence, or write logic.
+- Runtime implementation:
+  - added OAuth protected-resource and authorization-server discovery;
+  - added public-client authorization code flow with explicit consent/denial,
+    exact client/redirect/resource/scope validation, and mandatory PKCE S256;
+  - added Mongo-backed hashed one-time codes, rotating refresh tokens,
+    refresh-family replay revocation, and access-token `jti` revocation;
+  - added short-lived issuer/audience/type/scope-bound MCP access tokens and
+    current-user checks;
+  - made OAuth-enabled `/mcp` reject application JWTs while keeping the
+    existing internal authentication path when OAuth is disabled;
+  - added bounded OAuth request bodies, no-store responses, IP-keyed rate
+    limits, proxy-hop configuration, and fail-closed revocation persistence.
+- Release and no-drift implementation:
+  - scaffolded and validated the thin plugin manifest;
+  - added a source-only provenance manifest that pins engine commit
+    `5a88d7c99f9ce6d75170d570b99f30c0d23c2bf4` and MCP contract `1.0.0`;
+  - added a CI validator that forbids a deployment URL or live receipt while
+    the package is source-only;
+  - added OAuth API documentation, threat model, staging/rollback runbook,
+    updated graph/status/changelog/agent instructions, and official current
+    OpenAI MCP authentication and connection references.
+- Local verification passed:
+  - `npm run audit`: zero vulnerabilities;
+  - work-graph, data-inventory, and ChatGPT release-package validators;
+  - `npm run typecheck`;
+  - 12 focused OAuth/MCP integration tests across two files;
+  - full test suite: 10 Python tests and 323 Vitest tests across 49 files;
+  - complete TypeScript/workspace, Vite, and Python build;
+  - local API/web runtime smoke, six browser-like smoke tests, and nine real
+    intelligence-service process tests;
+  - plugin-creator manifest validator;
+  - `git diff --check`.
+- Staged change-safety review:
+  - no high-confidence private-key, GitHub, OpenAI, or AWS credential pattern
+    was found in the project change;
+  - OAuth remains disabled by default and required secret/HTTPS/topology checks
+    fail startup when enabled incorrectly;
+  - the only new public routes are OAuth discovery, authorization, token, and
+    revocation; `/mcp` remains the existing read-only surface;
+  - database changes add isolated grant/revocation collections and TTL indexes,
+    with no destructive migration or existing-record rewrite;
+  - CI adds validation and a uniquely named bounded Mongo smoke database that
+    is dropped after execution; no deployment workflow was added.
+- Real Mongo OAuth smoke status: the new smoke script built successfully but
+  the local runner had no MongoDB listener at `127.0.0.1:27017`, so it stopped
+  at `ECONNREFUSED` before writing. The CI MongoDB service must pass this new
+  smoke before remote verification is claimed.
+- Claims intentionally not made: no stable HTTPS deployment, live OAuth
+  ingress, private ChatGPT connection, multi-instance rate limit, live
+  tenancy/load/redaction/rollback receipt, production mutation, or public
+  release exists yet.
+- Exact external blockers:
+  - approved staging domain/provider/service and deployment credentials;
+  - signing-secret owner, authorization owner, ingress topology, and shared or
+    ingress limiter decision;
+  - privacy/security approver, retention/deletion and pilot-consent decisions,
+    support owner, incident owner, and rollback owner.
+- Remaining checkpoint work: run every repository gate and smoke, review the
+  full diff, commit and publish to the connected branch, verify GitHub Actions,
+  and record the exact remote evidence. The graph node remains in progress.
 
 ## 2026-08-29T15:40:00Z - P47-092 ChatGPT product definition closure
 
@@ -641,275 +718,7 @@
 - Verification:
   - `git diff --check` passed;
   - `npm run typecheck` passed;
-  - `npx vitest run tests/unit/rate-limit.test.ts tests/unit/workspace-activity.test.ts tests/integration/health.test.ts tests/integration/scoring.test.ts --testTimeout=60000`
-    passed with 4 files and 35 tests;
-  - `npm run test` passed with 37 files and 261 tests;
-  - `npm run build` passed;
-  - `npm run audit` passed with 0 vulnerabilities.
-- Result: final verification passed and the patch is ready for the explicitly
-  authorized commit/push step.
-- Next safe step: commit and push the verified hardening patch, then continue
-  with the next bounded product-roadmap or runtime-smoke task.
-
-## 2026-07-07T07:49:00+01:00 - Commit and push completion record
-
-- Commit created: `72fb06c38d71dcabff82957de07605c37a6495cc`
-  (`feat: harden scoring request limits`).
-- Push target: tracked upstream `oneclick/main`.
-- Push result: succeeded, advancing `oneclick/main` from `c548b1a` to
-  `72fb06c`.
-- Pre-push hook result:
-  - dependency install check reported packages up to date and 0
-    vulnerabilities;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run typecheck` passed;
-  - `npm run test` passed with 37 files and 261 tests;
-  - `npm run build` passed.
-- Post-push state: working tree clean on `main` tracking `oneclick/main`.
-- Remaining limits: no Crabbox proof was produced because no Crabbox CLI or
-  repo/workspace-local repair target was available; live browser/runtime smoke
-  remains the next verification target.
-- Next safe step: perform a bounded local runtime/browser smoke or continue the
-  next roadmap hardening task. Production deploy, migrations, service lifecycle
-  changes, paid/provider Crabbox setup, and production credentials remain
-  permission boundaries.
-
-## 2026-07-07T09:20:00+01:00 - Local runtime smoke evidence
-
-- Requested task: continue autonomous Tax Lien project work from the existing
-  repo, inspect current truth first, choose the next safest valuable task,
-  implement it, verify it, record it, and commit/push if checks pass.
-- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`;
-  fallback typo path `/home/oneclickwebsitefactory/tax-lien-platform` was not
-  present.
-- Branch and starting HEAD: `main` at
-  `da8d581dc4cdcb30a5ad99aebdd14b385ffd4de4`.
-- Starting state: clean working tree tracking `oneclick/main`.
-- What was inspected: repo path, git status, branch, remotes, recent commits,
-  package scripts, project-control files, docs/KB inventory, CI workflow,
-  API/web/package/source structure, API startup path, API health route, web app
-  shell, API client base URL, and existing runtime/browser-smoke gaps.
-- Coding evidence tools used first:
-  - `coding_validate_project` completed;
-  - `coding_repo_map` completed;
-  - `coding_route_trace`, `coding_api_contract_audit`, and
-    `coding_env_audit` were adapter-limited, so narrow direct inspection was
-    used for route/runtime details.
-- Verified facts discovered:
-  - the repo already has strong unit/integration/build/audit gates;
-  - `ACCEPTANCE.md` still listed live local API and browser runtime behavior as
-    unverified;
-  - the API process entrypoint requires MongoDB before listening, but
-    `createApp()` can be started in-process for health/404 runtime smoke
-    without reading secrets or connecting to production services;
-  - the built Vite shell can be served from `apps/web/dist` and checked over
-    local HTTP without adding browser-driver dependencies.
-- Assumptions made: a dependency-free HTTP smoke is valuable as local runtime
-  proof, but it is not equivalent to browser-driver screenshots, deployed
-  proof, MongoDB-backed end-to-end proof, or Crabbox proof.
-- Chosen next task and why: add `npm run smoke:local` because the next recorded
-  gap after the committed hardening was bounded local API/browser-shell runtime
-  smoke evidence.
-- Files changed:
-  - `package.json`;
-  - `scripts/local-runtime-smoke.mjs`;
-  - `README.md`;
-  - `ACCEPTANCE.md`;
-  - `docs/architecture/frontend-review.md`;
-  - `WORK_LEDGER.md`.
-- Changed-state declaration: local script/docs/control files changed. No
-  deployment, migration, service lifecycle action, production mutation,
-  dependency change, package install, or secret read was performed.
-- Verification:
-  - first `npm run smoke:local` run failed because the new smoke script tried
-    to close the Express app object instead of the HTTP server returned by
-    `app.listen()`;
-  - fixed the smoke script to close the returned HTTP server;
-  - `git diff --check` passed;
-  - `npm run smoke:local` passed, including build, API `/healthz`, structured
-    API 404, built web index, and built JS/CSS asset fetches over local HTTP;
-  - `npm run typecheck` passed;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run build` passed;
-  - `npm run test` passed with 37 files and 261 tests.
-- Result: local API/web-shell runtime smoke is now repeatable through
-  `npm run smoke:local`.
-- Next safe step: commit and push the smoke evidence task, then continue with
-  either interactive browser-driver proof if a safe tool is available or the
-  next roadmap hardening task.
-
-## 2026-07-07T09:34:00+01:00 - Local runtime smoke push completion
-
-- Commit created: `976a4e5` (`test: add local runtime smoke`).
-- Push target: tracked upstream `oneclick/main`.
-- Push result: succeeded, advancing `oneclick/main` from `da8d581` to
-  `976a4e5`.
-- Pre-push hook result:
-  - dependency install check reported packages up to date and 0
-    vulnerabilities;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run typecheck` passed;
-  - `npm run test` passed with 37 files and 261 tests;
-  - `npm run build` passed.
-- Post-push state expected: clean working tree on `main` tracking
-  `oneclick/main` after this ledger completion entry is committed and pushed.
-- Remaining limits: `npm run smoke:local` proves local HTTP API/web-shell
-  runtime behavior but does not provide browser-driver screenshots, real
-  MongoDB-backed end-to-end proof, deployed proof, or Crabbox proof.
-- Next safe step: continue to interactive browser-driver proof if a safe local
-  browser tool is available, otherwise continue the next roadmap hardening
-  task.
-
-## 2026-07-07T09:58:02+01:00 - Browser-like DOM smoke evidence
-
-- Requested task: continue autonomous Tax Lien project work from current repo
-  truth, prioritize local browser proof, diagnose/repair Crabbox if safely
-  possible, fall back to the strongest non-Crabbox verification if needed,
-  update control files, verify, commit, push, and continue unless blocked.
-- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`;
-  fallback typo path `/home/oneclickwebsitefactory/tax-lien-platform` was not
-  used.
-- Branch and starting HEAD: `main` at
-  `e091a56ee7e45ea58107a4b209c736c7155717e5`.
-- Starting state: clean working tree tracking `oneclick/main`.
-- What was inspected: git status, branch, remotes, recent commits, package
-  scripts, Vite/web package, API package, `scripts/local-runtime-smoke.mjs`,
-  project-control files, frontend entrypoints, app routing/session bootstrap,
-  existing tests, browser tool availability, and Crabbox wrapper/registry
-  availability.
-- Coding evidence tools used first:
-  - `coding_validate_project` completed;
-  - `coding_repo_map` completed;
-  - `coding_route_trace`, `coding_api_contract_audit`, `coding_env_audit`, and
-    `coding_secret_audit` were adapter-limited, so direct local inspection was
-    used for route/runtime/browser details.
-- Verified facts discovered:
-  - current HEAD is the previously pushed runtime-smoke ledger commit;
-  - no `crabbox` binary is available on PATH;
-  - the OpenClaw `crabbox-wrapper.mjs` is present but fails basic
-    `--help`/`run --help` sanity checks because no usable CLI is resolved;
-  - public npm has `@openclaw/crabbox-plugin@0.23.0`, but no `crabbox` CLI
-    package was found by `npm view crabbox`;
-  - no Chromium, Chrome, or Firefox binary is available on PATH;
-  - the repo already has `jsdom`, React, ReactDOM, and Vitest available for a
-    dependency-free browser-like DOM render smoke.
-- Assumptions made: jsdom render/bootstrap proof is the strongest safe local
-  browser-adjacent evidence available without adding a browser driver or
-  claiming screenshots/Crabbox proof.
-- Chosen next task and why: add `npm run smoke:browser` because it improves
-  local browser-surface confidence using existing dependencies and keeps the
-  evidence boundary honest.
-- Files changed:
-  - `package.json`;
-  - `tests/unit/web-app-smoke.test.ts`;
-  - `README.md`;
-  - `ACCEPTANCE.md`;
-  - `OPENCLAW_RUNBOOK.md`;
-  - `docs/architecture/frontend-review.md`;
-  - `WORK_LEDGER.md`.
-- Changed-state declaration: test/docs/control/package-script files changed.
-  No dependency install, deployment, migration, service lifecycle action,
-  production mutation, destructive action, or secret read was performed.
-- Verification:
-  - initial `npm run smoke:browser` passed with 1 test file and 2 tests;
-  - `git diff --check` passed;
-  - `npm run typecheck` passed;
-  - targeted `npm run smoke:browser` passed with 1 test file and 2 tests;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run test` passed with 38 files and 263 tests;
-  - `npm run build` passed;
-  - `npm run smoke:local` passed after building the workspace and verifying
-    API health/404 plus built web assets over local HTTP.
-- Crabbox result:
-  - `command -v crabbox` returned no binary;
-  - `node .../openclaw/scripts/crabbox-wrapper.mjs --help` failed sanity
-    checks;
-  - `node .../openclaw/scripts/crabbox-wrapper.mjs run --help` failed sanity
-    checks;
-  - `npm view crabbox` returned 404;
-  - `npm view @openclaw/crabbox-plugin` returned plugin metadata but no CLI
-    `bin`;
-  - no Crabbox run occurred and no Crabbox proof is claimed.
-- Remaining limits: `npm run smoke:browser` is browser-like DOM
-  render/bootstrap proof only. It is not a real browser-driver run, screenshot
-  evidence, MongoDB-backed end-to-end workflow proof, deployed proof, or
-  Crabbox proof.
-- Next safe step: commit and push the browser-like smoke evidence task, then
-  continue with the next bounded roadmap/hardening task unless a permission
-  boundary is reached.
-
-## 2026-07-07T10:12:00+01:00 - Browser-like DOM smoke push completion
-
-- Commit created: `937e211` (`test: add browser render smoke`).
-- Push target: tracked upstream `oneclick/main`.
-- Push result: succeeded, advancing `oneclick/main` from `e091a56` to
-  `937e211`.
-- Pre-push hook result:
-  - dependency install check reported packages up to date and 0
-    vulnerabilities;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run typecheck` passed;
-  - `npm run test` passed with 38 files and 263 tests;
-  - `npm run build` passed.
-- Post-push state expected: clean working tree on `main` tracking
-  `oneclick/main` after this ledger completion entry is committed and pushed.
-- Remaining limits: no real browser-driver screenshots, no MongoDB-backed live
-  end-to-end smoke, no deployed proof, and no Crabbox proof.
-- Next safe step: continue from repo truth with the next bounded
-  product-continuity or hardening task; if a safe browser binary or real
-  Crabbox CLI later becomes available, use it for screenshots/browser-driver
-  evidence.
-
-## 2026-07-07T11:48:00+01:00 - Phase 44 follow-up reminder workflow
-
-- Requested task: resume the interrupted Phase 44 implementation from the
-  current local repo state, finish it without restarting, verify, commit, push,
-  and explicitly state whether local commit `94f965a` was pushed.
-- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`.
-- Branch and starting state:
-  - local `main` at `94f965a11c35cb23c780b476aec815e5660ad1ec`;
-  - remote `oneclick/main` at
-    `937e2119725cebcf4cac44a91c5203c1b1976edb`;
-  - local `main` ahead by one ledger/docs commit;
-  - working tree had preserved uncommitted Phase 44 edits, so the prompt's
-    clean-tree/push-only condition was false.
-- Decision: do not push `94f965a` alone while the Phase 44 patch is dirty;
-  preserve the patch, finish Phase 44, then push the local-ahead commit and
-  Phase 44 commit together after verification.
-- Work completed:
-  - added shared follow-up DTOs, due/reminder state types, follow-up alert
-    metadata, My Work follow-up queue contracts, and cadence activity types;
-  - added a Mongo follow-up model and exports;
-  - added follow-up store, service, router, factory, and worker scheduler scan;
-  - wired follow-up state into the API app, My Work aggregation, alert service,
-    notification preferences, notification delivery metadata, workspace
-    activity summaries, and worker scheduler config;
-  - added compact web follow-up controls to comparison, watchlist, and
-    portfolio detail surfaces;
-  - added actionable follow-up queue visibility to My Work;
-  - added in-memory follow-up store support and integration/frontend contract
-    coverage;
-  - updated `.env.example`, API docs, architecture docs, changelog, README
-    index, and KB truth for Phase 44;
-  - preserved the boundary that follow-ups are a bounded operational cadence
-    layer, not task management, calendar recurrence, SLA escalation, workforce
-    planning, auction execution, or AI scheduling.
-- Verification:
-  - early `npm run typecheck` failed on exact optional property and new
-    review-model exhaustiveness gaps, then passed after fixes;
-  - `npx vitest run tests/integration/follow-ups.test.ts --testTimeout=60000`
-    passed with 1 file and 3 tests;
-  - `npm run typecheck` passed;
-  - `npx vitest run tests/integration/follow-ups.test.ts tests/integration/my-work.test.ts tests/unit/web-api.test.ts tests/unit/web-app-smoke.test.ts --testTimeout=60000`
-    passed with 4 files and 31 tests;
-  - `git diff --check` passed;
-  - `npm install` completed with packages up to date and 0 vulnerabilities;
-  - `npm run typecheck` passed;
-  - first full `npm run test` failed because
-    `tests/integration/notification-preferences.test.ts` still expected the
-    pre-Phase-44 default preference rule list;
-  - updated that test to include `follow_up_due`;
-  - `npx vitest run tests/integration/notification-preferences.test.ts --testTimeout=60000`
+  - `npx vitest run tests/unit/rate-limit.test.ts tests/unit/workspace-activity.test.ts tests/…3503 tokens truncated…tests/integration/notification-preferences.test.ts --testTimeout=60000`
     passed with 1 file and 7 tests;
   - full `npm run test` passed with 39 files and 266 tests;
   - `npm run build` passed;

@@ -183,13 +183,16 @@ Use Node.js `^20.19.0 || >=22.12.0`.
    MCP_APP_BASE_URL=https://app.example.com
    ```
 
-   The current bearer-token MCP path supports internal validation. Public
-   ChatGPT connection still requires OAuth and a stable HTTPS deployment.
+   OAuth is disabled by default. For a ChatGPT staging deployment, configure
+   the `MCP_OAUTH_*` values documented in `.env.example`; OAuth-enabled `/mcp`
+   accepts only the scoped OAuth token. A public connection still requires the
+   real stable HTTPS deployment and live ChatGPT validation.
 
 ## Quality Gates
 
 ```bash
 npm run audit
+npm run validate:chatgpt-release
 npm run typecheck
 npm run test
 npm run build
@@ -197,6 +200,7 @@ npm run smoke:local
 npm run smoke:browser
 npm run smoke:intelligence-service
 npm run smoke:intelligence:mongo
+npm run smoke:oauth:mongo
 ```
 
 `npm run test` includes the dependency-free Python unit suite and all Vitest
@@ -208,6 +212,9 @@ contract parity, invalid evidence, and out-of-scope behavior over HTTP.
 contract-valid result through the real Mongo scored-record store, then proves a
 later service failure removes the prior result. CI supplies a temporary real
 MongoDB service and drops the bounded smoke database after the check.
+`npm run smoke:oauth:mongo` proves atomic one-time code consumption, refresh
+replay rejection and family revocation, and access-token denylisting through
+the real Mongo store, then drops its bounded smoke database.
 
 `npm run smoke:local` builds the workspace, starts the API app in-process,
 serves the built web shell from `apps/web/dist`, verifies `/healthz`, verifies

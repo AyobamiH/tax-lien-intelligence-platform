@@ -193,8 +193,10 @@ evidence payloads.
 
 ## Immediate Next Node
 
-`P47-093-chatgpt-private-staging` is the named next node and is blocked. It may
-start only after repository/deployment authority, the staging domain and
-target, OAuth ownership/configuration, privacy and retention decisions, pilot
-consent, support, and incident ownership are supplied. No deferred node becomes
-runnable while this product gate is blocked.
+`P47-093-chatgpt-private-staging` is in progress. The operator authorized
+implementation inside the connected GitHub project. The repository now owns
+the OAuth source and thin source-only release package; deployment and live
+connection remain blocked until a stable staging domain/target, deployment
+credentials, privacy and retention decisions, pilot consent, support, and
+incident ownership are supplied. No deferred node becomes runnable while this
+product gate is active.

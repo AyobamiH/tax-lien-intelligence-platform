@@ -49,6 +49,9 @@ jobs:
       - name: Validate data source inventory
         run: npm run validate:data-inventory
 
+      - name: Validate ChatGPT release package
+        run: npm run validate:chatgpt-release
+
       - name: Audit high-severity dependency risk
         run: npm run audit
 
@@ -66,3 +69,6 @@ jobs:
 
       - name: Smoke intelligence persistence
         run: npm run smoke:intelligence:mongo
+
+      - name: Smoke OAuth persistence
+        run: npm run smoke:oauth:mongo

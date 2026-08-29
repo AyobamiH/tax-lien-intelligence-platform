@@ -41,7 +41,11 @@ The release product must:
 - keep secrets, production configuration, and user evidence out of git.
 
 The repository name is proposed and does not assert that the repository has
-already been created.
+already been created. Until repository creation is available, the canonical
+thin source package lives at
+`products/chatgpt/tax-lien-intelligence` in this system-of-record repository.
+It remains structurally separate, carries provenance, and may be extracted
+without copying runtime or engine logic.
 
 ## Consequences
 

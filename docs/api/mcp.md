@@ -4,8 +4,10 @@
 
 `POST /mcp`
 
-The endpoint implements stateless MCP Streamable HTTP with JSON responses. It
-requires the same `Authorization: Bearer <token>` header as the existing API.
+The endpoint implements stateless MCP Streamable HTTP with JSON responses.
+When MCP OAuth is enabled it requires a scoped OAuth access token and rejects
+the application's login JWT. OAuth-disabled local/internal operation retains
+the application JWT path so existing platform validation remains available.
 `GET` and `DELETE` are not supported for the stateless implementation.
 
 ## Tools
@@ -32,9 +34,11 @@ Successful calls return contract `1.0.0` structured content plus equivalent
 JSON text content. See `../engine/chatgpt-mcp-contract.md` for exact semantics,
 citations, fact/inference/unknown separation, and safe error behavior.
 
-## Authentication Limit
+## Authentication and release limit
 
-The current API JWT path supports internal validation. It is not a completed
-public ChatGPT authorization design. OAuth discovery, authorization, token
-lifecycle, revocation, and stable public HTTPS remain required before a public
-connection.
+OAuth 2.1 discovery, PKCE S256, exact resource and allowlist checks, scoped
+short-lived access tokens, rotating refresh tokens, and revocation are
+implemented and repository-tested. See [the OAuth API](oauth.md).
+
+The MCP service is not yet deployed on a stable public HTTPS origin or
+connected from ChatGPT. Repository tests are not live connection evidence.

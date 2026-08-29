@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Added a real ChatGPT OAuth 2.1 boundary with protected-resource and
+  authorization-server discovery, explicit consent/denial, exact client,
+  redirect, resource, and scope checks, mandatory PKCE S256, short-lived MCP
+  tokens, rotating hashed refresh tokens, replay-family revocation, persisted
+  access-token revocation, and fail-closed user checks.
+- Made OAuth-enabled `/mcp` reject application login JWTs and added focused
+  discovery, redirect, consent, PKCE, one-time code, OAuth-only MCP, refresh
+  rotation/replay, and revocation tests.
+- Added the source-only ChatGPT release package under `products/chatgpt`, a
+  pinned provenance manifest, a CI validator that forbids fabricated endpoints
+  or receipts, the private staging runbook, and the OAuth threat model.
+- Moved `P47-093-chatgpt-private-staging` to in progress. Source implementation
+  is active; real deployment, ChatGPT connection, live verification, and named
+  privacy/support/incident ownership remain explicit blockers.
 - Made the ChatGPT product priority one and replaced competing ready work with
   one WIP-limited sequence: product definition, private staging connection,
   real-user pilot, and public release.
@@ -33,9 +47,9 @@
 - Added MCP authentication, annotations, input-bound, tenant-resolution,
   evidence-grounding, no-ranking, and prompt-like source-data tests plus an
   interface contract and privacy/safety review.
-- Recorded that the current application bearer JWT is internal validation only.
-  Public ChatGPT use remains blocked on OAuth, stable HTTPS deployment,
-  production observability, load tests, and live authorization validation.
+- Retained the application bearer JWT for internal validation only. Public
+  ChatGPT use remains blocked on stable HTTPS deployment, production
+  observability, load tests, and live OAuth/authorization validation.
 - Added a machine-readable Maricopa source inventory and CI validator that
   blocks production approval without verified authority, schema, cadence,
   observation time, commercial-use terms, and provenance, and blocks training

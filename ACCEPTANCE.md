@@ -97,8 +97,9 @@ Phase 47 work is acceptable only when:
 - no ChatGPT tool writes product state, changes an engine value, calculates a
   bid, executes a purchase, or presents legacy redemption output as a
   probability;
-- public ChatGPT readiness is not claimed before OAuth, stable HTTPS,
-  production observability, live authorization tests, and release evidence;
+- public ChatGPT readiness is not claimed before the repository OAuth lifecycle
+  passes, stable HTTPS is deployed, production observability and live
+  authorization tests pass, and release evidence is recorded;
 - implementation, tests, docs, changelog, graph state, and `WORK_LEDGER.md`
   change together for every completed node;
 - no node is considered complete before checks pass and the commit is pushed.

@@ -61,10 +61,12 @@ When `docs/engine/work-graph.json` contains `executionFocus`:
    decision rule.
 
 The current focus is the read-only ChatGPT product. The platform repository
-remains the engine and system of record. A future thin ChatGPT release
-repository may contain connector configuration, onboarding, evaluation, and
-release provenance only after its graph gate authorizes creation; it must not
-copy engine calculations, evidence state, tenancy logic, or write workflows.
+remains the engine and system of record. Until the planned thin repository can
+be created, its canonical source-only package lives under `products/chatgpt`.
+That package may contain connector configuration, onboarding, evaluation, and
+release provenance; it must not copy engine calculations, evidence state,
+tenancy logic, or write workflows. Never add an MCP URL or live receipt until
+the real deployed connection has been verified.
 
 ## Boundaries
 
