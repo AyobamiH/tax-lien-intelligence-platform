@@ -1,5 +1,28 @@
 # Work Ledger
 
+## 2026-08-29T12:45:00Z - P47-050 platform-integration closure
+
+- Published implementation checkpoint: `eefcf3a` on
+  `feature/intelligence-engine-foundation`.
+- Remote verification: GitHub Actions run `33247151199`, quality-gates job
+  `99086489141`, completed successfully.
+- Remote steps passed: MongoDB container initialization, dependency install,
+  graph validation, audit, typecheck, full tests, build, real-process service
+  smoke, and real MongoDB intelligence-persistence smoke.
+- Persistence proof: the built Mongo store wrote and read a contract-valid
+  versioned result, revalidated its evidence digest, replaced it with an
+  explicit service failure, and proved the prior result was absent from both
+  mapped and raw stored state.
+- Node result: `P47-050-platform-integration` is complete. Current user uploads
+  retain unknown jurisdiction and truthfully return `out_of_scope`; no header
+  pattern or user label is promoted into verified county authority.
+- Next ready node: `P47-060-data-inventory`, which must verify source authority,
+  licensing, cadence, fields, historical coverage, and outcome labels before
+  any upload or feed can receive exact jurisdiction scope.
+- Explicit limits remain: no production deployment, no current county auction
+  feed, no trained model, no calibrated probability, and no ChatGPT tool
+  surface are claimed.
+
 ## 2026-08-29T12:30:00Z - P47-050 platform-integration implementation checkpoint
 
 - Starting point: remote feature branch

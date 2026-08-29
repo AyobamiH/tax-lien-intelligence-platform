@@ -20,7 +20,7 @@ Last updated: 2026-08-29
 - `P47-040-service` adds a stateless, authenticated Python 3.12 HTTP service
   with request bounds, strict evidence and result validation, health/version
   endpoints, safe failure responses, and no provider or model fallback.
-- `P47-050-platform-integration` is in progress with a tenant-aware API client,
+- `P47-050-platform-integration` is complete with a tenant-aware API client,
   `user_upload` evidence provenance, versioned result persistence, explicit
   failure and disabled states, legacy heuristic metadata, UI abstention, and a
   real MongoDB CI smoke path.
@@ -42,12 +42,12 @@ claimed.
 
 ## Current Work
 
-`P47-050-platform-integration` has passed local typecheck, focused API-client,
-contract, persistence-model, candidate-evidence, and browser-like tests, plus
-all workspace builds. The production TypeScript client has also been exercised
-against the real authenticated Python process. The node remains `in_progress`
-until the implementation is pushed and CI proves the real MongoDB write,
-read-validation, and stale-result removal smoke.
+`P47-050-platform-integration` is published at `eefcf3a`. Local verification
+passed 10 Python tests, 306 Vitest tests across 46 files, all builds, 9
+real-process service tests, 6 browser-like smoke tests, local runtime smoke,
+graph validation, and an audit with 0 vulnerabilities. GitHub Actions run
+`33247151199`, job `99086489141`, passed every quality gate and the real MongoDB
+write, read-validation, and stale-result removal smoke.
 
 ## Next Ready Work
 

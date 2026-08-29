@@ -76,6 +76,7 @@ and remote-ref verification are all present. Partial work remains
 - `P47-040-service`: Python implementation, 10 unit tests, 7 real-process HTTP
   tests, cross-language parity, service smoke, and repository gates complete
   in this checkpoint.
-- `P47-050-platform-integration`: implementation and local verification are in
-  progress. Remote CI, including the real MongoDB persistence smoke, is the
-  remaining completion proof for this checkpoint.
+- `P47-050-platform-integration`: client, persistence, compatibility metadata,
+  UI abstention, bounded concurrency, and stale-result removal are published at
+  `eefcf3a`. GitHub Actions run `33247151199` passed every gate, including the
+  real MongoDB persistence smoke.
