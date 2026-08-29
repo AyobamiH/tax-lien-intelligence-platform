@@ -34,10 +34,12 @@ Current packages:
 - `packages/jurisdiction-rules`: source-cited deterministic jurisdiction rules
 - `packages/types`: shared API types
 - `services/intelligence`: authenticated Python engine-service boundary
+- `apps/api/src/mcp`: authenticated, read-only ChatGPT evidence tools over MCP
 
 Implemented API surfaces:
 
 - `GET /healthz`
+- `POST /mcp` (authenticated stateless MCP Streamable HTTP)
 - `POST /auth/register`
 - `POST /auth/login`
 - `GET /auth/me`
@@ -174,6 +176,15 @@ Use Node.js `^20.19.0 || >=22.12.0`.
    To enable API worker calls, use the same token and set
    `INTELLIGENCE_SERVICE_ENABLED=true`. The service remains disabled by default
    and must be reachable only on a private application network.
+
+6. To include source links in MCP evidence, set the public frontend URL:
+
+   ```bash
+   MCP_APP_BASE_URL=https://app.example.com
+   ```
+
+   The current bearer-token MCP path supports internal validation. Public
+   ChatGPT connection still requires OAuth and a stable HTTPS deployment.
 
 ## Quality Gates
 

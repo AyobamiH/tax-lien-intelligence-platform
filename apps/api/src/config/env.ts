@@ -34,6 +34,7 @@ const envSchema = z.object({
   INTELLIGENCE_SERVICE_TOKEN: z.preprocess(emptyStringToUndefined, z.string().min(32).optional()),
   INTELLIGENCE_SERVICE_TIMEOUT_MS: z.coerce.number().int().positive().max(30000).default(5000),
   INTELLIGENCE_SERVICE_MAX_CONCURRENCY: z.coerce.number().int().positive().max(32).default(8),
+  MCP_APP_BASE_URL: z.preprocess(emptyStringToUndefined, z.string().url().optional()),
   EMAIL_DELIVERY_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
   EMAIL_FROM_ADDRESS: z.preprocess(emptyStringToUndefined, z.string().email().optional()),
   EMAIL_FROM_NAME: z.preprocess(
@@ -67,6 +68,14 @@ if (parsedEnv.CENSUS_GEOCODER_ENABLED && !parsedEnv.CENSUS_GEOCODER_BASE_URL.sta
 
 if (parsedEnv.INTELLIGENCE_SERVICE_ENABLED && !parsedEnv.INTELLIGENCE_SERVICE_TOKEN) {
   throw new Error("INTELLIGENCE_SERVICE_TOKEN is required when the intelligence service is enabled.");
+}
+
+if (
+  parsedEnv.NODE_ENV === "production" &&
+  parsedEnv.MCP_APP_BASE_URL &&
+  !parsedEnv.MCP_APP_BASE_URL.startsWith("https://")
+) {
+  throw new Error("MCP_APP_BASE_URL must use https in production.");
 }
 
 const emailDeliveryEnabled =
@@ -121,6 +130,9 @@ export interface ApiConfig {
     serviceToken?: string;
     timeoutMs: number;
     maxConcurrency: number;
+  };
+  mcp: {
+    appBaseUrl?: string;
   };
   email: {
     enabled: boolean;
@@ -191,6 +203,9 @@ export const apiConfig: ApiConfig = {
       : {}),
     timeoutMs: parsedEnv.INTELLIGENCE_SERVICE_TIMEOUT_MS,
     maxConcurrency: parsedEnv.INTELLIGENCE_SERVICE_MAX_CONCURRENCY,
+  },
+  mcp: {
+    ...(parsedEnv.MCP_APP_BASE_URL ? { appBaseUrl: parsedEnv.MCP_APP_BASE_URL } : {}),
   },
   email: {
     enabled: emailDeliveryEnabled,

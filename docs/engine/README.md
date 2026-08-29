@@ -19,6 +19,8 @@ chat history or reconstructing architecture decisions.
 11. `data-inventory.md`
 12. `data-source-inventory.json`
 13. `open-source-components.md`
+14. `chatgpt-mcp-contract.md`
+15. `chatgpt-privacy-safety-review.md`
 
 ## Work-Unit Protocol
 

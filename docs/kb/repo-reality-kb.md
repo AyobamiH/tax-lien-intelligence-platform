@@ -19,6 +19,10 @@ sequencing and the master product KB for product identity.
 - The Python service has no model artifact and returns redemption probability
   as unavailable. Its current Maricopa auction operating-rule status is also
   unverified.
+- The feature branch has an authenticated, stateless `POST /mcp` surface with
+  six read-only tools. It projects authorized stored evidence, labels legacy
+  heuristics, returns explicit unknowns, and has no mutation or bid tool. It is
+  not deployed or connected publicly to ChatGPT.
 - Phase 46 follow-up proof is implemented: the repo has a
   focused browser-like smoke command for follow-up due-state rendering, update,
   completion, and snooze/reschedule controls using synthetic local data.
@@ -75,6 +79,7 @@ The repo is an npm workspace monorepo:
 - `packages/engine-contract`: versioned evidence and result contracts.
 - `packages/jurisdiction-rules`: source-cited deterministic rule evaluator.
 - `services/intelligence`: authenticated Python engine-service boundary.
+- `apps/api/src/mcp`: authenticated read-only MCP evidence projection.
 - `docs`: architecture, API, decisions, changelog, and this KB.
 - `tests`: root-level unit and integration tests.
 - `infra/docker`: local MongoDB compose file.
@@ -92,6 +97,8 @@ Implemented today:
   build-only packages classified as development dependencies;
 - Express app creation;
 - API health endpoint at `GET /healthz`;
+- authenticated stateless MCP endpoint at `POST /mcp` with workspace, dataset,
+  candidate evidence, comparison, and decision-brief tools;
 - auth endpoints at `POST /auth/register`, `POST /auth/login`, and
   `GET /auth/me`;
 - user model in `packages/db`;

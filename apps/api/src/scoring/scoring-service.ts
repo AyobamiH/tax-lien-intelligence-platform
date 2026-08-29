@@ -164,6 +164,19 @@ export class ScoringService {
     };
   }
 
+  public async getScore(scoredRecordId: string, userId: string): Promise<ScoredRecordResponse> {
+    if (!mongoose.Types.ObjectId.isValid(scoredRecordId)) {
+      throw new ApiError(400, "score_invalid_id", "Scored record id is invalid.");
+    }
+
+    const score = await this.scoredRecordStore.findScoreByIdForUser(scoredRecordId, userId);
+    if (!score) {
+      throw new ApiError(404, "score_not_found", "Scored record was not found.");
+    }
+
+    return toScoredRecordResponse(score);
+  }
+
   public async executeDatasetScoringJob(job: StoredInternalJob): Promise<InternalJobSummary> {
     if (job.type !== "dataset_scoring" || job.targetEntityType !== "dataset") {
       throw new ApiError(400, "job_unsupported_type", "Job type is not supported by the scoring worker.");

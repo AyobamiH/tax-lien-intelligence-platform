@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+- Added an authenticated stateless MCP endpoint with six read-only ChatGPT
+  evidence tools for workspace discovery, dataset review, bounded candidate
+  retrieval, candidate evidence, no-ranking comparison, and privacy-reduced
+  decision briefs.
+- Enforced workspace membership inside every tool before tenant lookup, with no
+  caller-supplied tenant id and no write, approval, bid, purchase, or external
+  action tool.
+- Added a versioned structured output envelope that separates cited stored
+  values, legacy fixed-rule heuristics, versioned engine output, and explicit
+  unknowns. User-upload evidence remains qualified as unverified.
+- Added MCP authentication, annotations, input-bound, tenant-resolution,
+  evidence-grounding, no-ranking, and prompt-like source-data tests plus an
+  interface contract and privacy/safety review.
+- Recorded that the current application bearer JWT is internal validation only.
+  Public ChatGPT use remains blocked on OAuth, stable HTTPS deployment,
+  production observability, load tests, and live authorization validation.
 - Added a machine-readable Maricopa source inventory and CI validator that
   blocks production approval without verified authority, schema, cadence,
   observation time, commercial-use terms, and provenance, and blocks training

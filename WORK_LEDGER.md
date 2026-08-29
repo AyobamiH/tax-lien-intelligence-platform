@@ -1519,3 +1519,76 @@
 - Newly ready nodes:
   - `P47-050-platform-integration`;
   - `P47-060-data-inventory` remains independently ready.
+
+## 2026-08-29 - Phase 47 ChatGPT MCP implementation checkpoint
+
+- Requested task: continue autonomously toward a real-user ChatGPT interface,
+  keep work graph governed and self-documenting, and ship no mock production
+  intelligence.
+- Graph node: `P47-090-chatgpt-interface`, `in_progress`.
+- Repository: `AyobamiH/tax-lien-intelligence-platform`.
+- Branch and starting commit:
+  `feature/intelligence-engine-foundation` at
+  `1974bc8b1e7274deb12d2324a7a903e1765b437d`.
+- Work completed:
+  - installed the official TypeScript MCP SDK in the API workspace;
+  - added authenticated stateless MCP Streamable HTTP at `POST /mcp`;
+  - added six read-only tools for workspace discovery, dataset review, bounded
+    candidate pages, candidate evidence, no-ranking comparison, and
+    privacy-reduced decision briefs;
+  - resolved workspace membership from the authenticated principal before
+    tenant lookup and accepted no caller-supplied tenant id;
+  - added a direct tenant-owned scored-record read method for evidence tools;
+  - separated stored normalized facts, fixed-rule legacy inferences, versioned
+    intelligence, unknowns, and source-row citations;
+  - kept redemption legacy output explicitly labeled
+    `heuristic_not_probability`;
+  - excluded user emails, member lists, comments, free-form notes, approval
+    notes, raw rows, access tokens, and exported brief prose;
+  - added optional `MCP_APP_BASE_URL` links with production HTTPS enforcement;
+  - exposed no write, approval, bid, purchase, external action, or score
+    calculation tool.
+- Tests added:
+  - MCP bearer authentication and structured response tests;
+  - exact read-only tool inventory and annotation tests;
+  - invalid input bounds and authenticated-principal binding tests;
+  - tenant resolution and denied workspace tests;
+  - evidence classification, citation, abstention, and no-ranking tests;
+  - adversarial prompt-like source-label handling as inert cited data.
+- Checks run:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:data-inventory` passed with 6 sources, 0 approved, 4
+    blocked, and training blocked;
+  - `npm run validate:work-graph` passed with 11 nodes and 1 in progress;
+  - `npm run typecheck` passed;
+  - focused MCP tests passed with 2 files and 9 tests;
+  - `npm run test` passed with 10 Python tests and 315 Vitest tests across 48
+    files;
+  - `npm run build` passed for all TypeScript workspaces and Python compile;
+  - `npm run smoke:local` passed;
+  - `npm run smoke:browser` passed with 3 files and 6 tests;
+  - `npm run smoke:intelligence-service` passed with 1 real-process file and 9
+    tests.
+- Documentation updated:
+  - MCP API and architecture references;
+  - tool contract and privacy/safety review;
+  - engine operating guide, plan, status, graph, and docs index;
+  - repo and security KB truth;
+  - acceptance, runbook, README, environment example, changelog, and this
+    ledger.
+- Verified limits:
+  - the interface uses the current application bearer JWT for internal
+    validation and does not claim a public ChatGPT OAuth flow;
+  - no stable public HTTPS deployment, ChatGPT connection, production traffic,
+    load, failover, rollback, or user-outcome improvement is claimed;
+  - candidate list pagination currently bounds the response after a tenant
+    dataset score read; storage-level cursor pagination is future scale work;
+  - no current county verification, title condition, live lien status,
+    redemption event, auction eligibility, trained model artifact, calibrated
+    probability, legal conclusion, or bid recommendation is claimed;
+  - deterministic test fixtures isolate behavior and are not production
+    intelligence or model evidence.
+- Publication status: pending implementation commit, remote ref verification,
+  and independent branch CI. The node remains `in_progress` until those pass.
+- Next safe step: publish this checkpoint, verify branch CI including real
+  MongoDB persistence, then record a small graph and ledger closure commit.

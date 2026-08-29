@@ -40,6 +40,13 @@ The product must earn trust through secure boundaries and explainable output.
 - Phase 46 adds browser-like follow-up lifecycle proof that verifies follow-up
   API calls from the React shell include both the bearer token and selected
   workspace header while using only synthetic local data and no screenshots.
+- Phase 47 adds a read-only MCP boundary for internal ChatGPT validation.
+  Identity comes only from the verified bearer token, workspace membership is
+  resolved before tenant data access, and no tool can mutate workflow state or
+  execute an external action.
+- MCP evidence responses exclude access tokens, user emails, member lists,
+  free-form notes, comments, approval notes, raw rows, and exported brief text.
+  Filenames and source labels remain untrusted cited data.
 
 ### Current Implemented Protections
 
@@ -72,6 +79,8 @@ Current repo protections:
 - auth middleware for protected routes;
 - safe auth responses that do not return password hashes;
 - tests for common auth failure modes;
+- MCP tool authentication, denied workspace, input-bound, and prompt-like
+  source-data tests;
 - explicit workspace and membership persistence;
 - selected-workspace membership and minimal owner/admin/member role checks;
 - owner-only non-owner role updates with no admin/member self-escalation path;

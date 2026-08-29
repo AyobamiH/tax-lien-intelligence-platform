@@ -14,6 +14,8 @@ knowledge-base documentation for the Tax Lien Intelligence Platform.
 - [Open-source component decisions](engine/open-source-components.md)
 - [Versioned engine contracts](engine/contracts.md)
 - [Jurisdiction rule packs](engine/rule-packs.md)
+- [ChatGPT MCP tool contract](engine/chatgpt-mcp-contract.md)
+- [ChatGPT privacy and safety review](engine/chatgpt-privacy-safety-review.md)
 
 ## Knowledge Base
 
@@ -35,6 +37,7 @@ before writing specs, prompts, or implementation plans.
 - [County Import Adapter Foundation](architecture/county-import-adapters.md)
 - [Scoring Foundation Architecture](architecture/scoring.md)
 - [Intelligence Service Architecture](architecture/intelligence-service.md)
+- [ChatGPT MCP Architecture](architecture/chatgpt-mcp.md)
 - [Enrichment Architecture](architecture/enrichment.md)
 - [Frontend Review Surface Architecture](architecture/frontend-review.md)
 - [Watchlist Workflow Architecture](architecture/watchlist.md)
@@ -72,6 +75,7 @@ before writing specs, prompts, or implementation plans.
 - [Dataset API](api/datasets.md)
 - [Scoring API](api/scoring.md)
 - [Intelligence Service API](api/intelligence-service.md)
+- [ChatGPT MCP API](api/mcp.md)
 - [Internal Jobs API](api/jobs.md)
 - [Alerts API](api/alerts.md)
 - [Notification Preferences API](api/notification-preferences.md)

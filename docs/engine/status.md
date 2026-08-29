@@ -39,8 +39,12 @@ Last updated: 2026-08-29
   prioritization, not a calibrated prediction engine.
 - One Maricopa-style import adapter and generic fallback exist.
 - No verified historical redemption dataset, trained model artifact, temporal
-  evaluation report, deployed intelligence service, or ChatGPT tool surface
-  exists yet.
+  evaluation report, deployed intelligence service, public OAuth flow, or
+  deployed ChatGPT connection exists yet.
+- The feature branch now contains an authenticated stateless MCP endpoint with
+  six read-only evidence tools, explicit tenant resolution, cited stored
+  values, labeled legacy heuristics, versioned engine states, unknowns, bounded
+  comparison, and a privacy-reduced decision-brief projection.
 
 ## Repository Authority Limit
 
@@ -53,19 +57,19 @@ claimed.
 
 ## Current Work
 
-`P47-060-data-inventory` is published at `9cbc841`. GitHub Actions run
-`33248227529`, quality-gates job `99089286887`, passed the graph and data-source
-validators, audit, typecheck, 10 Python tests, 306 Vitest tests across 46 files,
-all builds, real-process service smoke, and real MongoDB persistence smoke.
+`P47-090-chatgpt-interface` is in progress. Local audit, source-inventory and
+graph validators, typecheck, 10 Python tests, 315 Vitest tests across 48 files,
+all builds, local runtime smoke, browser-like smoke, and real-process
+intelligence-service smoke pass. The implementation still requires a published
+commit and independent branch CI before graph closure.
 
 ## Next Graph Work
 
 - `P47-065-lawful-data-acquisition` is ready to prepare the
   accurate commercial-purpose request, written terms, lifecycle schema,
   artifact manifest, privacy controls, and time-aware entity resolution.
-- `P47-090-chatgpt-interface` is ready and can proceed independently against
-  stored evidence and abstention. It does not need to wait for trained model
-  promotion.
+- `P47-090-chatgpt-interface` is active and proceeds independently against
+  stored evidence and abstention. It does not wait for trained model promotion.
 
 ## Explicitly Unproven
 

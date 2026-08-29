@@ -87,6 +87,15 @@ Phase 47 work is acceptable only when:
   metadata and browser surfaces;
 - completed, not-configured, failed, insufficient-evidence, and out-of-scope
   states remain distinguishable to users;
+- ChatGPT tools are read-only, resolve workspace membership server-side, and
+  never accept a caller-supplied tenant id;
+- ChatGPT candidate output separates cited stored facts, fixed-rule inferences,
+  versioned engine results, and explicit unknowns;
+- no ChatGPT tool writes product state, changes an engine value, calculates a
+  bid, executes a purchase, or presents legacy redemption output as a
+  probability;
+- public ChatGPT readiness is not claimed before OAuth, stable HTTPS,
+  production observability, live authorization tests, and release evidence;
 - implementation, tests, docs, changelog, graph state, and `WORK_LEDGER.md`
   change together for every completed node;
 - no node is considered complete before checks pass and the commit is pushed.

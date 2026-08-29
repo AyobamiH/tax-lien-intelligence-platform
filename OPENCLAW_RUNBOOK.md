@@ -60,6 +60,10 @@ Do not prioritize marketing, broad redesign, speculative rewrites, or fake AI.
 - Use `npm run smoke:intelligence-service` for the Phase 47 real-process
   Python/TypeScript contract boundary. It is local authenticated HTTP proof,
   not deployment, load, service-mesh, or production-traffic proof.
+- For the ChatGPT MCP node, verify bearer authentication, server-side workspace
+  resolution, read-only annotations, bounded inputs, evidence citations,
+  facts/inferences/unknowns separation, and adversarial source text. Do not
+  treat a local MCP response as OAuth, public connection, or deployment proof.
 - Repair Crabbox only when the current operator request explicitly authorizes
   local repair and the fix is limited to normal local tooling or repo/workspace
   configuration. Do not use paid providers, production credentials, or

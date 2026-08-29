@@ -91,3 +91,8 @@ and remote-ref verification are all present. Partial work remains
   Assessor artifact sample, GIS terms review, outcome-label gap, blocked
   training data card, CI gate, and Mongo-backed branch verification are
   published at `9cbc841` through GitHub Actions run `33248227529`.
+- `P47-090-chatgpt-interface`: authenticated stateless MCP implementation,
+  six read-only tools, tenant resolution, cited evidence projection, privacy
+  reduction, no-ranking comparison, memo outline, and focused adversarial and
+  authorization tests are locally verified. Publication and branch CI remain
+  before node closure.

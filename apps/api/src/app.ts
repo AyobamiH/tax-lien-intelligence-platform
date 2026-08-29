@@ -63,6 +63,8 @@ import type { ApprovalService } from "./approvals/approval-service.js";
 import { createApprovalRouter } from "./routes/approvals.js";
 import { createMyWorkService } from "./my-work/factory.js";
 import type { MyWorkService } from "./my-work/my-work-service.js";
+import { PlatformMcpEvidenceService, type McpEvidenceServiceContract } from "./mcp/evidence-service.js";
+import { createMcpRouter } from "./mcp/router.js";
 import { createMyWorkRouter } from "./routes/my-work.js";
 import { createFollowService } from "./follows/factory.js";
 import type { FollowService } from "./follows/follow-service.js";
@@ -103,6 +105,7 @@ export interface AppDependencies {
   decisionOutcomeService?: DecisionOutcomeService;
   outcomeReviewService?: OutcomeReviewService;
   scoringRequestLimit?: FixedWindowRateLimitOptions;
+  mcpEvidenceService?: McpEvidenceServiceContract;
 }
 
 export function buildCorsOptions(config: typeof apiConfig = apiConfig): CorsOptions {
@@ -183,6 +186,15 @@ export function createApp(dependencies: AppDependencies = {}): Express {
       workspacePolicyService,
       decisionOutcomeService,
     );
+  const mcpEvidenceService =
+    dependencies.mcpEvidenceService ??
+    new PlatformMcpEvidenceService(
+      workspaceService,
+      datasetService,
+      scoringService,
+      decisionBriefService,
+      apiConfig.mcp.appBaseUrl,
+    );
 
   app.use(helmet());
   app.use(cors(buildCorsOptions()));
@@ -200,6 +212,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   });
 
   app.use("/auth", createAuthRouter(authService));
+  app.use("/mcp", createMcpRouter(authService, mcpEvidenceService));
   app.use("/workspaces", createWorkspaceRouter(authService, workspaceService, workspaceActivityService));
   app.use("/comments", createWorkspaceCommentRouter(authService, workspaceService, workspaceCommentService));
   app.use("/assignments", createWorkspaceAssignmentRouter(authService, workspaceService, workspaceAssignmentService));

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T14:00:00Z",
+  "updatedAt": "2026-08-29T14:10:00Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
   "goal": "Deliver a versioned, evidence-first intelligence engine and a read-only ChatGPT evidence interface without fabricated predictions.",
@@ -148,7 +148,7 @@
     {
       "id": "P47-090-chatgpt-interface",
       "title": "Expose a read-only ChatGPT evidence interface",
-      "status": "ready",
+      "status": "in_progress",
       "ownerRole": "chatgpt-product-engineer",
       "dependencies": ["P47-050-platform-integration", "P47-060-data-inventory"],
       "scope": ["read-only tools", "evidence citations", "comparison", "missing-evidence guidance", "memo drafting"],
