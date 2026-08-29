@@ -61,6 +61,18 @@ evidence exist.
 - decision memo drafting from stored evidence;
 - no autonomous bid, legal conclusion, or invented calculation.
 
+### 47E: Public ChatGPT release
+
+- approved OAuth authorization, discovery, token lifecycle, and revocation;
+- stable public HTTPS MCP deployment;
+- production rate limits and payload-safe observability;
+- live role, tenant-isolation, invalid-input, and out-of-scope evals;
+- privacy, retention, deletion, rollback, and incident ownership approval.
+
+`P47-095-chatgpt-public-release` is blocked until the operator supplies and
+authorizes the production domain, deployment target, OAuth ownership, and
+privacy decisions. Repository MCP completion is not public release evidence.
+
 The evidence interface can ship against stored deterministic results and
 explicit abstention before trained models exist. It depends on the platform
 integration and source inventory, not model promotion. Model-backed signals

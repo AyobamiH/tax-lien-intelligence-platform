@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T14:40:00Z",
+  "updatedAt": "2026-08-29T14:50:00Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
   "goal": "Deliver a versioned, evidence-first intelligence engine and a read-only ChatGPT evidence interface without fabricated predictions.",
@@ -163,6 +163,48 @@
         "Tool contract and privacy/safety review record public OAuth, HTTPS deployment, observability, and live validation as release blockers rather than completed capability"
       ],
       "blockers": []
+    },
+    {
+      "id": "P47-095-chatgpt-public-release",
+      "title": "Authorize, deploy, and connect the public ChatGPT plugin",
+      "status": "blocked",
+      "ownerRole": "chatgpt-release-engineer",
+      "dependencies": ["P47-090-chatgpt-interface"],
+      "scope": [
+        "OAuth authorization and discovery",
+        "stable public HTTPS MCP deployment",
+        "token lifecycle and revocation",
+        "rate limits and payload-safe observability",
+        "live ChatGPT connection evals",
+        "rollback and incident ownership"
+      ],
+      "acceptance": [
+        "ChatGPT authenticates through the approved OAuth flow without manual application JWT handling",
+        "owner, admin, member, expired, revoked, and cross-workspace cases pass live authorization tests",
+        "the public MCP endpoint has verified health, latency, error, abuse, and redaction controls",
+        "the connected tool inventory remains read-only and cannot alter engine values or execute bids",
+        "deployment rollback, incident ownership, privacy, retention, and deletion controls are approved and tested"
+      ],
+      "documentation": [
+        "public deployment runbook",
+        "OAuth and token threat model",
+        "production privacy review",
+        "live connection evidence",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "OAuth discovery and lifecycle tests",
+        "live role and tenant isolation tests",
+        "direct, indirect, invalid-input, and out-of-scope ChatGPT evals",
+        "load, rate-limit, logging-redaction, and rollback tests",
+        "release-readiness review"
+      ],
+      "evidence": [],
+      "blockers": [
+        "deployment, publication, and production configuration were not authorized in this run",
+        "the production domain, OAuth client configuration, and authorization owner are not supplied",
+        "product privacy, retention, deletion, and property-evidence approval is pending"
+      ]
     }
   ]
 }

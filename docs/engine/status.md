@@ -74,6 +74,10 @@ are resolved.
   artifact manifest, privacy controls, and time-aware entity resolution.
 - `P47-070-trained-models` remains blocked on lawful, outcome-bearing data and
   cannot begin from the current source inventory.
+- `P47-095-chatgpt-public-release` is explicitly blocked on deployment
+  authority, a production domain and OAuth configuration, and product privacy,
+  retention, deletion, and property-evidence approval. This prevents internal
+  MCP completion from drifting into a false public-plugin claim.
 
 ## Explicitly Unproven
 

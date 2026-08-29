@@ -1628,3 +1628,7 @@
 - Next ready graph node: `P47-065-lawful-data-acquisition`.
 - `P47-070-trained-models` remains blocked until lawful outcome-bearing data,
   censoring, and temporal evaluation inputs exist.
+- New blocked graph node: `P47-095-chatgpt-public-release`. It names OAuth,
+  stable HTTPS, token lifecycle, production controls, live connection evals,
+  rollback, and privacy approval so later work cannot treat repository MCP
+  completion as a public release.
