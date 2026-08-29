@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T09:20:20Z",
+  "updatedAt": "2026-08-29T09:36:58Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
   "goal": "Deliver a versioned, evidence-first intelligence engine and a read-only ChatGPT evidence interface without fabricated predictions.",
@@ -70,20 +70,20 @@
     {
       "id": "P47-040-service",
       "title": "Implement the production intelligence-service boundary",
-      "status": "ready",
+      "status": "completed",
       "ownerRole": "analytics-platform-engineer",
       "dependencies": ["P47-020-contracts", "P47-030-rule-engine"],
       "scope": ["Python service", "request validation", "provenance", "health and version endpoints", "truthful abstention"],
       "acceptance": ["service never fabricates a model output", "contract parity is automated", "runtime and failure behavior are verified without placeholder providers"],
       "documentation": ["docs/api", "docs/architecture", "docs/engine/status.md"],
       "verification": ["real process contract tests", "service unit tests", "runtime smoke", "full repository gates"],
-      "evidence": [],
+      "evidence": ["services/intelligence", "10 dependency-free Python unit tests passed", "tests/integration/intelligence-service.test.ts: 7 real-process HTTP tests passed", "TypeScript/Python full-result and fractional-number digest parity", "full repository suite: 43 files and 296 Vitest tests passed", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
       "id": "P47-050-platform-integration",
       "title": "Integrate the engine through a TypeScript compatibility boundary",
-      "status": "planned",
+      "status": "ready",
       "ownerRole": "platform-integration-engineer",
       "dependencies": ["P47-040-service"],
       "scope": ["API client", "stored result versioning", "legacy heuristic label", "UI abstention states", "tenant isolation"],

@@ -69,6 +69,10 @@ Phase 47 work is acceptable only when:
   verified;
 - TypeScript compatibility remains explicit while the intelligence service
   boundary is introduced;
+- the Python service rejects unauthenticated, oversized, malformed, and
+  contract-invalid evaluation requests before rule execution;
+- Python and TypeScript contract, rule, and evidence-digest parity is exercised
+  through a real loopback service process;
 - implementation, tests, docs, changelog, graph state, and `WORK_LEDGER.md`
   change together for every completed node;
 - no node is considered complete before checks pass and the commit is pushed.
@@ -87,6 +91,7 @@ Completion evidence may include:
 - successful `npm run smoke:local`;
 - successful `npm run smoke:browser`;
 - successful `npm run smoke:follow-ups:browser`;
+- successful `npm run smoke:intelligence-service`;
 - successful `npm run audit`;
 - focused test output when a narrow code path changes.
 

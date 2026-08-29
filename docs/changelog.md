@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Added a dependency-free Python 3.12 intelligence service with authenticated
+  `POST /v1/evaluate`, public health/version truth, strict request limits,
+  structured safe errors, graceful shutdown, and a non-root container
+  boundary.
+- Added independent Python candidate/result validators and deterministic rule
+  evaluation with no model or provider fallback. The service rejects invalid
+  evidence and validates its own result before serialization.
+- Hardened cross-language evidence hashing with tagged UTF-8 and IEEE-754
+  canonical encoding, then added a real-process loopback test that compares the
+  complete Python HTTP result with the TypeScript rule evaluator for fractional
+  numeric evidence.
+- Added 10 Python unit tests, 7 authenticated service-process tests, Python
+  compile/test scripts, a dedicated service smoke, and Python 3.12 CI setup.
+  Error connections close explicitly so unread rejected bodies cannot corrupt
+  a later keep-alive request.
 - Added `@tax-lien/jurisdiction-rules` with an exact-scope, immutable Maricopa
   County registry entry, deterministic evaluation, canonical evidence digest,
   and source-citation resolution.

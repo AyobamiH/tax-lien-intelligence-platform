@@ -30,7 +30,10 @@ Current packages:
   approval-request, follow-subscription, review-checklist, workspace-policy,
   decision-outcome, and discussion-attention models
 - `packages/scoring`: pure explainable scoring engine
+- `packages/engine-contract`: versioned evidence and engine-result contracts
+- `packages/jurisdiction-rules`: source-cited deterministic jurisdiction rules
 - `packages/types`: shared API types
+- `services/intelligence`: authenticated Python engine-service boundary
 
 Implemented API surfaces:
 
@@ -160,6 +163,17 @@ Use Node.js `^20.19.0 || >=22.12.0`.
    npm run dev:web
    ```
 
+5. Start the internal intelligence service with a strong local token:
+
+   ```bash
+   PYTHONPATH=services/intelligence/src \
+   INTELLIGENCE_SERVICE_TOKEN=replace-with-at-least-32-random-characters \
+   python3 -m tax_lien_intelligence.server
+   ```
+
+   The existing API does not call this service until the Phase 47 platform
+   integration checkpoint is complete.
+
 ## Quality Gates
 
 ```bash
@@ -169,7 +183,14 @@ npm run test
 npm run build
 npm run smoke:local
 npm run smoke:browser
+npm run smoke:intelligence-service
 ```
+
+`npm run test` includes the dependency-free Python unit suite and all Vitest
+tests. `npm run build` compiles every TypeScript workspace and byte-compiles the
+Python service. `npm run smoke:intelligence-service` starts the real
+authenticated Python process on loopback and verifies health, version,
+contract parity, invalid evidence, and out-of-scope behavior over HTTP.
 
 `npm run smoke:local` builds the workspace, starts the API app in-process,
 serves the built web shell from `apps/web/dist`, verifies `/healthz`, verifies

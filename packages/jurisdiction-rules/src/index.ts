@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import {
   CANDIDATE_EVIDENCE_SCHEMA_VERSION,
@@ -12,7 +13,7 @@ import {
 } from "@tax-lien/engine-contract";
 
 export const RULE_PACK_INTERFACE_VERSION = "1.0.0" as const;
-export const RULE_ENGINE_VERSION = "jurisdiction-rules-1.0.0" as const;
+export const RULE_ENGINE_VERSION = "jurisdiction-rules-1.1.0" as const;
 
 export type RuleSourceClass = "official_statute" | "official_county" | "internal_policy";
 export type RuleCategory = "statutory_context" | "county_operation" | "underwriting_policy";
@@ -322,24 +323,36 @@ export function getRuleCitations(
     .filter((citation): citation is RuleCitationV1 => citation !== undefined);
 }
 
-function canonicalJson(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    return JSON.stringify(value);
+function canonicalEvidenceEncoding(value: unknown): string {
+  if (value === null) {
+    return "n";
+  }
+  if (typeof value === "boolean") {
+    return value ? "b1" : "b0";
+  }
+  if (typeof value === "number") {
+    const bytes = Buffer.allocUnsafe(8);
+    bytes.writeDoubleBE(value);
+    return `d${bytes.toString("hex")}`;
+  }
+  if (typeof value === "string") {
+    return `s${Buffer.from(value, "utf8").toString("hex")}`;
   }
   if (Array.isArray(value)) {
-    return `[${value.map((item) => canonicalJson(item)).join(",")}]`;
+    return `a[${value.map((item) => canonicalEvidenceEncoding(item)).join(",")}]`;
   }
 
   const record = value as Record<string, unknown>;
   const properties = Object.keys(record)
     .filter((key) => record[key] !== undefined)
-    .sort()
-    .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`);
-  return `{${properties.join(",")}}`;
+    .map((key) => ({ key, encodedKey: Buffer.from(key, "utf8").toString("hex") }))
+    .sort((left, right) => left.encodedKey.localeCompare(right.encodedKey))
+    .map(({ key, encodedKey }) => `${encodedKey}:${canonicalEvidenceEncoding(record[key])}`);
+  return `o{${properties.join(",")}}`;
 }
 
 export function digestCandidateEvidence(evidence: CandidateEvidenceV1): string {
-  return createHash("sha256").update(canonicalJson(evidence)).digest("hex");
+  return createHash("sha256").update(canonicalEvidenceEncoding(evidence)).digest("hex");
 }
 
 function evidenceValue<T>(field: EvidenceFieldV1<T>): T | undefined {

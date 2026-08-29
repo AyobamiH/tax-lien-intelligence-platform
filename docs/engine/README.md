@@ -14,7 +14,9 @@ chat history or reconstructing architecture decisions.
 6. `../decisions/0002-intelligence-engine-boundary.md`
 7. `contracts.md`
 8. `rule-packs.md`
-9. `open-source-components.md`
+9. `../architecture/intelligence-service.md`
+10. `../api/intelligence-service.md`
+11. `open-source-components.md`
 
 ## Work-Unit Protocol
 

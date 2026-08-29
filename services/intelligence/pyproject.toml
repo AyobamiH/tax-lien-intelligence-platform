@@ -1,0 +1,9 @@
+[project]
+name = "tax-lien-intelligence-service"
+version = "0.1.0"
+description = "Evidence-first tax lien intelligence HTTP service"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+tax-lien-intelligence = "tax_lien_intelligence.server:main"

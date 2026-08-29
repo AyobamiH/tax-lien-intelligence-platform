@@ -10,6 +10,14 @@ sequencing and the master product KB for product identity.
 
 ## Current Phase Truth
 
+- Phase 47 engine work is active on the operator-selected
+  `AyobamiH/tax-lien-intelligence-platform` feature branch. The versioned
+  contract package, exact-scope jurisdiction rules, and an authenticated Python
+  service boundary exist there. No cross-repository sync or deployment is
+  claimed.
+- The Python service has no model artifact and returns redemption probability
+  as unavailable. Its current Maricopa auction operating-rule status is also
+  unverified.
 - Phase 46 follow-up proof is implemented: the repo has a
   focused browser-like smoke command for follow-up due-state rendering, update,
   completion, and snooze/reschedule controls using synthetic local data.
@@ -63,6 +71,9 @@ The repo is an npm workspace monorepo:
 - `packages/db`: MongoDB connection package.
 - `packages/types`: shared types.
 - `packages/scoring`: pure scoring engine package.
+- `packages/engine-contract`: versioned evidence and result contracts.
+- `packages/jurisdiction-rules`: source-cited deterministic rule evaluator.
+- `services/intelligence`: authenticated Python engine-service boundary.
 - `docs`: architecture, API, decisions, changelog, and this KB.
 - `tests`: root-level unit and integration tests.
 - `infra/docker`: local MongoDB compose file.

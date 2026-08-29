@@ -17,13 +17,18 @@ Last updated: 2026-08-29
   `us-az-maricopa-statutory-baseline@2026-08-29.1` pack, source-citation
   resolution, deterministic evidence hashing, and evidence-backed internal
   exclusion rules.
+- `P47-040-service` adds a stateless, authenticated Python 3.12 HTTP service
+  with request bounds, strict evidence and result validation, health/version
+  endpoints, safe failure responses, and no provider or model fallback.
 - Current application gates pass: audit with 0 vulnerabilities, graph
-  validation, typecheck, 289 tests across 42 files, and every workspace build.
+  validation, typecheck, 10 Python unit tests, 296 Vitest tests across 43 files,
+  every workspace build, Python compile, and the 7-test real-process service
+  smoke.
 - Current `packages/scoring` implementation is deterministic rules-based
   prioritization, not a calibrated prediction engine.
 - One Maricopa-style import adapter and generic fallback exist.
 - No verified historical redemption dataset, trained model artifact, temporal
-  evaluation report, production intelligence service, or ChatGPT tool surface
+  evaluation report, deployed intelligence service, or ChatGPT tool surface
   exists yet.
 
 ## Repository Authority Limit
@@ -37,16 +42,16 @@ claimed.
 
 ## Current Work
 
-`P47-030-rule-engine` is verified. The rule evaluator supports only Maricopa
-County, calculates only deterministic value coverage, returns out-of-scope or
-insufficient-evidence states where required, and leaves redemption probability
-unavailable. Arizona statutory context resolves to dated Legislature sources.
-Current Maricopa auction operating rules remain explicitly unverified.
+`P47-040-service` is verified. Python and TypeScript produce the same complete
+engine result for the same fractional-number evidence over a real authenticated
+loopback HTTP process. The service rejects malformed, oversized,
+unauthenticated, and contract-invalid requests before evaluation and validates
+its own output before sending it.
 
 ## Next Ready Work
 
-- `P47-040-service`: production intelligence-service boundary with
-  cross-language contract parity and truthful failure behavior.
+- `P47-050-platform-integration`: tenant-safe TypeScript client, persisted
+  versioned result, legacy heuristic labelling, and UI abstention states.
 - `P47-060-data-inventory`: Maricopa data-source and outcome-label inventory.
 
 ## Explicitly Unproven
@@ -57,5 +62,6 @@ Current Maricopa auction operating rules remain explicitly unverified.
 - broad county coverage;
 - model calibration or fairness;
 - deployed service behavior;
+- service-mesh transport, load, failover, and production-traffic behavior;
 - production user outcome improvement;
 - ChatGPT plugin readiness.

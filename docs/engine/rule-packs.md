@@ -94,8 +94,10 @@ and source licensing in `P47-060-data-inventory`. Until that happens, the pack's
 
 ## Digest Algorithm
 
-`digestCandidateEvidence` serializes objects with lexically sorted keys while
-preserving array order and JSON primitive representation, then computes a
-lowercase SHA-256 digest. This makes the same evidence content stable across
-object property insertion order. The Python service must reproduce this
-algorithm in cross-language parity tests before accepting traffic.
+`digestCandidateEvidence` serializes fixed-schema objects with UTF-8-hex keys
+sorted by encoded bytes, preserves array order, encodes strings as UTF-8 hex,
+and encodes numbers as IEEE-754 double-precision bytes. Tagged representations
+distinguish objects, arrays, strings, numbers, booleans, and null. It then
+computes a lowercase SHA-256 digest. This avoids JavaScript/Python number and
+Unicode serialization drift. The Python service must reproduce the algorithm
+in cross-language parity tests before accepting traffic.

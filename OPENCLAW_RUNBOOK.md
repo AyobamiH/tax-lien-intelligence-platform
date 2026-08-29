@@ -21,6 +21,8 @@ repo, replacement scaffold, or parallel architecture.
    - tests and CI workflows;
    - environment examples without reading secrets;
    - runtime entrypoints;
+   - Phase 47 contract, rule-pack, and Python service versions when the
+     selected graph node depends on them;
    - frontend routes/surfaces;
    - API routes;
    - data models;
@@ -55,6 +57,9 @@ Do not prioritize marketing, broad redesign, speculative rewrites, or fake AI.
   and use `npm run smoke:follow-ups:browser` for focused follow-up lifecycle
   render/control evidence, while recording that these are not screenshot or
   browser-driver evidence.
+- Use `npm run smoke:intelligence-service` for the Phase 47 real-process
+  Python/TypeScript contract boundary. It is local authenticated HTTP proof,
+  not deployment, load, service-mesh, or production-traffic proof.
 - Repair Crabbox only when the current operator request explicitly authorizes
   local repair and the fix is limited to normal local tooling or repo/workspace
   configuration. Do not use paid providers, production credentials, or

@@ -1269,3 +1269,91 @@
   - `P47-040-service`;
   - `P47-060-data-inventory` remains independently ready and must verify county
     operational sources before those rules can be promoted.
+
+## 2026-08-29T09:36:58Z - Phase 47 intelligence service boundary
+
+- Requested task: continue autonomous engine delivery for real users without
+  mock providers or fabricated results, while keeping workflow and handoff
+  truth in the repository.
+- Graph node: `P47-040-service`.
+- Repository: `AyobamiH/tax-lien-intelligence-platform`.
+- Branch and starting commit:
+  `feature/intelligence-engine-foundation` at `2c44a63`.
+- Runtime decision:
+  - used Python 3.12 standard library only because the current environment and
+    repository had no FastAPI, Uvicorn, pytest, HTTPX, or JSON Schema runtime;
+  - did not install or invent a provider dependency;
+  - kept the process stateless and internal, with the TypeScript application
+    remaining the future tenant-aware system of record.
+- Work completed:
+  - added `services/intelligence` with Python package metadata, service source,
+    unit tests, operator README, and a non-root Dockerfile;
+  - implemented dependency-free `CandidateEvidenceV1` validation, including
+    versions, strict keys, canonical timestamps, field states, typed values,
+    provenance references, source identifiers, money, and limitations;
+  - implemented independent `EngineResultV1` output validation so invalid
+    internal output is refused before HTTP serialization;
+  - ported exact-scope Maricopa deterministic rule evaluation with assessed,
+    insufficient-evidence, and out-of-scope results, deterministic coverage,
+    source-retaining exclusions, and unavailable redemption probability;
+  - exposed `GET /health`, `GET /version`, and authenticated
+    `POST /v1/evaluate`;
+  - added constant-time bearer-token checks, 32-character minimum secret
+    requirement, loopback-only explicit insecure mode, a 1 MiB default body
+    limit, content-type and length validation, a 10-second socket read timeout,
+    structured no-store responses, safe errors, and graceful shutdown;
+  - ensured error responses close the connection after the real-process suite
+    exposed unread-body corruption across an HTTP keep-alive connection;
+  - changed evidence digest canonicalization to tagged UTF-8 hex and big-endian
+    IEEE-754 number encoding so JavaScript and Python produce the same digest
+    for fractional values and Unicode-safe content;
+  - added a version manifest that exposes active contracts, rule pack, dated
+    statutory sources, unverified county-operation status, and an empty model
+    artifact registry;
+  - integrated Python 3.12 setup, compile, unit tests, and the real-process smoke
+    into repository scripts and CI.
+- Tests added:
+  - 10 Python unit tests for evidence/result contracts, abstention, scope,
+    digest stability, no-value unavailable signals, and version truth;
+  - 7 Vitest real-process tests that start Python on an ephemeral loopback
+    port and verify health/version, authentication, content type, body size,
+    malformed JSON, complete TypeScript/Python parity, invalid evidence, and
+    out-of-scope behavior.
+- Checks run:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:work-graph` passed with 10 nodes;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 10 Python unit tests plus 43 Vitest files and
+    296 Vitest tests;
+  - `npm run build` passed for every TypeScript workspace and Python compile;
+  - `npm run smoke:intelligence-service` passed with 1 real-process file and 7
+    HTTP tests;
+  - `git diff --check` passed.
+- Documentation updated:
+  - `docs/api/intelligence-service.md`;
+  - `docs/architecture/intelligence-service.md`;
+  - `docs/engine/rule-packs.md`;
+  - `docs/engine/status.md`;
+  - `docs/engine/work-graph.json`;
+  - `docs/engine/phase-47-plan.md`;
+  - `docs/kb/backend-direction-kb.md`;
+  - `docs/kb/repo-reality-kb.md`;
+  - `ACCEPTANCE.md`, `OPENCLAW_RUNBOOK.md`, `README.md`, `.env.example`, CI,
+    changelog, and this ledger.
+- Verified limits:
+  - the platform API does not call the service yet, so no user workflow is
+    switched in this node;
+  - no database persistence, tenant authorization, retry/idempotency store,
+    service-mesh transport, load test, failover, deployment, or production
+    traffic is claimed;
+  - the container definition was not built or deployed in this environment;
+  - no current county auction feed, county operational rules, model artifact,
+    calibrated probability, AVM, liquidity prediction, or ChatGPT tool exists;
+  - the internal bearer token authenticates the calling service, not an end
+    user;
+  - the external OneClickPostFactory repository was not verified or mutated,
+    and no cross-repository sync is claimed.
+- Blockers: none for `P47-050-platform-integration`.
+- Newly ready nodes:
+  - `P47-050-platform-integration`;
+  - `P47-060-data-inventory` remains independently ready.

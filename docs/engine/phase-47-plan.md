@@ -72,5 +72,8 @@ and remote-ref verification are all present. Partial work remains
 - `P47-010-governance`: published at `f236b72`.
 - `P47-020-contracts`: published at `9f89fc2`.
 - `P47-030-rule-engine`: source verification, implementation, 10 focused rule
-  tests, and repository-wide gates complete in this checkpoint.
-- `P47-040-service`: newly ready after the rule-engine checkpoint.
+  tests, and repository-wide gates published at `2c44a63`.
+- `P47-040-service`: Python implementation, 10 unit tests, 7 real-process HTTP
+  tests, cross-language parity, service smoke, and repository gates complete
+  in this checkpoint.
+- `P47-050-platform-integration`: newly ready after the service checkpoint.
