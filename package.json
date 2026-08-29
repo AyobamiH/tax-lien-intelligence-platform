@@ -19,7 +19,8 @@
     "smoke:local": "npm run build && node scripts/local-runtime-smoke.mjs",
     "smoke:mongo": "npm run build && node scripts/mongo-follow-up-smoke.mjs",
     "test": "vitest run --testTimeout=60000",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "validate:work-graph": "node scripts/validate-work-graph.mjs"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

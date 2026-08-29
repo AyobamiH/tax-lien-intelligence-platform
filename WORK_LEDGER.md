@@ -1,5 +1,38 @@
 # Work Ledger
 
+## 2026-08-29T04:50:00Z - Phase 47 graph-governed operating foundation
+
+- Starting point: remote feature branch
+  `feature/intelligence-engine-foundation` at `ba1b0cb`, with the baseline
+  maintenance-selection repair and clean dependency audit published.
+- Chosen node: `P47-010-governance`.
+- Work completed:
+  - added the Phase 47 machine-readable directed acyclic work graph;
+  - added a dependency, state, ownership, evidence, and cycle validator;
+  - wired graph validation into root scripts and CI;
+  - extended `AGENTS.md` and acceptance rules with graph-first work selection,
+    handoff, documentation, verification, commit, and push requirements;
+  - documented the engine boundary, open-source reuse choices, Phase 47 plan,
+    repository authority limit, current status, and no-mock intelligence rule.
+- Agent-operating result: agents can select unblocked nodes without rebuilding
+  project history, and handoffs have a fixed evidence structure.
+- Product-truth result: unsupported evidence must abstain; the rules prototype
+  cannot be described as a calibrated probability model; ChatGPT remains an
+  evidence interface rather than the numerical engine.
+- Changed-state declaration: governance scripts, CI, docs, graph, acceptance,
+  changelog, and ledger only. No production endpoint, model output, deployment,
+  migration, secret read, or production mutation.
+- Verification:
+  - `npm run validate:work-graph` passed with 10 nodes and no dependency
+    cycles or competing in-progress nodes;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 40 files and 270 tests;
+  - `npm run build` passed;
+  - `git diff --check` passed.
+- Next unblocked nodes after verification: `P47-020-contracts` and
+  `P47-060-data-inventory`.
+
 ## 2026-08-29T00:00:00Z - Phase 47 baseline recovery and engine start
 
 - Requested task: begin the intelligence-engine work autonomously with an

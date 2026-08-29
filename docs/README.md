@@ -3,6 +3,14 @@
 This directory contains the durable product, architecture, API, decision, and
 knowledge-base documentation for the Tax Lien Intelligence Platform.
 
+## Intelligence Engine
+
+- [Engine operating guide](engine/README.md)
+- [Phase 47 implementation plan](engine/phase-47-plan.md)
+- [Current engine status](engine/status.md)
+- [Machine-readable work graph](engine/work-graph.json)
+- [Open-source component decisions](engine/open-source-components.md)
+
 ## Knowledge Base
 
 Start here for durable repo and product truth:
@@ -82,6 +90,7 @@ before writing specs, prompts, or implementation plans.
 ## Decisions
 
 - [Decision 0001: Monorepo Baseline](decisions/0001-monorepo-baseline.md)
+- [Decision 0002: Evidence-first intelligence engine boundary](decisions/0002-intelligence-engine-boundary.md)
 
 ## Changelog
 

@@ -50,6 +50,29 @@ This autonomous run is complete when:
 - when the operator has explicitly authorized commit/push for this run, the
   verified patch is committed and pushed after checks pass.
 
+## Phase 47 Intelligence-Engine Acceptance
+
+Phase 47 work is acceptable only when:
+
+- `docs/engine/work-graph.json` passes `npm run validate:work-graph`;
+- graph dependencies and ownership make agent handoff unambiguous;
+- every engine result carries contract, engine, rule-pack, and evidence
+  versions plus field-level provenance;
+- unsupported inputs return `insufficient_evidence` or `out_of_scope` instead
+  of a fabricated prediction;
+- the existing rules prototype is labelled as a heuristic and is not presented
+  as a calibrated redemption probability;
+- no language model calculates, changes, or invents deterministic engine
+  values;
+- model-backed probability fields remain unavailable until historical outcome
+  data, temporal validation, calibration, and model-artifact provenance are
+  verified;
+- TypeScript compatibility remains explicit while the intelligence service
+  boundary is introduced;
+- implementation, tests, docs, changelog, graph state, and `WORK_LEDGER.md`
+  change together for every completed node;
+- no node is considered complete before checks pass and the commit is pushed.
+
 ## Evidence That Counts
 
 Completion evidence may include:

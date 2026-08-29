@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Established Phase 47 intelligence-engine governance with a machine-readable
+  dependency graph, deterministic graph validator, CI gate, agent handoff
+  protocol, current-status ledger, architecture decision, and documented
+  open-source component boundaries.
+- Made no-mock intelligence and truthful abstention explicit acceptance rules:
+  unsupported evidence must return `insufficient_evidence` or `out_of_scope`,
+  and model probabilities remain unavailable until trained artifacts and
+  temporal calibration evidence exist.
 - Stabilized latest-job selection by adding a deterministic identifier
   tie-break when multiple jobs for the same target share millisecond-level
   queue and creation timestamps. This prevents maintenance policy evaluation
