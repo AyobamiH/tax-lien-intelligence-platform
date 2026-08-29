@@ -236,6 +236,15 @@ export function mapInternalJob(document: InternalJobDocument): StoredInternalJob
             ...(document.summary.enrichmentFallbackCount !== undefined
               ? { enrichmentFallbackCount: document.summary.enrichmentFallbackCount }
               : {}),
+            ...(document.summary.intelligenceCompletedCount !== undefined
+              ? { intelligenceCompletedCount: document.summary.intelligenceCompletedCount }
+              : {}),
+            ...(document.summary.intelligenceNotConfiguredCount !== undefined
+              ? { intelligenceNotConfiguredCount: document.summary.intelligenceNotConfiguredCount }
+              : {}),
+            ...(document.summary.intelligenceFailedCount !== undefined
+              ? { intelligenceFailedCount: document.summary.intelligenceFailedCount }
+              : {}),
             ...(document.summary.earliestReprocessAfter
               ? { earliestReprocessAfter: document.summary.earliestReprocessAfter }
               : {}),

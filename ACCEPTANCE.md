@@ -73,6 +73,12 @@ Phase 47 work is acceptable only when:
   contract-invalid evaluation requests before rule execution;
 - Python and TypeScript contract, rule, and evidence-digest parity is exercised
   through a real loopback service process;
+- the tenant-aware API client validates result identity and digest before
+  persistence and never substitutes stale intelligence after a failed call;
+- legacy redemption output is labelled as a fixed-rule heuristic in API
+  metadata and browser surfaces;
+- completed, not-configured, failed, insufficient-evidence, and out-of-scope
+  states remain distinguishable to users;
 - implementation, tests, docs, changelog, graph state, and `WORK_LEDGER.md`
   change together for every completed node;
 - no node is considered complete before checks pass and the commit is pushed.
@@ -92,6 +98,8 @@ Completion evidence may include:
 - successful `npm run smoke:browser`;
 - successful `npm run smoke:follow-ups:browser`;
 - successful `npm run smoke:intelligence-service`;
+- successful `npm run smoke:intelligence:mongo` in an environment with a real
+  MongoDB service;
 - successful `npm run audit`;
 - focused test output when a narrow code path changes.
 

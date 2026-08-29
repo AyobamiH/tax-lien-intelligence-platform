@@ -5,8 +5,10 @@ versioned candidate evidence and engine results. It is stateless and has no
 database access, tenant authority, auction execution capability, LLM call, or
 model provider.
 
-The platform API is not integrated with this service yet. That tenancy-safe
-compatibility work belongs to `P47-050-platform-integration`.
+The tenant-aware platform API calls this service only from its worker scoring
+path. Browsers never receive or send the internal service token. The platform
+validates response identity, versions, contract shape, and evidence digest
+before storing a result.
 
 ## Runtime
 
@@ -35,7 +37,7 @@ trained model exists.
   "service": "tax-lien-intelligence",
   "status": "ok",
   "timestamp": "2026-08-29T10:00:00.000Z",
-  "contractVersion": "1.0.0",
+  "contractVersion": "1.1.0",
   "engineVersion": "jurisdiction-rules-1.1.0"
 }
 ```
@@ -99,6 +101,22 @@ stack traces, or runtime internals.
 | `INTELLIGENCE_MAX_BODY_BYTES` | `1048576` | Positive request-body ceiling |
 | `INTELLIGENCE_SERVICE_TOKEN` | none | Required and at least 32 characters |
 | `INTELLIGENCE_ALLOW_INSECURE_LOCALHOST` | false | Explicit local-only bypass when no token is set |
+
+The platform API uses these separate caller settings:
+
+| Variable | Default | Requirement |
+| --- | --- | --- |
+| `INTELLIGENCE_SERVICE_ENABLED` | `false` | Explicitly enables worker calls |
+| `INTELLIGENCE_SERVICE_BASE_URL` | `http://127.0.0.1:8081` | Private service URL |
+| `INTELLIGENCE_SERVICE_TOKEN` | none | Shared internal token, at least 32 characters when enabled |
+| `INTELLIGENCE_SERVICE_TIMEOUT_MS` | `5000` | Per-row request timeout, at most 30000 ms |
+| `INTELLIGENCE_SERVICE_MAX_CONCURRENCY` | `8` | Bounded per-job request concurrency, at most 32 |
+
+When disabled, the platform stores `not_configured`. Network failure stores
+`failed/service_unavailable`; non-success HTTP stores
+`failed/service_rejected`; malformed or identity-mismatched output stores
+`failed/invalid_service_response`. None of those states contains or reuses an
+engine result.
 
 Insecure mode is accepted only on a loopback bind address. It must never be
 enabled in a shared or production environment.

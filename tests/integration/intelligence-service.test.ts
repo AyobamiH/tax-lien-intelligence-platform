@@ -9,6 +9,10 @@ import {
   validateEngineResultV1,
 } from "../../packages/engine-contract/src/index.js";
 import { evaluateJurisdictionRules } from "../../packages/jurisdiction-rules/src/index.js";
+import {
+  IntelligenceServiceClient,
+  isEngineResultForEvidence,
+} from "../../apps/api/src/intelligence/intelligence-client.js";
 
 const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
 const serviceToken = "intelligence-service-contract-test-token-0001";
@@ -163,7 +167,7 @@ describe("intelligence service process contract", () => {
     expect(health).toMatchObject({
       service: "tax-lien-intelligence",
       status: "ok",
-      contractVersion: "1.0.0",
+      contractVersion: "1.1.0",
       engineVersion: "jurisdiction-rules-1.1.0",
     });
     expect(version.modelArtifacts).toEqual([]);
@@ -249,6 +253,64 @@ describe("intelligence service process contract", () => {
     expect(TypeScriptOutcome.ok).toBe(true);
     if (!TypeScriptOutcome.ok) return;
     expect(serviceResult).toEqual(TypeScriptOutcome.result);
+    expect(isEngineResultForEvidence(serviceResult, evidence)).toBe(true);
+    expect(
+      isEngineResultForEvidence({ ...serviceResult, requestId: "tampered-request" }, evidence),
+    ).toBe(false);
+  });
+
+  it("returns a contract-bound completed result through the production API client", async () => {
+    const evidence = evidenceVector();
+    evidence.provenance[0]!.sourceType = "user_upload";
+    evidence.provenance[1]!.sourceType = "user_upload";
+    evidence.limitations = ["Uploaded evidence is not independently verified by this test."];
+    const client = new IntelligenceServiceClient({
+      enabled: true,
+      baseUrl: running.baseUrl,
+      serviceToken,
+      timeoutMs: 5_000,
+    });
+
+    const evaluation = await client.evaluate(evidence);
+
+    expect(evaluation.state).toBe("completed");
+    expect(evaluation.result?.candidateId).toBe(evidence.candidateId);
+    expect(evaluation.result?.versions.evidenceVersion).toBe(evidence.evidenceVersion);
+    expect(evaluation.result && validateEngineResultV1(evaluation.result)).toEqual({ valid: true, errors: [] });
+  });
+
+  it("abstains explicitly when disabled or unreachable and never returns a stale result", async () => {
+    const disabled = new IntelligenceServiceClient({
+      enabled: false,
+      baseUrl: running.baseUrl,
+      timeoutMs: 5_000,
+    });
+    const unreachable = new IntelligenceServiceClient({
+      enabled: true,
+      baseUrl: "http://127.0.0.1:1",
+      serviceToken,
+      timeoutMs: 250,
+    });
+    const rejected = new IntelligenceServiceClient({
+      enabled: true,
+      baseUrl: running.baseUrl,
+      serviceToken: "incorrect-service-token-that-is-long-enough",
+      timeoutMs: 5_000,
+    });
+
+    await expect(disabled.evaluate(evidenceVector())).resolves.toMatchObject({
+      state: "not_configured",
+    });
+    const failed = await unreachable.evaluate(evidenceVector());
+    expect(failed).toMatchObject({
+      state: "failed",
+      failureCode: "service_unavailable",
+    });
+    expect(failed).not.toHaveProperty("result");
+    await expect(rejected.evaluate(evidenceVector())).resolves.toMatchObject({
+      state: "failed",
+      failureCode: "service_rejected",
+    });
   });
 
   it("returns contract errors without evaluating malformed evidence", async () => {

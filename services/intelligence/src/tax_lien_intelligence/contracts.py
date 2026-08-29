@@ -7,8 +7,8 @@ import math
 import re
 from typing import Any
 
-ENGINE_CONTRACT_VERSION = "1.0.0"
-CANDIDATE_EVIDENCE_SCHEMA_VERSION = "1.0.0"
+ENGINE_CONTRACT_VERSION = "1.1.0"
+CANDIDATE_EVIDENCE_SCHEMA_VERSION = "1.1.0"
 
 _TIMESTAMP_PATTERN = re.compile(
     r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$"
@@ -22,6 +22,7 @@ _SOURCE_TYPES = {
     "market_sale",
     "geospatial",
     "manual_verification",
+    "user_upload",
 }
 _FIELD_NAMES = {
     "parcelId",

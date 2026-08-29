@@ -1,4 +1,6 @@
 import mongoose, { Schema, type HydratedDocument, type Model } from "mongoose";
+import type { EngineResultV1 } from "@tax-lien/engine-contract";
+import { validateEngineResultV1 } from "@tax-lien/engine-contract";
 
 export type PropertyTypeCategoryRecord = "residential" | "multifamily" | "commercial" | "land" | "unknown";
 export type EnrichmentAdapterIdRecord = "source_field_inference" | "census_geocoder";
@@ -98,12 +100,27 @@ export interface EnrichmentResultRecord {
   reasoning: string[];
 }
 
+export type IntelligenceEvaluationStateRecord = "completed" | "not_configured" | "failed";
+export type IntelligenceEvaluationFailureCodeRecord =
+  | "service_unavailable"
+  | "service_rejected"
+  | "invalid_service_response";
+
+export interface IntelligenceEvaluationRecord {
+  state: IntelligenceEvaluationStateRecord;
+  message: string;
+  attemptedAt?: Date;
+  failureCode?: IntelligenceEvaluationFailureCodeRecord;
+  result?: EngineResultV1;
+}
+
 export interface ScoredRecordRecord {
   userId: string;
   datasetId: string;
   sourceRowNumber: number;
   normalizedFields: NormalizedScoredRecordFieldsRecord;
   enrichment?: EnrichmentResultRecord;
+  intelligence?: IntelligenceEvaluationRecord;
   score: ScoredRecordScoreRecord;
   scoredAt: Date;
   createdAt: Date;
@@ -316,6 +333,33 @@ const enrichmentResultSchema = new Schema<EnrichmentResultRecord>(
   },
 );
 
+const intelligenceEvaluationSchema = new Schema<IntelligenceEvaluationRecord>(
+  {
+    state: {
+      type: String,
+      enum: ["completed", "not_configured", "failed"],
+      required: true,
+    },
+    message: { type: String, required: true, trim: true, maxlength: 500 },
+    attemptedAt: { type: Date },
+    failureCode: {
+      type: String,
+      enum: ["service_unavailable", "service_rejected", "invalid_service_response"],
+    },
+    result: {
+      type: Schema.Types.Mixed,
+      validate: {
+        validator: (value: unknown) => value === undefined || validateEngineResultV1(value).valid,
+        message: "Stored intelligence result must satisfy EngineResultV1.",
+      },
+    },
+  },
+  {
+    _id: false,
+    versionKey: false,
+  },
+);
+
 const scoredRecordSchema = new Schema<ScoredRecordRecord>(
   {
     userId: {
@@ -339,6 +383,24 @@ const scoredRecordSchema = new Schema<ScoredRecordRecord>(
     },
     enrichment: {
       type: enrichmentResultSchema,
+    },
+    intelligence: {
+      type: intelligenceEvaluationSchema,
+      validate: {
+        validator: (value: IntelligenceEvaluationRecord | undefined) => {
+          if (value === undefined) {
+            return true;
+          }
+          if (value.state === "completed") {
+            return value.attemptedAt !== undefined && value.result !== undefined && value.failureCode === undefined;
+          }
+          if (value.state === "failed") {
+            return value.attemptedAt !== undefined && value.result === undefined && value.failureCode !== undefined;
+          }
+          return value.result === undefined && value.failureCode === undefined;
+        },
+        message: "Stored intelligence state, result, and failure code are inconsistent.",
+      },
     },
     score: {
       type: scoredRecordScoreSchema,

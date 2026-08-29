@@ -20,8 +20,8 @@
     "limitations"
   ],
   "properties": {
-    "contractVersion": { "const": "1.0.0" },
-    "evidenceSchemaVersion": { "const": "1.0.0" },
+    "contractVersion": { "const": "1.1.0" },
+    "evidenceSchemaVersion": { "const": "1.1.0" },
     "requestId": { "$ref": "#/$defs/nonEmptyString" },
     "candidateId": { "$ref": "#/$defs/nonEmptyString" },
     "generatedAt": { "$ref": "#/$defs/timestamp" },

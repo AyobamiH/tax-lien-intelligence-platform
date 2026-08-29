@@ -76,4 +76,6 @@ and remote-ref verification are all present. Partial work remains
 - `P47-040-service`: Python implementation, 10 unit tests, 7 real-process HTTP
   tests, cross-language parity, service smoke, and repository gates complete
   in this checkpoint.
-- `P47-050-platform-integration`: newly ready after the service checkpoint.
+- `P47-050-platform-integration`: implementation and local verification are in
+  progress. Remote CI, including the real MongoDB persistence smoke, is the
+  remaining completion proof for this checkpoint.

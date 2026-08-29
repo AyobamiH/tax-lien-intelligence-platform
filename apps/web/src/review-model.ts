@@ -1302,6 +1302,10 @@ export function formatPercent(value: number): string {
   return `${Math.round(value * 100)}%`;
 }
 
+export function formatHeuristicSignal(value: number): string {
+  return `${Math.round(value * 100)}/100 rule signal`;
+}
+
 export function formatMoney(value: number | undefined): string {
   if (value === undefined) {
     return "Missing";

@@ -1,5 +1,5 @@
-export const ENGINE_CONTRACT_VERSION = "1.0.0" as const;
-export const CANDIDATE_EVIDENCE_SCHEMA_VERSION = "1.0.0" as const;
+export const ENGINE_CONTRACT_VERSION = "1.1.0" as const;
+export const CANDIDATE_EVIDENCE_SCHEMA_VERSION = "1.1.0" as const;
 export const CANDIDATE_EVIDENCE_SCHEMA_ID =
   "https://taxlien.local/schemas/candidate-evidence-v1.schema.json" as const;
 export const ENGINE_RESULT_SCHEMA_ID =
@@ -13,7 +13,8 @@ export type EvidenceSourceType =
   | "auction_record"
   | "market_sale"
   | "geospatial"
-  | "manual_verification";
+  | "manual_verification"
+  | "user_upload";
 
 export interface EvidenceSourceV1 {
   sourceId: string;
@@ -153,6 +154,7 @@ const evidenceSourceTypes = new Set<EvidenceSourceType>([
   "market_sale",
   "geospatial",
   "manual_verification",
+  "user_upload",
 ]);
 const resultStatuses = new Set<EngineResultStatus>([
   "assessed",

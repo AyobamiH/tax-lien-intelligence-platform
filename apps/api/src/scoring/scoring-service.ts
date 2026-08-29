@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { scoreLienCandidate } from "@tax-lien/scoring";
+import { SCORING_PACKAGE_VERSION, scoreLienCandidate } from "@tax-lien/scoring";
 import type {
   DatasetRefreshJobResponse,
   DatasetScoreJobResponse,
@@ -14,6 +14,11 @@ import type { DatasetStore, StoredDatasetSourceRow } from "../datasets/dataset-s
 import { applyManualMappingsToRows } from "../datasets/manual-mapping.js";
 import { createDefaultEnrichmentService, type EnrichmentService } from "../enrichment/enrichment-service.js";
 import { ApiError } from "../errors/api-error.js";
+import { buildCandidateEvidence } from "../intelligence/candidate-evidence.js";
+import {
+  IntelligenceServiceClient,
+  type IntelligenceEvaluator,
+} from "../intelligence/intelligence-client.js";
 import type { StoredInternalJob } from "../jobs/internal-job-store.js";
 import type { InternalJobService } from "../jobs/internal-job-service.js";
 import {
@@ -31,6 +36,8 @@ export class ScoringService {
   private readonly internalJobService: InternalJobService;
   private readonly enrichmentService: EnrichmentService;
   private readonly maintenancePolicy: MaintenancePolicy;
+  private readonly intelligenceEvaluator: IntelligenceEvaluator;
+  private readonly intelligenceConcurrency: number;
 
   public constructor(
     datasetStore: DatasetStore,
@@ -38,12 +45,16 @@ export class ScoringService {
     internalJobService: InternalJobService,
     enrichmentService: EnrichmentService = createDefaultEnrichmentService(),
     maintenancePolicy: MaintenancePolicy = createMaintenancePolicy(apiConfig.maintenance),
+    intelligenceEvaluator: IntelligenceEvaluator = new IntelligenceServiceClient(apiConfig.intelligence),
+    intelligenceConcurrency = apiConfig.intelligence.maxConcurrency,
   ) {
     this.datasetStore = datasetStore;
     this.scoredRecordStore = scoredRecordStore;
     this.internalJobService = internalJobService;
     this.enrichmentService = enrichmentService;
     this.maintenancePolicy = maintenancePolicy;
+    this.intelligenceEvaluator = intelligenceEvaluator;
+    this.intelligenceConcurrency = Math.max(1, Math.floor(intelligenceConcurrency));
   }
 
   public async scoreDataset(datasetId: string, userId: string): Promise<DatasetScoreJobResponse> {
@@ -163,12 +174,23 @@ export class ScoringService {
       dataset.id,
       job.userId,
       applyManualMappingsToRows(dataset.sourceRows, dataset.manualMapping),
+      {
+        authority: dataset.sourceLabel?.trim()
+          ? `User-provided source label: ${dataset.sourceLabel.trim()}`
+          : `User-uploaded file: ${dataset.originalFilename}`,
+        observedAt: dataset.uploadedAt,
+        jurisdiction: { country: "unknown", state: "unknown", county: "unknown" },
+      },
     );
+    const intelligenceCounts = summarizeIntelligence(result.scores);
     const summary: InternalJobSummary = {
       scoredRecordCount: result.scoredRecordCount,
       ...(result.enrichedRecordCount !== undefined ? { enrichedRecordCount: result.enrichedRecordCount } : {}),
       ...(result.enrichmentFallbackCount !== undefined ? { enrichmentFallbackCount: result.enrichmentFallbackCount } : {}),
       ...(result.earliestReprocessAfter ? { earliestReprocessAfter: result.earliestReprocessAfter } : {}),
+      intelligenceCompletedCount: intelligenceCounts.completed,
+      intelligenceNotConfiguredCount: intelligenceCounts.notConfigured,
+      intelligenceFailedCount: intelligenceCounts.failed,
     };
 
     return summary;
@@ -178,18 +200,36 @@ export class ScoringService {
     datasetId: string,
     userId: string,
     sourceRows: StoredDatasetSourceRow[],
+    sourceContext: {
+      authority: string;
+      observedAt: Date;
+      jurisdiction: { country: string; state: string; county: string };
+    },
   ): Promise<Omit<DatasetScoreRunResponse, "job">> {
     if (sourceRows.length === 0) {
       throw new ApiError(400, "score_no_source_rows", "Dataset does not contain scoreable source rows.");
     }
 
     const scoredAt = new Date();
-    const records: CreateScoredRecordInput[] = [];
+    const pendingRecords: Array<{
+      record: Omit<CreateScoredRecordInput, "intelligence">;
+      evidence: ReturnType<typeof buildCandidateEvidence>;
+    }> = [];
 
     for (const sourceRow of sourceRows) {
       const normalized = normalizeDatasetRow(sourceRow);
       const enriched = await this.enrichmentService.enrichRow(sourceRow, normalized);
       const score = scoreLienCandidate(enriched.scoreableRecord);
+      const evidence = buildCandidateEvidence({
+        datasetId,
+        sourceRowNumber: enriched.sourceRowNumber,
+        sourceAuthority: sourceContext.authority,
+        jurisdiction: sourceContext.jurisdiction,
+        sourceObservedAt: sourceContext.observedAt,
+        evaluationRequestedAt: scoredAt,
+        scoreableRecord: enriched.scoreableRecord,
+        enrichment: enriched.enrichment,
+      });
       const normalizationWarnings = filterResolvedNormalizationWarnings(normalized.warnings, enriched.normalizedFields);
       const flags = [...new Set([...score.flags, ...normalizationWarnings, ...enriched.enrichment.flags])];
       const reasoning = [
@@ -200,20 +240,33 @@ export class ScoringService {
         ]),
       ];
 
-      records.push({
-        userId,
-        datasetId,
-        sourceRowNumber: enriched.sourceRowNumber,
-        normalizedFields: enriched.normalizedFields,
-        enrichment: enriched.enrichment,
-        score: {
-          ...score,
-          flags,
-          reasoning,
+      pendingRecords.push({
+        evidence,
+        record: {
+          userId,
+          datasetId,
+          sourceRowNumber: enriched.sourceRowNumber,
+          normalizedFields: enriched.normalizedFields,
+          enrichment: enriched.enrichment,
+          score: {
+            ...score,
+            flags,
+            reasoning,
+          },
+          scoredAt,
         },
-        scoredAt,
       });
     }
+
+    const evaluations = await mapWithConcurrency(
+      pendingRecords,
+      this.intelligenceConcurrency,
+      (pending) => this.intelligenceEvaluator.evaluate(pending.evidence),
+    );
+    const records: CreateScoredRecordInput[] = pendingRecords.map((pending, index) => ({
+      ...pending.record,
+      intelligence: evaluations[index]!,
+    }));
 
     const storedRecords = await this.scoredRecordStore.replaceScoresForDataset(userId, datasetId, records);
     const enrichmentFallbackCount = records.filter((record) =>
@@ -333,6 +386,26 @@ function earliestIsoString(values: string[]): string | undefined {
   return earliest;
 }
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  maxConcurrency: number,
+  operation: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  async function worker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await operation(items[index]!);
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(maxConcurrency, items.length) }, () => worker()),
+  );
+  return results;
+}
+
 export function toScoredRecordResponse(record: StoredScoredRecord): ScoredRecordResponse {
   return {
     id: record.id,
@@ -348,10 +421,44 @@ export function toScoredRecordResponse(record: StoredScoredRecord): ScoredRecord
     ...(record.score.valueCoverageRatio !== undefined ? { valueCoverageRatio: record.score.valueCoverageRatio } : {}),
     flags: record.score.flags,
     reasoning: record.score.reasoning,
+    legacyScoring: {
+      packageVersion: SCORING_PACKAGE_VERSION,
+      methodology: "fixed_rule_heuristic",
+      redemptionSignalKind: "heuristic_not_probability",
+    },
+    intelligence: record.intelligence ?? {
+      state: "not_configured",
+      message: "No versioned intelligence evaluation is stored for this historical score.",
+    },
     scoredAt: record.scoredAt.toISOString(),
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };
+}
+
+function summarizeIntelligence(scores: ScoredRecordResponse[]): {
+  completed: number;
+  notConfigured: number;
+  failed: number;
+} {
+  let completed = 0;
+  let notConfigured = 0;
+  let failed = 0;
+  for (const score of scores) {
+    switch (score.intelligence?.state) {
+      case "completed":
+        completed += 1;
+        break;
+      case "failed":
+        failed += 1;
+        break;
+      case "not_configured":
+      case undefined:
+        notConfigured += 1;
+        break;
+    }
+  }
+  return { completed, notConfigured, failed };
 }
 
 function filterResolvedNormalizationWarnings(

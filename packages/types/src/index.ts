@@ -1,3 +1,5 @@
+import type { EngineResultV1 } from "@tax-lien/engine-contract";
+
 export type RuntimeEnvironment = "development" | "test" | "production";
 
 export type HealthStatus = "ok" | "degraded";
@@ -1105,6 +1107,41 @@ export interface EnrichmentResult {
   reasoning: string[];
 }
 
+export type IntelligenceEvaluationState = "completed" | "not_configured" | "failed";
+export type IntelligenceEvaluationFailureCode =
+  | "service_unavailable"
+  | "service_rejected"
+  | "invalid_service_response";
+
+export type IntelligenceEvaluationResponse =
+  | {
+      state: "completed";
+      message: string;
+      attemptedAt?: string;
+      result: EngineResultV1;
+      failureCode?: never;
+    }
+  | {
+      state: "not_configured";
+      message: string;
+      attemptedAt?: string;
+      result?: never;
+      failureCode?: never;
+    }
+  | {
+      state: "failed";
+      message: string;
+      attemptedAt?: string;
+      failureCode: IntelligenceEvaluationFailureCode;
+      result?: never;
+    };
+
+export interface LegacyScoringMetadata {
+  packageVersion: string;
+  methodology: "fixed_rule_heuristic";
+  redemptionSignalKind: "heuristic_not_probability";
+}
+
 export interface ScoredRecordResponse {
   id: string;
   datasetId: string;
@@ -1119,6 +1156,8 @@ export interface ScoredRecordResponse {
   valueCoverageRatio?: number;
   flags: string[];
   reasoning: string[];
+  legacyScoring?: LegacyScoringMetadata;
+  intelligence?: IntelligenceEvaluationResponse;
   scoredAt: string;
   createdAt: string;
   updatedAt: string;
@@ -1150,6 +1189,9 @@ export interface InternalJobSummary {
   staleRecordCount?: number;
   refreshJobId?: string;
   policyAutoRefreshEnabled?: boolean;
+  intelligenceCompletedCount?: number;
+  intelligenceNotConfiguredCount?: number;
+  intelligenceFailedCount?: number;
 }
 
 export interface InternalJobError {

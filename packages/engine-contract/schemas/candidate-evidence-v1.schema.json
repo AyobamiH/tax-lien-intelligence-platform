@@ -16,7 +16,7 @@
     "limitations"
   ],
   "properties": {
-    "schemaVersion": { "const": "1.0.0" },
+    "schemaVersion": { "const": "1.1.0" },
     "evidenceVersion": { "$ref": "#/$defs/nonEmptyString" },
     "requestId": { "$ref": "#/$defs/nonEmptyString" },
     "candidateId": { "$ref": "#/$defs/nonEmptyString" },
@@ -85,7 +85,8 @@
             "auction_record",
             "market_sale",
             "geospatial",
-            "manual_verification"
+            "manual_verification",
+            "user_upload"
           ]
         },
         "authority": { "$ref": "#/$defs/nonEmptyString" },

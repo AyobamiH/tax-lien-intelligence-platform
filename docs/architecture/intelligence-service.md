@@ -60,6 +60,31 @@ digest stability, and refusal to emit values on unavailable signals. CI sets up
 Python 3.12, compiles the service, runs its unit tests as part of `npm test`,
 builds it as part of `npm run build`, and runs the real-process smoke.
 
+## Platform Integration
+
+The TypeScript worker builds one `CandidateEvidenceV1` per stored source row.
+The source is classified as `user_upload`, its normalized or inferred fields
+remain marked as derived, and the evidence includes the limitation that the
+upload has not been independently verified. Current user uploads always retain
+an unknown jurisdiction and therefore receive `out_of_scope` without values.
+A Maricopa-style header match improves normalization but is not accepted as
+proof of issuing authority. Exact jurisdiction assignment waits for the
+verified source path in `P47-060-data-inventory`.
+
+The internal client has an explicit disabled state and one bounded HTTP
+attempt per row. The worker evaluates rows with configured concurrency capped
+at 32, preserving result order without starting an unbounded request fan-out.
+A response becomes eligible for persistence only after the shared
+TypeScript validator accepts it and the request ID, candidate ID, evidence
+version, and recomputed evidence digest all match the request. A failure
+persists as a failure envelope with no result. Reprocessing replaces the prior
+envelope, so stale intelligence cannot survive a failed current call.
+
+Mongo stores the complete versioned result inside the tenant-owned scored
+record. API reads revalidate stored results before returning them. The React
+review surface shows assessed, insufficient-evidence, out-of-scope,
+not-configured, failed, and invalid-stored-state presentations separately.
+
 ## Evidence Digest
 
 Both runtimes use the same tagged canonical encoding:
@@ -85,8 +110,8 @@ The service validates every generated result again. If its own output violates
 the contract, it returns a safe `engine_contract_violation` error instead of
 serializing a partial or fabricated result.
 
-Tenant authorization remains a platform-API responsibility in the next node.
-The internal bearer token authenticates the calling service, not the end user.
+Tenant authorization remains a platform-API responsibility. The internal
+bearer token authenticates the calling service, not the end user.
 
 ## Explicit Limits
 

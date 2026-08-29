@@ -29,6 +29,11 @@ const envSchema = z.object({
   CENSUS_GEOCODER_TIMEOUT_MS: z.coerce.number().int().positive().max(10000).default(3000),
   CENSUS_GEOCODER_MAX_ROWS_PER_JOB: z.coerce.number().int().min(0).max(500).default(25),
   ENRICHMENT_FRESHNESS_WINDOW_DAYS: z.coerce.number().int().positive().max(365).default(30),
+  INTELLIGENCE_SERVICE_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
+  INTELLIGENCE_SERVICE_BASE_URL: z.string().url().default("http://127.0.0.1:8081"),
+  INTELLIGENCE_SERVICE_TOKEN: z.preprocess(emptyStringToUndefined, z.string().min(32).optional()),
+  INTELLIGENCE_SERVICE_TIMEOUT_MS: z.coerce.number().int().positive().max(30000).default(5000),
+  INTELLIGENCE_SERVICE_MAX_CONCURRENCY: z.coerce.number().int().positive().max(32).default(8),
   EMAIL_DELIVERY_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
   EMAIL_FROM_ADDRESS: z.preprocess(emptyStringToUndefined, z.string().email().optional()),
   EMAIL_FROM_NAME: z.preprocess(
@@ -58,6 +63,10 @@ if (parsedEnv.NODE_ENV === "production" && !parsedEnv.JWT_SECRET) {
 
 if (parsedEnv.CENSUS_GEOCODER_ENABLED && !parsedEnv.CENSUS_GEOCODER_BASE_URL.startsWith("https://")) {
   throw new Error("CENSUS_GEOCODER_BASE_URL must use https when Census geocoding is enabled.");
+}
+
+if (parsedEnv.INTELLIGENCE_SERVICE_ENABLED && !parsedEnv.INTELLIGENCE_SERVICE_TOKEN) {
+  throw new Error("INTELLIGENCE_SERVICE_TOKEN is required when the intelligence service is enabled.");
 }
 
 const emailDeliveryEnabled =
@@ -105,6 +114,13 @@ export interface ApiConfig {
       timeoutMs: number;
       maxRowsPerJob: number;
     };
+  };
+  intelligence: {
+    enabled: boolean;
+    baseUrl: string;
+    serviceToken?: string;
+    timeoutMs: number;
+    maxConcurrency: number;
   };
   email: {
     enabled: boolean;
@@ -166,6 +182,15 @@ export const apiConfig: ApiConfig = {
       timeoutMs: parsedEnv.CENSUS_GEOCODER_TIMEOUT_MS,
       maxRowsPerJob: parsedEnv.CENSUS_GEOCODER_MAX_ROWS_PER_JOB,
     },
+  },
+  intelligence: {
+    enabled: parsedEnv.INTELLIGENCE_SERVICE_ENABLED,
+    baseUrl: parsedEnv.INTELLIGENCE_SERVICE_BASE_URL,
+    ...(parsedEnv.INTELLIGENCE_SERVICE_TOKEN
+      ? { serviceToken: parsedEnv.INTELLIGENCE_SERVICE_TOKEN }
+      : {}),
+    timeoutMs: parsedEnv.INTELLIGENCE_SERVICE_TIMEOUT_MS,
+    maxConcurrency: parsedEnv.INTELLIGENCE_SERVICE_MAX_CONCURRENCY,
   },
   email: {
     enabled: emailDeliveryEnabled,

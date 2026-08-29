@@ -12,9 +12,10 @@ sequencing and the master product KB for product identity.
 
 - Phase 47 engine work is active on the operator-selected
   `AyobamiH/tax-lien-intelligence-platform` feature branch. The versioned
-  contract package, exact-scope jurisdiction rules, and an authenticated Python
-  service boundary exist there. No cross-repository sync or deployment is
-  claimed.
+  contract package, exact-scope jurisdiction rules, authenticated Python
+  service, TypeScript worker client, versioned result persistence, and explicit
+  browser abstention states exist there. No cross-repository sync or deployment
+  is claimed.
 - The Python service has no model artifact and returns redemption probability
   as unavailable. Its current Maricopa auction operating-rule status is also
   unverified.

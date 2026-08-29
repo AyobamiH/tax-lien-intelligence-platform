@@ -9,11 +9,18 @@ MongoDB, Python, and any LLM.
 
 | Contract | Version | Runtime type | JSON Schema |
 | --- | --- | --- | --- |
-| Candidate evidence | `1.0.0` | `CandidateEvidenceV1` | `candidate-evidence-v1.schema.json` |
-| Engine result | `1.0.0` | `EngineResultV1` | `engine-result-v1.schema.json` |
+| Candidate evidence | `1.1.0` | `CandidateEvidenceV1` | `candidate-evidence-v1.schema.json` |
+| Engine result | `1.1.0` | `EngineResultV1` | `engine-result-v1.schema.json` |
 
 `packages/engine-contract/schemas/manifest.json` is the machine-readable version
 manifest. The TypeScript constants and schema identifiers are covered by tests.
+
+Version `1.1.0` adds `user_upload` as an evidence-source category so the
+platform can cite an ingested row without misrepresenting it as an official
+county or assessor record. The platform records a limitation that uploaded
+evidence has not been independently verified. Current upload evidence also
+retains an unknown jurisdiction; a county-style header match does not establish
+issuing authority.
 
 ## Candidate Evidence
 
@@ -71,16 +78,16 @@ not calculate or alter an engine signal.
 
 ## Compatibility Boundary
 
-The existing `packages/scoring` contract and current `/datasets/:datasetId/scores`
-response remain unchanged in this node so active users are not broken. Its
-`redemptionProbability` property is a legacy fixed-rule heuristic. It is not a
-trained or calibrated probability and must not be mapped to the new
-`redemption_probability` signal.
+The existing `packages/scoring` numerical fields remain on
+`/datasets/:datasetId/scores` for client compatibility. The response now adds
+`legacyScoring` metadata that identifies `redemptionProbability` as a
+`fixed_rule_heuristic` and `heuristic_not_probability`.
 
-The platform-integration node will map the legacy value to
-`redemption_heuristic_signal`, persist engine versions, expose abstention to the
-UI, and preserve the current route while clients transition. Until that work is
-complete, the legacy scoring API is not an `EngineResultV1` endpoint.
+The response also carries a separate `intelligence` envelope. A completed
+envelope contains the complete stored `EngineResultV1`. Disabled and failed
+envelopes carry no result. The API client validates contract shape, request and
+candidate identity, evidence version, and evidence digest before persistence.
+It never reuses a prior result after a service failure.
 
 ## Validation Boundary
 

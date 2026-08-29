@@ -38,6 +38,10 @@ Implemented:
   possible so watchlist references remain stable;
 - unit tests for scoring rules;
 - integration tests for scoring API ownership and weak-data behavior.
+- a bounded TypeScript client for the internal intelligence service;
+- per-row versioned evidence construction and result persistence;
+- explicit completed, not-configured, and failed intelligence states;
+- frontend version, signal, finding, and abstention visibility.
 
 Not implemented:
 
@@ -63,8 +67,13 @@ Not implemented:
 9. The enrichment service infers missing fields and data-quality context from
    safe source-row aliases.
 10. The pure scoring package produces a deterministic score result.
-11. The API persists scored records with `userId`, `datasetId`, normalized fields,
-   enrichment metadata, flags, reasoning, and timestamps.
+11. The API builds versioned evidence and, when enabled, calls the internal
+    intelligence service once with a bounded timeout.
+12. The API validates result identity and digest, or records an explicit
+    disabled/failure state without a result.
+13. The API persists scored records with `userId`, `datasetId`, normalized
+    fields, enrichment metadata, legacy scoring output, versioned intelligence,
+    and timestamps.
 
 ## Scoring Package Boundary
 
@@ -139,16 +148,18 @@ only when it references a versioned model artifact, training-dataset version,
 artifact SHA-256 digest, and evaluation report. Fixed rules must use the
 distinct `redemption_heuristic_signal` key and a non-probability unit.
 
-The existing scoring package and response remain unchanged for compatibility
-in this contract node. Platform integration must relabel the legacy redemption
-field at the compatibility boundary and expose `insufficient_evidence` when a
-model-backed probability is unavailable. See `docs/engine/contracts.md`.
+The existing numerical scoring fields remain for compatibility. The API now
+adds `legacyScoring.methodology: fixed_rule_heuristic` and
+`redemptionSignalKind: heuristic_not_probability`; the frontend labels the
+value as a rule signal rather than a probability. A separate `intelligence`
+envelope carries a contract-valid stored result or an explicit disabled or
+failed state. See `docs/engine/contracts.md`.
 
 ## Phase 47 Jurisdiction Rule Boundary
 
 `packages/jurisdiction-rules` implements a versioned registry and deterministic
 evaluator on top of the engine contract. The first pack is
-`us-az-maricopa-statutory-baseline@2026-08-29.1` and supports only Maricopa
+`us-az-maricopa-statutory-baseline@2026-08-29.2` and supports only Maricopa
 County, Arizona. Unsupported jurisdictions return `out_of_scope` without a
 calculated score.
 
@@ -215,6 +226,7 @@ server-derived documents with:
 - source row number;
 - normalized fields;
 - enrichment metadata;
+- versioned intelligence evaluation state and optional contract-valid result;
 - scoring output;
 - `scoredAt`;
 - timestamps.

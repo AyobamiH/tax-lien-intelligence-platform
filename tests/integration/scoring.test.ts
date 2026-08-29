@@ -21,6 +21,7 @@ import type { CensusGeocoderClient } from "../../apps/api/src/enrichment/census-
 import { EnrichmentService } from "../../apps/api/src/enrichment/enrichment-service.js";
 import { SourceFieldInferenceAdapter } from "../../apps/api/src/enrichment/source-field-inference-adapter.js";
 import { InternalJobService } from "../../apps/api/src/jobs/internal-job-service.js";
+import type { IntelligenceEvaluator } from "../../apps/api/src/intelligence/intelligence-client.js";
 import { createMaintenancePolicy, type MaintenancePolicy } from "../../apps/api/src/maintenance/maintenance-policy.js";
 import { MaintenanceService } from "../../apps/api/src/maintenance/maintenance-service.js";
 import { ScoringService } from "../../apps/api/src/scoring/scoring-service.js";
@@ -153,6 +154,7 @@ class InMemoryScoredRecordStore implements ScoredRecordStore {
       sourceRowNumber: record.sourceRowNumber,
       normalizedFields: record.normalizedFields,
       enrichment: record.enrichment,
+      ...(record.intelligence ? { intelligence: record.intelligence } : {}),
       score: record.score,
       scoredAt: record.scoredAt,
       createdAt: now,
@@ -221,6 +223,8 @@ function createTestContext(
     enrichmentService?: EnrichmentService;
     maintenancePolicy?: MaintenancePolicy;
     scoringRequestLimit?: { windowMs: number; maxRequests: number };
+    intelligenceEvaluator?: IntelligenceEvaluator;
+    intelligenceConcurrency?: number;
   } = {},
 ): {
   app: ReturnType<typeof createApp>;
@@ -261,6 +265,8 @@ function createTestContext(
     internalJobService,
     options.enrichmentService,
     maintenancePolicy,
+    options.intelligenceEvaluator,
+    options.intelligenceConcurrency,
   );
   const maintenanceService = new MaintenanceService(datasetStore, scoredRecordStore, internalJobService, maintenancePolicy);
   const workerProcessor = new WorkerJobProcessor(internalJobService, scoringService, maintenanceService);
@@ -343,6 +349,9 @@ describe("dataset scoring API", () => {
         status: "completed",
         summary: {
           scoredRecordCount: 2,
+          intelligenceCompletedCount: 0,
+          intelligenceNotConfiguredCount: 2,
+          intelligenceFailedCount: 0,
         },
       },
     });
@@ -363,6 +372,13 @@ describe("dataset scoring API", () => {
       confidenceScore: expect.any(Number),
       flags: expect.any(Array),
       reasoning: expect.any(Array),
+      legacyScoring: {
+        methodology: "fixed_rule_heuristic",
+        redemptionSignalKind: "heuristic_not_probability",
+      },
+      intelligence: {
+        state: "not_configured",
+      },
     });
     expect(scoresResponse.body.scores[0].reasoning.length).toBeGreaterThan(0);
 
@@ -376,6 +392,9 @@ describe("dataset scoring API", () => {
       status: "completed",
       summary: {
         scoredRecordCount: 2,
+        intelligenceCompletedCount: 0,
+        intelligenceNotConfiguredCount: 2,
+        intelligenceFailedCount: 0,
       },
     });
 
@@ -397,6 +416,57 @@ describe("dataset scoring API", () => {
         },
       ],
     });
+  });
+
+  it("bounds per-job intelligence requests without changing source-row order", async () => {
+    let active = 0;
+    let peak = 0;
+    let calls = 0;
+    const intelligenceEvaluator: IntelligenceEvaluator = {
+      async evaluate() {
+        calls += 1;
+        active += 1;
+        peak = Math.max(peak, active);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        active -= 1;
+        return {
+          state: "not_configured",
+          message: "Concurrency orchestration test did not request intelligence.",
+        };
+      },
+    };
+    const { app, workerProcessor } = createTestContext({
+      intelligenceEvaluator,
+      intelligenceConcurrency: 2,
+    });
+    const owner = await registerUser(app, "concurrency-owner@example.com");
+    const datasetId = await uploadDataset(
+      app,
+      owner.token,
+      [
+        "parcel_id,lien_amount,estimated_value,property_type",
+        "A-1,1000,12000,Land",
+        "A-2,1100,13000,Land",
+        "A-3,1200,14000,Land",
+        "A-4,1300,15000,Land",
+      ].join("\n"),
+    );
+
+    await request(app)
+      .post(`/datasets/${datasetId}/score`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(202);
+    await workerProcessor.processNextJob();
+    const scores = await request(app)
+      .get(`/datasets/${datasetId}/scores`)
+      .set("Authorization", `Bearer ${owner.token}`)
+      .expect(200);
+
+    expect(calls).toBe(4);
+    expect(peak).toBe(2);
+    expect(scores.body.scores.map((score: { sourceRowNumber: number }) => score.sourceRowNumber).sort()).toEqual([
+      2, 3, 4, 5,
+    ]);
   });
 
   it("rate limits repeated scoring requests for the same workspace actor", async () => {
@@ -682,7 +752,18 @@ describe("dataset scoring API", () => {
   });
 
   it("uses county-specific import mapping to make Maricopa-style rows scoreable", async () => {
-    const { app, workerProcessor } = createTestContext();
+    const evaluatedJurisdictions: Array<{ country: string; state: string; county: string }> = [];
+    const { app, workerProcessor } = createTestContext({
+      intelligenceEvaluator: {
+        async evaluate(evidence) {
+          evaluatedJurisdictions.push(evidence.jurisdiction);
+          return {
+            state: "not_configured",
+            message: "Jurisdiction integrity test did not request intelligence.",
+          };
+        },
+      },
+    });
     const owner = await registerUser(app, "maricopa-owner@example.com");
     const datasetResponse = await request(app)
       .post("/datasets")
@@ -732,6 +813,9 @@ describe("dataset scoring API", () => {
     expect(scoresResponse.body.scores[0].confidenceScore).toBeGreaterThanOrEqual(70);
     expect(scoresResponse.body.scores[0].flags).not.toContain("Missing or invalid lien amount");
     expect(scoresResponse.body.scores[0].flags).not.toContain("Missing or invalid property value");
+    expect(evaluatedJurisdictions).toEqual([
+      { country: "unknown", state: "unknown", county: "unknown" },
+    ]);
   });
 
   it("persists safe external enrichment results through the worker scoring path", async () => {

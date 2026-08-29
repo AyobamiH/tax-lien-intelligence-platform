@@ -20,6 +20,11 @@ Current implementation:
 - real-process loopback contract tests that compare Python service output with
   the TypeScript rule engine, including fractional-number evidence digest
   parity;
+- a tenant-aware TypeScript service client used only by the scoring worker,
+  with bounded timeout, response identity/digest validation, explicit disabled
+  and failure states, and no retry or stale-result fallback;
+- scored-record persistence for complete versioned engine results, with
+  contract revalidation on API reads;
 - Express app factory;
 - Helmet middleware;
 - CORS middleware;

@@ -24,9 +24,19 @@ Phase 47 adds an independent engine-boundary package at
 - a hard contract rule that a redemption probability is available only from a
   versioned model artifact.
 
-The existing `packages/scoring` output remains a compatibility contract. Its
-`redemptionProbability` value is a fixed heuristic and must be renamed to
-`redemption_heuristic_signal` when mapped into `EngineResultV1`.
+The existing `packages/scoring` output remains a compatibility contract. API
+responses add `legacyScoring` metadata so its `redemptionProbability` value is
+identified as a fixed heuristic and not a probability.
+
+`packages/types` now also defines the platform compatibility envelope:
+
+- `completed` contains a contract-valid `EngineResultV1`;
+- `not_configured` contains no result;
+- `failed` contains a bounded failure code and no result;
+- internal-job summaries count each state for operational visibility.
+
+The API client verifies result identity, evidence version, and digest before
+the completed state can cross into persistence.
 
 Phase 47 also adds `packages/jurisdiction-rules` as a server-side consumer of
 the engine contract. Its registry is exact-jurisdiction and version based. The

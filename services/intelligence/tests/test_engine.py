@@ -23,7 +23,7 @@ def unknown_field() -> dict:
 
 def evidence_vector() -> dict:
     return {
-        "schemaVersion": "1.0.0",
+        "schemaVersion": "1.1.0",
         "evidenceVersion": "python-service-vector-v1",
         "requestId": "request-python-001",
         "candidateId": "candidate-python-001",

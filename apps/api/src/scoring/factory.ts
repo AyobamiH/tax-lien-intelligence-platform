@@ -4,6 +4,7 @@ import { apiConfig } from "../config/env.js";
 import { createInternalJobService } from "../jobs/factory.js";
 import type { InternalJobService } from "../jobs/internal-job-service.js";
 import { createMaintenancePolicy } from "../maintenance/maintenance-policy.js";
+import { IntelligenceServiceClient } from "../intelligence/intelligence-client.js";
 import { MongoScoredRecordStore } from "./scored-record-store.js";
 import { ScoringService } from "./scoring-service.js";
 
@@ -14,5 +15,7 @@ export function createScoringService(internalJobService: InternalJobService = cr
     internalJobService,
     createDefaultEnrichmentService(apiConfig.externalEnrichment),
     createMaintenancePolicy(apiConfig.maintenance),
+    new IntelligenceServiceClient(apiConfig.intelligence),
+    apiConfig.intelligence.maxConcurrency,
   );
 }

@@ -171,8 +171,9 @@ Use Node.js `^20.19.0 || >=22.12.0`.
    python3 -m tax_lien_intelligence.server
    ```
 
-   The existing API does not call this service until the Phase 47 platform
-   integration checkpoint is complete.
+   To enable API worker calls, use the same token and set
+   `INTELLIGENCE_SERVICE_ENABLED=true`. The service remains disabled by default
+   and must be reachable only on a private application network.
 
 ## Quality Gates
 
@@ -184,6 +185,7 @@ npm run build
 npm run smoke:local
 npm run smoke:browser
 npm run smoke:intelligence-service
+npm run smoke:intelligence:mongo
 ```
 
 `npm run test` includes the dependency-free Python unit suite and all Vitest
@@ -191,6 +193,10 @@ tests. `npm run build` compiles every TypeScript workspace and byte-compiles the
 Python service. `npm run smoke:intelligence-service` starts the real
 authenticated Python process on loopback and verifies health, version,
 contract parity, invalid evidence, and out-of-scope behavior over HTTP.
+`npm run smoke:intelligence:mongo` builds the application, writes and reads a
+contract-valid result through the real Mongo scored-record store, then proves a
+later service failure removes the prior result. CI supplies a temporary real
+MongoDB service and drops the bounded smoke database after the check.
 
 `npm run smoke:local` builds the workspace, starts the API app in-process,
 serves the built web shell from `apps/web/dist`, verifies `/healthz`, verifies
@@ -201,7 +207,8 @@ automation or deployed proof.
 `npm run smoke:browser` mounts the real React app in a jsdom browser-like DOM,
 checks the unauthenticated app shell, and bootstraps the authenticated operator
 shell with mocked API responses. It also runs the follow-up lifecycle browser
-smoke for due-state rendering plus update, complete, and snooze controls.
+smoke for due-state rendering plus update, complete, and snooze controls, and
+renders completed, not-configured, and failed intelligence evidence states.
 
 `npm run smoke:follow-ups:browser` runs only the focused follow-up lifecycle
 browser-like smoke and writes local JSON evidence to

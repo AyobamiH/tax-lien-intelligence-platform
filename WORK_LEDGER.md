@@ -1,5 +1,56 @@
 # Work Ledger
 
+## 2026-08-29T12:30:00Z - P47-050 platform-integration implementation checkpoint
+
+- Starting point: remote feature branch
+  `feature/intelligence-engine-foundation` at `cb56e52`, with the authenticated
+  Python service checkpoint published and all earlier Phase 47 dependencies
+  complete.
+- Chosen node: `P47-050-platform-integration`, now `in_progress` pending remote
+  CI and real MongoDB smoke proof.
+- Work completed:
+  - added a tenant-side TypeScript service client with explicit disabled,
+    rejected, unavailable, and invalid-response outcomes;
+  - validated contract shape, request ID, candidate ID, evidence version, and
+    recomputed evidence digest before accepting service output;
+  - added contract `1.1.0` `user_upload` provenance without treating uploaded
+    rows as official county records;
+  - built versioned evidence per scored row and kept upload jurisdiction
+    unknown because an adapter header match is not proof of issuing authority;
+  - added bounded service concurrency, default 8 and capped at 32;
+  - persisted complete versioned results or explicit no-result abstention
+    envelopes and removed prior results during failed replacement runs;
+  - added job-summary counts for completed, not-configured, and failed
+    intelligence evaluations;
+  - kept existing numerical score fields for compatibility while adding
+    `legacyScoring` metadata and browser labels that identify the redemption
+    value as a fixed-rule heuristic signal;
+  - added browser detail for engine status, versions, applicability, signals,
+    findings, missing evidence, disabled state, and failure state;
+  - added a real MongoDB CI service and bounded persistence smoke that writes,
+    reads, validates, replaces, and removes stale result state.
+- Product-truth result: the platform can consume and store the real service's
+  deterministic result, but it still does not claim a redemption probability,
+  AVM, liquidity model, current county auction feed, or production deployment.
+- Changed-state declaration: application source, contracts, tests, CI, config
+  examples, and documentation only. No deployment, migration, service restart,
+  secret read, production traffic, or production data mutation occurred.
+- Local verification:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:work-graph` passed with 10 nodes and one in progress;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 10 Python tests and 306 Vitest tests across 46
+    files;
+  - `npm run build` passed for all workspaces and Python compile;
+  - `npm run smoke:local` passed;
+  - `npm run smoke:browser` passed with 3 files and 6 tests;
+  - `npm run smoke:intelligence-service` passed with 9 real-process tests;
+  - `git diff --check` passed.
+- Remaining completion proof: push this implementation checkpoint, verify the
+  branch CI run including `npm run smoke:intelligence:mongo`, then publish a
+  small graph and ledger closure commit. The local workspace has no MongoDB
+  daemon, so no local Mongo-backed success is claimed.
+
 ## 2026-08-29T04:50:00Z - Phase 47 graph-governed operating foundation
 
 - Starting point: remote feature branch

@@ -80,7 +80,7 @@ const verifiedAt = "2026-08-29T09:15:00.000Z";
 export const ARIZONA_MARICOPA_RULE_PACK_V1 = {
   interfaceVersion: RULE_PACK_INTERFACE_VERSION,
   packId: "us-az-maricopa-statutory-baseline",
-  version: "2026-08-29.1",
+  version: "2026-08-29.2",
   verifiedAt,
   jurisdiction: {
     country: "US",

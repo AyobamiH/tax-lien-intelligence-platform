@@ -8,12 +8,16 @@ scrape live auctions, predict outcomes, or make legal conclusions.
 
 | Pack | Version | Scope | Legal source status | County auction status |
 | --- | --- | --- | --- | --- |
-| `us-az-maricopa-statutory-baseline` | `2026-08-29.1` | US / Arizona / Maricopa | Primary statutes verified on 2026-08-29 | Not verified |
+| `us-az-maricopa-statutory-baseline` | `2026-08-29.2` | US / Arizona / Maricopa | Primary statutes verified on 2026-08-29 | Not verified |
 
 The registry uses normalized aliases for `US`, `Arizona`, and `Maricopa County`,
 but does not broaden coverage to another county or state. A candidate outside
 the exact registered scope returns `out_of_scope` and no calculated
 intelligence.
+
+Version `2026-08-29.2` retains the same statutory rules and adds the contract
+`1.1.0` user-upload evidence source used by the platform integration. It does
+not upgrade an upload into an official county record.
 
 ## Source Classes
 

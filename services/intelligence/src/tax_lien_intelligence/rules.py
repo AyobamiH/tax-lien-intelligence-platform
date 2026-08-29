@@ -16,7 +16,7 @@ from .contracts import (
 
 RULE_ENGINE_VERSION = "jurisdiction-rules-1.1.0"
 RULE_PACK_ID = "us-az-maricopa-statutory-baseline"
-RULE_PACK_VERSION = "2026-08-29.1"
+RULE_PACK_VERSION = "2026-08-29.2"
 RULE_PACK_VERIFIED_AT = "2026-08-29T09:15:00.000Z"
 SERVICE_VERSION = "0.1.0"
 

@@ -40,6 +40,11 @@ It shows:
   has usable address context;
 - enrichment adapter outcome and freshness/reprocess timing detail;
 - row-level detail surface with flags and reasoning;
+- row-level versioned intelligence state with engine, rule-pack, contract, and
+  evidence versions, signals, findings, missing evidence, and explicit
+  not-configured or failure abstention;
+- legacy redemption values labelled as fixed-rule heuristic signals rather
+  than calibrated probabilities;
 - watchlist keep/remove actions for scored records;
 - dedicated watchlist comparison route using `#/watchlist`;
 - watchlist detail surface with flags and reasoning;

@@ -42,6 +42,7 @@ import {
   filterScoresForReview,
   flagPreview,
   formatMoney,
+  formatHeuristicSignal,
   formatPercent,
   formatRatio,
   importProfileApplicationPresentation,
@@ -522,6 +523,7 @@ describe("review model helpers", () => {
     expect(formatMoney(12000)).toBe("$12,000");
     expect(formatRatio(8.236)).toBe("8.24x");
     expect(formatPercent(0.82)).toBe("82%");
+    expect(formatHeuristicSignal(0.82)).toBe("82/100 rule signal");
   });
 
   it("builds compact labels, previews, and score bands", () => {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T09:36:58Z",
+  "updatedAt": "2026-08-29T12:30:00Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
   "goal": "Deliver a versioned, evidence-first intelligence engine and a read-only ChatGPT evidence interface without fabricated predictions.",
@@ -83,14 +83,14 @@
     {
       "id": "P47-050-platform-integration",
       "title": "Integrate the engine through a TypeScript compatibility boundary",
-      "status": "ready",
+      "status": "in_progress",
       "ownerRole": "platform-integration-engineer",
       "dependencies": ["P47-040-service"],
       "scope": ["API client", "stored result versioning", "legacy heuristic label", "UI abstention states", "tenant isolation"],
       "acceptance": ["current users retain workflow continuity", "legacy heuristic is not labelled probability", "service failure does not invent or reuse stale intelligence silently"],
       "documentation": ["docs/api/scoring.md", "docs/architecture/scoring.md", "docs/kb/current-surface-kb.md", "docs/engine/status.md"],
       "verification": ["API integration tests", "browser-like evidence states", "Mongo-backed smoke", "full repository gates"],
-      "evidence": [],
+      "evidence": ["implementation and local verification checkpoint pending remote CI proof"],
       "blockers": []
     },
     {

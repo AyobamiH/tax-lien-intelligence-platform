@@ -14,16 +14,16 @@ Last updated: 2026-08-29
   `EngineResultV1` TypeScript contracts, dependency-free runtime validators,
   strict JSON Schemas, and a machine-readable schema manifest.
 - `P47-030-rule-engine` adds the exact-scope
-  `us-az-maricopa-statutory-baseline@2026-08-29.1` pack, source-citation
+  `us-az-maricopa-statutory-baseline@2026-08-29.2` pack, source-citation
   resolution, deterministic evidence hashing, and evidence-backed internal
   exclusion rules.
 - `P47-040-service` adds a stateless, authenticated Python 3.12 HTTP service
   with request bounds, strict evidence and result validation, health/version
   endpoints, safe failure responses, and no provider or model fallback.
-- Current application gates pass: audit with 0 vulnerabilities, graph
-  validation, typecheck, 10 Python unit tests, 296 Vitest tests across 43 files,
-  every workspace build, Python compile, and the 7-test real-process service
-  smoke.
+- `P47-050-platform-integration` is in progress with a tenant-aware API client,
+  `user_upload` evidence provenance, versioned result persistence, explicit
+  failure and disabled states, legacy heuristic metadata, UI abstention, and a
+  real MongoDB CI smoke path.
 - Current `packages/scoring` implementation is deterministic rules-based
   prioritization, not a calibrated prediction engine.
 - One Maricopa-style import adapter and generic fallback exist.
@@ -42,16 +42,15 @@ claimed.
 
 ## Current Work
 
-`P47-040-service` is verified. Python and TypeScript produce the same complete
-engine result for the same fractional-number evidence over a real authenticated
-loopback HTTP process. The service rejects malformed, oversized,
-unauthenticated, and contract-invalid requests before evaluation and validates
-its own output before sending it.
+`P47-050-platform-integration` has passed local typecheck, focused API-client,
+contract, persistence-model, candidate-evidence, and browser-like tests, plus
+all workspace builds. The production TypeScript client has also been exercised
+against the real authenticated Python process. The node remains `in_progress`
+until the implementation is pushed and CI proves the real MongoDB write,
+read-validation, and stale-result removal smoke.
 
 ## Next Ready Work
 
-- `P47-050-platform-integration`: tenant-safe TypeScript client, persisted
-  versioned result, legacy heuristic labelling, and UI abstention states.
 - `P47-060-data-inventory`: Maricopa data-source and outcome-label inventory.
 
 ## Explicitly Unproven

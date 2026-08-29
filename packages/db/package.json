@@ -9,6 +9,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "@tax-lien/engine-contract": "0.1.0",
     "mongoose": "^9.0.1"
   }
 }

@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- Integrated the tenant-aware scoring worker with the internal Python service
+  through a bounded TypeScript client that validates contract shape, request
+  identity, evidence version, and evidence digest before persistence.
+- Added `user_upload` provenance to contract `1.1.0`, preserving the source as
+  an unverified upload rather than presenting it as an official county record.
+  All current uploads remain outside the exact Maricopa rule-pack scope because
+  header patterns and user-provided labels do not prove issuing authority.
+- Persisted complete versioned results and explicit `not_configured` or failed
+  envelopes on scored records. Current failures replace prior results instead
+  of silently reusing stale intelligence.
+- Added `legacyScoring` response metadata and changed visible redemption labels
+  to fixed-rule heuristic signals. The React record detail now displays engine
+  status, versions, applicability, signals, findings, missing evidence, and
+  explicit abstention states.
+- Added real-process production-client tests, candidate-evidence tests,
+  Mongo-model consistency tests, browser-like intelligence-state tests, and a
+  CI MongoDB smoke that proves result round-trip validation and stale-result
+  removal.
 - Added a dependency-free Python 3.12 intelligence service with authenticated
   `POST /v1/evaluate`, public health/version truth, strict request limits,
   structured safe errors, graceful shutdown, and a non-root container

@@ -84,6 +84,9 @@ Returns one job in the selected workspace.
       "scoredRecordCount": 2,
       "enrichedRecordCount": 2,
       "enrichmentFallbackCount": 0,
+      "intelligenceCompletedCount": 2,
+      "intelligenceNotConfiguredCount": 0,
+      "intelligenceFailedCount": 0,
       "earliestReprocessAfter": "2026-06-24T00:00:00.000Z"
     },
     "queuedAt": "2026-05-25T00:00:00.000Z",
