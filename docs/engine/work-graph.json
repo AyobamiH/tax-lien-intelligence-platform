@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T14:50:00Z",
+  "updatedAt": "2026-08-29T15:30:00Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
-  "goal": "Deliver a versioned, evidence-first intelligence engine and a read-only ChatGPT evidence interface without fabricated predictions.",
+  "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
   "policies": {
     "noMockIntelligence": true,
     "abstentionRequired": true,
@@ -13,6 +13,24 @@
     "verificationRequiredPerNode": true,
     "commitAndPushRequiredPerNode": true,
     "productionMutationRequiresApproval": true
+  },
+  "executionFocus": {
+    "priority": "chatgpt-product",
+    "wipLimit": 1,
+    "parallelProductTracksAllowed": false,
+    "nextNode": "P47-092-chatgpt-product-definition",
+    "activeSequence": [
+      "P47-092-chatgpt-product-definition",
+      "P47-093-chatgpt-private-staging",
+      "P47-094-chatgpt-real-user-pilot",
+      "P47-095-chatgpt-public-release"
+    ],
+    "deferredNodes": [
+      "P47-065-lawful-data-acquisition",
+      "P47-070-trained-models",
+      "P47-080-evaluation"
+    ],
+    "resumeCondition": "Resume deferred engine, data, or model work only when real ChatGPT pilot evidence identifies it as the highest-impact blocker, or after the public-release node is complete."
   },
   "nodes": [
     {
@@ -109,7 +127,7 @@
     {
       "id": "P47-065-lawful-data-acquisition",
       "title": "Prepare and execute lawful longitudinal data acquisition",
-      "status": "ready",
+      "status": "planned",
       "ownerRole": "data-partnerships-engineer",
       "dependencies": ["P47-060-data-inventory"],
       "scope": ["commercial-purpose request package", "written data-use terms", "certificate lifecycle schema", "raw artifact manifest", "privacy and retention review", "time-aware entity resolution"],
@@ -165,45 +183,157 @@
       "blockers": []
     },
     {
-      "id": "P47-095-chatgpt-public-release",
-      "title": "Authorize, deploy, and connect the public ChatGPT plugin",
-      "status": "blocked",
-      "ownerRole": "chatgpt-release-engineer",
+      "id": "P47-092-chatgpt-product-definition",
+      "title": "Lock the ChatGPT product definition and release boundary",
+      "status": "in_progress",
+      "ownerRole": "chatgpt-product-lead",
       "dependencies": ["P47-090-chatgpt-interface"],
       "scope": [
-        "OAuth authorization and discovery",
-        "stable public HTTPS MCP deployment",
-        "token lifecycle and revocation",
-        "rate limits and payload-safe observability",
-        "live ChatGPT connection evals",
-        "rollback and incident ownership"
+        "primary user and first three jobs",
+        "evidence-first product promise and prohibited claims",
+        "thin ChatGPT release-repository boundary",
+        "tool-to-user-journey map",
+        "pilot hypotheses, success measures, and failure taxonomy",
+        "OAuth, deployment, privacy, support, and incident ownership map"
       ],
       "acceptance": [
-        "ChatGPT authenticates through the approved OAuth flow without manual application JWT handling",
-        "owner, admin, member, expired, revoked, and cross-workspace cases pass live authorization tests",
-        "the public MCP endpoint has verified health, latency, error, abuse, and redaction controls",
-        "the connected tool inventory remains read-only and cannot alter engine values or execute bids",
-        "deployment rollback, incident ownership, privacy, retention, and deletion controls are approved and tested"
+        "one primary user segment and the triage, diligence, and decision-brief jobs are explicit",
+        "the ChatGPT product remains read-only evidence support and is not autonomous underwriting, legal advice, or bidding",
+        "a thin release product is designed to consume the existing engine interface without copying calculations, evidence state, or tenancy logic",
+        "the minimum pilot journey, onboarding handoff, evaluation set, measurable release gates, and named external decisions are documented",
+        "no extra tool, model, data source, county expansion, or web-app feature is authorized without pilot evidence"
       ],
       "documentation": [
-        "public deployment runbook",
+        "docs/product/chatgpt-priority-plan.md",
+        "docs/product/chatgpt-release-evaluation.json",
+        "docs/decisions/0003-chatgpt-product-boundary.md",
+        "docs/engine/status.md",
+        "WORK_LEDGER.md"
+      ],
+      "verification": [
+        "product and architecture review against the existing MCP contract",
+        "npm run validate:work-graph",
+        "npm run typecheck",
+        "git diff --check"
+      ],
+      "evidence": [],
+      "blockers": []
+    },
+    {
+      "id": "P47-093-chatgpt-private-staging",
+      "title": "Connect a private ChatGPT staging product",
+      "status": "planned",
+      "ownerRole": "chatgpt-release-engineer",
+      "dependencies": ["P47-092-chatgpt-product-definition"],
+      "scope": [
+        "thin release repository and engine provenance pin",
+        "stable HTTPS staging MCP deployment",
+        "approved OAuth authorization and token lifecycle",
+        "tenant-safe onboarding and secure data-upload handoff",
+        "payload-safe telemetry, rate limits, rollback, and support runbook"
+      ],
+      "acceptance": [
+        "a connected private ChatGPT product completes the core journey against the real staging service",
+        "OAuth discovery, issuance, expiry, revocation, and workspace membership are tested without manual application JWT handling",
+        "owner, admin, member, denied, expired, revoked, and cross-workspace cases fail closed",
+        "the deployed tool inventory remains the approved read-only set and exposes no bid, purchase, score mutation, or legal-conclusion action",
+        "deployment provenance, monitoring, redaction, rate limits, rollback, and incident ownership are recorded"
+      ],
+      "documentation": [
+        "staging deployment runbook",
         "OAuth and token threat model",
+        "release repository README and provenance manifest",
+        "docs/engine/status.md",
+        "WORK_LEDGER.md"
+      ],
+      "verification": [
+        "live ChatGPT staging connection tests",
+        "OAuth lifecycle and tenant isolation tests",
+        "tool inventory and read-only annotation tests",
+        "load, rate-limit, redaction, health, and rollback tests",
+        "full repository gates"
+      ],
+      "evidence": [],
+      "blockers": []
+    },
+    {
+      "id": "P47-094-chatgpt-real-user-pilot",
+      "title": "Validate the ChatGPT product with real target users",
+      "status": "planned",
+      "ownerRole": "chatgpt-product-lead",
+      "dependencies": ["P47-093-chatgpt-private-staging"],
+      "scope": [
+        "real-user pilot onboarding",
+        "triage, diligence, comparison, and decision-brief task evaluation",
+        "grounding, authorization, abstention, latency, and tool-failure measurement",
+        "qualitative trust and usability feedback",
+        "evidence-based product backlog decision"
+      ],
+      "acceptance": [
+        "at least five distinct target users complete at least ten real tasks on their own authorized data",
+        "the scripted release suite covers at least thirty direct, indirect, invalid-input, cross-tenant, prompt-injection, and out-of-scope scenarios",
+        "all authorization and tenant-isolation critical cases pass and no uncited numeric, legal, bid, or purchase conclusion is emitted",
+        "at least eighty percent of core tasks complete without operator intervention and every failure is classified",
+        "the pilot report identifies keep, change, stop, and deferred-engine decisions from observed evidence rather than roadmap preference"
+      ],
+      "documentation": [
+        "pilot protocol and consent notice",
+        "evaluation manifest",
+        "pilot results and failure taxonomy",
+        "prioritized product backlog",
+        "docs/engine/status.md",
+        "WORK_LEDGER.md"
+      ],
+      "verification": [
+        "real-user session evidence",
+        "reproducible scripted ChatGPT evaluation run",
+        "authorization and grounding audit",
+        "privacy and support review",
+        "go or no-go review"
+      ],
+      "evidence": [],
+      "blockers": []
+    },
+    {
+      "id": "P47-095-chatgpt-public-release",
+      "title": "Approve and release the public ChatGPT product",
+      "status": "blocked",
+      "ownerRole": "chatgpt-release-engineer",
+      "dependencies": ["P47-094-chatgpt-real-user-pilot"],
+      "scope": [
+        "production ChatGPT connection",
+        "public listing and review materials",
+        "approved privacy, retention, deletion, and support controls",
+        "release monitoring and incident response",
+        "pilot-backed launch decision and rollback"
+      ],
+      "acceptance": [
+        "the production connection passes the private-staging authorization, isolation, grounding, safety, reliability, and rollback gates",
+        "the connected tool inventory remains read-only and cannot alter engine values or execute bids",
+        "privacy, retention, deletion, user support, incident ownership, and public disclosures are approved and tested",
+        "public listing claims match verified capability and do not claim prediction, legal advice, live county verification, or autonomous investing",
+        "the release decision cites the real-user pilot and has a named owner, monitored launch window, and tested rollback"
+      ],
+      "documentation": [
+        "production release runbook",
+        "public listing and policy materials",
         "production privacy review",
         "live connection evidence",
+        "launch decision and rollback record",
         "docs/engine/status.md"
       ],
       "verification": [
-        "OAuth discovery and lifecycle tests",
-        "live role and tenant isolation tests",
-        "direct, indirect, invalid-input, and out-of-scope ChatGPT evals",
-        "load, rate-limit, logging-redaction, and rollback tests",
-        "release-readiness review"
+        "production connection and role-isolation tests",
+        "full release evaluation manifest",
+        "load, rate-limit, logging-redaction, monitoring, and rollback tests",
+        "listing and policy review",
+        "release-readiness and post-launch review"
       ],
       "evidence": [],
       "blockers": [
-        "deployment, publication, and production configuration were not authorized in this run",
-        "the production domain, OAuth client configuration, and authorization owner are not supplied",
-        "product privacy, retention, deletion, and property-evidence approval is pending"
+        "the private staging and real-user pilot dependencies are not complete",
+        "deployment, publication, and production configuration are not yet authorized",
+        "the production domain, OAuth ownership, privacy, retention, deletion, support, and incident decisions are not approved"
       ]
     }
   ]

@@ -1,5 +1,60 @@
 # Work Ledger
 
+## 2026-08-29T15:30:00Z - ChatGPT product priority-one plan
+
+- Operator decision: avoid simultaneous product directions and make the
+  ChatGPT product priority one.
+- Starting point: clean remote-aligned branch
+  `feature/intelligence-engine-foundation` at `362abe7`, after the read-only MCP
+  interface and explicit public-release gate were published and verified.
+- Graph decision:
+  - added machine-enforced `executionFocus` with WIP 1 and no parallel product
+    tracks;
+  - made `P47-092-chatgpt-product-definition` the only in-progress node pending
+    publication and independent CI evidence;
+  - sequenced private staging, real-user pilot, and public release behind it;
+  - deferred lawful data acquisition, trained models, and model evaluation
+    until real pilot evidence identifies that work as the highest-impact
+    blocker or public release completes.
+- Product decision:
+  - primary user is a solo tax-lien investor or small-team analyst with lawful
+    workspace data;
+  - first jobs are sale-list triage, evidence-based diligence/comparison, and a
+    cited decision brief;
+  - ChatGPT remains read-only and links to the existing application for uploads
+    or mutations;
+  - the platform remains the engine and system of record;
+  - a proposed thin `AyobamiH/tax-lien-chatgpt-product` release repository may
+    contain connector packaging and release evidence but no copied engine,
+    evidence, auth, tenancy, or write logic.
+- Release definition:
+  - mapped all six existing read-only tools to the onboarding, triage,
+    diligence, comparison, and decision-record journey;
+  - added accountable decision roles and a payload-safe telemetry boundary;
+  - added 30 planned live cases across core journey, grounding, invalid input,
+    authorization, prompt injection, and out-of-scope classes;
+  - required real connected staging for execution evidence, at least five real
+    target users, ten real tasks, 100% critical safety/tenancy pass, and at
+    least 80% independent core-job completion.
+- No runtime, dependency, deployment, production configuration, credential,
+  external service, or user data was changed. The repository name above is a
+  plan, not a claim that it exists.
+- Local verification:
+  - `npm run audit` passed with zero vulnerabilities;
+  - work graph validation passed with 15 nodes, WIP 1 focus, and only `P47-092`
+    in progress;
+  - data-source inventory validation passed with six sources, zero approved,
+    four blocked, and training blocked;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 10 Python tests and 315 Vitest tests across 48
+    files;
+  - `npm run build` passed for all workspaces and Python compilation;
+  - `git diff --check` passed.
+- Remaining closure evidence: commit, push, remote-ref verification, and
+  independent branch CI.
+- Next node remains `P47-092-chatgpt-product-definition` until that closure
+  evidence is recorded.
+
 ## 2026-08-29T14:00:00Z - P47-060 data inventory closure
 
 - Published implementation checkpoint: `9cbc841` on

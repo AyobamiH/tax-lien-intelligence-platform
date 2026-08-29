@@ -2,8 +2,10 @@
 
 ## Operating Rule
 
-Continue the existing Tax Lien Intelligence Platform repo. Do not create a new
-repo, replacement scaffold, or parallel architecture.
+Continue the existing Tax Lien Intelligence Platform as the engine and system
+of record. Do not create a replacement scaffold or parallel source of truth. A
+thin ChatGPT release product is allowed only under Decision 0003 and its graph
+gate.
 
 ## Startup Inspection
 
@@ -30,6 +32,11 @@ repo, replacement scaffold, or parallel architecture.
    - recent partial or unfinished work.
 
 ## Choosing Next Work
+
+If `docs/engine/work-graph.json` contains `executionFocus`, its `nextNode` is
+the only task that may be selected. Respect WIP 1, do not start a deferred node,
+and require observed pilot evidence before widening the product or resuming an
+engine, data, model, county, web-app, marketing, or billing track.
 
 Choose the safest valuable task that improves the real product. Prefer:
 

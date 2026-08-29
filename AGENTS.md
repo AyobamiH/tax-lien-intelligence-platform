@@ -1,7 +1,9 @@
 # Agent Instructions
 
 This repository is the existing Tax Lien Intelligence Platform. Continue this
-repo; do not create a replacement scaffold, parallel app, or new architecture.
+repo; do not create a replacement engine, duplicated application, or parallel
+source of truth. A thin ChatGPT release product is allowed only under Decision
+0003 and its graph gate.
 
 ## First Read
 
@@ -45,6 +47,24 @@ Run `npm run validate:work-graph` whenever the graph changes. A node must not be
 marked complete if implementation, verification, documentation, commit, or
 push evidence is missing. Handoffs must name the node, current state, evidence,
 changed files, remaining limits, and next unblocked nodes.
+
+### Priority-One Focus
+
+When `docs/engine/work-graph.json` contains `executionFocus`:
+
+1. select only `executionFocus.nextNode`;
+2. enforce its WIP limit and do not start another ready or in-progress node;
+3. do not work a node listed in `deferredNodes` until `resumeCondition` is met;
+4. reject opportunistic work that does not resolve the selected node's
+   acceptance criteria or a verified blocker;
+5. use `docs/product/chatgpt-priority-plan.md` as the product sequence and
+   decision rule.
+
+The current focus is the read-only ChatGPT product. The platform repository
+remains the engine and system of record. A future thin ChatGPT release
+repository may contain connector configuration, onboarding, evaluation, and
+release provenance only after its graph gate authorizes creation; it must not
+copy engine calculations, evidence state, tenancy logic, or write workflows.
 
 ## Boundaries
 

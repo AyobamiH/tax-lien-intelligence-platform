@@ -50,6 +50,9 @@ Last updated: 2026-08-29
   validation, dependency audit, typecheck, all tests and builds, the real
   intelligence-service smoke, and the real Mongo intelligence-persistence
   smoke.
+- The graph now enforces ChatGPT product priority one with WIP 1. Only
+  `P47-092-chatgpt-product-definition` is in progress; the data acquisition and
+  model track is deferred pending real-user pilot evidence or public release.
 
 ## Repository Authority Limit
 
@@ -62,22 +65,30 @@ claimed.
 
 ## Current Work
 
-No Phase 47 node is in progress. `P47-065-lawful-data-acquisition` is the next
-ready node. The MCP implementation is repository-verified but remains an
-internal validation surface until its separately listed public release blockers
-are resolved.
+`P47-092-chatgpt-product-definition` is the only in-progress node. Its product
+contract, six-tool journey, thin release boundary, ownership map, telemetry
+boundary, four gated milestones, and 30-case live evaluation manifest are
+documented. Publication and independent CI evidence remain before closure. The
+MCP implementation remains an internal validation surface until private
+staging, a real-user pilot, and the public release gates are complete.
 
 ## Next Graph Work
 
-- `P47-065-lawful-data-acquisition` is ready to prepare the
-  accurate commercial-purpose request, written terms, lifecycle schema,
-  artifact manifest, privacy controls, and time-aware entity resolution.
-- `P47-070-trained-models` remains blocked on lawful, outcome-bearing data and
-  cannot begin from the current source inventory.
-- `P47-095-chatgpt-public-release` is explicitly blocked on deployment
-  authority, a production domain and OAuth configuration, and product privacy,
-  retention, deletion, and property-evidence approval. This prevents internal
-  MCP completion from drifting into a false public-plugin claim.
+The single active sequence is:
+
+1. `P47-092-chatgpt-product-definition`: freeze the user, three jobs, product
+   promise, thin release boundary, journey, pilot measures, and decision owners;
+2. `P47-093-chatgpt-private-staging`: connect the real service through stable
+   HTTPS and approved OAuth, then verify tenancy, safety, observability, and
+   rollback;
+3. `P47-094-chatgpt-real-user-pilot`: validate at least five target users, ten
+   real tasks, and thirty scripted safety/grounding scenarios;
+4. `P47-095-chatgpt-public-release`: approve policy/listing material and release
+   through a monitored, reversible launch.
+
+`P47-065-lawful-data-acquisition`, `P47-070-trained-models`, and
+`P47-080-evaluation` are deferred. They resume only if pilot evidence identifies
+them as the highest-impact product blocker or after public release completes.
 
 ## Explicitly Unproven
 
@@ -89,4 +100,6 @@ are resolved.
 - deployed service behavior;
 - service-mesh transport, load, failover, and production-traffic behavior;
 - production user outcome improvement;
+- a private connected ChatGPT staging product;
+- real target-user pilot completion or product-value evidence;
 - public ChatGPT OAuth, deployment, and live-connection readiness.

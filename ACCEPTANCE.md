@@ -55,6 +55,9 @@ This autonomous run is complete when:
 Phase 47 work is acceptable only when:
 
 - `docs/engine/work-graph.json` passes `npm run validate:work-graph`;
+- `executionFocus` names one next node, allows at most one ready or in-progress
+  node, preserves a truthful blocked state, and prevents deferred work from
+  becoming runnable;
 - `docs/engine/data-source-inventory.json` passes
   `npm run validate:data-inventory`;
 - graph dependencies and ownership make agent handoff unambiguous;
@@ -99,6 +102,29 @@ Phase 47 work is acceptable only when:
 - implementation, tests, docs, changelog, graph state, and `WORK_LEDGER.md`
   change together for every completed node;
 - no node is considered complete before checks pass and the commit is pushed.
+
+## ChatGPT Priority-One Acceptance
+
+The ChatGPT product release train is acceptable only when:
+
+- one primary user segment, the triage, diligence, and decision-brief jobs, and
+  the evidence-first promise are explicit;
+- `P47-092`, `P47-093`, `P47-094`, and `P47-095` run in order, with no parallel
+  data, model, county, web-app, billing, or marketing track;
+- the existing platform remains the engine, tenant authority, evidence store,
+  and system of record;
+- any separate ChatGPT release repository is a thin consumer with pinned
+  interface provenance and no copied scoring, evidence, auth, or write logic;
+- the private connection uses a real stable HTTPS service and approved OAuth;
+  a local response, mock connector, or manual application JWT is insufficient;
+- real-user pilot evidence includes at least five distinct target users, ten
+  real tasks, and thirty scripted safety/grounding scenarios;
+- all critical authorization and tenant-isolation cases pass, and the product
+  emits no uncited numeric, legal, bid, or purchase conclusion;
+- public claims, privacy, retention, deletion, support, incident response,
+  monitoring, and rollback match verified behavior before release;
+- deferred engine work resumes only when pilot evidence identifies it as the
+  highest-impact blocker or after public release is complete.
 
 ## Evidence That Counts
 

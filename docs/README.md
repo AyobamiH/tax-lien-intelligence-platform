@@ -17,6 +17,12 @@ knowledge-base documentation for the Tax Lien Intelligence Platform.
 - [ChatGPT MCP tool contract](engine/chatgpt-mcp-contract.md)
 - [ChatGPT privacy and safety review](engine/chatgpt-privacy-safety-review.md)
 
+## ChatGPT Product
+
+- [Priority-one product and release plan](product/chatgpt-priority-plan.md)
+- [ChatGPT release evaluation manifest](product/chatgpt-release-evaluation.json)
+- [Decision 0003: Thin ChatGPT product boundary](decisions/0003-chatgpt-product-boundary.md)
+
 ## Knowledge Base
 
 Start here for durable repo and product truth:
@@ -101,6 +107,7 @@ before writing specs, prompts, or implementation plans.
 
 - [Decision 0001: Monorepo Baseline](decisions/0001-monorepo-baseline.md)
 - [Decision 0002: Evidence-first intelligence engine boundary](decisions/0002-intelligence-engine-boundary.md)
+- [Decision 0003: Thin ChatGPT product boundary](decisions/0003-chatgpt-product-boundary.md)
 
 ## Changelog
 

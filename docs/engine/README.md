@@ -21,6 +21,8 @@ chat history or reconstructing architecture decisions.
 13. `open-source-components.md`
 14. `chatgpt-mcp-contract.md`
 15. `chatgpt-privacy-safety-review.md`
+16. `../product/chatgpt-priority-plan.md`
+17. `../decisions/0003-chatgpt-product-boundary.md`
 
 ## Work-Unit Protocol
 
@@ -32,7 +34,8 @@ Every engine work unit follows the same state transition:
 
 An agent must:
 
-1. select a `ready` node whose dependencies are `completed`;
+1. if `executionFocus` exists, select only its `nextNode`; otherwise select a
+   `ready` node whose dependencies are `completed`;
 2. declare the node and inspect its files before editing;
 3. keep changes inside the node scope;
 4. implement real production behavior without mock intelligence;
@@ -40,6 +43,10 @@ An agent must:
 6. update architecture, API, KB, changelog, status, graph, and ledger truth;
 7. review the diff, commit, push, and verify the remote ref;
 8. expose verified results, risks, unproven claims, and newly ready nodes.
+
+During the ChatGPT priority-one release train, exactly one node may be ready or
+in progress. Deferred data, model, county, web-app, billing, and marketing work
+does not resume without the graph's stated pilot-evidence condition.
 
 ## No-Mock Intelligence Rule
 

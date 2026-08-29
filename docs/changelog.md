@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Made the ChatGPT product priority one and replaced competing ready work with
+  one WIP-limited sequence: product definition, private staging connection,
+  real-user pilot, and public release.
+- Added a machine-enforced `executionFocus` to the work graph. Exactly one node
+  may be ready or in progress; data acquisition, model training, and model
+  evaluation are deferred until pilot evidence identifies them as the
+  highest-impact blocker or public release is complete.
+- Added the primary user, triage/diligence/decision-brief jobs, release gates,
+  real-user pilot thresholds, no-drift rules, and the thin ChatGPT release
+  product architecture decision.
+- Added an exact six-tool journey, privacy-preserving telemetry boundary,
+  decision-owner map, and 30-case live release evaluation manifest covering
+  core tasks, grounding, invalid inputs, authorization, prompt injection, and
+  out-of-scope requests.
 - Added an authenticated stateless MCP endpoint with six read-only ChatGPT
   evidence tools for workspace discovery, dataset review, bounded candidate
   retrieval, candidate evidence, no-ranking comparison, and privacy-reduced

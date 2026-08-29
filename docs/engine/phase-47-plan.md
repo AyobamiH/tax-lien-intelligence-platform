@@ -2,10 +2,9 @@
 
 ## Outcome
 
-Replace the ambiguous scoring boundary with a versioned, evidence-first engine
-that can be consumed by the existing platform and later by ChatGPT. The phase
-does not claim trained predictive accuracy before outcome data and evaluation
-evidence exist.
+Deliver a trustworthy ChatGPT product on top of the completed versioned,
+evidence-first interface. ChatGPT is priority one; trained predictive accuracy
+is not claimed or pursued before outcome data and evaluation evidence exist.
 
 ## Architecture Direction
 
@@ -20,6 +19,10 @@ evidence exist.
   names.
 - Keep ChatGPT outside numerical calculation. It retrieves, compares, cites,
   and explains engine results.
+- Keep the platform repository as the engine and system of record; use a thin,
+  separately released ChatGPT product for connector-specific packaging without
+  duplicating engine or tenancy logic.
+- Enforce a single sequential product release train with WIP 1.
 
 ## Delivery Stages
 
@@ -33,7 +36,7 @@ evidence exist.
 - service health, contract, and evaluation-manifest boundaries;
 - platform compatibility adapter and CI coverage.
 
-### 47B: Data and evaluation foundation
+### 47B: Data and evaluation foundation — partially complete, now deferred
 
 - Maricopa source and licensing inventory;
 - machine-enforced source promotion gates;
@@ -44,7 +47,7 @@ evidence exist.
 - data and model cards;
 - reproducible dataset and artifact versioning.
 
-### 47C: Verified models
+### 47C: Verified models — deferred
 
 - valuation baseline and uncertainty interval;
 - time-to-redemption survival model;
@@ -53,7 +56,7 @@ evidence exist.
 - shadow comparison against the existing heuristic;
 - promotion gates based on evidence, not a roadmap date.
 
-### 47D: ChatGPT product surface
+### 47D: ChatGPT evidence surface — complete
 
 - read-only evidence retrieval tools;
 - record comparison and cited explanations;
@@ -61,22 +64,25 @@ evidence exist.
 - decision memo drafting from stored evidence;
 - no autonomous bid, legal conclusion, or invented calculation.
 
-### 47E: Public ChatGPT release
+### 47E: ChatGPT priority-one release train
 
-- approved OAuth authorization, discovery, token lifecycle, and revocation;
-- stable public HTTPS MCP deployment;
-- production rate limits and payload-safe observability;
-- live role, tenant-isolation, invalid-input, and out-of-scope evals;
-- privacy, retention, deletion, rollback, and incident ownership approval.
+- `P47-092`: lock the product definition, user jobs, thin release boundary,
+  journey, pilot measures, and ownership;
+- `P47-093`: connect a private ChatGPT staging product through stable HTTPS and
+  approved OAuth, with real authorization, isolation, monitoring, and rollback;
+- `P47-094`: run a real-user pilot and a reproducible safety/grounding suite;
+- `P47-095`: approve policy/listing materials and perform a monitored public
+  release.
 
 `P47-095-chatgpt-public-release` is blocked until the operator supplies and
 authorizes the production domain, deployment target, OAuth ownership, and
-privacy decisions. Repository MCP completion is not public release evidence.
+privacy decisions and the private staging and real-user pilot dependencies are
+complete. Repository MCP completion is not public release evidence.
 
-The evidence interface can ship against stored deterministic results and
-explicit abstention before trained models exist. It depends on the platform
-integration and source inventory, not model promotion. Model-backed signals
-appear later only after their own evaluation gate.
+The evidence interface already works against stored deterministic results and
+explicit abstention without a trained model. Data acquisition and model work
+remain deferred until pilot evidence names them as the highest-impact blocker,
+or the public release node completes.
 
 ## Definition Of Done For Every Node
 
