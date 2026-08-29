@@ -94,5 +94,7 @@ and remote-ref verification are all present. Partial work remains
 - `P47-090-chatgpt-interface`: authenticated stateless MCP implementation,
   six read-only tools, tenant resolution, cited evidence projection, privacy
   reduction, no-ranking comparison, memo outline, and focused adversarial and
-  authorization tests are locally verified. Publication and branch CI remain
-  before node closure.
+  authorization tests are published at `8f6a1bd`. GitHub Actions run
+  `33249393142` passed every gate, including real-process service and real Mongo
+  persistence smokes. Public OAuth and deployment remain outside this completed
+  repository node.

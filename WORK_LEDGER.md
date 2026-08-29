@@ -1592,3 +1592,39 @@
   and independent branch CI. The node remains `in_progress` until those pass.
 - Next safe step: publish this checkpoint, verify branch CI including real
   MongoDB persistence, then record a small graph and ledger closure commit.
+
+## 2026-08-29 - Phase 47 ChatGPT MCP closure
+
+- Graph node: `P47-090-chatgpt-interface`, `completed`.
+- Published implementation:
+  `8f6a1bd846336a47e01e2a05c55c3631e8f2a1ad` on
+  `feature/intelligence-engine-foundation`.
+- Remote-ref verification:
+  - local `HEAD`;
+  - local `origin/feature/intelligence-engine-foundation`;
+  - live remote `refs/heads/feature/intelligence-engine-foundation`;
+  - all resolved to `8f6a1bd846336a47e01e2a05c55c3631e8f2a1ad`
+    before this closure update.
+- Independent verification:
+  - GitHub Actions run `33249393142` completed successfully;
+  - quality-gates job `99092320186` completed successfully;
+  - graph validation, data-source validation, dependency audit, typecheck,
+    complete tests, complete builds, real-process intelligence-service smoke,
+    and real Mongo intelligence-persistence smoke all passed.
+- Completion decision:
+  - the repository node meets its read-only, evidence-grounding, server-side
+    tenant-authorization, privacy-reduction, adversarial-input, documentation,
+    publication, and CI acceptance rules;
+  - no public deployment, OAuth flow, live ChatGPT connection, bid action,
+    legal conclusion, trained probability, or current county verification is
+    implied by this completion.
+- Remaining blockers before public ChatGPT use:
+  - OAuth authorization and token lifecycle;
+  - stable HTTPS MCP deployment;
+  - production-safe observability, rate limits, load tests, rollback, and live
+    role/cross-workspace validation;
+  - explicit product privacy and retention confirmation for property-level
+    evidence.
+- Next ready graph node: `P47-065-lawful-data-acquisition`.
+- `P47-070-trained-models` remains blocked until lawful outcome-bearing data,
+  censoring, and temporal evaluation inputs exist.

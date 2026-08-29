@@ -1,6 +1,6 @@
 # ChatGPT Interface Privacy and Safety Review
 
-Status: implementation review complete, production connection review pending
+Status: repository and CI review complete, production connection review pending
 
 Scope: read-only MCP tools in `apps/api/src/mcp`
 

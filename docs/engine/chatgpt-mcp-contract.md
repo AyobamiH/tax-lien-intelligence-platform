@@ -1,6 +1,6 @@
 # ChatGPT MCP Tool Contract
 
-Status: implemented for authenticated internal validation, not publicly deployed
+Status: repository-verified for authenticated internal validation, not publicly deployed
 
 Contract version: `1.0.0`
 

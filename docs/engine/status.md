@@ -45,6 +45,11 @@ Last updated: 2026-08-29
   six read-only evidence tools, explicit tenant resolution, cited stored
   values, labeled legacy heuristics, versioned engine states, unknowns, bounded
   comparison, and a privacy-reduced decision-brief projection.
+- `P47-090-chatgpt-interface` is complete at `8f6a1bd`. GitHub Actions run
+  `33249393142`, quality-gates job `99092320186`, passed graph and data-source
+  validation, dependency audit, typecheck, all tests and builds, the real
+  intelligence-service smoke, and the real Mongo intelligence-persistence
+  smoke.
 
 ## Repository Authority Limit
 
@@ -57,19 +62,18 @@ claimed.
 
 ## Current Work
 
-`P47-090-chatgpt-interface` is in progress. Local audit, source-inventory and
-graph validators, typecheck, 10 Python tests, 315 Vitest tests across 48 files,
-all builds, local runtime smoke, browser-like smoke, and real-process
-intelligence-service smoke pass. The implementation still requires a published
-commit and independent branch CI before graph closure.
+No Phase 47 node is in progress. `P47-065-lawful-data-acquisition` is the next
+ready node. The MCP implementation is repository-verified but remains an
+internal validation surface until its separately listed public release blockers
+are resolved.
 
 ## Next Graph Work
 
 - `P47-065-lawful-data-acquisition` is ready to prepare the
   accurate commercial-purpose request, written terms, lifecycle schema,
   artifact manifest, privacy controls, and time-aware entity resolution.
-- `P47-090-chatgpt-interface` is active and proceeds independently against
-  stored evidence and abstention. It does not wait for trained model promotion.
+- `P47-070-trained-models` remains blocked on lawful, outcome-bearing data and
+  cannot begin from the current source inventory.
 
 ## Explicitly Unproven
 
@@ -81,4 +85,4 @@ commit and independent branch CI before graph closure.
 - deployed service behavior;
 - service-mesh transport, load, failover, and production-traffic behavior;
 - production user outcome improvement;
-- ChatGPT plugin readiness.
+- public ChatGPT OAuth, deployment, and live-connection readiness.
