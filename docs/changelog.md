@@ -16,6 +16,10 @@
   decision-owner map, and 30-case live release evaluation manifest covering
   core tasks, grounding, invalid inputs, authorization, prompt injection, and
   out-of-scope requests.
+- Closed the ChatGPT product-definition gate after GitHub Actions verified the
+  full repository, real intelligence service, and real Mongo persistence path.
+  Private staging remains the named next node and is explicitly blocked on
+  deployment, OAuth, privacy, consent, support, and incident ownership inputs.
 - Added an authenticated stateless MCP endpoint with six read-only ChatGPT
   evidence tools for workspace discovery, dataset review, bounded candidate
   retrieval, candidate evidence, no-ranking comparison, and privacy-reduced

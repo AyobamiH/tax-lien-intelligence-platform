@@ -116,3 +116,8 @@ and remote-ref verification are all present. Partial work remains
   `33249393142` passed every gate, including real-process service and real Mongo
   persistence smokes. Public OAuth and deployment remain outside this completed
   repository node.
+- `P47-092-chatgpt-product-definition`: primary user, three jobs, six-tool
+  journey, thin release boundary, WIP-1 governance, owners, telemetry boundary,
+  and 30-case live evaluation manifest are published at `81f4664`. GitHub
+  Actions run `33251144894` passed every gate. `P47-093` remains blocked on
+  external staging, OAuth, privacy, support, and incident ownership inputs.

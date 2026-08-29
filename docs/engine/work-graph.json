@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T15:30:00Z",
+  "updatedAt": "2026-08-29T15:40:00Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
@@ -18,7 +18,7 @@
     "priority": "chatgpt-product",
     "wipLimit": 1,
     "parallelProductTracksAllowed": false,
-    "nextNode": "P47-092-chatgpt-product-definition",
+    "nextNode": "P47-093-chatgpt-private-staging",
     "activeSequence": [
       "P47-092-chatgpt-product-definition",
       "P47-093-chatgpt-private-staging",
@@ -185,7 +185,7 @@
     {
       "id": "P47-092-chatgpt-product-definition",
       "title": "Lock the ChatGPT product definition and release boundary",
-      "status": "in_progress",
+      "status": "completed",
       "ownerRole": "chatgpt-product-lead",
       "dependencies": ["P47-090-chatgpt-interface"],
       "scope": [
@@ -216,13 +216,19 @@
         "npm run typecheck",
         "git diff --check"
       ],
-      "evidence": [],
+      "evidence": [
+        "Priority-one product definition published at 81f466414e54f87f9b4c6ad99ce8570d82fc5fdf",
+        "GitHub Actions run 33251144894 and quality-gates job 99096911716 completed successfully",
+        "CI passed graph and data-source validators, dependency audit, typecheck, complete tests and builds, real-process intelligence-service smoke, and real Mongo intelligence-persistence smoke",
+        "docs/product/chatgpt-priority-plan.md defines one primary user, three jobs, six tools, four gates, owners, telemetry, and no-drift rules",
+        "docs/product/chatgpt-release-evaluation.json defines 30 live cases including 18 critical authorization, grounding, injection, and scope cases"
+      ],
       "blockers": []
     },
     {
       "id": "P47-093-chatgpt-private-staging",
       "title": "Connect a private ChatGPT staging product",
-      "status": "planned",
+      "status": "blocked",
       "ownerRole": "chatgpt-release-engineer",
       "dependencies": ["P47-092-chatgpt-product-definition"],
       "scope": [
@@ -254,7 +260,11 @@
         "full repository gates"
       ],
       "evidence": [],
-      "blockers": []
+      "blockers": [
+        "creation and publication of the thin release repository and staging deployment are not explicitly authorized",
+        "the stable staging domain, deployment target, OAuth provider ownership, client registration, and authorization owner are not supplied",
+        "the privacy/security approver, retention and deletion decisions, pilot consent owner, support owner, and incident owner are not assigned"
+      ]
     },
     {
       "id": "P47-094-chatgpt-real-user-pilot",

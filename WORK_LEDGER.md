@@ -1,5 +1,34 @@
 # Work Ledger
 
+## 2026-08-29T15:40:00Z - P47-092 ChatGPT product definition closure
+
+- Graph node: `P47-092-chatgpt-product-definition`, completed.
+- Published implementation: `81f466414e54f87f9b4c6ad99ce8570d82fc5fdf`
+  on `feature/intelligence-engine-foundation`.
+- Remote-ref verification: local `HEAD`, local
+  `origin/feature/intelligence-engine-foundation`, and the live GitHub branch
+  resolved to `81f466414e54f87f9b4c6ad99ce8570d82fc5fdf`.
+- Independent verification:
+  - GitHub Actions run `33251144894` completed successfully;
+  - quality-gates job `99096911716` completed successfully;
+  - graph and data-source validation, audit, typecheck, complete tests, complete
+    builds, real-process intelligence-service smoke, and real Mongo
+    intelligence-persistence smoke passed.
+- Completion decision: one primary user, three jobs, six tools, a thin release
+  boundary, four sequential gates, WIP-1 enforcement, decision owners,
+  payload-safe telemetry, and 30 live evaluation cases are durable and
+  independently verified.
+- Named next node: `P47-093-chatgpt-private-staging`, blocked.
+- Exact unblock requirements:
+  - explicit authority to create/publish the thin release repository and deploy
+    staging;
+  - stable staging domain and target plus OAuth provider ownership, client
+    registration, and authorization owner;
+  - assigned privacy/security, retention/deletion, pilot consent, support, and
+    incident owners.
+- No data, model, county, web-app, billing, or marketing node becomes runnable
+  while this ChatGPT product gate is blocked.
+
 ## 2026-08-29T15:30:00Z - ChatGPT product priority-one plan
 
 - Operator decision: avoid simultaneous product directions and make the

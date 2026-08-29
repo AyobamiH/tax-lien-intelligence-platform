@@ -81,6 +81,8 @@ graph node and permission boundary.
 
 Graph node: `P47-092-chatgpt-product-definition`.
 
+Status: completed at `81f4664` through GitHub Actions run `33251144894`.
+
 - confirm the user, three jobs, promise, exclusions, and onboarding handoff;
 - approve the thin release-repository boundary and provenance contract;
 - map the existing six tools to the minimum journey;
@@ -191,6 +193,8 @@ evidence payloads.
 
 ## Immediate Next Node
 
-`P47-092-chatgpt-product-definition` is the only in-progress node. Its purpose
-is to publish and independently verify the contract that Gate 2 will implement,
-not to reopen engine research or add speculative tools.
+`P47-093-chatgpt-private-staging` is the named next node and is blocked. It may
+start only after repository/deployment authority, the staging domain and
+target, OAuth ownership/configuration, privacy and retention decisions, pilot
+consent, support, and incident ownership are supplied. No deferred node becomes
+runnable while this product gate is blocked.

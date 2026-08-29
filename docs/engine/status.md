@@ -50,9 +50,12 @@ Last updated: 2026-08-29
   validation, dependency audit, typecheck, all tests and builds, the real
   intelligence-service smoke, and the real Mongo intelligence-persistence
   smoke.
-- The graph now enforces ChatGPT product priority one with WIP 1. Only
-  `P47-092-chatgpt-product-definition` is in progress; the data acquisition and
-  model track is deferred pending real-user pilot evidence or public release.
+- `P47-092-chatgpt-product-definition` is complete at `81f4664`. GitHub Actions
+  run `33251144894`, quality-gates job `99096911716`, passed all graph, source,
+  audit, typecheck, test, build, real-service, and real-Mongo gates.
+- The graph enforces ChatGPT product priority one with WIP 1. The data
+  acquisition and model track is deferred pending real-user pilot evidence or
+  public release.
 
 ## Repository Authority Limit
 
@@ -65,20 +68,19 @@ claimed.
 
 ## Current Work
 
-`P47-092-chatgpt-product-definition` is the only in-progress node. Its product
-contract, six-tool journey, thin release boundary, ownership map, telemetry
-boundary, four gated milestones, and 30-case live evaluation manifest are
-documented. Publication and independent CI evidence remain before closure. The
-MCP implementation remains an internal validation surface until private
-staging, a real-user pilot, and the public release gates are complete.
+No Phase 47 node is in progress. `P47-093-chatgpt-private-staging` is the named
+next node and is blocked on explicit release-repository and deployment
+authority; a stable staging domain/target; OAuth ownership and registration;
+and assigned privacy, retention, deletion, consent, support, and incident
+owners. No deferred node becomes runnable while this product gate is blocked.
 
 ## Next Graph Work
 
 The single active sequence is:
 
-1. `P47-092-chatgpt-product-definition`: freeze the user, three jobs, product
-   promise, thin release boundary, journey, pilot measures, and decision owners;
-2. `P47-093-chatgpt-private-staging`: connect the real service through stable
+1. `P47-092-chatgpt-product-definition`: completed with the user, three jobs,
+   product promise, thin release boundary, journey, pilot measures, and owners;
+2. `P47-093-chatgpt-private-staging`: next, but blocked; connect the real service through stable
    HTTPS and approved OAuth, then verify tenancy, safety, observability, and
    rollback;
 3. `P47-094-chatgpt-real-user-pilot`: validate at least five target users, ten
