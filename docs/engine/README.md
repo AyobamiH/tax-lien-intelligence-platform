@@ -16,7 +16,9 @@ chat history or reconstructing architecture decisions.
 8. `rule-packs.md`
 9. `../architecture/intelligence-service.md`
 10. `../api/intelligence-service.md`
-11. `open-source-components.md`
+11. `data-inventory.md`
+12. `data-source-inventory.json`
+13. `open-source-components.md`
 
 ## Work-Unit Protocol
 
@@ -67,3 +69,7 @@ Every agent handoff must state:
 - newly ready nodes.
 
 Run `npm run validate:work-graph` before every graph-bearing commit.
+
+Run `npm run validate:data-inventory` after every source, license, schema,
+cadence, observation-time, or outcome-label decision. A public URL alone is
+not approval for production acquisition or model training.

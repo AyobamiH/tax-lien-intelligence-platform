@@ -55,6 +55,8 @@ This autonomous run is complete when:
 Phase 47 work is acceptable only when:
 
 - `docs/engine/work-graph.json` passes `npm run validate:work-graph`;
+- `docs/engine/data-source-inventory.json` passes
+  `npm run validate:data-inventory`;
 - graph dependencies and ownership make agent handoff unambiguous;
 - every engine result carries contract, engine, rule-pack, and evidence
   versions plus field-level provenance;
@@ -67,6 +69,12 @@ Phase 47 work is acceptable only when:
 - model-backed probability fields remain unavailable until historical outcome
   data, temporal validation, calibration, and model-artifact provenance are
   verified;
+- no public page, download, or query service is approved for production or
+  model training without verified authority, schema, cadence, observation
+  time, permitted commercial use, and provenance;
+- model training requires dated certificate outcomes and censoring fields, and
+  an absent event is never treated as a negative outcome without a verified
+  observation end;
 - TypeScript compatibility remains explicit while the intelligence service
   boundary is introduced;
 - the Python service rejects unauthenticated, oversized, malformed, and

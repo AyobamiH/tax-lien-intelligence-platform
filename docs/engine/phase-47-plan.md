@@ -36,6 +36,8 @@ evidence exist.
 ### 47B: Data and evaluation foundation
 
 - Maricopa source and licensing inventory;
+- machine-enforced source promotion gates;
+- commercial-purpose records request and written data-use agreement;
 - historical auction, parcel, sale, and redemption outcome contracts;
 - entity resolution and dataset validation pipeline;
 - temporal and county holdout definitions;
@@ -59,6 +61,11 @@ evidence exist.
 - decision memo drafting from stored evidence;
 - no autonomous bid, legal conclusion, or invented calculation.
 
+The evidence interface can ship against stored deterministic results and
+explicit abstention before trained models exist. It depends on the platform
+integration and source inventory, not model promotion. Model-backed signals
+appear later only after their own evaluation gate.
+
 ## Definition Of Done For Every Node
 
 A node is complete only when implementation, focused verification, applicable
@@ -80,3 +87,7 @@ and remote-ref verification are all present. Partial work remains
   UI abstention, bounded concurrency, and stale-result removal are published at
   `eefcf3a`. GitHub Actions run `33247151199` passed every gate, including the
   real MongoDB persistence smoke.
+- `P47-060-data-inventory`: implementation checkpoint has a machine-readable
+  six-source inventory, real Assessor artifact sample, GIS terms review,
+  outcome-label gap, and blocked training data card. Remote CI and closure
+  evidence remain pending.

@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Added a machine-readable Maricopa source inventory and CI validator that
+  blocks production approval without verified authority, schema, cadence,
+  observation time, commercial-use terms, and provenance, and blocks training
+  use without dated outcomes and censoring fields.
+- Sampled the real 2026-08-17 Assessor Secured Master archive, its 39-field
+  schema, twice-monthly declared cadence, current-tax-year limit, personal-data
+  fields, and missing certificate redemption outcomes.
+- Traced the official county Lien and Delinquent Parcels application to its
+  ArcGIS experience, web map, feature service, and two relevant layer schemas.
+  Recorded its written-authorization requirement and commercial-use restriction
+  as a production blocker.
+- Added a blocked redemption training dataset card and split lawful data
+  acquisition into its own graph node. The read-only ChatGPT evidence interface
+  can proceed against stored evidence and abstention without waiting for a
+  trained model.
 - Integrated the tenant-aware scoring worker with the internal Python service
   through a bounded TypeScript client that validates contract shape, request
   identity, evidence version, and evidence digest before persistence.

@@ -24,6 +24,16 @@ Last updated: 2026-08-29
   `user_upload` evidence provenance, versioned result persistence, explicit
   failure and disabled states, legacy heuristic metadata, UI abstention, and a
   real MongoDB CI smoke path.
+- `P47-060-data-inventory` has reviewed six source classes and added a
+  machine-enforced source promotion gate. No external source is approved for
+  production or model training.
+- The current Assessor Secured Master artifact has a verified 39-field schema,
+  twice-monthly declared cadence, and current-tax-year coverage, but no
+  certificate redemption outcomes, record observation timestamp, or explicit
+  commercial model-training grant.
+- The county Lien and Delinquent Parcels GIS terms require written
+  authorization for external use and prohibit commercial use except under an
+  agreement. Its current layers are not longitudinal outcome labels.
 - Current `packages/scoring` implementation is deterministic rules-based
   prioritization, not a calibrated prediction engine.
 - One Maricopa-style import adapter and generic fallback exist.
@@ -42,16 +52,18 @@ claimed.
 
 ## Current Work
 
-`P47-050-platform-integration` is published at `eefcf3a`. Local verification
-passed 10 Python tests, 306 Vitest tests across 46 files, all builds, 9
-real-process service tests, 6 browser-like smoke tests, local runtime smoke,
-graph validation, and an audit with 0 vulnerabilities. GitHub Actions run
-`33247151199`, job `99086489141`, passed every quality gate and the real MongoDB
-write, read-validation, and stale-result removal smoke.
+`P47-060-data-inventory` is in progress pending publication and remote CI. The
+implementation adds `data-source-inventory.json`, a source promotion validator,
+CI enforcement, a real Assessor archive/schema sample, a county GIS metadata
+and terms review, and a blocked redemption training data card.
 
-## Next Ready Work
+## Next Graph Work
 
-- `P47-060-data-inventory`: Maricopa data-source and outcome-label inventory.
+- After `P47-060` closure, `P47-065-lawful-data-acquisition` prepares the
+  accurate commercial-purpose request, written terms, lifecycle schema,
+  artifact manifest, privacy controls, and time-aware entity resolution.
+- `P47-090-chatgpt-interface` can proceed independently against stored evidence
+  and abstention. It does not need to wait for trained model promotion.
 
 ## Explicitly Unproven
 

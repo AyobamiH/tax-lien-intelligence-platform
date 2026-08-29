@@ -1,5 +1,70 @@
 # Work Ledger
 
+## 2026-08-29T13:45:00Z - P47-060 data inventory implementation checkpoint
+
+- Starting point: remote feature branch
+  `feature/intelligence-engine-foundation` at `fe24dc1`, with the platform
+  integration closed and current uploads retaining unknown jurisdiction.
+- Chosen node: `P47-060-data-inventory`, now `in_progress` pending publication
+  and remote CI.
+- Source research completed:
+  - traced the official county GIS directory to the Lien and Delinquent Parcels
+    ArcGIS experience, web map, feature service, and relevant layers;
+  - verified the GIS terms require written authorization for external use and
+    prohibit commercial intent, resale, or distribution except under an
+    agreement;
+  - downloaded the real 2026-08-17 Assessor Secured Master archive, checked its
+    checksum, inspected its bundled specification, and sampled the 39-field
+    header;
+  - verified the Assessor item declares twice-monthly updates and the bundled
+    specification limits the data to the current tax year;
+  - verified the Assessor schema contains property, deed, sale, and valuation
+    features but no certificate identity, lien sale date, redemption event,
+    terminal event, or observed-through field;
+  - traced the official county payment link to the Treasurer domain and
+    recorded Tax Lien Web as an authenticated certificate-holder surface whose
+    schema, export contract, history, and permitted commercial uses remain
+    unknown;
+  - reviewed the Realauction publisher surface without treating it as a
+    verified county data contract or redemption outcome source.
+- Work completed:
+  - added `docs/engine/data-source-inventory.json` with six sources, authority,
+    access, schema, cadence, history, observation time, terms, outcome labels,
+    personal-data controls, provenance, production decision, and exact
+    unblocking conditions;
+  - added `scripts/validate-data-source-inventory.mjs` and
+    `npm run validate:data-inventory`;
+  - wired the inventory gate into CI;
+  - added the human-readable source analysis and blocked training dataset card;
+  - added `P47-065-lawful-data-acquisition` so records requests, written terms,
+    source manifests, privacy, and time-safe entity resolution are completed
+    before model training;
+  - allowed the read-only ChatGPT evidence node to proceed after source
+    inventory because stored evidence and explicit abstention do not depend on
+    trained model promotion.
+- Product-truth result: zero external sources are approved for production or
+  model training. `P47-070-trained-models` remains blocked. No source was
+  scraped into the product, no dataset or model was created, and no probability
+  was fabricated.
+- Changed-state declaration: governance script, CI, graph, and documentation
+  only. A public Assessor artifact was downloaded to a temporary research path
+  for schema inspection and was not copied into the repository. No dependency,
+  deployment, migration, secret, credential, production service, or production
+  data was changed.
+- Local verification:
+  - `npm run validate:data-inventory` passed with 6 sources, 0 approved, 4
+    blocked, and training blocked;
+  - `npm run validate:work-graph` passed with 11 nodes and one in progress;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 10 Python tests and 306 Vitest tests across 46
+    files;
+  - `npm run build` passed for all workspaces and Python compile;
+  - `git diff --check` passed.
+- Remaining completion proof: run repository-wide gates, publish the
+  implementation checkpoint, verify branch CI, then publish a graph and ledger
+  closure commit.
+
 ## 2026-08-29T12:45:00Z - P47-050 platform-integration closure
 
 - Published implementation checkpoint: `eefcf3a` on

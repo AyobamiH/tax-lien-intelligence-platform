@@ -1,0 +1,549 @@
+{
+  "schemaVersion": "1.0.0",
+  "inventoryId": "us-az-maricopa-source-inventory@2026-08-29.1",
+  "reviewedAt": "2026-08-29T13:35:00Z",
+  "jurisdiction": {
+    "country": "US",
+    "state": "AZ",
+    "county": "Maricopa"
+  },
+  "policies": {
+    "noUnverifiedProductionData": true,
+    "writtenCommercialAuthorizationRequired": true,
+    "recordLevelObservationTimeRequiredForTraining": true,
+    "datedOutcomeAndCensoringFieldsRequiredForTraining": true,
+    "userUploadsMayEstablishOfficialAuthority": false
+  },
+  "sources": [
+    {
+      "id": "az-legislature-title-42",
+      "title": "Arizona Legislature Title 42 tax lien statutes",
+      "sourceClass": "legal_reference",
+      "authority": {
+        "publisher": "Arizona Legislature",
+        "status": "verified",
+        "urls": [
+          "https://www.azleg.gov/ars/42/18101.htm",
+          "https://www.azleg.gov/ars/42/18114.htm",
+          "https://www.azleg.gov/ars/42/18152.htm",
+          "https://www.azleg.gov/ars/42/18201.htm"
+        ]
+      },
+      "access": {
+        "mode": "public_web",
+        "status": "verified",
+        "notes": "Official statute pages are readable without authentication."
+      },
+      "schema": {
+        "status": "not_applicable",
+        "fields": [],
+        "evidence": "Legal reference text is not a parcel or outcome dataset."
+      },
+      "cadence": {
+        "status": "verified",
+        "value": "event_driven_legislative_change",
+        "evidence": "Rule packs pin source URLs and a verification date; statutory changes require a new immutable rule-pack version."
+      },
+      "historicalCoverage": {
+        "status": "not_applicable",
+        "value": "not_a_training_dataset",
+        "evidence": "The source provides legal context, not certificate histories."
+      },
+      "observationTimestamp": {
+        "status": "verified",
+        "value": "source_verified_at",
+        "evidence": "The current rule pack records a source verification timestamp."
+      },
+      "terms": {
+        "status": "not_applicable",
+        "commercialUse": "not_applicable",
+        "evidence": "Used as a cited public-law reference, not copied as a commercial dataset."
+      },
+      "outcomeLabels": {
+        "status": "not_applicable",
+        "eventFields": [],
+        "censoringFields": [],
+        "evidence": "Statutory eligibility and timing rules do not identify parcel-level outcomes."
+      },
+      "pii": {
+        "present": "no",
+        "fields": [],
+        "controlsRequired": []
+      },
+      "productionDecision": {
+        "status": "reference_only",
+        "uses": ["jurisdiction_rule_citation"],
+        "reasons": ["Authoritative for dated legal context only."],
+        "unblockingConditions": []
+      },
+      "provenance": {
+        "checkedAt": "2026-08-29T10:20:00Z",
+        "checkMethod": "official_page_review",
+        "evidenceUrls": [
+          "https://www.azleg.gov/ars/42/18152.htm",
+          "https://www.azleg.gov/ars/42/18201.htm"
+        ],
+        "artifactDigests": []
+      }
+    },
+    {
+      "id": "maricopa-assessor-secured-master",
+      "title": "Maricopa County Assessor Secured Master",
+      "sourceClass": "bulk_property_features",
+      "authority": {
+        "publisher": "Maricopa County Assessor's Office",
+        "status": "verified",
+        "urls": [
+          "https://www.mcassessor.maricopa.gov/page/data_sales/",
+          "https://data-maricopa.opendata.arcgis.com/datasets/936bbba512bf4c368618cc6e79e64668",
+          "https://www.arcgis.com/sharing/rest/content/items/936bbba512bf4c368618cc6e79e64668"
+        ]
+      },
+      "access": {
+        "mode": "public_bulk_download",
+        "status": "verified",
+        "notes": "The current ArcGIS item is public and exposes a ZIP archive containing five pipe-delimited data files and a PDF field specification."
+      },
+      "schema": {
+        "status": "verified",
+        "fields": [
+          "FolioKey",
+          "OwnerName",
+          "MailingAddress1",
+          "MailingAddress2",
+          "MailingCity",
+          "MailingState",
+          "MailingPostalCode",
+          "MailingCountry",
+          "SitusAddress",
+          "SitusUnitNumber",
+          "SitusCity",
+          "SitusPostalCode",
+          "PropertyType",
+          "DeedNumber",
+          "DeedDate",
+          "DeedType",
+          "LandValue",
+          "ImprovementValue",
+          "FCV",
+          "AssessedFCV",
+          "LPV",
+          "AssessedLPV",
+          "PUC",
+          "Lot",
+          "Parcel_Block",
+          "Parcel_Tract",
+          "LandClass",
+          "ImprvClass",
+          "RentalInd",
+          "LivingArea",
+          "TotalSqFt",
+          "ConstrYear",
+          "PoolSize",
+          "SalePrice",
+          "SaleDate",
+          "MCR_Key",
+          "MCR_Name",
+          "NumUnits",
+          "TaxAreaCode"
+        ],
+        "evidence": "The 2026-08-17 archive header and bundled Secured Master field specification were sampled directly."
+      },
+      "cadence": {
+        "status": "verified",
+        "value": "twice_monthly",
+        "evidence": "The official ArcGIS item description says the archive is updated twice a month; consumers must still inspect the item modified time and archive file dates."
+      },
+      "historicalCoverage": {
+        "status": "verified",
+        "value": "current_tax_year_only",
+        "evidence": "The bundled specification states that the data is for the current tax year."
+      },
+      "observationTimestamp": {
+        "status": "conditional",
+        "value": "artifact_snapshot_only",
+        "evidence": "ArcGIS item modified at 2026-08-17T16:06:49Z and archive files dated 2026-08-17; no record-level observed-at field exists."
+      },
+      "terms": {
+        "status": "unverified",
+        "commercialUse": "unknown",
+        "evidence": "The item and download page provide accuracy, currency, and indemnification disclaimers but no explicit license grant for commercial reuse, redistribution, or model training."
+      },
+      "outcomeLabels": {
+        "status": "unavailable",
+        "eventFields": [],
+        "censoringFields": [],
+        "evidence": "The sampled 39-field schema contains parcel, deed, assessment, and sale features but no certificate sale date, redemption event, or observed-through field."
+      },
+      "pii": {
+        "present": "yes",
+        "fields": ["OwnerName", "MailingAddress1", "MailingAddress2", "MailingCity", "MailingState", "MailingPostalCode"],
+        "controlsRequired": ["purpose_limitation", "field_minimization", "access_control", "retention_policy", "export_review"]
+      },
+      "productionDecision": {
+        "status": "blocked",
+        "uses": [],
+        "reasons": [
+          "Commercial reuse and model-training permission are not explicit.",
+          "The archive has no record-level observation timestamp or redemption outcomes.",
+          "Owner and mailing fields require a reviewed privacy and retention policy."
+        ],
+        "unblockingConditions": [
+          "Obtain written commercial-use and model-training terms from the Assessor or records custodian.",
+          "Approve a field-minimized schema and privacy controls.",
+          "Join only to a separately authorized, dated certificate outcome source."
+        ]
+      },
+      "provenance": {
+        "checkedAt": "2026-08-29T13:25:00Z",
+        "checkMethod": "official_metadata_review_and_artifact_schema_sample",
+        "evidenceUrls": [
+          "https://www.mcassessor.maricopa.gov/page/data_sales/",
+          "https://www.arcgis.com/sharing/rest/content/items/936bbba512bf4c368618cc6e79e64668"
+        ],
+        "artifactDigests": ["sha256:1ad15f30f5e4c974bc001d627eae6324ca01ff43286ab50541e819760af09023"]
+      }
+    },
+    {
+      "id": "maricopa-gis-lien-delinquent-parcels",
+      "title": "Maricopa County Lien and Delinquent Parcels GIS",
+      "sourceClass": "current_operational_status",
+      "authority": {
+        "publisher": "Maricopa County Office of Enterprise Technology",
+        "status": "verified",
+        "urls": [
+          "https://www.maricopa.gov/3942/GIS-Mapping-Applications",
+          "https://gis.maricopa.gov/TSR/liendelinquentparcel/index.html",
+          "https://www.arcgis.com/sharing/rest/content/items/bd50c51b89054238bfadf69e91b421c9",
+          "https://www.arcgis.com/sharing/rest/content/items/163c3c4186c94202aea725800bb0368b"
+        ]
+      },
+      "access": {
+        "mode": "public_interactive_map_and_query_service",
+        "status": "verified",
+        "notes": "The official county GIS application links to a public ArcGIS experience backed by query-capable feature layers. Public visibility does not grant production reuse."
+      },
+      "schema": {
+        "status": "verified",
+        "fields": [
+          "OBJECTID",
+          "APN",
+          "APNDashSplit",
+          "PropertyFullStreetAddress",
+          "DeedNumber",
+          "DeedWebLink",
+          "AssessorWebLink",
+          "TreasurerWebLink",
+          "Shape__Area",
+          "Shape__Length"
+        ],
+        "evidence": "Layer metadata for Unsold Lien Parcels and Delinquent Tax Parcels was checked on 2026-08-29."
+      },
+      "cadence": {
+        "status": "unknown",
+        "value": "not_published",
+        "evidence": "Layer metadata provides a last-edit timestamp but no contractual refresh cadence or freshness guarantee."
+      },
+      "historicalCoverage": {
+        "status": "unavailable",
+        "value": "current_state_layers_only",
+        "evidence": "No versioned historical snapshots or certificate lifecycle history were identified in the application or layer schema."
+      },
+      "observationTimestamp": {
+        "status": "conditional",
+        "value": "layer_last_edit_only",
+        "evidence": "The two reviewed layers reported data last-edit times of 2026-08-23T05:12:17Z and 2026-08-23T05:10:00Z; records have no observed-at field."
+      },
+      "terms": {
+        "status": "restricted",
+        "commercialUse": "prohibited_without_written_authorization",
+        "evidence": "The ArcGIS item terms state internal county use only, require written authorization for external use, and prohibit commercial intent, resale, or distribution except under a sublicensing agreement."
+      },
+      "outcomeLabels": {
+        "status": "unavailable",
+        "eventFields": [],
+        "censoringFields": [],
+        "evidence": "Current delinquent or unsold membership is not a dated redemption outcome and the schema has no certificate, sale, redemption, or censoring dates."
+      },
+      "pii": {
+        "present": "yes",
+        "fields": ["PropertyFullStreetAddress"],
+        "controlsRequired": ["written_authorization", "purpose_limitation", "access_control", "retention_policy"]
+      },
+      "productionDecision": {
+        "status": "blocked",
+        "uses": [],
+        "reasons": [
+          "Published terms prohibit the intended external and commercial use without written authorization.",
+          "The service exposes current state, not longitudinal redemption outcomes.",
+          "Refresh cadence and record-level observation time are not published."
+        ],
+        "unblockingConditions": [
+          "Obtain written authorization or a sublicensing agreement from Maricopa County.",
+          "Receive a documented update contract and historical snapshot access.",
+          "Validate certificate-level outcome and observation fields before any training use."
+        ]
+      },
+      "provenance": {
+        "checkedAt": "2026-08-29T13:30:00Z",
+        "checkMethod": "official_link_trace_arcgis_item_review_and_layer_metadata_sample",
+        "evidenceUrls": [
+          "https://www.maricopa.gov/3942/GIS-Mapping-Applications",
+          "https://www.arcgis.com/sharing/rest/content/items/bd50c51b89054238bfadf69e91b421c9",
+          "https://www.arcgis.com/sharing/rest/content/items/163c3c4186c94202aea725800bb0368b",
+          "https://www.azleg.gov/ars/39/00121-03.htm"
+        ],
+        "artifactDigests": []
+      }
+    },
+    {
+      "id": "maricopa-treasurer-tax-lien-web",
+      "title": "Maricopa County Treasurer Tax Lien Web",
+      "sourceClass": "authenticated_portfolio",
+      "authority": {
+        "publisher": "Maricopa County Treasurer's Office",
+        "status": "verified",
+        "urls": [
+          "https://www.maricopa.gov/4131/Pay",
+          "https://treasurer.maricopa.gov/TaxLien"
+        ]
+      },
+      "access": {
+        "mode": "authenticated_certificate_holder_portal",
+        "status": "verified",
+        "notes": "The official county payment page links to the Treasurer domain, whose public landing page describes Tax Lien Web as a certificate-holder account monitoring service."
+      },
+      "schema": {
+        "status": "unknown",
+        "fields": [],
+        "evidence": "No authenticated account, export contract, or API schema was inspected."
+      },
+      "cadence": {
+        "status": "unknown",
+        "value": "not_published",
+        "evidence": "No update guarantee or export cadence was verified."
+      },
+      "historicalCoverage": {
+        "status": "unknown",
+        "value": "not_verified",
+        "evidence": "The public description says users can monitor their accounts but does not state the historical certificate coverage."
+      },
+      "observationTimestamp": {
+        "status": "unknown",
+        "value": "not_verified",
+        "evidence": "No record schema or export was available for inspection."
+      },
+      "terms": {
+        "status": "unverified",
+        "commercialUse": "unknown",
+        "evidence": "Portal terms, automated access rights, export rights, and model-training rights were not verified."
+      },
+      "outcomeLabels": {
+        "status": "unknown",
+        "eventFields": [],
+        "censoringFields": [],
+        "evidence": "The portal may contain certificate-holder events, but no redemption-date, terminal-event, or observed-through schema was verified."
+      },
+      "pii": {
+        "present": "unknown",
+        "fields": [],
+        "controlsRequired": ["user_consent", "credential_isolation", "tenant_isolation", "field_minimization", "retention_policy"]
+      },
+      "productionDecision": {
+        "status": "blocked",
+        "uses": [],
+        "reasons": [
+          "The source requires a certificate-holder account and no supported integration contract is verified.",
+          "Schema, history, timestamps, export rights, and training rights are unknown."
+        ],
+        "unblockingConditions": [
+          "Obtain a county-supported API or export agreement and written terms.",
+          "Use user authorization without collecting or repurposing Treasurer credentials.",
+          "Validate schema, tenant isolation, event dates, observation windows, and permitted uses."
+        ]
+      },
+      "provenance": {
+        "checkedAt": "2026-08-29T12:50:00Z",
+        "checkMethod": "official_county_link_trace_and_public_landing_page_review",
+        "evidenceUrls": [
+          "https://www.maricopa.gov/4131/Pay",
+          "https://treasurer.maricopa.gov/TaxLien"
+        ],
+        "artifactDigests": []
+      }
+    },
+    {
+      "id": "maricopa-realauction-sale-platform",
+      "title": "Maricopa RealAuction sale platform",
+      "sourceClass": "auction_platform",
+      "authority": {
+        "publisher": "Realauction.com, LLC",
+        "status": "unverified",
+        "urls": [
+          "https://www.realauction.com/",
+          "https://maricopa.arizonataxsale.com/"
+        ]
+      },
+      "access": {
+        "mode": "seasonal_public_and_registered_bidder_web",
+        "status": "conditional",
+        "notes": "Realauction publicly lists Maricopa sales, but a current Treasurer statement of platform authority and a stable data interface were not verified."
+      },
+      "schema": {
+        "status": "unknown",
+        "fields": [],
+        "evidence": "No current official sale-file schema or stable export was sampled."
+      },
+      "cadence": {
+        "status": "conditional",
+        "value": "sale_cycle",
+        "evidence": "The platform is sale-oriented and can be unavailable or materially different outside an active sale cycle."
+      },
+      "historicalCoverage": {
+        "status": "unknown",
+        "value": "not_verified",
+        "evidence": "No supported historical sale-results archive was identified."
+      },
+      "observationTimestamp": {
+        "status": "unknown",
+        "value": "not_verified",
+        "evidence": "No current export schema was available for review."
+      },
+      "terms": {
+        "status": "unverified",
+        "commercialUse": "unknown",
+        "evidence": "Automated acquisition, redistribution, retention, and model-training terms were not verified."
+      },
+      "outcomeLabels": {
+        "status": "unavailable",
+        "eventFields": [],
+        "censoringFields": [],
+        "evidence": "Auction listings or results do not by themselves provide later redemption dates and right-censoring observation windows."
+      },
+      "pii": {
+        "present": "unknown",
+        "fields": [],
+        "controlsRequired": ["terms_review", "field_minimization", "retention_policy"]
+      },
+      "productionDecision": {
+        "status": "blocked",
+        "uses": [],
+        "reasons": [
+          "Current county authority, stable schema, historical coverage, and reuse rights are unverified.",
+          "The platform does not establish longitudinal redemption outcomes."
+        ],
+        "unblockingConditions": [
+          "Verify the current Treasurer-platform relationship from an official source.",
+          "Obtain supported data access and written commercial terms.",
+          "Capture immutable sale snapshots with source timestamps and checksums."
+        ]
+      },
+      "provenance": {
+        "checkedAt": "2026-08-29T12:55:00Z",
+        "checkMethod": "publisher_site_review",
+        "evidenceUrls": ["https://www.realauction.com/"],
+        "artifactDigests": []
+      }
+    },
+    {
+      "id": "platform-user-upload",
+      "title": "Tenant-provided CSV upload",
+      "sourceClass": "user_supplied_evidence",
+      "authority": {
+        "publisher": "Tenant user",
+        "status": "unverified",
+        "urls": []
+      },
+      "access": {
+        "mode": "authenticated_tenant_upload",
+        "status": "verified",
+        "notes": "The existing platform accepts tenant-scoped CSV uploads and records user_upload provenance."
+      },
+      "schema": {
+        "status": "conditional",
+        "fields": ["adapter_detected_fields", "raw_row_fields", "normalized_candidate_fields"],
+        "evidence": "Schema is detected per import and normalized through the existing import adapter boundary."
+      },
+      "cadence": {
+        "status": "not_applicable",
+        "value": "user_initiated",
+        "evidence": "Each upload is a discrete user event, not a subscribed source feed."
+      },
+      "historicalCoverage": {
+        "status": "unknown",
+        "value": "user_dependent",
+        "evidence": "The platform cannot infer the file's historical completeness."
+      },
+      "observationTimestamp": {
+        "status": "conditional",
+        "value": "platform_upload_time_only",
+        "evidence": "The platform records when it received the file but does not treat that time as the source record's observation time."
+      },
+      "terms": {
+        "status": "conditional",
+        "commercialUse": "user_responsibility_not_attested",
+        "evidence": "The platform does not yet capture a source authority, license, or permitted-use attestation for each upload."
+      },
+      "outcomeLabels": {
+        "status": "unknown",
+        "eventFields": [],
+        "censoringFields": [],
+        "evidence": "User fields are not accepted as verified training labels without an approved source manifest and dated outcome contract."
+      },
+      "pii": {
+        "present": "unknown",
+        "fields": [],
+        "controlsRequired": ["tenant_isolation", "source_attestation", "field_minimization", "retention_policy"]
+      },
+      "productionDecision": {
+        "status": "evidence_only",
+        "uses": ["tenant_workflow_input", "deterministic_rule_input_when_authority_is_separately_verified"],
+        "reasons": [
+          "The upload is real user evidence but does not prove county authority, completeness, freshness, or label integrity."
+        ],
+        "unblockingConditions": [
+          "Add per-upload source authority, as-of date, terms, and permitted-use attestation before broader use.",
+          "Require an approved source manifest before any uploaded field can enter model training."
+        ]
+      },
+      "provenance": {
+        "checkedAt": "2026-08-29T11:30:00Z",
+        "checkMethod": "repository_implementation_review",
+        "evidenceUrls": [],
+        "artifactDigests": []
+      }
+    }
+  ],
+  "trainingDatasetCard": {
+    "id": "maricopa-redemption-training-corpus-v0",
+    "status": "blocked",
+    "intendedTask": "Estimate time to certificate redemption with explicit right censoring and competing terminal events for a verified purchase-time cohort.",
+    "unitOfAnalysis": "one legally identified certificate of purchase for one parcel and sale date",
+    "requiredIdentityFields": ["jurisdiction_id", "certificate_id", "apn", "sale_date"],
+    "requiredOutcomeFields": ["redeemed_at", "terminal_non_redemption_event", "terminal_event_at", "observed_through"],
+    "requiredFeatureTiming": "Every feature must have an observed_at timestamp no later than the prediction as_of timestamp.",
+    "censoringRule": "A certificate without a verified terminal event is right-censored at observed_through, never labelled as non-redemption merely because no event was found.",
+    "splitPolicy": "Use an out-of-time holdout by sale cohort and keep later observations out of earlier feature snapshots.",
+    "prohibitedLeakage": [
+      "post_sale_payment_or_redemption_information_in_purchase_time_features",
+      "current_status_used_as_a_historical_label_without_snapshot_time",
+      "future_deed_or_court_events_in_pre_event_features",
+      "duplicate_certificates_crossing_train_and_holdout"
+    ],
+    "approvedSourceIds": [],
+    "blockers": [
+      "No source has verified commercial model-training permission for the intended corpus.",
+      "No verified bulk source provides certificate identity, sale date, redemption date, terminal event, and observed-through time together.",
+      "The current GIS source is restricted and exposes only current state without longitudinal labels.",
+      "The Assessor source provides useful parcel features but only current-tax-year coverage and no redemption outcomes.",
+      "The authenticated Treasurer portal's schema, export rights, historical coverage, and supported integration path remain unknown."
+    ],
+    "unblockingConditions": [
+      "Secure written commercial-use and model-training authorization from each records custodian or data provider.",
+      "Acquire immutable historical certificate and redemption extracts with event and observation timestamps.",
+      "Define and verify entity resolution from certificate to APN without silent many-to-one collapse.",
+      "Approve privacy, retention, access, correction, and dataset withdrawal controls.",
+      "Publish a versioned dataset manifest and data-quality report before training."
+    ]
+  }
+}

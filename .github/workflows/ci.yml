@@ -46,6 +46,9 @@ jobs:
       - name: Validate agent work graph
         run: npm run validate:work-graph
 
+      - name: Validate data source inventory
+        run: npm run validate:data-inventory
+
       - name: Audit high-severity dependency risk
         run: npm run audit
 

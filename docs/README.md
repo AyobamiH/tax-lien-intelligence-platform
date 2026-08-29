@@ -9,6 +9,8 @@ knowledge-base documentation for the Tax Lien Intelligence Platform.
 - [Phase 47 implementation plan](engine/phase-47-plan.md)
 - [Current engine status](engine/status.md)
 - [Machine-readable work graph](engine/work-graph.json)
+- [Maricopa data source inventory](engine/data-inventory.md)
+- [Machine-readable data source decisions](engine/data-source-inventory.json)
 - [Open-source component decisions](engine/open-source-components.md)
 - [Versioned engine contracts](engine/contracts.md)
 - [Jurisdiction rule packs](engine/rule-packs.md)
