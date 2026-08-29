@@ -112,4 +112,31 @@ describe("internal job service", () => {
       message: "Job execution failed.",
     });
   });
+
+  it("selects the newest target job deterministically when timestamps collide", async () => {
+    const jobStore = new InMemoryInternalJobStore();
+    const queuedAt = new Date("2026-08-29T00:00:00.000Z");
+    const commonInput = {
+      userId: "user-1",
+      type: "dataset_scoring" as const,
+      targetEntityType: "dataset" as const,
+      targetEntityId: "dataset-1",
+      queuedAt,
+    };
+
+    await jobStore.createJob({ ...commonInput, requestKind: "score" });
+    const latestCreated = await jobStore.createJob({ ...commonInput, requestKind: "policy_refresh" });
+
+    const latest = await jobStore.findLatestJobForTarget(
+      commonInput.userId,
+      commonInput.type,
+      commonInput.targetEntityType,
+      commonInput.targetEntityId,
+    );
+
+    expect(latest).toMatchObject({
+      id: latestCreated.id,
+      requestKind: "policy_refresh",
+    });
+  });
 });

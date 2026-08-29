@@ -80,7 +80,7 @@ export class InMemoryInternalJobStore implements InternalJobStore {
             job.targetEntityType === targetEntityType &&
             job.targetEntityId === targetEntityId,
         )
-        .sort((left, right) => right.queuedAt.getTime() - left.queuedAt.getTime())[0] ?? null
+        .sort(compareNewestJobFirst)[0] ?? null
     );
   }
 
@@ -171,4 +171,18 @@ export class InMemoryInternalJobStore implements InternalJobStore {
     this.jobsById.set(jobId, updated);
     return updated;
   }
+}
+
+function compareNewestJobFirst(left: StoredInternalJob, right: StoredInternalJob): number {
+  const queuedDifference = right.queuedAt.getTime() - left.queuedAt.getTime();
+  if (queuedDifference !== 0) {
+    return queuedDifference;
+  }
+
+  const createdDifference = right.createdAt.getTime() - left.createdAt.getTime();
+  if (createdDifference !== 0) {
+    return createdDifference;
+  }
+
+  return right.id.localeCompare(left.id);
 }

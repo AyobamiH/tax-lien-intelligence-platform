@@ -1,5 +1,49 @@
 # Work Ledger
 
+## 2026-08-29T00:00:00Z - Phase 47 baseline recovery and engine start
+
+- Requested task: begin the intelligence-engine work autonomously with an
+  agent-operable graph, durable documentation after every work unit, real-user
+  quality, and no mock production intelligence.
+- Repo and branch: cloned `AyobamiH/tax-lien-intelligence-platform`, verified
+  `main` at `f7b6cbeab0d35712a60933c598e6fcfa39ffdd5d`, and created
+  `feature/intelligence-engine-foundation` from that commit.
+- Starting-state verification:
+  - `npm ci` completed with 364 packages installed;
+  - `npm run typecheck` passed;
+  - `npm run build` passed;
+  - `npm run test` exposed one inherited nondeterministic failure in the
+    maintenance failure-suppression scenario;
+  - `npm run audit` exposed four newly disclosed advisories in current
+    lockfile resolutions, including two high-severity advisories.
+- Root cause: latest target-job lookup sorted only by millisecond-level queue
+  and creation timestamps. Jobs created in the same millisecond could compare
+  equal, causing the initial score job to be selected instead of the newer
+  failed policy refresh.
+- Work completed:
+  - added `_id` as the final Mongo latest-job sort key;
+  - aligned the in-memory verification store with queued time, creation time,
+    and identifier ordering;
+  - added focused coverage for timestamp-collision selection;
+  - refreshed only safe lockfile resolutions selected by `npm audit fix`,
+    including patched Mongoose, PostCSS, nanoid, body-parser, MongoDB driver,
+    BSON, SASL prep, and connection-string packages;
+  - recorded the repair in the changelog.
+- Changed-state declaration: source, test, changelog, lockfile remediation,
+  and ledger work only. No deployment, migration, service restart, production
+  mutation, secret read, or fabricated engine result.
+- Verification:
+  - focused internal-job and scoring suites passed with 32 tests;
+  - the formerly nondeterministic 27-test scoring suite passed two additional
+    consecutive runs;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 40 files and 270 tests;
+  - `npm run build` passed;
+  - `git diff --check` passed before final ledger alignment.
+- Next safe step: commit and push this recovered baseline, then establish the
+  Phase 47 work graph and engine contracts.
+
 ## 2026-07-08T12:55:00+01:00 - Repo-local agent entry point
 
 - Requested task: run the next safe step after the workflow investigation.

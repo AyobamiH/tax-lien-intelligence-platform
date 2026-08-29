@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Stabilized latest-job selection by adding a deterministic identifier
+  tie-break when multiple jobs for the same target share millisecond-level
+  queue and creation timestamps. This prevents maintenance policy evaluation
+  from reading an older scoring job instead of the most recent policy refresh.
 - Added Phase 46 browser-like follow-up lifecycle smoke proof. The new
   `npm run smoke:follow-ups:browser` command mounts the authenticated React app
   shell in jsdom with synthetic local data, renders portfolio follow-up

@@ -133,7 +133,7 @@ export class MongoInternalJobStore implements InternalJobStore {
       targetEntityType,
       targetEntityId,
     })
-      .sort({ queuedAt: -1, createdAt: -1 })
+      .sort({ queuedAt: -1, createdAt: -1, _id: -1 })
       .exec();
 
     return document ? mapInternalJob(document) : null;
