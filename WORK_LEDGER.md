@@ -1,7 +1,40 @@
+Warning: truncated output (original token count: 20451)
+Total output lines: 1557
+
 Warning: truncated output (original token count: 23503)
 Total output lines: 1792
 
 # Work Ledger
+
+## 2026-08-29T16:15:00Z - P47-093 OAuth source checkpoint publication
+
+- Published implementation:
+  `627b60b5a2b316b704263df2c9cb0623b6cb53b9` on
+  `feature/intelligence-engine-foundation`.
+- Remote-ref verification: local `HEAD`, local
+  `origin/feature/intelligence-engine-foundation`, and the connected live
+  GitHub branch resolved to the same commit after local realignment.
+- Independent verification:
+  - GitHub Actions run `33253453470` completed successfully;
+  - quality-gates job `99102992513` completed successfully;
+  - agent graph, data inventory, and ChatGPT source-package validators passed;
+  - dependency audit passed with zero high-severity failure;
+  - typecheck, 10 Python tests, 323 Vitest tests across 49 files, and complete
+    builds passed;
+  - real-process intelligence service, real Mongo intelligence persistence,
+    and real Mongo OAuth atomic-code, refresh-family, and access-revocation
+    smokes passed.
+- Provenance decision: the thin source package now pins the verified engine/API
+  implementation commit above and MCP contract `1.0.0`. It remains
+  `source_only` with null MCP/OAuth URLs and null live receipts.
+- Graph decision: `P47-093-chatgpt-private-staging` remains the only in-progress
+  node. Repository source is verified, but the node is not complete and no
+  deployment or ChatGPT connection is claimed.
+- Next exact work: supply the approved stable staging origin/provider/service,
+  deployment credentials and secret owner, ingress/rate-limit topology, and
+  named privacy, retention/deletion, consent, support, incident, and rollback
+  owners; then follow the project staging runbook and store sanitized live
+  receipts in this repository.
 
 ## 2026-08-29T16:00:00Z - P47-093 ChatGPT private-staging source checkpoint
 
@@ -687,38 +720,7 @@ Total output lines: 1792
   - the uncommitted patch adds explicit production CORS allowlist behavior;
   - score and refresh routes are authenticated and workspace-write scoped
     before the fixed-window limiter runs;
-  - limiter keys include actor, selected workspace, method, base URL, and route
-    shape;
-  - rate-limited score/refresh blocks return structured `429` responses and
-    write bounded workspace activity for authenticated workspace requests;
-  - focused unit and integration coverage exists for CORS policy, route limit
-    response details, independent score/refresh limits, activity events,
-    `onLimit`, and reset-window behavior.
-- Assumptions made: in-process limiting remains acceptable for current
-  single-process local/runtime verification, but is not sufficient for future
-  multi-instance deployment.
-- Chosen next task and why: no additional product code change was needed; the
-  safest valuable task was control-file alignment, final verification, then
-  commit/push under the explicit operator authorization in this request.
-- Crabbox diagnosis:
-  - no `crabbox` binary is on PATH;
-  - the only local Crabbox artifact found is the OpenClaw
-    `crabbox-wrapper.mjs`;
-  - the wrapper fails `--version` and `run --help` sanity checks with unknown
-    version/providers;
-  - `@openclaw/crabbox-plugin@0.23.0` was inspected via `npm pack` in `/tmp`
-    and contains an OpenClaw plugin, not the Crabbox CLI binary;
-  - `openclaw skills search crabbox` returned no skills;
-  - no repo/workspace-local repair target was found, so no install or repair
-    was performed and no Crabbox proof was claimed.
-- Changed-state declaration: project-control docs and ledger were updated
-  before final verification. No deployment, migration, service lifecycle
-  action, production mutation, dependency change, package install, or secret
-  read was performed.
-- Verification:
-  - `git diff --check` passed;
-  - `npm run typecheck` passed;
-  - `npx vitest run tests/unit/rate-limit.test.ts tests/unit/workspace-activity.test.ts tests/…3503 tokens truncated…tests/integration/notification-preferences.test.ts --testTimeout=60000`
+  - limiter keys include actor, selected workspace, me…451 tokens truncated…tests/integration/notification-preferences.test.ts --testTimeout=60000`
     passed with 1 file and 7 tests;
   - full `npm run test` passed with 39 files and 266 tests;
   - `npm run build` passed;

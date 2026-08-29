@@ -59,6 +59,10 @@ Last updated: 2026-08-29
   resource/client/redirect/scope checks, and OAuth-only MCP enforcement when
   enabled. The source-only ChatGPT package is isolated under `products/chatgpt`
   with pinned engine provenance and no invented connection URL.
+- The OAuth/source-package checkpoint is published at `627b60b`. GitHub Actions
+  run `33253453470`, quality-gates job `99102992513`, passed every validator,
+  audit, typecheck, complete tests/build, real-service smoke, real intelligence
+  Mongo smoke, and the new real OAuth Mongo atomicity/revocation smoke.
 - The graph enforces ChatGPT product priority one with WIP 1. The data
   acquisition and model track is deferred pending real-user pilot evidence or
   public release.

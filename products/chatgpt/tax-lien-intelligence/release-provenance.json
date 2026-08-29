@@ -5,7 +5,7 @@
   "systemOfRecord": {
     "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
     "branch": "feature/intelligence-engine-foundation",
-    "engineRevision": "5a88d7c99f9ce6d75170d570b99f30c0d23c2bf4",
+    "engineRevision": "627b60b5a2b316b704263df2c9cb0623b6cb53b9",
     "mcpContractVersion": "1.0.0"
   },
   "connection": {
