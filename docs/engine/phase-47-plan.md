@@ -87,7 +87,7 @@ and remote-ref verification are all present. Partial work remains
   UI abstention, bounded concurrency, and stale-result removal are published at
   `eefcf3a`. GitHub Actions run `33247151199` passed every gate, including the
   real MongoDB persistence smoke.
-- `P47-060-data-inventory`: implementation checkpoint has a machine-readable
-  six-source inventory, real Assessor artifact sample, GIS terms review,
-  outcome-label gap, and blocked training data card. Remote CI and closure
-  evidence remain pending.
+- `P47-060-data-inventory`: machine-readable six-source inventory, real
+  Assessor artifact sample, GIS terms review, outcome-label gap, blocked
+  training data card, CI gate, and Mongo-backed branch verification are
+  published at `9cbc841` through GitHub Actions run `33248227529`.

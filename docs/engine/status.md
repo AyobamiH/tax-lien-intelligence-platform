@@ -24,7 +24,8 @@ Last updated: 2026-08-29
   `user_upload` evidence provenance, versioned result persistence, explicit
   failure and disabled states, legacy heuristic metadata, UI abstention, and a
   real MongoDB CI smoke path.
-- `P47-060-data-inventory` has reviewed six source classes and added a
+- `P47-060-data-inventory` is complete at `9cbc841`. It reviewed six source
+  classes and added a
   machine-enforced source promotion gate. No external source is approved for
   production or model training.
 - The current Assessor Secured Master artifact has a verified 39-field schema,
@@ -52,18 +53,19 @@ claimed.
 
 ## Current Work
 
-`P47-060-data-inventory` is in progress pending publication and remote CI. The
-implementation adds `data-source-inventory.json`, a source promotion validator,
-CI enforcement, a real Assessor archive/schema sample, a county GIS metadata
-and terms review, and a blocked redemption training data card.
+`P47-060-data-inventory` is published at `9cbc841`. GitHub Actions run
+`33248227529`, quality-gates job `99089286887`, passed the graph and data-source
+validators, audit, typecheck, 10 Python tests, 306 Vitest tests across 46 files,
+all builds, real-process service smoke, and real MongoDB persistence smoke.
 
 ## Next Graph Work
 
-- After `P47-060` closure, `P47-065-lawful-data-acquisition` prepares the
+- `P47-065-lawful-data-acquisition` is ready to prepare the
   accurate commercial-purpose request, written terms, lifecycle schema,
   artifact manifest, privacy controls, and time-aware entity resolution.
-- `P47-090-chatgpt-interface` can proceed independently against stored evidence
-  and abstention. It does not need to wait for trained model promotion.
+- `P47-090-chatgpt-interface` is ready and can proceed independently against
+  stored evidence and abstention. It does not need to wait for trained model
+  promotion.
 
 ## Explicitly Unproven
 

@@ -1,5 +1,28 @@
 # Work Ledger
 
+## 2026-08-29T14:00:00Z - P47-060 data inventory closure
+
+- Published implementation checkpoint: `9cbc841` on
+  `feature/intelligence-engine-foundation`.
+- Remote verification: GitHub Actions run `33248227529`, quality-gates job
+  `99089286887`, completed successfully.
+- Remote steps passed: MongoDB container initialization, dependency install,
+  graph validation, data-source inventory validation, audit, typecheck, full
+  tests, build, real-process intelligence-service smoke, and real MongoDB
+  intelligence-persistence smoke.
+- Node result: `P47-060-data-inventory` is complete with six source classes,
+  zero external sources approved for production or model training, and a
+  blocked redemption training dataset card with exact unblocking conditions.
+- Graph result:
+  - `P47-065-lawful-data-acquisition` is ready to create the commercial-purpose
+    request, terms, lifecycle schema, artifact manifest, privacy controls, and
+    time-aware entity-resolution evidence required before model training;
+  - `P47-090-chatgpt-interface` is ready to deliver a read-only, tenant-safe
+    evidence surface without waiting for model availability.
+- Explicit limits remain: no county authorization, historical redemption
+  corpus, trained model, calibrated probability, production deployment, or
+  ChatGPT tool surface is claimed.
+
 ## 2026-08-29T13:45:00Z - P47-060 data inventory implementation checkpoint
 
 - Starting point: remote feature branch

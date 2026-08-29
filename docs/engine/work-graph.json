@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T13:40:00Z",
+  "updatedAt": "2026-08-29T14:00:00Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
   "goal": "Deliver a versioned, evidence-first intelligence engine and a read-only ChatGPT evidence interface without fabricated predictions.",
@@ -96,20 +96,20 @@
     {
       "id": "P47-060-data-inventory",
       "title": "Verify Maricopa source and outcome-label availability",
-      "status": "in_progress",
+      "status": "completed",
       "ownerRole": "data-product-engineer",
       "dependencies": ["P47-010-governance"],
       "scope": ["source inventory", "licensing", "update cadence", "historical coverage", "redemption labels", "observation timestamps"],
       "acceptance": ["every source has authority, license, fields, cadence, and provenance", "label gaps are explicit", "no unverified scraped dataset enters production"],
       "documentation": ["docs/engine/data-inventory.md", "docs/engine/status.md"],
       "verification": ["npm run validate:data-inventory", "source URL checks", "schema sampling", "license review", "data-card draft", "full repository gates"],
-      "evidence": ["docs/engine/data-source-inventory.json", "real 2026-08-17 Assessor Secured Master archive and 39-field schema sampled", "county GIS ArcGIS item and two feature-layer schemas reviewed", "0 external sources approved for production or training", "10 Python tests and 306 Vitest tests across 46 files passed", "0 audit vulnerabilities"],
+      "evidence": ["remote commit 9cbc841", "GitHub Actions run 33248227529 and quality-gates job 99089286887 passed", "docs/engine/data-source-inventory.json", "real 2026-08-17 Assessor Secured Master archive and 39-field schema sampled", "county GIS ArcGIS item and two feature-layer schemas reviewed", "0 external sources approved for production or training", "10 Python tests and 306 Vitest tests across 46 files passed", "real MongoDB persistence smoke passed in CI", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
       "id": "P47-065-lawful-data-acquisition",
       "title": "Prepare and execute lawful longitudinal data acquisition",
-      "status": "planned",
+      "status": "ready",
       "ownerRole": "data-partnerships-engineer",
       "dependencies": ["P47-060-data-inventory"],
       "scope": ["commercial-purpose request package", "written data-use terms", "certificate lifecycle schema", "raw artifact manifest", "privacy and retention review", "time-aware entity resolution"],
@@ -130,7 +130,7 @@
       "documentation": ["model cards", "dataset cards", "docs/engine/status.md"],
       "verification": ["out-of-time evaluation", "county holdout", "calibration", "artifact reproduction"],
       "evidence": [],
-      "blockers": ["historical redemption outcome labels and sufficient observation windows are not yet verified"]
+      "blockers": ["written commercial and model-training authorization has not been obtained", "historical certificate redemption outcomes and sufficient observation windows have not been acquired or verified"]
     },
     {
       "id": "P47-080-evaluation",
@@ -148,7 +148,7 @@
     {
       "id": "P47-090-chatgpt-interface",
       "title": "Expose a read-only ChatGPT evidence interface",
-      "status": "planned",
+      "status": "ready",
       "ownerRole": "chatgpt-product-engineer",
       "dependencies": ["P47-050-platform-integration", "P47-060-data-inventory"],
       "scope": ["read-only tools", "evidence citations", "comparison", "missing-evidence guidance", "memo drafting"],
