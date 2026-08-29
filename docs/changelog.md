@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added `@tax-lien/jurisdiction-rules` with an exact-scope, immutable Maricopa
+  County registry entry, deterministic evaluation, canonical evidence digest,
+  and source-citation resolution.
+- Encoded a dated Arizona statutory baseline from current Legislature sources
+  while explicitly leaving Maricopa auction registration, schedule, payment,
+  and platform mechanics unverified. Statutory context, county operations, and
+  internal underwriting policy are separate rule categories.
+- Added evidence-backed internal exclusions for known value coverage below one
+  and observed lack of road access. Unsupported jurisdictions return
+  `out_of_scope`, missing core evidence returns `insufficient_evidence`, and
+  redemption probability remains unavailable.
 - Added the versioned `@tax-lien/engine-contract` package with
   `CandidateEvidenceV1`, `EngineResultV1`, strict runtime validation, JSON
   Schemas, and a machine-readable version manifest.

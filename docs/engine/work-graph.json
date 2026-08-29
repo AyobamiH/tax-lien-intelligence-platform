@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T09:04:39Z",
+  "updatedAt": "2026-08-29T09:20:20Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/intelligence-engine-foundation",
   "goal": "Deliver a versioned, evidence-first intelligence engine and a read-only ChatGPT evidence interface without fabricated predictions.",
@@ -57,20 +57,20 @@
     {
       "id": "P47-030-rule-engine",
       "title": "Create versioned jurisdiction rule packs",
-      "status": "ready",
+      "status": "completed",
       "ownerRole": "domain-rules-engineer",
       "dependencies": ["P47-020-contracts"],
       "scope": ["rule-pack interface", "Arizona and Maricopa applicability", "hard exclusions", "source citations", "rule versioning"],
       "acceptance": ["rules are deterministic and source-versioned", "unknown jurisdiction rules cause abstention", "legal claims are not inferred by an LLM"],
       "documentation": ["docs/architecture/scoring.md", "docs/engine/status.md"],
       "verification": ["rule fixtures from verified public rules", "contract tests", "full repository gates"],
-      "evidence": [],
+      "evidence": ["packages/jurisdiction-rules", "tests/unit/jurisdiction-rules.test.ts: 10 tests passed", "Arizona Legislature A.R.S. 42-18053, 42-18101, 42-18114, 42-18115, 42-18118, 42-18127, 42-18152, 42-18201, and 42-18202 verified 2026-08-29", "full repository suite: 42 files and 289 tests passed", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
       "id": "P47-040-service",
       "title": "Implement the production intelligence-service boundary",
-      "status": "planned",
+      "status": "ready",
       "ownerRole": "analytics-platform-engineer",
       "dependencies": ["P47-020-contracts", "P47-030-rule-engine"],
       "scope": ["Python service", "request validation", "provenance", "health and version endpoints", "truthful abstention"],

@@ -65,3 +65,12 @@ A node is complete only when implementation, focused verification, applicable
 full gates, documentation, graph state, ledger evidence, clean commit, push,
 and remote-ref verification are all present. Partial work remains
 `in_progress`, `verified`, or `blocked`.
+
+## Verified Checkpoints
+
+- `P47-000-baseline-recovery`: published at `ba1b0cb`.
+- `P47-010-governance`: published at `f236b72`.
+- `P47-020-contracts`: published at `9f89fc2`.
+- `P47-030-rule-engine`: source verification, implementation, 10 focused rule
+  tests, and repository-wide gates complete in this checkpoint.
+- `P47-040-service`: newly ready after the rule-engine checkpoint.

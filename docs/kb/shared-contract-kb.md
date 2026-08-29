@@ -28,6 +28,14 @@ The existing `packages/scoring` output remains a compatibility contract. Its
 `redemptionProbability` value is a fixed heuristic and must be renamed to
 `redemption_heuristic_signal` when mapped into `EngineResultV1`.
 
+Phase 47 also adds `packages/jurisdiction-rules` as a server-side consumer of
+the engine contract. Its registry is exact-jurisdiction and version based. The
+current Maricopa pack returns a contract-valid assessed,
+insufficient-evidence, or out-of-scope result; resolves legal findings through
+versioned citations; computes only deterministic value coverage; and keeps
+redemption probability unavailable. Current county auction mechanics are not
+yet a verified contract.
+
 Current shared types in `packages/types`:
 
 - Phase 45 extends the follow-up contract with `completed` due state,

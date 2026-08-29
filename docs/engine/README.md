@@ -13,7 +13,8 @@ chat history or reconstructing architecture decisions.
 5. `work-graph.json`
 6. `../decisions/0002-intelligence-engine-boundary.md`
 7. `contracts.md`
-8. `open-source-components.md`
+8. `rule-packs.md`
+9. `open-source-components.md`
 
 ## Work-Unit Protocol
 

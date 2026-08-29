@@ -13,8 +13,12 @@ Last updated: 2026-08-29
 - `P47-020-contracts` adds the versioned `CandidateEvidenceV1` and
   `EngineResultV1` TypeScript contracts, dependency-free runtime validators,
   strict JSON Schemas, and a machine-readable schema manifest.
+- `P47-030-rule-engine` adds the exact-scope
+  `us-az-maricopa-statutory-baseline@2026-08-29.1` pack, source-citation
+  resolution, deterministic evidence hashing, and evidence-backed internal
+  exclusion rules.
 - Current application gates pass: audit with 0 vulnerabilities, graph
-  validation, typecheck, 279 tests across 41 files, and every workspace build.
+  validation, typecheck, 289 tests across 42 files, and every workspace build.
 - Current `packages/scoring` implementation is deterministic rules-based
   prioritization, not a calibrated prediction engine.
 - One Maricopa-style import adapter and generic fallback exist.
@@ -33,14 +37,16 @@ claimed.
 
 ## Current Work
 
-`P47-020-contracts` is verified. An available redemption probability now
-requires a versioned model artifact, training-dataset version, artifact digest,
-and evaluation-report reference. The legacy API remains compatible, but its
-fixed-rule value is explicitly documented as a heuristic.
+`P47-030-rule-engine` is verified. The rule evaluator supports only Maricopa
+County, calculates only deterministic value coverage, returns out-of-scope or
+insufficient-evidence states where required, and leaves redemption probability
+unavailable. Arizona statutory context resolves to dated Legislature sources.
+Current Maricopa auction operating rules remain explicitly unverified.
 
 ## Next Ready Work
 
-- `P47-030-rule-engine`: versioned, source-cited jurisdiction rule packs.
+- `P47-040-service`: production intelligence-service boundary with
+  cross-language contract parity and truthful failure behavior.
 - `P47-060-data-inventory`: Maricopa data-source and outcome-label inventory.
 
 ## Explicitly Unproven

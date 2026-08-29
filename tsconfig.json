@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/types" },
     { "path": "packages/engine-contract" },
+    { "path": "packages/jurisdiction-rules" },
     { "path": "packages/db" },
     { "path": "packages/scoring" },
     { "path": "apps/api" },

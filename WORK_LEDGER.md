@@ -1181,3 +1181,91 @@
 - Newly ready nodes:
   - `P47-030-rule-engine`;
   - `P47-060-data-inventory` remains independently ready.
+
+## 2026-08-29T09:20:20Z - Phase 47 versioned jurisdiction rule engine
+
+- Requested task: continue building a reliable intelligence engine without
+  placeholders, use verified existing sources, and keep agent work documented
+  and graph governed.
+- Graph node: `P47-030-rule-engine`.
+- Repository: `AyobamiH/tax-lien-intelligence-platform`.
+- Branch and starting commit:
+  `feature/intelligence-engine-foundation` at `9f89fc2`.
+- Primary-source verification completed on 2026-08-29:
+  - A.R.S. 42-18053 for the delinquent-tax interest rate;
+  - A.R.S. 42-18101 for sale and foreclosure of real-property tax liens;
+  - A.R.S. 42-18114 for successful-purchaser and bid-rate mechanics;
+  - A.R.S. 42-18115 for easements and specified liens not extinguished by
+    sale;
+  - A.R.S. 42-18118 for the certificate of purchase;
+  - A.R.S. 42-18127 for certificate expiration and exceptions;
+  - A.R.S. 42-18152 for redemption timing;
+  - A.R.S. 42-18201 for the redemption-foreclosure action window;
+  - A.R.S. 42-18202 for notice before a foreclosure action.
+- Work completed:
+  - added the independently buildable `@tax-lien/jurisdiction-rules` package;
+  - added immutable rule-pack, rule, citation, source-class, and evaluation
+    contracts;
+  - registered only
+    `us-az-maricopa-statutory-baseline@2026-08-29.1`, with normalized aliases
+    that do not broaden coverage beyond Maricopa County;
+  - separated primary statutory context, future county operating rules, and
+    internal underwriting policy so a platform threshold cannot be presented
+    as law;
+  - recorded every statutory rule's Legislature authority, section, URL, and
+    verification timestamp;
+  - implemented exact-scope lookup, citation resolution, canonical candidate
+    evidence serialization, and SHA-256 evidence digesting;
+  - implemented deterministic evaluation that computes only value coverage
+    from positive, same-currency evidence;
+  - returns `out_of_scope` for unregistered jurisdictions and
+    `insufficient_evidence` when parcel, lien, value, or currency evidence is
+    inadequate;
+  - applies hard exclusion findings only for known value coverage below one or
+    observed lack of road access, retaining the source evidence references;
+  - returns redemption probability as unavailable because no promoted model
+    artifact exists;
+  - marks Maricopa auction registration, eligibility, deposit, schedule,
+    payment, platform, and live-file rules as not verified instead of encoding
+    assumptions.
+- Tests added:
+  - 10 jurisdiction-rule tests covering exact registry scope, canonical
+    aliases, citation integrity, primary-source classes, out-of-scope behavior,
+    insufficient evidence, deterministic value coverage, both hard exclusions,
+    invalid contract rejection, stable evidence digesting, and timestamp
+    rejection;
+  - focused engine-contract and rule-engine run passed with 2 files and 19
+    tests.
+- Checks run:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:work-graph` passed with 10 nodes;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 42 files and 289 tests;
+  - `npm run build` passed for all workspaces, including engine-contract and
+    jurisdiction-rules;
+  - `git diff --check` passed.
+- Documentation updated:
+  - `docs/engine/rule-packs.md`;
+  - `docs/engine/status.md`;
+  - `docs/engine/work-graph.json`;
+  - `docs/engine/phase-47-plan.md`;
+  - `docs/architecture/scoring.md`;
+  - `docs/kb/shared-contract-kb.md`;
+  - `docs/README.md`;
+  - `docs/changelog.md`;
+  - `WORK_LEDGER.md`.
+- Verified limits:
+  - this is a source-versioned deterministic baseline, not legal advice or an
+    attorney review;
+  - no current county auction mechanics, live auction data, title condition,
+    bankruptcy status, trained probability, model calibration, deployment, or
+    user outcome is claimed;
+  - statutory changes require a new immutable rule-pack version and source
+    review;
+  - the external OneClickPostFactory repository was not verified or mutated,
+    and no cross-repository sync is claimed.
+- Blockers: none for `P47-040-service`.
+- Newly ready nodes:
+  - `P47-040-service`;
+  - `P47-060-data-inventory` remains independently ready and must verify county
+    operational sources before those rules can be promoted.

@@ -144,6 +144,28 @@ in this contract node. Platform integration must relabel the legacy redemption
 field at the compatibility boundary and expose `insufficient_evidence` when a
 model-backed probability is unavailable. See `docs/engine/contracts.md`.
 
+## Phase 47 Jurisdiction Rule Boundary
+
+`packages/jurisdiction-rules` implements a versioned registry and deterministic
+evaluator on top of the engine contract. The first pack is
+`us-az-maricopa-statutory-baseline@2026-08-29.1` and supports only Maricopa
+County, Arizona. Unsupported jurisdictions return `out_of_scope` without a
+calculated score.
+
+The pack keeps three kinds of truth separate:
+
+- Arizona statutory context, linked to current Arizona Legislature sections;
+- county operational rules, currently marked `not_verified` and therefore not
+  encoded;
+- internal underwriting policy, clearly labelled as platform policy rather
+  than law.
+
+The evaluator computes only evidence-supported value coverage. It returns
+`insufficient_evidence` when core facts are missing and always leaves
+redemption probability unavailable because no promoted model artifact exists.
+Internal value-coverage and road-access exclusions require established field
+evidence and retain its source references. See `docs/engine/rule-packs.md`.
+
 ## Normalization Boundary
 
 Normalization maps common CSV headers into scoreable fields. It supports common
