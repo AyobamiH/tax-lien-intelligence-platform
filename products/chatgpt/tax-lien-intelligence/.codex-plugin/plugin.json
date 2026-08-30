@@ -1,0 +1,24 @@
+{
+  "name": "tax-lien-intelligence",
+  "version": "0.1.0",
+  "description": "Read-only, evidence-grounded tax-lien workspace review for ChatGPT.",
+  "author": {
+    "name": "AyobamiH",
+    "url": "https://github.com/AyobamiH"
+  },
+  "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+  "keywords": ["tax-lien", "evidence", "mcp", "chatgpt"],
+  "interface": {
+    "displayName": "Tax Lien Intelligence",
+    "shortDescription": "Review authorized tax-lien evidence with citations.",
+    "longDescription": "Review authorized workspaces, inspect cited evidence and unknowns, compare selected candidates, and prepare a decision brief without bidding or changing records.",
+    "developerName": "AyobamiH",
+    "category": "Finance",
+    "capabilities": ["Read-only", "Evidence citations", "Workspace authorization"],
+    "defaultPrompt": [
+      "Show my authorized tax-lien workspaces.",
+      "Explain the evidence and unknowns for a candidate.",
+      "Compare selected candidates without ranking them."
+    ]
+  }
+}

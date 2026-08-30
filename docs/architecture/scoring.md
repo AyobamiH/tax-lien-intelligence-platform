@@ -38,6 +38,10 @@ Implemented:
   possible so watchlist references remain stable;
 - unit tests for scoring rules;
 - integration tests for scoring API ownership and weak-data behavior.
+- a bounded TypeScript client for the internal intelligence service;
+- per-row versioned evidence construction and result persistence;
+- explicit completed, not-configured, and failed intelligence states;
+- frontend version, signal, finding, and abstention visibility.
 
 Not implemented:
 
@@ -63,8 +67,13 @@ Not implemented:
 9. The enrichment service infers missing fields and data-quality context from
    safe source-row aliases.
 10. The pure scoring package produces a deterministic score result.
-11. The API persists scored records with `userId`, `datasetId`, normalized fields,
-   enrichment metadata, flags, reasoning, and timestamps.
+11. The API builds versioned evidence and, when enabled, calls the internal
+    intelligence service once with a bounded timeout.
+12. The API validates result identity and digest, or records an explicit
+    disabled/failure state without a result.
+13. The API persists scored records with `userId`, `datasetId`, normalized
+    fields, enrichment metadata, legacy scoring output, versioned intelligence,
+    and timestamps.
 
 ## Scoring Package Boundary
 
@@ -96,7 +105,7 @@ The current scoring model uses only fields that may be present in uploaded data:
 - simple access, buildability, and utility signals if present;
 - missing-data confidence.
 
-It produces:
+The legacy response currently produces:
 
 - `investmentScore` from 0 to 100;
 - `riskScore` from 0 to 100;
@@ -119,8 +128,54 @@ Examples:
 - no road access caps investment score near zero;
 - vacant land is heavily penalized unless future enrichment proves quality.
 
-This is not fake precision. Missing data is a product signal, not something the
-scoring engine should hide.
+These values are fixed-rule prioritization signals. In particular,
+`redemptionProbability` starts from a hard-coded baseline and is adjusted by
+property type, value coverage, and access. It is not trained against verified
+historical redemption outcomes, is not calibrated, and must not be represented
+as a real probability outside this legacy response. Missing data remains a
+product signal that the engine must expose rather than hide.
+
+## Phase 47 Contract Boundary
+
+`packages/engine-contract` now defines runtime-validated
+`CandidateEvidenceV1` and `EngineResultV1` contracts plus matching JSON
+Schemas. The new contract separates observed, derived, unknown, and
+not-applicable evidence and requires field-level provenance.
+
+Engine signals identify whether their method is deterministic, heuristic,
+model-backed, or not computed. An available `redemption_probability` is valid
+only when it references a versioned model artifact, training-dataset version,
+artifact SHA-256 digest, and evaluation report. Fixed rules must use the
+distinct `redemption_heuristic_signal` key and a non-probability unit.
+
+The existing numerical scoring fields remain for compatibility. The API now
+adds `legacyScoring.methodology: fixed_rule_heuristic` and
+`redemptionSignalKind: heuristic_not_probability`; the frontend labels the
+value as a rule signal rather than a probability. A separate `intelligence`
+envelope carries a contract-valid stored result or an explicit disabled or
+failed state. See `docs/engine/contracts.md`.
+
+## Phase 47 Jurisdiction Rule Boundary
+
+`packages/jurisdiction-rules` implements a versioned registry and deterministic
+evaluator on top of the engine contract. The first pack is
+`us-az-maricopa-statutory-baseline@2026-08-29.2` and supports only Maricopa
+County, Arizona. Unsupported jurisdictions return `out_of_scope` without a
+calculated score.
+
+The pack keeps three kinds of truth separate:
+
+- Arizona statutory context, linked to current Arizona Legislature sections;
+- county operational rules, currently marked `not_verified` and therefore not
+  encoded;
+- internal underwriting policy, clearly labelled as platform policy rather
+  than law.
+
+The evaluator computes only evidence-supported value coverage. It returns
+`insufficient_evidence` when core facts are missing and always leaves
+redemption probability unavailable because no promoted model artifact exists.
+Internal value-coverage and road-access exclusions require established field
+evidence and retain its source references. See `docs/engine/rule-packs.md`.
 
 ## Normalization Boundary
 
@@ -171,6 +226,7 @@ server-derived documents with:
 - source row number;
 - normalized fields;
 - enrichment metadata;
+- versioned intelligence evaluation state and optional contract-valid result;
 - scoring output;
 - `scoredAt`;
 - timestamps.
@@ -222,5 +278,6 @@ Do not duplicate scoring logic outside `packages/scoring`.
 
 Do not add frontend score displays that invent fields not returned by the API.
 
-Do not add automation, AI, or additional enrichment providers before the current
-worker-scoring and enrichment boundaries remain stable under tests.
+Do not let an LLM calculate, modify, or fill missing engine values. ChatGPT may
+explain stored results and cited evidence only through a tenant-authorized tool
+boundary.

@@ -12,6 +12,19 @@ and shared DTO types.
 
 Current implementation:
 
+- a stateless Python 3.12 intelligence service with strict versioned evidence
+  validation, internal bearer authentication, request size and read-time
+  bounds, safe error envelopes, deterministic Maricopa rule evaluation,
+  output revalidation, health/version endpoints, and no model or provider
+  fallback;
+- real-process loopback contract tests that compare Python service output with
+  the TypeScript rule engine, including fractional-number evidence digest
+  parity;
+- a tenant-aware TypeScript service client used only by the scoring worker,
+  with bounded timeout, response identity/digest validation, explicit disabled
+  and failure states, and no retry or stale-result fallback;
+- scored-record persistence for complete versioned engine results, with
+  contract revalidation on API reads;
 - Express app factory;
 - Helmet middleware;
 - CORS middleware;

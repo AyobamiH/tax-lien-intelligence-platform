@@ -16,6 +16,9 @@ export interface InternalJobSummaryRecord {
   scoredRecordCount?: number;
   enrichedRecordCount?: number;
   enrichmentFallbackCount?: number;
+  intelligenceCompletedCount?: number;
+  intelligenceNotConfiguredCount?: number;
+  intelligenceFailedCount?: number;
   earliestReprocessAfter?: string;
   maintenanceScannedDatasetCount?: number;
   maintenanceStaleDatasetCount?: number;
@@ -57,6 +60,9 @@ const internalJobSummarySchema = new Schema<InternalJobSummaryRecord>(
     scoredRecordCount: { type: Number, min: 0 },
     enrichedRecordCount: { type: Number, min: 0 },
     enrichmentFallbackCount: { type: Number, min: 0 },
+    intelligenceCompletedCount: { type: Number, min: 0 },
+    intelligenceNotConfiguredCount: { type: Number, min: 0 },
+    intelligenceFailedCount: { type: Number, min: 0 },
     earliestReprocessAfter: { type: String, trim: true, maxlength: 40 },
     maintenanceScannedDatasetCount: { type: Number, min: 0 },
     maintenanceStaleDatasetCount: { type: Number, min: 0 },

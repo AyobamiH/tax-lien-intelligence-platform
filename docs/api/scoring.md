@@ -4,6 +4,12 @@ Phase 4 adds the first explainable scoring foundation. Phase 29 makes scoring
 routes workspace-aware: members may read and owners/admins may start score or
 refresh jobs.
 
+> Phase 47 compatibility notice: the endpoint preserves legacy numerical
+> fields for existing clients, but now marks them with `legacyScoring`. Its
+> `redemptionProbability` field is a fixed-rule heuristic, not a trained or
+> calibrated probability. Versioned intelligence is returned separately under
+> `intelligence`.
+
 ## Security Model
 
 - All scoring routes require `Authorization: Bearer <jwt-access-token>`.
@@ -251,6 +257,15 @@ Returns stored scored records for a workspace-shared dataset.
       "valueCoverageRatio": 12,
       "flags": [],
       "reasoning": [],
+      "legacyScoring": {
+        "packageVersion": "0.1.0",
+        "methodology": "fixed_rule_heuristic",
+        "redemptionSignalKind": "heuristic_not_probability"
+      },
+      "intelligence": {
+        "state": "not_configured",
+        "message": "Versioned intelligence was not requested because the internal service is disabled."
+      },
       "scoredAt": "2026-05-25T00:00:00.000Z",
       "createdAt": "2026-05-25T00:00:00.000Z",
       "updatedAt": "2026-05-25T00:00:00.000Z"
@@ -260,6 +275,23 @@ Returns stored scored records for a workspace-shared dataset.
 ```
 
 If scoring has not been run yet, the route returns an empty `scores` array.
+
+`intelligence.state` is one of:
+
+- `completed`, with a complete contract-valid `result` and `attemptedAt`;
+- `not_configured`, with no result;
+- `failed`, with `service_unavailable`, `service_rejected`, or
+  `invalid_service_response`, and no result.
+
+A completed result can itself be `assessed`, `insufficient_evidence`, or
+`out_of_scope`. Historical rows without an intelligence envelope are returned
+as `not_configured`. A failed refresh never receives a previous result as a
+fallback.
+
+Current user-uploaded datasets retain an unknown jurisdiction even when the
+Maricopa-style import adapter matches. Header shape and user-provided labels are
+not proof of issuing authority, so the versioned engine returns `out_of_scope`
+without values until a verified source path is implemented.
 
 ## Scoring Error Codes
 
@@ -285,6 +317,12 @@ explicit enrichment orchestration, fallback outcomes, and freshness/reprocess
 metadata. Scoring is still not a final institutional underwriting model. It uses
 fields that can be mapped or safely inferred from the uploaded dataset, plus
 safe external enrichment metadata when the Census provider is enabled.
+
+The route now returns `EngineResultV1` only inside a completed `intelligence`
+envelope. The legacy field is still present for compatibility but is explicitly
+identified as a heuristic in API metadata and UI labels. Real redemption
+probability remains unavailable until a verified model artifact passes the
+promotion gates.
 
 Phase 5 adds a frontend review surface that calls these routes directly for the
 signed-in user. Phase 6 adds watchlist actions on top of scored records. Phase 7

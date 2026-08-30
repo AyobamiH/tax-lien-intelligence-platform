@@ -169,6 +169,7 @@ import {
   filterPortfolioItemsForReview,
   filterScoresForReview,
   flagPreview,
+  formatHeuristicSignal,
   formatMoney,
   formatPercent,
   formatRatio,
@@ -3579,7 +3580,11 @@ function ComparisonMatrix({
             <ComparisonMatrixRow label="Risk" items={items} render={(item) => String(item.riskScore)} />
             <ComparisonMatrixRow label="Confidence" items={items} render={(item) => String(item.confidenceScore)} />
             <ComparisonMatrixRow label="Liquidity" items={items} render={(item) => String(item.liquidityScore)} />
-            <ComparisonMatrixRow label="Redemption" items={items} render={(item) => formatPercent(item.redemptionProbability)} />
+            <ComparisonMatrixRow
+              label="Redemption heuristic"
+              items={items}
+              render={(item) => formatHeuristicSignal(item.redemptionProbability)}
+            />
             <ComparisonMatrixRow label="Coverage" items={items} render={(item) => formatRatio(item.valueCoverageRatio)} />
             <ComparisonMatrixRow label="Lien" items={items} render={(item) => formatMoney(item.normalizedFields.lienAmount)} />
             <ComparisonMatrixRow label="Value" items={items} render={(item) => formatMoney(item.normalizedFields.estimatedValue)} />
@@ -4113,7 +4118,10 @@ function DecisionBriefPage({
               <DetailTerm label="Investment" value={String(brief.target.investmentScore)} />
               <DetailTerm label="Risk" value={String(brief.target.riskScore)} />
               <DetailTerm label="Liquidity" value={String(brief.target.liquidityScore)} />
-              <DetailTerm label="Redemption" value={formatPercent(brief.target.redemptionProbability)} />
+              <DetailTerm
+                label="Redemption heuristic"
+                value={formatHeuristicSignal(brief.target.redemptionProbability)}
+              />
               <DetailTerm label="Confidence" value={String(brief.target.confidenceScore)} />
               <DetailTerm label="Coverage" value={formatRatio(brief.target.valueCoverageRatio)} />
               <DetailTerm label="Lien" value={formatMoney(brief.target.normalizedFields.lienAmount)} />
@@ -4649,7 +4657,7 @@ function WatchlistPage({
                     <th className="border-b border-line px-3 py-2">Risk</th>
                     <th className="border-b border-line px-3 py-2">Confidence</th>
                     <th className="border-b border-line px-3 py-2">Liquidity</th>
-                    <th className="border-b border-line px-3 py-2">Redemption</th>
+                    <th className="border-b border-line px-3 py-2">Redemption heuristic</th>
                     <th className="border-b border-line px-3 py-2">Coverage</th>
                     <th className="border-b border-line px-3 py-2">Flags</th>
                     <th className="border-b border-line px-3 py-2">Action</th>
@@ -4735,7 +4743,9 @@ function WatchlistPage({
                         <td className="border-b border-line px-3 py-3">{item.riskScore}</td>
                         <td className="border-b border-line px-3 py-3">{item.confidenceScore}</td>
                         <td className="border-b border-line px-3 py-3">{item.liquidityScore}</td>
-                        <td className="border-b border-line px-3 py-3">{formatPercent(item.redemptionProbability)}</td>
+                        <td className="border-b border-line px-3 py-3">
+                          {formatHeuristicSignal(item.redemptionProbability)}
+                        </td>
                         <td className="border-b border-line px-3 py-3">{formatRatio(item.valueCoverageRatio)}</td>
                         <td className="max-w-[220px] border-b border-line px-3 py-3 text-xs text-ink/75">
                           {flagPreview(item)}
@@ -6788,7 +6798,7 @@ function ScoreTable({
         <PanelMessage label="No records match the current filter." />
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-[1220px] w-full border-collapse text-sm">
+          <table className="min-w-[1360px] w-full border-collapse text-sm">
             <thead className="bg-field text-left text-xs uppercase tracking-[0.08em] text-ink/60">
               <tr>
                 <th className="border-b border-line px-3 py-2">Record</th>
@@ -6799,8 +6809,9 @@ function ScoreTable({
                 <th className="border-b border-line px-3 py-2">Risk</th>
                 <th className="border-b border-line px-3 py-2">Confidence</th>
                 <th className="border-b border-line px-3 py-2">Liquidity</th>
-                <th className="border-b border-line px-3 py-2">Redemption</th>
+                <th className="border-b border-line px-3 py-2">Redemption heuristic</th>
                 <th className="border-b border-line px-3 py-2">Coverage</th>
+                <th className="border-b border-line px-3 py-2">Engine</th>
                 <th className="border-b border-line px-3 py-2">Flags</th>
                 <th className="border-b border-line px-3 py-2">Reasoning</th>
               </tr>
@@ -6910,8 +6921,13 @@ function ScoreTable({
                     <td className="border-b border-line px-3 py-3">{score.riskScore}</td>
                     <td className="border-b border-line px-3 py-3">{score.confidenceScore}</td>
                     <td className="border-b border-line px-3 py-3">{score.liquidityScore}</td>
-                    <td className="border-b border-line px-3 py-3">{formatPercent(score.redemptionProbability)}</td>
+                    <td className="border-b border-line px-3 py-3">
+                      {formatHeuristicSignal(score.redemptionProbability)}
+                    </td>
                     <td className="border-b border-line px-3 py-3">{formatRatio(score.valueCoverageRatio)}</td>
+                    <td className="border-b border-line px-3 py-3 text-xs">
+                      {intelligenceStatusLabel(score.intelligence)}
+                    </td>
                     <td className="max-w-[180px] border-b border-line px-3 py-3 text-xs text-ink/75">
                       {flagPreview(score)}
                     </td>
@@ -7030,6 +7046,7 @@ function ScoreDetail({
         {score.enrichment ? <DetailTerm label="Data quality" value={`${score.enrichment.dataQualityScore}/100`} /> : null}
         {score.enrichment ? <DetailTerm label="Freshness" value={score.enrichment.freshness.status} /> : null}
       </dl>
+      <IntelligenceEvaluationPanel intelligence={score.intelligence} />
       {score.enrichment && (score.enrichment.signals.length > 0 || score.enrichment.reasoning.length > 0) ? (
         <section className="mt-5">
           <h4 className="text-sm font-semibold">Enrichment</h4>
@@ -7125,6 +7142,119 @@ function ScoreDetail({
       </section>
     </aside>
   );
+}
+
+export function IntelligenceEvaluationPanel({
+  intelligence,
+}: {
+  intelligence: ScoredRecordResponse["intelligence"];
+}) {
+  if (!intelligence || intelligence.state === "not_configured") {
+    return (
+      <section className="mt-5 border border-line bg-field p-3" aria-label="Versioned intelligence">
+        <h4 className="text-sm font-semibold">Versioned Intelligence</h4>
+        <p className="mt-2 text-sm font-semibold">Not configured</p>
+        <p className="mt-1 text-sm leading-6 text-ink/70">
+          {intelligence?.message ?? "No versioned intelligence evaluation is stored for this record."}
+        </p>
+        <p className="mt-1 text-xs text-ink/60">No engine result is available.</p>
+      </section>
+    );
+  }
+
+  if (intelligence.state === "failed") {
+    return (
+      <section className="mt-5 border border-red-200 bg-red-50 p-3" aria-label="Versioned intelligence">
+        <h4 className="text-sm font-semibold">Versioned Intelligence</h4>
+        <p className="mt-2 text-sm font-semibold text-red-800">Unavailable</p>
+        <p className="mt-1 text-sm leading-6 text-red-900">{intelligence.message}</p>
+        <p className="mt-1 text-xs text-red-800">
+          Failure: {intelligence.failureCode ?? "unknown"}. No prior engine result was substituted.
+        </p>
+      </section>
+    );
+  }
+
+  const result = intelligence.result;
+  if (!result) {
+    return (
+      <section className="mt-5 border border-red-200 bg-red-50 p-3" aria-label="Versioned intelligence">
+        <h4 className="text-sm font-semibold">Versioned Intelligence</h4>
+        <p className="mt-2 text-sm font-semibold text-red-800">Invalid stored state</p>
+        <p className="mt-1 text-sm text-red-900">A completed evaluation has no contract-valid result.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-5 border border-pine/30 bg-field p-3" aria-label="Versioned intelligence">
+      <h4 className="text-sm font-semibold">Versioned Intelligence</h4>
+      <p className="mt-2 text-sm font-semibold">{engineResultStatusLabel(result.status)}</p>
+      <p className="mt-1 text-sm leading-6 text-ink/75">{intelligence.message}</p>
+      <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+        <DetailTerm label="Applicability" value={result.applicability.status} />
+        <DetailTerm label="Jurisdiction" value={result.applicability.jurisdiction} />
+        <DetailTerm label="Contract" value={result.contractVersion} />
+        <DetailTerm label="Engine" value={result.versions.engineVersion} />
+        <DetailTerm label="Rule pack" value={result.versions.rulePackVersion} />
+        <DetailTerm label="Evidence" value={result.versions.evidenceVersion} />
+      </dl>
+      <p className="mt-3 text-xs leading-5 text-ink/70">{result.applicability.reason}</p>
+      <div className="mt-3">
+        <h5 className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/60">Signals</h5>
+        <ul className="mt-2 space-y-2">
+          {result.signals.map((signal) => (
+            <li key={signal.key} className="border border-line bg-white px-3 py-2 text-xs leading-5 text-ink/75">
+              <span className="font-semibold">{humanizeEngineKey(signal.key)}</span>: {engineSignalValue(signal)}. {signal.explanation}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <EvidenceList
+        title="Missing evidence"
+        items={result.missingEvidence}
+        emptyLabel="No missing evidence reported."
+        warning
+      />
+      <EvidenceList
+        title="Engine findings"
+        items={result.findings.map((finding) => `${finding.severity}: ${finding.message}`)}
+        emptyLabel="No engine findings reported."
+      />
+    </section>
+  );
+}
+
+function intelligenceStatusLabel(intelligence: ScoredRecordResponse["intelligence"]): string {
+  if (!intelligence || intelligence.state === "not_configured") return "Not configured";
+  if (intelligence.state === "failed") return "Unavailable";
+  return intelligence.result ? engineResultStatusLabel(intelligence.result.status) : "Invalid state";
+}
+
+function engineResultStatusLabel(status: "assessed" | "insufficient_evidence" | "out_of_scope"): string {
+  switch (status) {
+    case "assessed":
+      return "Assessed";
+    case "insufficient_evidence":
+      return "Insufficient evidence";
+    case "out_of_scope":
+      return "Out of verified scope";
+  }
+}
+
+function humanizeEngineKey(key: string): string {
+  return key.replaceAll("_", " ");
+}
+
+function engineSignalValue(signal: NonNullable<ScoredRecordResponse["intelligence"]>["result"] extends infer R
+  ? R extends { signals: Array<infer S> }
+    ? S
+    : never
+  : never): string {
+  if (signal.status !== "available" || signal.value === undefined) {
+    return `${signal.status}, ${signal.method}`;
+  }
+  return `${Number(signal.value.toFixed(4))} ${signal.unit}, ${signal.method}`;
 }
 
 function WatchlistDetail({

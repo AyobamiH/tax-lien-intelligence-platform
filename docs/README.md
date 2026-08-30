@@ -3,6 +3,27 @@
 This directory contains the durable product, architecture, API, decision, and
 knowledge-base documentation for the Tax Lien Intelligence Platform.
 
+## Intelligence Engine
+
+- [Engine operating guide](engine/README.md)
+- [Phase 47 implementation plan](engine/phase-47-plan.md)
+- [Current engine status](engine/status.md)
+- [Machine-readable work graph](engine/work-graph.json)
+- [Maricopa data source inventory](engine/data-inventory.md)
+- [Machine-readable data source decisions](engine/data-source-inventory.json)
+- [Open-source component decisions](engine/open-source-components.md)
+- [Versioned engine contracts](engine/contracts.md)
+- [Jurisdiction rule packs](engine/rule-packs.md)
+- [ChatGPT MCP tool contract](engine/chatgpt-mcp-contract.md)
+- [ChatGPT privacy and safety review](engine/chatgpt-privacy-safety-review.md)
+
+## ChatGPT Product
+
+- [Priority-one product and release plan](product/chatgpt-priority-plan.md)
+- [ChatGPT release evaluation manifest](product/chatgpt-release-evaluation.json)
+- [Private staging runbook](product/chatgpt-private-staging-runbook.md)
+- [Decision 0003: Thin ChatGPT product boundary](decisions/0003-chatgpt-product-boundary.md)
+
 ## Knowledge Base
 
 Start here for durable repo and product truth:
@@ -22,6 +43,9 @@ before writing specs, prompts, or implementation plans.
 - [Dataset Foundation Architecture](architecture/datasets.md)
 - [County Import Adapter Foundation](architecture/county-import-adapters.md)
 - [Scoring Foundation Architecture](architecture/scoring.md)
+- [Intelligence Service Architecture](architecture/intelligence-service.md)
+- [ChatGPT MCP Architecture](architecture/chatgpt-mcp.md)
+- [ChatGPT OAuth threat model](architecture/chatgpt-oauth-threat-model.md)
 - [Enrichment Architecture](architecture/enrichment.md)
 - [Frontend Review Surface Architecture](architecture/frontend-review.md)
 - [Watchlist Workflow Architecture](architecture/watchlist.md)
@@ -58,6 +82,9 @@ before writing specs, prompts, or implementation plans.
 - [Auth API](api/auth.md)
 - [Dataset API](api/datasets.md)
 - [Scoring API](api/scoring.md)
+- [Intelligence Service API](api/intelligence-service.md)
+- [ChatGPT MCP API](api/mcp.md)
+- [ChatGPT OAuth API](api/oauth.md)
 - [Internal Jobs API](api/jobs.md)
 - [Alerts API](api/alerts.md)
 - [Notification Preferences API](api/notification-preferences.md)
@@ -82,6 +109,8 @@ before writing specs, prompts, or implementation plans.
 ## Decisions
 
 - [Decision 0001: Monorepo Baseline](decisions/0001-monorepo-baseline.md)
+- [Decision 0002: Evidence-first intelligence engine boundary](decisions/0002-intelligence-engine-boundary.md)
+- [Decision 0003: Thin ChatGPT product boundary](decisions/0003-chatgpt-product-boundary.md)
 
 ## Changelog
 

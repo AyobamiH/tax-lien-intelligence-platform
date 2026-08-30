@@ -2,8 +2,10 @@
 
 ## Operating Rule
 
-Continue the existing Tax Lien Intelligence Platform repo. Do not create a new
-repo, replacement scaffold, or parallel architecture.
+Continue the existing Tax Lien Intelligence Platform as the engine and system
+of record. Do not create a replacement scaffold or parallel source of truth. A
+thin ChatGPT release product is allowed only under Decision 0003 and its graph
+gate.
 
 ## Startup Inspection
 
@@ -21,6 +23,8 @@ repo, replacement scaffold, or parallel architecture.
    - tests and CI workflows;
    - environment examples without reading secrets;
    - runtime entrypoints;
+   - Phase 47 contract, rule-pack, and Python service versions when the
+     selected graph node depends on them;
    - frontend routes/surfaces;
    - API routes;
    - data models;
@@ -28,6 +32,11 @@ repo, replacement scaffold, or parallel architecture.
    - recent partial or unfinished work.
 
 ## Choosing Next Work
+
+If `docs/engine/work-graph.json` contains `executionFocus`, its `nextNode` is
+the only task that may be selected. Respect WIP 1, do not start a deferred node,
+and require observed pilot evidence before widening the product or resuming an
+engine, data, model, county, web-app, marketing, or billing track.
 
 Choose the safest valuable task that improves the real product. Prefer:
 
@@ -55,6 +64,13 @@ Do not prioritize marketing, broad redesign, speculative rewrites, or fake AI.
   and use `npm run smoke:follow-ups:browser` for focused follow-up lifecycle
   render/control evidence, while recording that these are not screenshot or
   browser-driver evidence.
+- Use `npm run smoke:intelligence-service` for the Phase 47 real-process
+  Python/TypeScript contract boundary. It is local authenticated HTTP proof,
+  not deployment, load, service-mesh, or production-traffic proof.
+- For the ChatGPT MCP node, verify bearer authentication, server-side workspace
+  resolution, read-only annotations, bounded inputs, evidence citations,
+  facts/inferences/unknowns separation, and adversarial source text. Do not
+  treat a local MCP response as OAuth, public connection, or deployment proof.
 - Repair Crabbox only when the current operator request explicitly authorizes
   local repair and the fix is limited to normal local tooling or repo/workspace
   configuration. Do not use paid providers, production credentials, or

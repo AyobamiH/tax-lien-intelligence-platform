@@ -65,12 +65,17 @@ This product is not:
 
 ## Current Strategic Direction
 
-Keep advancing the existing app as the source of truth. Favor incremental
-workflow depth, security hardening, verification, and documentation alignment
-over speculative redesign or marketing. The next phases should close gaps that
-make the product more trustworthy for real operators: stronger import
-normalization, safer production posture, richer auditability, and better
-end-to-end runtime proof.
+The ChatGPT product is priority one. Keep the existing application as the
+engine, tenant authority, evidence store, and system of record while delivering
+one sequential ChatGPT release train: product definition, private staging,
+real-user pilot, then public release. Defer unrelated engine, data, model,
+county, web-app, billing, and marketing work unless the pilot proves that work
+is the highest-impact blocker.
+
+The ChatGPT experience is evidence-first decision support for tax-lien
+investors and small teams. It retrieves, compares, cites, explains, and drafts
+decision records; it does not invent calculations, give legal or investment
+advice, or execute bids.
 
 ## Market-Ready Definition
 
@@ -90,7 +95,9 @@ The product is honestly market-ready only when the repo demonstrates that:
 
 ## Anti-Goals
 
-- Do not create a replacement repo or scaffold a parallel architecture.
+- Do not create a replacement engine or scaffold a parallel source of truth. A
+  thin ChatGPT release product may package the existing interface under
+  Decision 0003 without copying engine or tenancy behavior.
 - Do not deploy, publish, migrate, or mutate production without explicit
   approval.
 - Do not introduce paid external services casually.

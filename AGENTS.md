@@ -1,7 +1,9 @@
 # Agent Instructions
 
 This repository is the existing Tax Lien Intelligence Platform. Continue this
-repo; do not create a replacement scaffold, parallel app, or new architecture.
+repo; do not create a replacement engine, duplicated application, or parallel
+source of truth. A thin ChatGPT release product is allowed only under Decision
+0003 and its graph gate.
 
 ## First Read
 
@@ -12,6 +14,8 @@ Before changing code or docs here, read:
 3. `OPENCLAW_RUNBOOK.md`
 4. `WORK_LEDGER.md`
 5. `docs/README.md`
+6. `docs/engine/README.md`
+7. `docs/engine/work-graph.json`
 
 Use `/home/oneclickwebsitedesignfactory/.openclaw/workspace/projects/tax-lien-platform`
 as the canonical OpenClaw workspace path. The old
@@ -24,6 +28,45 @@ Follow `OPENCLAW_RUNBOOK.md` for startup inspection, task selection, tool use,
 permission boundaries, verification, and final reporting. Keep `WORK_LEDGER.md`
 current whenever material repo work changes code, docs, tests, verification
 evidence, or next-step state.
+
+## Phase 47 Work Graph
+
+Intelligence-engine work is graph-governed. Before changing Phase 47 code:
+
+1. select a `ready` node whose dependencies are complete;
+2. set only that node to `in_progress` and record the responsible role;
+3. stay inside the node scope and declared repository boundaries;
+4. implement production behavior without mock intelligence or fabricated
+   probabilities;
+5. run the node verification commands and repository quality gates;
+6. update affected architecture, API, KB, changelog, status, graph, and ledger
+   documents in the same work unit;
+7. commit and push the verified work before closing the node.
+
+Run `npm run validate:work-graph` whenever the graph changes. A node must not be
+marked complete if implementation, verification, documentation, commit, or
+push evidence is missing. Handoffs must name the node, current state, evidence,
+changed files, remaining limits, and next unblocked nodes.
+
+### Priority-One Focus
+
+When `docs/engine/work-graph.json` contains `executionFocus`:
+
+1. select only `executionFocus.nextNode`;
+2. enforce its WIP limit and do not start another ready or in-progress node;
+3. do not work a node listed in `deferredNodes` until `resumeCondition` is met;
+4. reject opportunistic work that does not resolve the selected node's
+   acceptance criteria or a verified blocker;
+5. use `docs/product/chatgpt-priority-plan.md` as the product sequence and
+   decision rule.
+
+The current focus is the read-only ChatGPT product. The platform repository
+remains the engine and system of record. Until the planned thin repository can
+be created, its canonical source-only package lives under `products/chatgpt`.
+That package may contain connector configuration, onboarding, evaluation, and
+release provenance; it must not copy engine calculations, evidence state,
+tenancy logic, or write workflows. Never add an MCP URL or live receipt until
+the real deployed connection has been verified.
 
 ## Boundaries
 

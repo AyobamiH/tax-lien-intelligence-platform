@@ -7,6 +7,11 @@ npm install
 echo "[pre-push] Auditing high-severity dependency risk"
 npm run audit
 
+echo "[pre-push] Validating governed project state"
+npm run validate:work-graph
+npm run validate:data-inventory
+npm run validate:chatgpt-release
+
 echo "[pre-push] Running TypeScript checks"
 npm run typecheck
 

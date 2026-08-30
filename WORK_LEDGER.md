@@ -1,5 +1,482 @@
 # Work Ledger
 
+## 2026-08-30T11:25:22Z - Phase 47 current-state reconciliation and PR handoff
+
+- Requested task: revisit the controlling `Project Vision Review`, inspect the
+  live repository before continuing, preserve ChatGPT product priority one,
+  and close missed delivery/governance work without mock production claims.
+- Repository and branch: `AyobamiH/tax-lien-intelligence-platform`,
+  `feature/intelligence-engine-foundation` at
+  `a9272bc6cc759d2632ae43775dcd68b3e9edfa2f`.
+- Reconciled decisions:
+  - the existing platform remains the engine, tenant authority, evidence store,
+    and system of record;
+  - `P47-093-chatgpt-private-staging` remains the only active graph node;
+  - lawful data acquisition, training, and evaluation remain deferred until
+    pilot evidence makes them the highest-impact blocker or public release is
+    complete;
+  - legacy redemption output remains a fixed-rule heuristic, never a
+    calibrated probability;
+  - no mock connector, fabricated endpoint, unapproved dataset, or fake live
+    receipt may close a gate.
+- Verified current state:
+  - the feature branch is 16 commits ahead and zero behind `main`;
+  - exact-head GitHub Actions run `33253657970` and quality-gates job
+    `99103542844` completed successfully;
+  - no pull request existed for the 118-file Phase 47 branch;
+  - static review found no high-confidence private-key, GitHub, OpenAI, or AWS
+    credential pattern in the feature diff;
+  - OAuth and intelligence-service execution remain disabled by default;
+  - the feature diff adds no deployment workflow or destructive migration.
+- Work completed:
+  - opened pull request
+    [#1](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/1)
+    from `feature/intelligence-engine-foundation` to `main`;
+  - documented source scope, exact-head CI, public API/environment/database
+    consequences, and unverified staging/release limits in the PR;
+  - removed two copied tool-truncation warnings that incorrectly preceded the
+    ledger heading on the published feature branch;
+  - aligned engine status, graph evidence, changelog, and this ledger with the
+    PR handoff.
+- Changed-state declaration: documentation, graph evidence, and PR metadata
+  only. No runtime source, dependency, secret, deployment, migration, service,
+  production data, or product configuration was changed.
+- Remaining limits: PR review/merge does not satisfy private staging. Stable
+  HTTPS deployment, deployment credentials and secret ownership, ingress and
+  shared rate-limit topology, privacy/retention/deletion decisions, named
+  consent/support/incident/rollback owners, live ChatGPT connection tests, and
+  sanitized live receipts remain required.
+- Next exact step: validate the graph and documentation diff, commit and push
+  this reconciliation, verify the PR-head CI, then keep `P47-093` in progress
+  until its real external staging inputs are supplied.
+
+## 2026-08-29T16:15:00Z - P47-093 OAuth source checkpoint publication
+
+- Published implementation:
+  `627b60b5a2b316b704263df2c9cb0623b6cb53b9` on
+  `feature/intelligence-engine-foundation`.
+- Remote-ref verification: local `HEAD`, local
+  `origin/feature/intelligence-engine-foundation`, and the connected live
+  GitHub branch resolved to the same commit after local realignment.
+- Independent verification:
+  - GitHub Actions run `33253453470` completed successfully;
+  - quality-gates job `99102992513` completed successfully;
+  - agent graph, data inventory, and ChatGPT source-package validators passed;
+  - dependency audit passed with zero high-severity failure;
+  - typecheck, 10 Python tests, 323 Vitest tests across 49 files, and complete
+    builds passed;
+  - real-process intelligence service, real Mongo intelligence persistence,
+    and real Mongo OAuth atomic-code, refresh-family, and access-revocation
+    smokes passed.
+- Provenance decision: the thin source package now pins the verified engine/API
+  implementation commit above and MCP contract `1.0.0`. It remains
+  `source_only` with null MCP/OAuth URLs and null live receipts.
+- Graph decision: `P47-093-chatgpt-private-staging` remains the only in-progress
+  node. Repository source is verified, but the node is not complete and no
+  deployment or ChatGPT connection is claimed.
+- Next exact work: supply the approved stable staging origin/provider/service,
+  deployment credentials and secret owner, ingress/rate-limit topology, and
+  named privacy, retention/deletion, consent, support, incident, and rollback
+  owners; then follow the project staging runbook and store sanitized live
+  receipts in this repository.
+
+## 2026-08-29T16:00:00Z - P47-093 ChatGPT private-staging source checkpoint
+
+- Operator authorization: implement inside the connected
+  `AyobamiH/tax-lien-intelligence-platform` project and keep all artifacts in
+  the project rather than as chat-only output.
+- Graph state: `P47-093-chatgpt-private-staging` is the only in-progress node;
+  no engine, data, model, county, billing, marketing, or unrelated application
+  track was opened.
+- GitHub boundary: the connected integration can inspect and update existing
+  repositories but cannot create the planned
+  `AyobamiH/tax-lien-chatgpt-product` repository. The canonical thin package is
+  therefore isolated under `products/chatgpt/tax-lien-intelligence` and copies
+  no runtime, engine, tenancy, evidence, or write logic.
+- Runtime implementation:
+  - added OAuth protected-resource and authorization-server discovery;
+  - added public-client authorization code flow with explicit consent/denial,
+    exact client/redirect/resource/scope validation, and mandatory PKCE S256;
+  - added Mongo-backed hashed one-time codes, rotating refresh tokens,
+    refresh-family replay revocation, and access-token `jti` revocation;
+  - added short-lived issuer/audience/type/scope-bound MCP access tokens and
+    current-user checks;
+  - made OAuth-enabled `/mcp` reject application JWTs while keeping the
+    existing internal authentication path when OAuth is disabled;
+  - added bounded OAuth request bodies, no-store responses, IP-keyed rate
+    limits, proxy-hop configuration, and fail-closed revocation persistence.
+- Release and no-drift implementation:
+  - scaffolded and validated the thin plugin manifest;
+  - added a source-only provenance manifest that pins engine commit
+    `5a88d7c99f9ce6d75170d570b99f30c0d23c2bf4` and MCP contract `1.0.0`;
+  - added a CI validator that forbids a deployment URL or live receipt while
+    the package is source-only;
+  - added OAuth API documentation, threat model, staging/rollback runbook,
+    updated graph/status/changelog/agent instructions, and official current
+    OpenAI MCP authentication and connection references.
+- Local verification passed:
+  - `npm run audit`: zero vulnerabilities;
+  - work-graph, data-inventory, and ChatGPT release-package validators;
+  - `npm run typecheck`;
+  - 12 focused OAuth/MCP integration tests across two files;
+  - full test suite: 10 Python tests and 323 Vitest tests across 49 files;
+  - complete TypeScript/workspace, Vite, and Python build;
+  - local API/web runtime smoke, six browser-like smoke tests, and nine real
+    intelligence-service process tests;
+  - plugin-creator manifest validator;
+  - `git diff --check`.
+- Staged change-safety review:
+  - no high-confidence private-key, GitHub, OpenAI, or AWS credential pattern
+    was found in the project change;
+  - OAuth remains disabled by default and required secret/HTTPS/topology checks
+    fail startup when enabled incorrectly;
+  - the only new public routes are OAuth discovery, authorization, token, and
+    revocation; `/mcp` remains the existing read-only surface;
+  - database changes add isolated grant/revocation collections and TTL indexes,
+    with no destructive migration or existing-record rewrite;
+  - CI adds validation and a uniquely named bounded Mongo smoke database that
+    is dropped after execution; no deployment workflow was added.
+- Real Mongo OAuth smoke status: the new smoke script built successfully but
+  the local runner had no MongoDB listener at `127.0.0.1:27017`, so it stopped
+  at `ECONNREFUSED` before writing. The CI MongoDB service must pass this new
+  smoke before remote verification is claimed.
+- Claims intentionally not made: no stable HTTPS deployment, live OAuth
+  ingress, private ChatGPT connection, multi-instance rate limit, live
+  tenancy/load/redaction/rollback receipt, production mutation, or public
+  release exists yet.
+- Exact external blockers:
+  - approved staging domain/provider/service and deployment credentials;
+  - signing-secret owner, authorization owner, ingress topology, and shared or
+    ingress limiter decision;
+  - privacy/security approver, retention/deletion and pilot-consent decisions,
+    support owner, incident owner, and rollback owner.
+- Remaining checkpoint work: run every repository gate and smoke, review the
+  full diff, commit and publish to the connected branch, verify GitHub Actions,
+  and record the exact remote evidence. The graph node remains in progress.
+
+## 2026-08-29T15:40:00Z - P47-092 ChatGPT product definition closure
+
+- Graph node: `P47-092-chatgpt-product-definition`, completed.
+- Published implementation: `81f466414e54f87f9b4c6ad99ce8570d82fc5fdf`
+  on `feature/intelligence-engine-foundation`.
+- Remote-ref verification: local `HEAD`, local
+  `origin/feature/intelligence-engine-foundation`, and the live GitHub branch
+  resolved to `81f466414e54f87f9b4c6ad99ce8570d82fc5fdf`.
+- Independent verification:
+  - GitHub Actions run `33251144894` completed successfully;
+  - quality-gates job `99096911716` completed successfully;
+  - graph and data-source validation, audit, typecheck, complete tests, complete
+    builds, real-process intelligence-service smoke, and real Mongo
+    intelligence-persistence smoke passed.
+- Completion decision: one primary user, three jobs, six tools, a thin release
+  boundary, four sequential gates, WIP-1 enforcement, decision owners,
+  payload-safe telemetry, and 30 live evaluation cases are durable and
+  independently verified.
+- Named next node: `P47-093-chatgpt-private-staging`, blocked.
+- Exact unblock requirements:
+  - explicit authority to create/publish the thin release repository and deploy
+    staging;
+  - stable staging domain and target plus OAuth provider ownership, client
+    registration, and authorization owner;
+  - assigned privacy/security, retention/deletion, pilot consent, support, and
+    incident owners.
+- No data, model, county, web-app, billing, or marketing node becomes runnable
+  while this ChatGPT product gate is blocked.
+
+## 2026-08-29T15:30:00Z - ChatGPT product priority-one plan
+
+- Operator decision: avoid simultaneous product directions and make the
+  ChatGPT product priority one.
+- Starting point: clean remote-aligned branch
+  `feature/intelligence-engine-foundation` at `362abe7`, after the read-only MCP
+  interface and explicit public-release gate were published and verified.
+- Graph decision:
+  - added machine-enforced `executionFocus` with WIP 1 and no parallel product
+    tracks;
+  - made `P47-092-chatgpt-product-definition` the only in-progress node pending
+    publication and independent CI evidence;
+  - sequenced private staging, real-user pilot, and public release behind it;
+  - deferred lawful data acquisition, trained models, and model evaluation
+    until real pilot evidence identifies that work as the highest-impact
+    blocker or public release completes.
+- Product decision:
+  - primary user is a solo tax-lien investor or small-team analyst with lawful
+    workspace data;
+  - first jobs are sale-list triage, evidence-based diligence/comparison, and a
+    cited decision brief;
+  - ChatGPT remains read-only and links to the existing application for uploads
+    or mutations;
+  - the platform remains the engine and system of record;
+  - a proposed thin `AyobamiH/tax-lien-chatgpt-product` release repository may
+    contain connector packaging and release evidence but no copied engine,
+    evidence, auth, tenancy, or write logic.
+- Release definition:
+  - mapped all six existing read-only tools to the onboarding, triage,
+    diligence, comparison, and decision-record journey;
+  - added accountable decision roles and a payload-safe telemetry boundary;
+  - added 30 planned live cases across core journey, grounding, invalid input,
+    authorization, prompt injection, and out-of-scope classes;
+  - required real connected staging for execution evidence, at least five real
+    target users, ten real tasks, 100% critical safety/tenancy pass, and at
+    least 80% independent core-job completion.
+- No runtime, dependency, deployment, production configuration, credential,
+  external service, or user data was changed. The repository name above is a
+  plan, not a claim that it exists.
+- Local verification:
+  - `npm run audit` passed with zero vulnerabilities;
+  - work graph validation passed with 15 nodes, WIP 1 focus, and only `P47-092`
+    in progress;
+  - data-source inventory validation passed with six sources, zero approved,
+    four blocked, and training blocked;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 10 Python tests and 315 Vitest tests across 48
+    files;
+  - `npm run build` passed for all workspaces and Python compilation;
+  - `git diff --check` passed.
+- Remaining closure evidence: commit, push, remote-ref verification, and
+  independent branch CI.
+- Next node remains `P47-092-chatgpt-product-definition` until that closure
+  evidence is recorded.
+
+## 2026-08-29T14:00:00Z - P47-060 data inventory closure
+
+- Published implementation checkpoint: `9cbc841` on
+  `feature/intelligence-engine-foundation`.
+- Remote verification: GitHub Actions run `33248227529`, quality-gates job
+  `99089286887`, completed successfully.
+- Remote steps passed: MongoDB container initialization, dependency install,
+  graph validation, data-source inventory validation, audit, typecheck, full
+  tests, build, real-process intelligence-service smoke, and real MongoDB
+  intelligence-persistence smoke.
+- Node result: `P47-060-data-inventory` is complete with six source classes,
+  zero external sources approved for production or model training, and a
+  blocked redemption training dataset card with exact unblocking conditions.
+- Graph result:
+  - `P47-065-lawful-data-acquisition` is ready to create the commercial-purpose
+    request, terms, lifecycle schema, artifact manifest, privacy controls, and
+    time-aware entity-resolution evidence required before model training;
+  - `P47-090-chatgpt-interface` is ready to deliver a read-only, tenant-safe
+    evidence surface without waiting for model availability.
+- Explicit limits remain: no county authorization, historical redemption
+  corpus, trained model, calibrated probability, production deployment, or
+  ChatGPT tool surface is claimed.
+
+## 2026-08-29T13:45:00Z - P47-060 data inventory implementation checkpoint
+
+- Starting point: remote feature branch
+  `feature/intelligence-engine-foundation` at `fe24dc1`, with the platform
+  integration closed and current uploads retaining unknown jurisdiction.
+- Chosen node: `P47-060-data-inventory`, now `in_progress` pending publication
+  and remote CI.
+- Source research completed:
+  - traced the official county GIS directory to the Lien and Delinquent Parcels
+    ArcGIS experience, web map, feature service, and relevant layers;
+  - verified the GIS terms require written authorization for external use and
+    prohibit commercial intent, resale, or distribution except under an
+    agreement;
+  - downloaded the real 2026-08-17 Assessor Secured Master archive, checked its
+    checksum, inspected its bundled specification, and sampled the 39-field
+    header;
+  - verified the Assessor item declares twice-monthly updates and the bundled
+    specification limits the data to the current tax year;
+  - verified the Assessor schema contains property, deed, sale, and valuation
+    features but no certificate identity, lien sale date, redemption event,
+    terminal event, or observed-through field;
+  - traced the official county payment link to the Treasurer domain and
+    recorded Tax Lien Web as an authenticated certificate-holder surface whose
+    schema, export contract, history, and permitted commercial uses remain
+    unknown;
+  - reviewed the Realauction publisher surface without treating it as a
+    verified county data contract or redemption outcome source.
+- Work completed:
+  - added `docs/engine/data-source-inventory.json` with six sources, authority,
+    access, schema, cadence, history, observation time, terms, outcome labels,
+    personal-data controls, provenance, production decision, and exact
+    unblocking conditions;
+  - added `scripts/validate-data-source-inventory.mjs` and
+    `npm run validate:data-inventory`;
+  - wired the inventory gate into CI;
+  - added the human-readable source analysis and blocked training dataset card;
+  - added `P47-065-lawful-data-acquisition` so records requests, written terms,
+    source manifests, privacy, and time-safe entity resolution are completed
+    before model training;
+  - allowed the read-only ChatGPT evidence node to proceed after source
+    inventory because stored evidence and explicit abstention do not depend on
+    trained model promotion.
+- Product-truth result: zero external sources are approved for production or
+  model training. `P47-070-trained-models` remains blocked. No source was
+  scraped into the product, no dataset or model was created, and no probability
+  was fabricated.
+- Changed-state declaration: governance script, CI, graph, and documentation
+  only. A public Assessor artifact was downloaded to a temporary research path
+  for schema inspection and was not copied into the repository. No dependency,
+  deployment, migration, secret, credential, production service, or production
+  data was changed.
+- Local verification:
+  - `npm run validate:data-inventory` passed with 6 sources, 0 approved, 4
+    blocked, and training blocked;
+  - `npm run validate:work-graph` passed with 11 nodes and one in progress;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 10 Python tests and 306 Vitest tests across 46
+    files;
+  - `npm run build` passed for all workspaces and Python compile;
+  - `git diff --check` passed.
+- Remaining completion proof: run repository-wide gates, publish the
+  implementation checkpoint, verify branch CI, then publish a graph and ledger
+  closure commit.
+
+## 2026-08-29T12:45:00Z - P47-050 platform-integration closure
+
+- Published implementation checkpoint: `eefcf3a` on
+  `feature/intelligence-engine-foundation`.
+- Remote verification: GitHub Actions run `33247151199`, quality-gates job
+  `99086489141`, completed successfully.
+- Remote steps passed: MongoDB container initialization, dependency install,
+  graph validation, audit, typecheck, full tests, build, real-process service
+  smoke, and real MongoDB intelligence-persistence smoke.
+- Persistence proof: the built Mongo store wrote and read a contract-valid
+  versioned result, revalidated its evidence digest, replaced it with an
+  explicit service failure, and proved the prior result was absent from both
+  mapped and raw stored state.
+- Node result: `P47-050-platform-integration` is complete. Current user uploads
+  retain unknown jurisdiction and truthfully return `out_of_scope`; no header
+  pattern or user label is promoted into verified county authority.
+- Next ready node: `P47-060-data-inventory`, which must verify source authority,
+  licensing, cadence, fields, historical coverage, and outcome labels before
+  any upload or feed can receive exact jurisdiction scope.
+- Explicit limits remain: no production deployment, no current county auction
+  feed, no trained model, no calibrated probability, and no ChatGPT tool
+  surface are claimed.
+
+## 2026-08-29T12:30:00Z - P47-050 platform-integration implementation checkpoint
+
+- Starting point: remote feature branch
+  `feature/intelligence-engine-foundation` at `cb56e52`, with the authenticated
+  Python service checkpoint published and all earlier Phase 47 dependencies
+  complete.
+- Chosen node: `P47-050-platform-integration`, now `in_progress` pending remote
+  CI and real MongoDB smoke proof.
+- Work completed:
+  - added a tenant-side TypeScript service client with explicit disabled,
+    rejected, unavailable, and invalid-response outcomes;
+  - validated contract shape, request ID, candidate ID, evidence version, and
+    recomputed evidence digest before accepting service output;
+  - added contract `1.1.0` `user_upload` provenance without treating uploaded
+    rows as official county records;
+  - built versioned evidence per scored row and kept upload jurisdiction
+    unknown because an adapter header match is not proof of issuing authority;
+  - added bounded service concurrency, default 8 and capped at 32;
+  - persisted complete versioned results or explicit no-result abstention
+    envelopes and removed prior results during failed replacement runs;
+  - added job-summary counts for completed, not-configured, and failed
+    intelligence evaluations;
+  - kept existing numerical score fields for compatibility while adding
+    `legacyScoring` metadata and browser labels that identify the redemption
+    value as a fixed-rule heuristic signal;
+  - added browser detail for engine status, versions, applicability, signals,
+    findings, missing evidence, disabled state, and failure state;
+  - added a real MongoDB CI service and bounded persistence smoke that writes,
+    reads, validates, replaces, and removes stale result state.
+- Product-truth result: the platform can consume and store the real service's
+  deterministic result, but it still does not claim a redemption probability,
+  AVM, liquidity model, current county auction feed, or production deployment.
+- Changed-state declaration: application source, contracts, tests, CI, config
+  examples, and documentation only. No deployment, migration, service restart,
+  secret read, production traffic, or production data mutation occurred.
+- Local verification:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:work-graph` passed with 10 nodes and one in progress;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 10 Python tests and 306 Vitest tests across 46
+    files;
+  - `npm run build` passed for all workspaces and Python compile;
+  - `npm run smoke:local` passed;
+  - `npm run smoke:browser` passed with 3 files and 6 tests;
+  - `npm run smoke:intelligence-service` passed with 9 real-process tests;
+  - `git diff --check` passed.
+- Remaining completion proof: push this implementation checkpoint, verify the
+  branch CI run including `npm run smoke:intelligence:mongo`, then publish a
+  small graph and ledger closure commit. The local workspace has no MongoDB
+  daemon, so no local Mongo-backed success is claimed.
+
+## 2026-08-29T04:50:00Z - Phase 47 graph-governed operating foundation
+
+- Starting point: remote feature branch
+  `feature/intelligence-engine-foundation` at `ba1b0cb`, with the baseline
+  maintenance-selection repair and clean dependency audit published.
+- Chosen node: `P47-010-governance`.
+- Work completed:
+  - added the Phase 47 machine-readable directed acyclic work graph;
+  - added a dependency, state, ownership, evidence, and cycle validator;
+  - wired graph validation into root scripts and CI;
+  - extended `AGENTS.md` and acceptance rules with graph-first work selection,
+    handoff, documentation, verification, commit, and push requirements;
+  - documented the engine boundary, open-source reuse choices, Phase 47 plan,
+    repository authority limit, current status, and no-mock intelligence rule.
+- Agent-operating result: agents can select unblocked nodes without rebuilding
+  project history, and handoffs have a fixed evidence structure.
+- Product-truth result: unsupported evidence must abstain; the rules prototype
+  cannot be described as a calibrated probability model; ChatGPT remains an
+  evidence interface rather than the numerical engine.
+- Changed-state declaration: governance scripts, CI, docs, graph, acceptance,
+  changelog, and ledger only. No production endpoint, model output, deployment,
+  migration, secret read, or production mutation.
+- Verification:
+  - `npm run validate:work-graph` passed with 10 nodes and no dependency
+    cycles or competing in-progress nodes;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 40 files and 270 tests;
+  - `npm run build` passed;
+  - `git diff --check` passed.
+- Next unblocked nodes after verification: `P47-020-contracts` and
+  `P47-060-data-inventory`.
+
+## 2026-08-29T00:00:00Z - Phase 47 baseline recovery and engine start
+
+- Requested task: begin the intelligence-engine work autonomously with an
+  agent-operable graph, durable documentation after every work unit, real-user
+  quality, and no mock production intelligence.
+- Repo and branch: cloned `AyobamiH/tax-lien-intelligence-platform`, verified
+  `main` at `f7b6cbeab0d35712a60933c598e6fcfa39ffdd5d`, and created
+  `feature/intelligence-engine-foundation` from that commit.
+- Starting-state verification:
+  - `npm ci` completed with 364 packages installed;
+  - `npm run typecheck` passed;
+  - `npm run build` passed;
+  - `npm run test` exposed one inherited nondeterministic failure in the
+    maintenance failure-suppression scenario;
+  - `npm run audit` exposed four newly disclosed advisories in current
+    lockfile resolutions, including two high-severity advisories.
+- Root cause: latest target-job lookup sorted only by millisecond-level queue
+  and creation timestamps. Jobs created in the same millisecond could compare
+  equal, causing the initial score job to be selected instead of the newer
+  failed policy refresh.
+- Work completed:
+  - added `_id` as the final Mongo latest-job sort key;
+  - aligned the in-memory verification store with queued time, creation time,
+    and identifier ordering;
+  - added focused coverage for timestamp-collision selection;
+  - refreshed only safe lockfile resolutions selected by `npm audit fix`,
+    including patched Mongoose, PostCSS, nanoid, body-parser, MongoDB driver,
+    BSON, SASL prep, and connection-string packages;
+  - recorded the repair in the changelog.
+- Changed-state declaration: source, test, changelog, lockfile remediation,
+  and ledger work only. No deployment, migration, service restart, production
+  mutation, secret read, or fabricated engine result.
+- Verification:
+  - focused internal-job and scoring suites passed with 32 tests;
+  - the formerly nondeterministic 27-test scoring suite passed two additional
+    consecutive runs;
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 40 files and 270 tests;
+  - `npm run build` passed;
+  - `git diff --check` passed before final ledger alignment.
+- Next safe step: commit and push this recovered baseline, then establish the
+  Phase 47 work graph and engine contracts.
+
 ## 2026-07-08T12:55:00+01:00 - Repo-local agent entry point
 
 - Requested task: run the next safe step after the workflow investigation.
@@ -287,306 +764,7 @@
   - the uncommitted patch adds explicit production CORS allowlist behavior;
   - score and refresh routes are authenticated and workspace-write scoped
     before the fixed-window limiter runs;
-  - limiter keys include actor, selected workspace, method, base URL, and route
-    shape;
-  - rate-limited score/refresh blocks return structured `429` responses and
-    write bounded workspace activity for authenticated workspace requests;
-  - focused unit and integration coverage exists for CORS policy, route limit
-    response details, independent score/refresh limits, activity events,
-    `onLimit`, and reset-window behavior.
-- Assumptions made: in-process limiting remains acceptable for current
-  single-process local/runtime verification, but is not sufficient for future
-  multi-instance deployment.
-- Chosen next task and why: no additional product code change was needed; the
-  safest valuable task was control-file alignment, final verification, then
-  commit/push under the explicit operator authorization in this request.
-- Crabbox diagnosis:
-  - no `crabbox` binary is on PATH;
-  - the only local Crabbox artifact found is the OpenClaw
-    `crabbox-wrapper.mjs`;
-  - the wrapper fails `--version` and `run --help` sanity checks with unknown
-    version/providers;
-  - `@openclaw/crabbox-plugin@0.23.0` was inspected via `npm pack` in `/tmp`
-    and contains an OpenClaw plugin, not the Crabbox CLI binary;
-  - `openclaw skills search crabbox` returned no skills;
-  - no repo/workspace-local repair target was found, so no install or repair
-    was performed and no Crabbox proof was claimed.
-- Changed-state declaration: project-control docs and ledger were updated
-  before final verification. No deployment, migration, service lifecycle
-  action, production mutation, dependency change, package install, or secret
-  read was performed.
-- Verification:
-  - `git diff --check` passed;
-  - `npm run typecheck` passed;
-  - `npx vitest run tests/unit/rate-limit.test.ts tests/unit/workspace-activity.test.ts tests/integration/health.test.ts tests/integration/scoring.test.ts --testTimeout=60000`
-    passed with 4 files and 35 tests;
-  - `npm run test` passed with 37 files and 261 tests;
-  - `npm run build` passed;
-  - `npm run audit` passed with 0 vulnerabilities.
-- Result: final verification passed and the patch is ready for the explicitly
-  authorized commit/push step.
-- Next safe step: commit and push the verified hardening patch, then continue
-  with the next bounded product-roadmap or runtime-smoke task.
-
-## 2026-07-07T07:49:00+01:00 - Commit and push completion record
-
-- Commit created: `72fb06c38d71dcabff82957de07605c37a6495cc`
-  (`feat: harden scoring request limits`).
-- Push target: tracked upstream `oneclick/main`.
-- Push result: succeeded, advancing `oneclick/main` from `c548b1a` to
-  `72fb06c`.
-- Pre-push hook result:
-  - dependency install check reported packages up to date and 0
-    vulnerabilities;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run typecheck` passed;
-  - `npm run test` passed with 37 files and 261 tests;
-  - `npm run build` passed.
-- Post-push state: working tree clean on `main` tracking `oneclick/main`.
-- Remaining limits: no Crabbox proof was produced because no Crabbox CLI or
-  repo/workspace-local repair target was available; live browser/runtime smoke
-  remains the next verification target.
-- Next safe step: perform a bounded local runtime/browser smoke or continue the
-  next roadmap hardening task. Production deploy, migrations, service lifecycle
-  changes, paid/provider Crabbox setup, and production credentials remain
-  permission boundaries.
-
-## 2026-07-07T09:20:00+01:00 - Local runtime smoke evidence
-
-- Requested task: continue autonomous Tax Lien project work from the existing
-  repo, inspect current truth first, choose the next safest valuable task,
-  implement it, verify it, record it, and commit/push if checks pass.
-- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`;
-  fallback typo path `/home/oneclickwebsitefactory/tax-lien-platform` was not
-  present.
-- Branch and starting HEAD: `main` at
-  `da8d581dc4cdcb30a5ad99aebdd14b385ffd4de4`.
-- Starting state: clean working tree tracking `oneclick/main`.
-- What was inspected: repo path, git status, branch, remotes, recent commits,
-  package scripts, project-control files, docs/KB inventory, CI workflow,
-  API/web/package/source structure, API startup path, API health route, web app
-  shell, API client base URL, and existing runtime/browser-smoke gaps.
-- Coding evidence tools used first:
-  - `coding_validate_project` completed;
-  - `coding_repo_map` completed;
-  - `coding_route_trace`, `coding_api_contract_audit`, and
-    `coding_env_audit` were adapter-limited, so narrow direct inspection was
-    used for route/runtime details.
-- Verified facts discovered:
-  - the repo already has strong unit/integration/build/audit gates;
-  - `ACCEPTANCE.md` still listed live local API and browser runtime behavior as
-    unverified;
-  - the API process entrypoint requires MongoDB before listening, but
-    `createApp()` can be started in-process for health/404 runtime smoke
-    without reading secrets or connecting to production services;
-  - the built Vite shell can be served from `apps/web/dist` and checked over
-    local HTTP without adding browser-driver dependencies.
-- Assumptions made: a dependency-free HTTP smoke is valuable as local runtime
-  proof, but it is not equivalent to browser-driver screenshots, deployed
-  proof, MongoDB-backed end-to-end proof, or Crabbox proof.
-- Chosen next task and why: add `npm run smoke:local` because the next recorded
-  gap after the committed hardening was bounded local API/browser-shell runtime
-  smoke evidence.
-- Files changed:
-  - `package.json`;
-  - `scripts/local-runtime-smoke.mjs`;
-  - `README.md`;
-  - `ACCEPTANCE.md`;
-  - `docs/architecture/frontend-review.md`;
-  - `WORK_LEDGER.md`.
-- Changed-state declaration: local script/docs/control files changed. No
-  deployment, migration, service lifecycle action, production mutation,
-  dependency change, package install, or secret read was performed.
-- Verification:
-  - first `npm run smoke:local` run failed because the new smoke script tried
-    to close the Express app object instead of the HTTP server returned by
-    `app.listen()`;
-  - fixed the smoke script to close the returned HTTP server;
-  - `git diff --check` passed;
-  - `npm run smoke:local` passed, including build, API `/healthz`, structured
-    API 404, built web index, and built JS/CSS asset fetches over local HTTP;
-  - `npm run typecheck` passed;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run build` passed;
-  - `npm run test` passed with 37 files and 261 tests.
-- Result: local API/web-shell runtime smoke is now repeatable through
-  `npm run smoke:local`.
-- Next safe step: commit and push the smoke evidence task, then continue with
-  either interactive browser-driver proof if a safe tool is available or the
-  next roadmap hardening task.
-
-## 2026-07-07T09:34:00+01:00 - Local runtime smoke push completion
-
-- Commit created: `976a4e5` (`test: add local runtime smoke`).
-- Push target: tracked upstream `oneclick/main`.
-- Push result: succeeded, advancing `oneclick/main` from `da8d581` to
-  `976a4e5`.
-- Pre-push hook result:
-  - dependency install check reported packages up to date and 0
-    vulnerabilities;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run typecheck` passed;
-  - `npm run test` passed with 37 files and 261 tests;
-  - `npm run build` passed.
-- Post-push state expected: clean working tree on `main` tracking
-  `oneclick/main` after this ledger completion entry is committed and pushed.
-- Remaining limits: `npm run smoke:local` proves local HTTP API/web-shell
-  runtime behavior but does not provide browser-driver screenshots, real
-  MongoDB-backed end-to-end proof, deployed proof, or Crabbox proof.
-- Next safe step: continue to interactive browser-driver proof if a safe local
-  browser tool is available, otherwise continue the next roadmap hardening
-  task.
-
-## 2026-07-07T09:58:02+01:00 - Browser-like DOM smoke evidence
-
-- Requested task: continue autonomous Tax Lien project work from current repo
-  truth, prioritize local browser proof, diagnose/repair Crabbox if safely
-  possible, fall back to the strongest non-Crabbox verification if needed,
-  update control files, verify, commit, push, and continue unless blocked.
-- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`;
-  fallback typo path `/home/oneclickwebsitefactory/tax-lien-platform` was not
-  used.
-- Branch and starting HEAD: `main` at
-  `e091a56ee7e45ea58107a4b209c736c7155717e5`.
-- Starting state: clean working tree tracking `oneclick/main`.
-- What was inspected: git status, branch, remotes, recent commits, package
-  scripts, Vite/web package, API package, `scripts/local-runtime-smoke.mjs`,
-  project-control files, frontend entrypoints, app routing/session bootstrap,
-  existing tests, browser tool availability, and Crabbox wrapper/registry
-  availability.
-- Coding evidence tools used first:
-  - `coding_validate_project` completed;
-  - `coding_repo_map` completed;
-  - `coding_route_trace`, `coding_api_contract_audit`, `coding_env_audit`, and
-    `coding_secret_audit` were adapter-limited, so direct local inspection was
-    used for route/runtime/browser details.
-- Verified facts discovered:
-  - current HEAD is the previously pushed runtime-smoke ledger commit;
-  - no `crabbox` binary is available on PATH;
-  - the OpenClaw `crabbox-wrapper.mjs` is present but fails basic
-    `--help`/`run --help` sanity checks because no usable CLI is resolved;
-  - public npm has `@openclaw/crabbox-plugin@0.23.0`, but no `crabbox` CLI
-    package was found by `npm view crabbox`;
-  - no Chromium, Chrome, or Firefox binary is available on PATH;
-  - the repo already has `jsdom`, React, ReactDOM, and Vitest available for a
-    dependency-free browser-like DOM render smoke.
-- Assumptions made: jsdom render/bootstrap proof is the strongest safe local
-  browser-adjacent evidence available without adding a browser driver or
-  claiming screenshots/Crabbox proof.
-- Chosen next task and why: add `npm run smoke:browser` because it improves
-  local browser-surface confidence using existing dependencies and keeps the
-  evidence boundary honest.
-- Files changed:
-  - `package.json`;
-  - `tests/unit/web-app-smoke.test.ts`;
-  - `README.md`;
-  - `ACCEPTANCE.md`;
-  - `OPENCLAW_RUNBOOK.md`;
-  - `docs/architecture/frontend-review.md`;
-  - `WORK_LEDGER.md`.
-- Changed-state declaration: test/docs/control/package-script files changed.
-  No dependency install, deployment, migration, service lifecycle action,
-  production mutation, destructive action, or secret read was performed.
-- Verification:
-  - initial `npm run smoke:browser` passed with 1 test file and 2 tests;
-  - `git diff --check` passed;
-  - `npm run typecheck` passed;
-  - targeted `npm run smoke:browser` passed with 1 test file and 2 tests;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run test` passed with 38 files and 263 tests;
-  - `npm run build` passed;
-  - `npm run smoke:local` passed after building the workspace and verifying
-    API health/404 plus built web assets over local HTTP.
-- Crabbox result:
-  - `command -v crabbox` returned no binary;
-  - `node .../openclaw/scripts/crabbox-wrapper.mjs --help` failed sanity
-    checks;
-  - `node .../openclaw/scripts/crabbox-wrapper.mjs run --help` failed sanity
-    checks;
-  - `npm view crabbox` returned 404;
-  - `npm view @openclaw/crabbox-plugin` returned plugin metadata but no CLI
-    `bin`;
-  - no Crabbox run occurred and no Crabbox proof is claimed.
-- Remaining limits: `npm run smoke:browser` is browser-like DOM
-  render/bootstrap proof only. It is not a real browser-driver run, screenshot
-  evidence, MongoDB-backed end-to-end workflow proof, deployed proof, or
-  Crabbox proof.
-- Next safe step: commit and push the browser-like smoke evidence task, then
-  continue with the next bounded roadmap/hardening task unless a permission
-  boundary is reached.
-
-## 2026-07-07T10:12:00+01:00 - Browser-like DOM smoke push completion
-
-- Commit created: `937e211` (`test: add browser render smoke`).
-- Push target: tracked upstream `oneclick/main`.
-- Push result: succeeded, advancing `oneclick/main` from `e091a56` to
-  `937e211`.
-- Pre-push hook result:
-  - dependency install check reported packages up to date and 0
-    vulnerabilities;
-  - `npm run audit` passed with 0 vulnerabilities;
-  - `npm run typecheck` passed;
-  - `npm run test` passed with 38 files and 263 tests;
-  - `npm run build` passed.
-- Post-push state expected: clean working tree on `main` tracking
-  `oneclick/main` after this ledger completion entry is committed and pushed.
-- Remaining limits: no real browser-driver screenshots, no MongoDB-backed live
-  end-to-end smoke, no deployed proof, and no Crabbox proof.
-- Next safe step: continue from repo truth with the next bounded
-  product-continuity or hardening task; if a safe browser binary or real
-  Crabbox CLI later becomes available, use it for screenshots/browser-driver
-  evidence.
-
-## 2026-07-07T11:48:00+01:00 - Phase 44 follow-up reminder workflow
-
-- Requested task: resume the interrupted Phase 44 implementation from the
-  current local repo state, finish it without restarting, verify, commit, push,
-  and explicitly state whether local commit `94f965a` was pushed.
-- Repo path used: `/home/oneclickwebsitedesignfactory/tax-lien-platform`.
-- Branch and starting state:
-  - local `main` at `94f965a11c35cb23c780b476aec815e5660ad1ec`;
-  - remote `oneclick/main` at
-    `937e2119725cebcf4cac44a91c5203c1b1976edb`;
-  - local `main` ahead by one ledger/docs commit;
-  - working tree had preserved uncommitted Phase 44 edits, so the prompt's
-    clean-tree/push-only condition was false.
-- Decision: do not push `94f965a` alone while the Phase 44 patch is dirty;
-  preserve the patch, finish Phase 44, then push the local-ahead commit and
-  Phase 44 commit together after verification.
-- Work completed:
-  - added shared follow-up DTOs, due/reminder state types, follow-up alert
-    metadata, My Work follow-up queue contracts, and cadence activity types;
-  - added a Mongo follow-up model and exports;
-  - added follow-up store, service, router, factory, and worker scheduler scan;
-  - wired follow-up state into the API app, My Work aggregation, alert service,
-    notification preferences, notification delivery metadata, workspace
-    activity summaries, and worker scheduler config;
-  - added compact web follow-up controls to comparison, watchlist, and
-    portfolio detail surfaces;
-  - added actionable follow-up queue visibility to My Work;
-  - added in-memory follow-up store support and integration/frontend contract
-    coverage;
-  - updated `.env.example`, API docs, architecture docs, changelog, README
-    index, and KB truth for Phase 44;
-  - preserved the boundary that follow-ups are a bounded operational cadence
-    layer, not task management, calendar recurrence, SLA escalation, workforce
-    planning, auction execution, or AI scheduling.
-- Verification:
-  - early `npm run typecheck` failed on exact optional property and new
-    review-model exhaustiveness gaps, then passed after fixes;
-  - `npx vitest run tests/integration/follow-ups.test.ts --testTimeout=60000`
-    passed with 1 file and 3 tests;
-  - `npm run typecheck` passed;
-  - `npx vitest run tests/integration/follow-ups.test.ts tests/integration/my-work.test.ts tests/unit/web-api.test.ts tests/unit/web-app-smoke.test.ts --testTimeout=60000`
-    passed with 4 files and 31 tests;
-  - `git diff --check` passed;
-  - `npm install` completed with packages up to date and 0 vulnerabilities;
-  - `npm run typecheck` passed;
-  - first full `npm run test` failed because
-    `tests/integration/notification-preferences.test.ts` still expected the
-    pre-Phase-44 default preference rule list;
-  - updated that test to include `follow_up_due`;
-  - `npx vitest run tests/integration/notification-preferences.test.ts --testTimeout=60000`
+  - limiter keys include actor, selected workspace, me…451 tokens truncated…tests/integration/notification-preferences.test.ts --testTimeout=60000`
     passed with 1 file and 7 tests;
   - full `npm run test` passed with 39 files and 266 tests;
   - `npm run build` passed;
@@ -1033,3 +1211,363 @@
   - no brokered/cloud Crabbox proof.
 - Next safe step: continue from clean repo truth into the next roadmap
   hardening/product-continuity task.
+
+## 2026-08-29T09:04:39Z - Phase 47 versioned intelligence contracts
+
+- Requested task: begin autonomous, graph-governed intelligence-engine work
+  without mock production intelligence and document every completed work unit.
+- Graph node: `P47-020-contracts`.
+- Repository: `AyobamiH/tax-lien-intelligence-platform`.
+- Branch and starting commit:
+  `feature/intelligence-engine-foundation` at `f236b72`.
+- Verified assumptions:
+  - the current scoring package is a deterministic rules implementation;
+  - its `redemptionProbability` is a fixed heuristic, not a trained or
+    calibrated probability;
+  - no verified model artifact or historical redemption outcome dataset exists
+    in this repository;
+  - current API compatibility must be preserved while the engine boundary is
+    introduced.
+- Work completed:
+  - added `@tax-lien/engine-contract` as an independently buildable TypeScript
+    workspace package;
+  - defined versioned candidate-evidence, provenance, jurisdiction,
+    applicability, engine-result, finding, signal, and model-artifact types;
+  - added dependency-free runtime validators that reject unknown properties,
+    invalid versions, broken source references, values without provenance,
+    invalid timestamps and digests, duplicate signals, and inconsistent result
+    states;
+  - made unknown, unavailable, not-applicable, deterministic, heuristic,
+    model-backed, and not-computed states explicit;
+  - prohibited available redemption probability unless it is a bounded model
+    output with a versioned artifact and evaluation reference;
+  - reserved `redemption_heuristic_signal` for fixed-rule redemption output and
+    prohibited it from using a probability unit;
+  - published strict JSON Schemas and a schema version manifest for future
+    cross-language service parity;
+  - documented the current API compatibility boundary and corrected the legacy
+    heuristic's precision claim without breaking its response shape.
+- Tests added:
+  - 9 runtime contract and schema-manifest tests covering provenance, explicit
+    abstention, unsupported values, heuristic/probability separation, and
+    model-artifact requirements.
+- Checks run:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:work-graph` passed with 10 nodes;
+  - `npm run typecheck` passed;
+  - focused contract tests passed with 1 file and 9 tests;
+  - `npm run test` passed with 41 files and 279 tests;
+  - `npm run build` passed for API, web, DB, scoring, types, and engine-contract
+    workspaces;
+  - JSON Schema parse check and `git diff --check` passed.
+- Documentation updated:
+  - `docs/engine/contracts.md`;
+  - `docs/engine/status.md`;
+  - `docs/engine/work-graph.json`;
+  - `docs/architecture/scoring.md`;
+  - `docs/api/scoring.md`;
+  - `docs/kb/shared-contract-kb.md`;
+  - `docs/README.md`;
+  - `docs/changelog.md`;
+  - `WORK_LEDGER.md`.
+- Verified limits:
+  - this node defines and enforces contracts but does not claim live county
+    ingestion, jurisdiction-rule correctness, trained models, calibration,
+    deployed service behavior, or ChatGPT tool readiness;
+  - deterministic contract vectors validate shape only and are not production
+    intelligence or model evidence;
+  - the external OneClickPostFactory repository was not verified or mutated,
+    and no cross-repository sync is claimed.
+- Blockers: none for the next rule-engine node.
+- Newly ready nodes:
+  - `P47-030-rule-engine`;
+  - `P47-060-data-inventory` remains independently ready.
+
+## 2026-08-29T09:20:20Z - Phase 47 versioned jurisdiction rule engine
+
+- Requested task: continue building a reliable intelligence engine without
+  placeholders, use verified existing sources, and keep agent work documented
+  and graph governed.
+- Graph node: `P47-030-rule-engine`.
+- Repository: `AyobamiH/tax-lien-intelligence-platform`.
+- Branch and starting commit:
+  `feature/intelligence-engine-foundation` at `9f89fc2`.
+- Primary-source verification completed on 2026-08-29:
+  - A.R.S. 42-18053 for the delinquent-tax interest rate;
+  - A.R.S. 42-18101 for sale and foreclosure of real-property tax liens;
+  - A.R.S. 42-18114 for successful-purchaser and bid-rate mechanics;
+  - A.R.S. 42-18115 for easements and specified liens not extinguished by
+    sale;
+  - A.R.S. 42-18118 for the certificate of purchase;
+  - A.R.S. 42-18127 for certificate expiration and exceptions;
+  - A.R.S. 42-18152 for redemption timing;
+  - A.R.S. 42-18201 for the redemption-foreclosure action window;
+  - A.R.S. 42-18202 for notice before a foreclosure action.
+- Work completed:
+  - added the independently buildable `@tax-lien/jurisdiction-rules` package;
+  - added immutable rule-pack, rule, citation, source-class, and evaluation
+    contracts;
+  - registered only
+    `us-az-maricopa-statutory-baseline@2026-08-29.1`, with normalized aliases
+    that do not broaden coverage beyond Maricopa County;
+  - separated primary statutory context, future county operating rules, and
+    internal underwriting policy so a platform threshold cannot be presented
+    as law;
+  - recorded every statutory rule's Legislature authority, section, URL, and
+    verification timestamp;
+  - implemented exact-scope lookup, citation resolution, canonical candidate
+    evidence serialization, and SHA-256 evidence digesting;
+  - implemented deterministic evaluation that computes only value coverage
+    from positive, same-currency evidence;
+  - returns `out_of_scope` for unregistered jurisdictions and
+    `insufficient_evidence` when parcel, lien, value, or currency evidence is
+    inadequate;
+  - applies hard exclusion findings only for known value coverage below one or
+    observed lack of road access, retaining the source evidence references;
+  - returns redemption probability as unavailable because no promoted model
+    artifact exists;
+  - marks Maricopa auction registration, eligibility, deposit, schedule,
+    payment, platform, and live-file rules as not verified instead of encoding
+    assumptions.
+- Tests added:
+  - 10 jurisdiction-rule tests covering exact registry scope, canonical
+    aliases, citation integrity, primary-source classes, out-of-scope behavior,
+    insufficient evidence, deterministic value coverage, both hard exclusions,
+    invalid contract rejection, stable evidence digesting, and timestamp
+    rejection;
+  - focused engine-contract and rule-engine run passed with 2 files and 19
+    tests.
+- Checks run:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:work-graph` passed with 10 nodes;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 42 files and 289 tests;
+  - `npm run build` passed for all workspaces, including engine-contract and
+    jurisdiction-rules;
+  - `git diff --check` passed.
+- Documentation updated:
+  - `docs/engine/rule-packs.md`;
+  - `docs/engine/status.md`;
+  - `docs/engine/work-graph.json`;
+  - `docs/engine/phase-47-plan.md`;
+  - `docs/architecture/scoring.md`;
+  - `docs/kb/shared-contract-kb.md`;
+  - `docs/README.md`;
+  - `docs/changelog.md`;
+  - `WORK_LEDGER.md`.
+- Verified limits:
+  - this is a source-versioned deterministic baseline, not legal advice or an
+    attorney review;
+  - no current county auction mechanics, live auction data, title condition,
+    bankruptcy status, trained probability, model calibration, deployment, or
+    user outcome is claimed;
+  - statutory changes require a new immutable rule-pack version and source
+    review;
+  - the external OneClickPostFactory repository was not verified or mutated,
+    and no cross-repository sync is claimed.
+- Blockers: none for `P47-040-service`.
+- Newly ready nodes:
+  - `P47-040-service`;
+  - `P47-060-data-inventory` remains independently ready and must verify county
+    operational sources before those rules can be promoted.
+
+## 2026-08-29T09:36:58Z - Phase 47 intelligence service boundary
+
+- Requested task: continue autonomous engine delivery for real users without
+  mock providers or fabricated results, while keeping workflow and handoff
+  truth in the repository.
+- Graph node: `P47-040-service`.
+- Repository: `AyobamiH/tax-lien-intelligence-platform`.
+- Branch and starting commit:
+  `feature/intelligence-engine-foundation` at `2c44a63`.
+- Runtime decision:
+  - used Python 3.12 standard library only because the current environment and
+    repository had no FastAPI, Uvicorn, pytest, HTTPX, or JSON Schema runtime;
+  - did not install or invent a provider dependency;
+  - kept the process stateless and internal, with the TypeScript application
+    remaining the future tenant-aware system of record.
+- Work completed:
+  - added `services/intelligence` with Python package metadata, service source,
+    unit tests, operator README, and a non-root Dockerfile;
+  - implemented dependency-free `CandidateEvidenceV1` validation, including
+    versions, strict keys, canonical timestamps, field states, typed values,
+    provenance references, source identifiers, money, and limitations;
+  - implemented independent `EngineResultV1` output validation so invalid
+    internal output is refused before HTTP serialization;
+  - ported exact-scope Maricopa deterministic rule evaluation with assessed,
+    insufficient-evidence, and out-of-scope results, deterministic coverage,
+    source-retaining exclusions, and unavailable redemption probability;
+  - exposed `GET /health`, `GET /version`, and authenticated
+    `POST /v1/evaluate`;
+  - added constant-time bearer-token checks, 32-character minimum secret
+    requirement, loopback-only explicit insecure mode, a 1 MiB default body
+    limit, content-type and length validation, a 10-second socket read timeout,
+    structured no-store responses, safe errors, and graceful shutdown;
+  - ensured error responses close the connection after the real-process suite
+    exposed unread-body corruption across an HTTP keep-alive connection;
+  - changed evidence digest canonicalization to tagged UTF-8 hex and big-endian
+    IEEE-754 number encoding so JavaScript and Python produce the same digest
+    for fractional values and Unicode-safe content;
+  - added a version manifest that exposes active contracts, rule pack, dated
+    statutory sources, unverified county-operation status, and an empty model
+    artifact registry;
+  - integrated Python 3.12 setup, compile, unit tests, and the real-process smoke
+    into repository scripts and CI.
+- Tests added:
+  - 10 Python unit tests for evidence/result contracts, abstention, scope,
+    digest stability, no-value unavailable signals, and version truth;
+  - 7 Vitest real-process tests that start Python on an ephemeral loopback
+    port and verify health/version, authentication, content type, body size,
+    malformed JSON, complete TypeScript/Python parity, invalid evidence, and
+    out-of-scope behavior.
+- Checks run:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:work-graph` passed with 10 nodes;
+  - `npm run typecheck` passed;
+  - `npm run test` passed with 10 Python unit tests plus 43 Vitest files and
+    296 Vitest tests;
+  - `npm run build` passed for every TypeScript workspace and Python compile;
+  - `npm run smoke:intelligence-service` passed with 1 real-process file and 7
+    HTTP tests;
+  - `git diff --check` passed.
+- Documentation updated:
+  - `docs/api/intelligence-service.md`;
+  - `docs/architecture/intelligence-service.md`;
+  - `docs/engine/rule-packs.md`;
+  - `docs/engine/status.md`;
+  - `docs/engine/work-graph.json`;
+  - `docs/engine/phase-47-plan.md`;
+  - `docs/kb/backend-direction-kb.md`;
+  - `docs/kb/repo-reality-kb.md`;
+  - `ACCEPTANCE.md`, `OPENCLAW_RUNBOOK.md`, `README.md`, `.env.example`, CI,
+    changelog, and this ledger.
+- Verified limits:
+  - the platform API does not call the service yet, so no user workflow is
+    switched in this node;
+  - no database persistence, tenant authorization, retry/idempotency store,
+    service-mesh transport, load test, failover, deployment, or production
+    traffic is claimed;
+  - the container definition was not built or deployed in this environment;
+  - no current county auction feed, county operational rules, model artifact,
+    calibrated probability, AVM, liquidity prediction, or ChatGPT tool exists;
+  - the internal bearer token authenticates the calling service, not an end
+    user;
+  - the external OneClickPostFactory repository was not verified or mutated,
+    and no cross-repository sync is claimed.
+- Blockers: none for `P47-050-platform-integration`.
+- Newly ready nodes:
+  - `P47-050-platform-integration`;
+  - `P47-060-data-inventory` remains independently ready.
+
+## 2026-08-29 - Phase 47 ChatGPT MCP implementation checkpoint
+
+- Requested task: continue autonomously toward a real-user ChatGPT interface,
+  keep work graph governed and self-documenting, and ship no mock production
+  intelligence.
+- Graph node: `P47-090-chatgpt-interface`, `in_progress`.
+- Repository: `AyobamiH/tax-lien-intelligence-platform`.
+- Branch and starting commit:
+  `feature/intelligence-engine-foundation` at
+  `1974bc8b1e7274deb12d2324a7a903e1765b437d`.
+- Work completed:
+  - installed the official TypeScript MCP SDK in the API workspace;
+  - added authenticated stateless MCP Streamable HTTP at `POST /mcp`;
+  - added six read-only tools for workspace discovery, dataset review, bounded
+    candidate pages, candidate evidence, no-ranking comparison, and
+    privacy-reduced decision briefs;
+  - resolved workspace membership from the authenticated principal before
+    tenant lookup and accepted no caller-supplied tenant id;
+  - added a direct tenant-owned scored-record read method for evidence tools;
+  - separated stored normalized facts, fixed-rule legacy inferences, versioned
+    intelligence, unknowns, and source-row citations;
+  - kept redemption legacy output explicitly labeled
+    `heuristic_not_probability`;
+  - excluded user emails, member lists, comments, free-form notes, approval
+    notes, raw rows, access tokens, and exported brief prose;
+  - added optional `MCP_APP_BASE_URL` links with production HTTPS enforcement;
+  - exposed no write, approval, bid, purchase, external action, or score
+    calculation tool.
+- Tests added:
+  - MCP bearer authentication and structured response tests;
+  - exact read-only tool inventory and annotation tests;
+  - invalid input bounds and authenticated-principal binding tests;
+  - tenant resolution and denied workspace tests;
+  - evidence classification, citation, abstention, and no-ranking tests;
+  - adversarial prompt-like source-label handling as inert cited data.
+- Checks run:
+  - `npm run audit` passed with 0 vulnerabilities;
+  - `npm run validate:data-inventory` passed with 6 sources, 0 approved, 4
+    blocked, and training blocked;
+  - `npm run validate:work-graph` passed with 11 nodes and 1 in progress;
+  - `npm run typecheck` passed;
+  - focused MCP tests passed with 2 files and 9 tests;
+  - `npm run test` passed with 10 Python tests and 315 Vitest tests across 48
+    files;
+  - `npm run build` passed for all TypeScript workspaces and Python compile;
+  - `npm run smoke:local` passed;
+  - `npm run smoke:browser` passed with 3 files and 6 tests;
+  - `npm run smoke:intelligence-service` passed with 1 real-process file and 9
+    tests.
+- Documentation updated:
+  - MCP API and architecture references;
+  - tool contract and privacy/safety review;
+  - engine operating guide, plan, status, graph, and docs index;
+  - repo and security KB truth;
+  - acceptance, runbook, README, environment example, changelog, and this
+    ledger.
+- Verified limits:
+  - the interface uses the current application bearer JWT for internal
+    validation and does not claim a public ChatGPT OAuth flow;
+  - no stable public HTTPS deployment, ChatGPT connection, production traffic,
+    load, failover, rollback, or user-outcome improvement is claimed;
+  - candidate list pagination currently bounds the response after a tenant
+    dataset score read; storage-level cursor pagination is future scale work;
+  - no current county verification, title condition, live lien status,
+    redemption event, auction eligibility, trained model artifact, calibrated
+    probability, legal conclusion, or bid recommendation is claimed;
+  - deterministic test fixtures isolate behavior and are not production
+    intelligence or model evidence.
+- Publication status: pending implementation commit, remote ref verification,
+  and independent branch CI. The node remains `in_progress` until those pass.
+- Next safe step: publish this checkpoint, verify branch CI including real
+  MongoDB persistence, then record a small graph and ledger closure commit.
+
+## 2026-08-29 - Phase 47 ChatGPT MCP closure
+
+- Graph node: `P47-090-chatgpt-interface`, `completed`.
+- Published implementation:
+  `8f6a1bd846336a47e01e2a05c55c3631e8f2a1ad` on
+  `feature/intelligence-engine-foundation`.
+- Remote-ref verification:
+  - local `HEAD`;
+  - local `origin/feature/intelligence-engine-foundation`;
+  - live remote `refs/heads/feature/intelligence-engine-foundation`;
+  - all resolved to `8f6a1bd846336a47e01e2a05c55c3631e8f2a1ad`
+    before this closure update.
+- Independent verification:
+  - GitHub Actions run `33249393142` completed successfully;
+  - quality-gates job `99092320186` completed successfully;
+  - graph validation, data-source validation, dependency audit, typecheck,
+    complete tests, complete builds, real-process intelligence-service smoke,
+    and real Mongo intelligence-persistence smoke all passed.
+- Completion decision:
+  - the repository node meets its read-only, evidence-grounding, server-side
+    tenant-authorization, privacy-reduction, adversarial-input, documentation,
+    publication, and CI acceptance rules;
+  - no public deployment, OAuth flow, live ChatGPT connection, bid action,
+    legal conclusion, trained probability, or current county verification is
+    implied by this completion.
+- Remaining blockers before public ChatGPT use:
+  - OAuth authorization and token lifecycle;
+  - stable HTTPS MCP deployment;
+  - production-safe observability, rate limits, load tests, rollback, and live
+    role/cross-workspace validation;
+  - explicit product privacy and retention confirmation for property-level
+    evidence.
+- Next ready graph node: `P47-065-lawful-data-acquisition`.
+- `P47-070-trained-models` remains blocked until lawful outcome-bearing data,
+  censoring, and temporal evaluation inputs exist.
+- New blocked graph node: `P47-095-chatgpt-public-release`. It names OAuth,
+  stable HTTPS, token lifecycle, production controls, live connection evals,
+  rollback, and privacy approval so later work cannot treat repository MCP
+  completion as a public release.

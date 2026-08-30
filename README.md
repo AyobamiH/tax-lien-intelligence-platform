@@ -30,11 +30,16 @@ Current packages:
   approval-request, follow-subscription, review-checklist, workspace-policy,
   decision-outcome, and discussion-attention models
 - `packages/scoring`: pure explainable scoring engine
+- `packages/engine-contract`: versioned evidence and engine-result contracts
+- `packages/jurisdiction-rules`: source-cited deterministic jurisdiction rules
 - `packages/types`: shared API types
+- `services/intelligence`: authenticated Python engine-service boundary
+- `apps/api/src/mcp`: authenticated, read-only ChatGPT evidence tools over MCP
 
 Implemented API surfaces:
 
 - `GET /healthz`
+- `POST /mcp` (authenticated stateless MCP Streamable HTTP)
 - `POST /auth/register`
 - `POST /auth/login`
 - `GET /auth/me`
@@ -160,16 +165,56 @@ Use Node.js `^20.19.0 || >=22.12.0`.
    npm run dev:web
    ```
 
+5. Start the internal intelligence service with a strong local token:
+
+   ```bash
+   PYTHONPATH=services/intelligence/src \
+   INTELLIGENCE_SERVICE_TOKEN=replace-with-at-least-32-random-characters \
+   python3 -m tax_lien_intelligence.server
+   ```
+
+   To enable API worker calls, use the same token and set
+   `INTELLIGENCE_SERVICE_ENABLED=true`. The service remains disabled by default
+   and must be reachable only on a private application network.
+
+6. To include source links in MCP evidence, set the public frontend URL:
+
+   ```bash
+   MCP_APP_BASE_URL=https://app.example.com
+   ```
+
+   OAuth is disabled by default. For a ChatGPT staging deployment, configure
+   the `MCP_OAUTH_*` values documented in `.env.example`; OAuth-enabled `/mcp`
+   accepts only the scoped OAuth token. A public connection still requires the
+   real stable HTTPS deployment and live ChatGPT validation.
+
 ## Quality Gates
 
 ```bash
 npm run audit
+npm run validate:chatgpt-release
 npm run typecheck
 npm run test
 npm run build
 npm run smoke:local
 npm run smoke:browser
+npm run smoke:intelligence-service
+npm run smoke:intelligence:mongo
+npm run smoke:oauth:mongo
 ```
+
+`npm run test` includes the dependency-free Python unit suite and all Vitest
+tests. `npm run build` compiles every TypeScript workspace and byte-compiles the
+Python service. `npm run smoke:intelligence-service` starts the real
+authenticated Python process on loopback and verifies health, version,
+contract parity, invalid evidence, and out-of-scope behavior over HTTP.
+`npm run smoke:intelligence:mongo` builds the application, writes and reads a
+contract-valid result through the real Mongo scored-record store, then proves a
+later service failure removes the prior result. CI supplies a temporary real
+MongoDB service and drops the bounded smoke database after the check.
+`npm run smoke:oauth:mongo` proves atomic one-time code consumption, refresh
+replay rejection and family revocation, and access-token denylisting through
+the real Mongo store, then drops its bounded smoke database.
 
 `npm run smoke:local` builds the workspace, starts the API app in-process,
 serves the built web shell from `apps/web/dist`, verifies `/healthz`, verifies
@@ -180,7 +225,8 @@ automation or deployed proof.
 `npm run smoke:browser` mounts the real React app in a jsdom browser-like DOM,
 checks the unauthenticated app shell, and bootstraps the authenticated operator
 shell with mocked API responses. It also runs the follow-up lifecycle browser
-smoke for due-state rendering plus update, complete, and snooze controls.
+smoke for due-state rendering plus update, complete, and snooze controls, and
+renders completed, not-configured, and failed intelligence evidence states.
 
 `npm run smoke:follow-ups:browser` runs only the focused follow-up lifecycle
 browser-like smoke and writes local JSON evidence to

@@ -1,7 +1,12 @@
-import type { ScoredRecordDocument } from "@tax-lien/db";
+import type { IntelligenceEvaluationRecord, ScoredRecordDocument } from "@tax-lien/db";
 import { ScoredRecordModel } from "@tax-lien/db";
 import type { ScoringResult } from "@tax-lien/scoring";
-import type { EnrichmentResult, NormalizedScoredRecordFields } from "@tax-lien/types";
+import { validateEngineResultV1 } from "@tax-lien/engine-contract";
+import type {
+  EnrichmentResult,
+  IntelligenceEvaluationResponse,
+  NormalizedScoredRecordFields,
+} from "@tax-lien/types";
 
 export interface StoredScoredRecord {
   id: string;
@@ -10,6 +15,7 @@ export interface StoredScoredRecord {
   sourceRowNumber: number;
   normalizedFields: NormalizedScoredRecordFields;
   enrichment?: EnrichmentResult;
+  intelligence?: IntelligenceEvaluationResponse;
   score: ScoringResult;
   scoredAt: Date;
   createdAt: Date;
@@ -22,6 +28,7 @@ export interface CreateScoredRecordInput {
   sourceRowNumber: number;
   normalizedFields: NormalizedScoredRecordFields;
   enrichment: EnrichmentResult;
+  intelligence?: IntelligenceEvaluationResponse;
   score: ScoringResult;
   scoredAt: Date;
 }
@@ -75,9 +82,11 @@ export class MongoScoredRecordStore implements ScoredRecordStore {
             $set: {
               normalizedFields: record.normalizedFields,
               enrichment: record.enrichment,
+              ...(record.intelligence ? { intelligence: toIntelligenceEvaluationRecord(record.intelligence) } : {}),
               score: record.score,
               scoredAt: record.scoredAt,
             },
+            ...(!record.intelligence ? { $unset: { intelligence: "" } } : {}),
             $setOnInsert: {
               userId,
               datasetId,
@@ -146,6 +155,45 @@ export class MongoScoredRecordStore implements ScoredRecordStore {
   }
 }
 
+function toIntelligenceEvaluationRecord(
+  intelligence: IntelligenceEvaluationResponse,
+): IntelligenceEvaluationRecord {
+  const attemptedAt = intelligence.attemptedAt ? new Date(intelligence.attemptedAt) : undefined;
+  if (attemptedAt && Number.isNaN(attemptedAt.getTime())) {
+    throw new Error("Intelligence attemptedAt must be a valid timestamp.");
+  }
+  if (intelligence.state !== "not_configured" && !attemptedAt) {
+    throw new Error("Attempted intelligence states must include attemptedAt.");
+  }
+  switch (intelligence.state) {
+    case "completed": {
+      const validation = validateEngineResultV1(intelligence.result);
+      if (!validation.valid) {
+        throw new Error(`Completed intelligence result is invalid: ${validation.errors.join("; ")}`);
+      }
+      return {
+        state: "completed",
+        message: intelligence.message,
+        attemptedAt: attemptedAt!,
+        result: intelligence.result,
+      };
+    }
+    case "failed":
+      return {
+        state: "failed",
+        message: intelligence.message,
+        attemptedAt: attemptedAt!,
+        failureCode: intelligence.failureCode,
+      };
+    case "not_configured":
+      return {
+        state: "not_configured",
+        message: intelligence.message,
+        ...(attemptedAt ? { attemptedAt } : {}),
+      };
+  }
+}
+
 function mapScoredRecord(document: ScoredRecordDocument): StoredScoredRecord {
   return {
     id: document.id,
@@ -163,6 +211,7 @@ function mapScoredRecord(document: ScoredRecordDocument): StoredScoredRecord {
       ...(document.normalizedFields.address ? { address: document.normalizedFields.address } : {}),
     },
     ...(document.enrichment ? { enrichment: mapEnrichmentResult(document.enrichment) } : {}),
+    ...(document.intelligence ? { intelligence: mapIntelligenceEvaluation(document.intelligence) } : {}),
     score: {
       investmentScore: document.score.investmentScore,
       riskScore: document.score.riskScore,
@@ -176,6 +225,42 @@ function mapScoredRecord(document: ScoredRecordDocument): StoredScoredRecord {
     scoredAt: document.scoredAt,
     createdAt: document.createdAt,
     updatedAt: document.updatedAt,
+  };
+}
+
+function mapIntelligenceEvaluation(
+  intelligence: NonNullable<ScoredRecordDocument["intelligence"]>,
+): IntelligenceEvaluationResponse {
+  const attemptedAt = intelligence.attemptedAt?.toISOString();
+  if (
+    intelligence.state === "completed" &&
+    intelligence.result !== undefined &&
+    validateEngineResultV1(intelligence.result).valid
+  ) {
+    return {
+      state: "completed",
+      message: intelligence.message,
+      ...(attemptedAt ? { attemptedAt } : {}),
+      result: intelligence.result,
+    };
+  }
+
+  if (intelligence.state === "not_configured") {
+    return {
+      state: "not_configured",
+      message: intelligence.message,
+      ...(attemptedAt ? { attemptedAt } : {}),
+    };
+  }
+
+  return {
+    state: "failed",
+    failureCode: intelligence.failureCode ?? "invalid_service_response",
+    message:
+      intelligence.state === "completed"
+        ? "Stored versioned intelligence failed contract validation and was not returned."
+        : intelligence.message,
+    ...(attemptedAt ? { attemptedAt } : {}),
   };
 }
 

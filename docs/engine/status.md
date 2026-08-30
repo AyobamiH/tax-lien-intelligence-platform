@@ -1,0 +1,126 @@
+# Intelligence Engine Status
+
+Last updated: 2026-08-30
+
+## Verified Current State
+
+- Active implementation repository for this run:
+  `AyobamiH/tax-lien-intelligence-platform`.
+- Active branch: `feature/intelligence-engine-foundation`.
+- Starting main commit: `f7b6cbeab0d35712a60933c598e6fcfa39ffdd5d`.
+- Baseline recovery is published at `ba1b0cb`.
+- Graph governance is published at `f236b72`.
+- `P47-020-contracts` adds the versioned `CandidateEvidenceV1` and
+  `EngineResultV1` TypeScript contracts, dependency-free runtime validators,
+  strict JSON Schemas, and a machine-readable schema manifest.
+- `P47-030-rule-engine` adds the exact-scope
+  `us-az-maricopa-statutory-baseline@2026-08-29.2` pack, source-citation
+  resolution, deterministic evidence hashing, and evidence-backed internal
+  exclusion rules.
+- `P47-040-service` adds a stateless, authenticated Python 3.12 HTTP service
+  with request bounds, strict evidence and result validation, health/version
+  endpoints, safe failure responses, and no provider or model fallback.
+- `P47-050-platform-integration` is complete with a tenant-aware API client,
+  `user_upload` evidence provenance, versioned result persistence, explicit
+  failure and disabled states, legacy heuristic metadata, UI abstention, and a
+  real MongoDB CI smoke path.
+- `P47-060-data-inventory` is complete at `9cbc841`. It reviewed six source
+  classes and added a
+  machine-enforced source promotion gate. No external source is approved for
+  production or model training.
+- The current Assessor Secured Master artifact has a verified 39-field schema,
+  twice-monthly declared cadence, and current-tax-year coverage, but no
+  certificate redemption outcomes, record observation timestamp, or explicit
+  commercial model-training grant.
+- The county Lien and Delinquent Parcels GIS terms require written
+  authorization for external use and prohibit commercial use except under an
+  agreement. Its current layers are not longitudinal outcome labels.
+- Current `packages/scoring` implementation is deterministic rules-based
+  prioritization, not a calibrated prediction engine.
+- One Maricopa-style import adapter and generic fallback exist.
+- No verified historical redemption dataset, trained model artifact, temporal
+  evaluation report, deployed intelligence service, live public OAuth flow, or
+  deployed ChatGPT connection exists yet.
+- The feature branch now contains an authenticated stateless MCP endpoint with
+  six read-only evidence tools, explicit tenant resolution, cited stored
+  values, labeled legacy heuristics, versioned engine states, unknowns, bounded
+  comparison, and a privacy-reduced decision-brief projection.
+- `P47-090-chatgpt-interface` is complete at `8f6a1bd`. GitHub Actions run
+  `33249393142`, quality-gates job `99092320186`, passed graph and data-source
+  validation, dependency audit, typecheck, all tests and builds, the real
+  intelligence-service smoke, and the real Mongo intelligence-persistence
+  smoke.
+- `P47-092-chatgpt-product-definition` is complete at `81f4664`. GitHub Actions
+  run `33251144894`, quality-gates job `99096911716`, passed all graph, source,
+  audit, typecheck, test, build, real-service, and real-Mongo gates.
+- `P47-093-chatgpt-private-staging` is in progress. The platform now contains
+  a real OAuth 2.1/PKCE boundary with persistent one-time grants, rotating
+  refresh tokens, replay-family revocation, access-token revocation, exact
+  resource/client/redirect/scope checks, and OAuth-only MCP enforcement when
+  enabled. The source-only ChatGPT package is isolated under `products/chatgpt`
+  with pinned engine provenance and no invented connection URL.
+- The OAuth/source-package checkpoint is published at `627b60b`. GitHub Actions
+  run `33253453470`, quality-gates job `99102992513`, passed every validator,
+  audit, typecheck, complete tests/build, real-service smoke, real intelligence
+  Mongo smoke, and the new real OAuth Mongo atomicity/revocation smoke.
+- The branch evidence record is current at `a9272bc`. GitHub Actions run
+  `33253657970`, quality-gates job `99103542844`, passed at that exact head.
+  Pull request [#1](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/1)
+  is open against `main` for review; this is integration evidence, not private
+  staging or release evidence.
+- The graph enforces ChatGPT product priority one with WIP 1. The data
+  acquisition and model track is deferred pending real-user pilot evidence or
+  public release.
+
+## Repository Authority Limit
+
+Repository documentation identifies a OneClickPostFactory repository as the
+startup source of truth and the AyobamiH repository as a mirror. That external
+startup repository was not verified or mutated in this run. This branch is
+being developed in AyobamiH because the operator explicitly selected it and the
+connected GitHub account has administrative access. No cross-repository sync is
+claimed.
+
+## Current Work
+
+`P47-093-chatgpt-private-staging` is the only in-progress node. Repository
+implementation and source packaging are authorized. The remaining work is the
+real stable HTTPS deployment, private ChatGPT connection, live tenancy and
+load/redaction/rollback verification, and ownership decisions. The connected
+GitHub API cannot create the planned separate release repository, so the
+validated thin package remains inside this project without duplicating runtime
+logic. Pull request #1 now carries the verified source checkpoint toward
+`main`; merging it would not complete the staging node. No deferred node becomes
+runnable while this product gate is active.
+
+## Next Graph Work
+
+The single active sequence is:
+
+1. `P47-092-chatgpt-product-definition`: completed with the user, three jobs,
+   product promise, thin release boundary, journey, pilot measures, and owners;
+2. `P47-093-chatgpt-private-staging`: in progress; deploy the implemented OAuth
+   and MCP service through stable HTTPS, connect it privately in ChatGPT, then
+   verify tenancy, safety, observability, load, and rollback;
+3. `P47-094-chatgpt-real-user-pilot`: validate at least five target users, ten
+   real tasks, and thirty scripted safety/grounding scenarios;
+4. `P47-095-chatgpt-public-release`: approve policy/listing material and release
+   through a monitored, reversible launch.
+
+`P47-065-lawful-data-acquisition`, `P47-070-trained-models`, and
+`P47-080-evaluation` are deferred. They resume only if pilot evidence identifies
+them as the highest-impact product blocker or after public release completes.
+
+## Explicitly Unproven
+
+- real redemption probability;
+- AVM accuracy;
+- liquidity prediction accuracy;
+- broad county coverage;
+- model calibration or fairness;
+- deployed service behavior;
+- service-mesh transport, load, failover, and production-traffic behavior;
+- production user outcome improvement;
+- a private connected ChatGPT staging product;
+- real target-user pilot completion or product-value evidence;
+- public ChatGPT OAuth, deployment, and live-connection readiness.

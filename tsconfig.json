@@ -1,7 +1,9 @@
 {
   "files": [],
   "references": [
+    { "path": "packages/engine-contract" },
     { "path": "packages/types" },
+    { "path": "packages/jurisdiction-rules" },
     { "path": "packages/db" },
     { "path": "packages/scoring" },
     { "path": "apps/api" },

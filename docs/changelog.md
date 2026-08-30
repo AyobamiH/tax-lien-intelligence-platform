@@ -2,6 +2,141 @@
 
 ## Unreleased
 
+- Opened pull request #1 to integrate the verified Phase 47 engine, evidence,
+  MCP, and OAuth source checkpoints into `main`. Exact feature head `a9272bc`
+  passed GitHub Actions run `33253657970`; the PR does not represent a deployed
+  or connected private ChatGPT staging product.
+- Added a real ChatGPT OAuth 2.1 boundary with protected-resource and
+  authorization-server discovery, explicit consent/denial, exact client,
+  redirect, resource, and scope checks, mandatory PKCE S256, short-lived MCP
+  tokens, rotating hashed refresh tokens, replay-family revocation, persisted
+  access-token revocation, and fail-closed user checks.
+- Made OAuth-enabled `/mcp` reject application login JWTs and added focused
+  discovery, redirect, consent, PKCE, one-time code, OAuth-only MCP, refresh
+  rotation/replay, and revocation tests.
+- Added the source-only ChatGPT release package under `products/chatgpt`, a
+  pinned provenance manifest, a CI validator that forbids fabricated endpoints
+  or receipts, the private staging runbook, and the OAuth threat model.
+- Moved `P47-093-chatgpt-private-staging` to in progress. Source implementation
+  is active; real deployment, ChatGPT connection, live verification, and named
+  privacy/support/incident ownership remain explicit blockers.
+- Made the ChatGPT product priority one and replaced competing ready work with
+  one WIP-limited sequence: product definition, private staging connection,
+  real-user pilot, and public release.
+- Added a machine-enforced `executionFocus` to the work graph. Exactly one node
+  may be ready or in progress; data acquisition, model training, and model
+  evaluation are deferred until pilot evidence identifies them as the
+  highest-impact blocker or public release is complete.
+- Added the primary user, triage/diligence/decision-brief jobs, release gates,
+  real-user pilot thresholds, no-drift rules, and the thin ChatGPT release
+  product architecture decision.
+- Added an exact six-tool journey, privacy-preserving telemetry boundary,
+  decision-owner map, and 30-case live release evaluation manifest covering
+  core tasks, grounding, invalid inputs, authorization, prompt injection, and
+  out-of-scope requests.
+- Closed the ChatGPT product-definition gate after GitHub Actions verified the
+  full repository, real intelligence service, and real Mongo persistence path.
+  Private staging remains the named next node and is explicitly blocked on
+  deployment, OAuth, privacy, consent, support, and incident ownership inputs.
+- Added an authenticated stateless MCP endpoint with six read-only ChatGPT
+  evidence tools for workspace discovery, dataset review, bounded candidate
+  retrieval, candidate evidence, no-ranking comparison, and privacy-reduced
+  decision briefs.
+- Enforced workspace membership inside every tool before tenant lookup, with no
+  caller-supplied tenant id and no write, approval, bid, purchase, or external
+  action tool.
+- Added a versioned structured output envelope that separates cited stored
+  values, legacy fixed-rule heuristics, versioned engine output, and explicit
+  unknowns. User-upload evidence remains qualified as unverified.
+- Added MCP authentication, annotations, input-bound, tenant-resolution,
+  evidence-grounding, no-ranking, and prompt-like source-data tests plus an
+  interface contract and privacy/safety review.
+- Retained the application bearer JWT for internal validation only. Public
+  ChatGPT use remains blocked on stable HTTPS deployment, production
+  observability, load tests, and live OAuth/authorization validation.
+- Added a machine-readable Maricopa source inventory and CI validator that
+  blocks production approval without verified authority, schema, cadence,
+  observation time, commercial-use terms, and provenance, and blocks training
+  use without dated outcomes and censoring fields.
+- Sampled the real 2026-08-17 Assessor Secured Master archive, its 39-field
+  schema, twice-monthly declared cadence, current-tax-year limit, personal-data
+  fields, and missing certificate redemption outcomes.
+- Traced the official county Lien and Delinquent Parcels application to its
+  ArcGIS experience, web map, feature service, and two relevant layer schemas.
+  Recorded its written-authorization requirement and commercial-use restriction
+  as a production blocker.
+- Added a blocked redemption training dataset card and split lawful data
+  acquisition into its own graph node. The read-only ChatGPT evidence interface
+  can proceed against stored evidence and abstention without waiting for a
+  trained model.
+- Integrated the tenant-aware scoring worker with the internal Python service
+  through a bounded TypeScript client that validates contract shape, request
+  identity, evidence version, and evidence digest before persistence.
+- Added `user_upload` provenance to contract `1.1.0`, preserving the source as
+  an unverified upload rather than presenting it as an official county record.
+  All current uploads remain outside the exact Maricopa rule-pack scope because
+  header patterns and user-provided labels do not prove issuing authority.
+- Persisted complete versioned results and explicit `not_configured` or failed
+  envelopes on scored records. Current failures replace prior results instead
+  of silently reusing stale intelligence.
+- Added `legacyScoring` response metadata and changed visible redemption labels
+  to fixed-rule heuristic signals. The React record detail now displays engine
+  status, versions, applicability, signals, findings, missing evidence, and
+  explicit abstention states.
+- Added real-process production-client tests, candidate-evidence tests,
+  Mongo-model consistency tests, browser-like intelligence-state tests, and a
+  CI MongoDB smoke that proves result round-trip validation and stale-result
+  removal.
+- Added a dependency-free Python 3.12 intelligence service with authenticated
+  `POST /v1/evaluate`, public health/version truth, strict request limits,
+  structured safe errors, graceful shutdown, and a non-root container
+  boundary.
+- Added independent Python candidate/result validators and deterministic rule
+  evaluation with no model or provider fallback. The service rejects invalid
+  evidence and validates its own result before serialization.
+- Hardened cross-language evidence hashing with tagged UTF-8 and IEEE-754
+  canonical encoding, then added a real-process loopback test that compares the
+  complete Python HTTP result with the TypeScript rule evaluator for fractional
+  numeric evidence.
+- Added 10 Python unit tests, 7 authenticated service-process tests, Python
+  compile/test scripts, a dedicated service smoke, and Python 3.12 CI setup.
+  Error connections close explicitly so unread rejected bodies cannot corrupt
+  a later keep-alive request.
+- Added `@tax-lien/jurisdiction-rules` with an exact-scope, immutable Maricopa
+  County registry entry, deterministic evaluation, canonical evidence digest,
+  and source-citation resolution.
+- Encoded a dated Arizona statutory baseline from current Legislature sources
+  while explicitly leaving Maricopa auction registration, schedule, payment,
+  and platform mechanics unverified. Statutory context, county operations, and
+  internal underwriting policy are separate rule categories.
+- Added evidence-backed internal exclusions for known value coverage below one
+  and observed lack of road access. Unsupported jurisdictions return
+  `out_of_scope`, missing core evidence returns `insufficient_evidence`, and
+  redemption probability remains unavailable.
+- Added the versioned `@tax-lien/engine-contract` package with
+  `CandidateEvidenceV1`, `EngineResultV1`, strict runtime validation, JSON
+  Schemas, and a machine-readable version manifest.
+- Enforced provenance and truthful abstention at the contract boundary:
+  observed and derived evidence requires cited sources, non-available signals
+  cannot carry values, and an available redemption probability requires a
+  versioned model artifact, training-dataset version, digest, and evaluation
+  report reference.
+- Documented the existing scoring API's `redemptionProbability` as a legacy
+  fixed-rule heuristic and reserved `redemption_probability` in the new engine
+  contract for evaluated model output. Compatibility integration remains a
+  separate graph node.
+- Established Phase 47 intelligence-engine governance with a machine-readable
+  dependency graph, deterministic graph validator, CI gate, agent handoff
+  protocol, current-status ledger, architecture decision, and documented
+  open-source component boundaries.
+- Made no-mock intelligence and truthful abstention explicit acceptance rules:
+  unsupported evidence must return `insufficient_evidence` or `out_of_scope`,
+  and model probabilities remain unavailable until trained artifacts and
+  temporal calibration evidence exist.
+- Stabilized latest-job selection by adding a deterministic identifier
+  tie-break when multiple jobs for the same target share millisecond-level
+  queue and creation timestamps. This prevents maintenance policy evaluation
+  from reading an older scoring job instead of the most recent policy refresh.
 - Added Phase 46 browser-like follow-up lifecycle smoke proof. The new
   `npm run smoke:follow-ups:browser` command mounts the authenticated React app
   shell in jsdom with synthetic local data, renders portfolio follow-up

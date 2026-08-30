@@ -1,0 +1,359 @@
+{
+  "schemaVersion": "1.0.0",
+  "graphId": "tax-lien-intelligence-engine-phase-47",
+  "updatedAt": "2026-08-29T16:15:00Z",
+  "repository": "AyobamiH/tax-lien-intelligence-platform",
+  "branch": "feature/intelligence-engine-foundation",
+  "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
+  "policies": {
+    "noMockIntelligence": true,
+    "abstentionRequired": true,
+    "llmMayCalculateEngineValues": false,
+    "documentationRequiredPerNode": true,
+    "verificationRequiredPerNode": true,
+    "commitAndPushRequiredPerNode": true,
+    "productionMutationRequiresApproval": true
+  },
+  "executionFocus": {
+    "priority": "chatgpt-product",
+    "wipLimit": 1,
+    "parallelProductTracksAllowed": false,
+    "nextNode": "P47-093-chatgpt-private-staging",
+    "activeSequence": [
+      "P47-092-chatgpt-product-definition",
+      "P47-093-chatgpt-private-staging",
+      "P47-094-chatgpt-real-user-pilot",
+      "P47-095-chatgpt-public-release"
+    ],
+    "deferredNodes": [
+      "P47-065-lawful-data-acquisition",
+      "P47-070-trained-models",
+      "P47-080-evaluation"
+    ],
+    "resumeCondition": "Resume deferred engine, data, or model work only when real ChatGPT pilot evidence identifies it as the highest-impact blocker, or after the public-release node is complete."
+  },
+  "nodes": [
+    {
+      "id": "P47-000-baseline-recovery",
+      "title": "Recover a deterministic green baseline",
+      "status": "completed",
+      "ownerRole": "platform-maintainer",
+      "dependencies": [],
+      "scope": ["latest internal-job ordering", "dependency advisory remediation", "baseline gates"],
+      "acceptance": ["maintenance policy reads the newest target job deterministically", "audit, typecheck, tests, and build pass"],
+      "documentation": ["WORK_LEDGER.md", "docs/changelog.md"],
+      "verification": ["focused internal-job and scoring tests", "npm run audit", "npm run typecheck", "npm run test", "npm run build"],
+      "evidence": ["remote commit ba1b0cb", "40 test files and 270 tests passed", "0 audit vulnerabilities"],
+      "blockers": []
+    },
+    {
+      "id": "P47-010-governance",
+      "title": "Establish graph-governed engine delivery",
+      "status": "completed",
+      "ownerRole": "engine-architect",
+      "dependencies": ["P47-000-baseline-recovery"],
+      "scope": ["work graph", "validator", "CI gate", "agent handoff", "engine decision records"],
+      "acceptance": ["graph is acyclic and machine validated", "every node declares ownership, dependencies, acceptance, evidence, and blockers", "no-mock rule is explicit"],
+      "documentation": ["AGENTS.md", "ACCEPTANCE.md", "docs/engine", "docs/decisions/0002-intelligence-engine-boundary.md", "WORK_LEDGER.md"],
+      "verification": ["npm run validate:work-graph", "git diff --check", "npm run typecheck", "npm run test", "npm run build", "npm run audit"],
+      "evidence": ["scripts/validate-work-graph.mjs", ".github/workflows/ci.yml", "docs/engine/README.md"],
+      "blockers": []
+    },
+    {
+      "id": "P47-020-contracts",
+      "title": "Define CandidateEvidenceV1 and EngineResultV1",
+      "status": "completed",
+      "ownerRole": "contract-engineer",
+      "dependencies": ["P47-010-governance"],
+      "scope": ["shared TypeScript contracts", "JSON Schema", "provenance", "applicability", "abstention", "version manifest"],
+      "acceptance": ["contracts reject unsupported precision", "all signals distinguish heuristic, deterministic, model, unknown, and unavailable", "compatibility impact is documented"],
+      "documentation": ["docs/api/scoring.md", "docs/architecture/scoring.md", "docs/kb/shared-contract-kb.md", "docs/engine/status.md"],
+      "verification": ["runtime validator tests", "JSON Schema and manifest shape tests", "npm run audit", "npm run validate:work-graph", "npm run typecheck", "npm run test", "npm run build", "git diff --check"],
+      "evidence": ["packages/engine-contract", "tests/unit/engine-contract.test.ts: 9 tests passed", "full repository suite: 41 files and 279 tests passed", "0 audit vulnerabilities"],
+      "blockers": []
+    },
+    {
+      "id": "P47-030-rule-engine",
+      "title": "Create versioned jurisdiction rule packs",
+      "status": "completed",
+      "ownerRole": "domain-rules-engineer",
+      "dependencies": ["P47-020-contracts"],
+      "scope": ["rule-pack interface", "Arizona and Maricopa applicability", "hard exclusions", "source citations", "rule versioning"],
+      "acceptance": ["rules are deterministic and source-versioned", "unknown jurisdiction rules cause abstention", "legal claims are not inferred by an LLM"],
+      "documentation": ["docs/architecture/scoring.md", "docs/engine/status.md"],
+      "verification": ["rule fixtures from verified public rules", "contract tests", "full repository gates"],
+      "evidence": ["packages/jurisdiction-rules", "tests/unit/jurisdiction-rules.test.ts: 10 tests passed", "Arizona Legislature A.R.S. 42-18053, 42-18101, 42-18114, 42-18115, 42-18118, 42-18127, 42-18152, 42-18201, and 42-18202 verified 2026-08-29", "full repository suite: 42 files and 289 tests passed", "0 audit vulnerabilities"],
+      "blockers": []
+    },
+    {
+      "id": "P47-040-service",
+      "title": "Implement the production intelligence-service boundary",
+      "status": "completed",
+      "ownerRole": "analytics-platform-engineer",
+      "dependencies": ["P47-020-contracts", "P47-030-rule-engine"],
+      "scope": ["Python service", "request validation", "provenance", "health and version endpoints", "truthful abstention"],
+      "acceptance": ["service never fabricates a model output", "contract parity is automated", "runtime and failure behavior are verified without placeholder providers"],
+      "documentation": ["docs/api", "docs/architecture", "docs/engine/status.md"],
+      "verification": ["real process contract tests", "service unit tests", "runtime smoke", "full repository gates"],
+      "evidence": ["services/intelligence", "10 dependency-free Python unit tests passed", "tests/integration/intelligence-service.test.ts: 7 real-process HTTP tests passed", "TypeScript/Python full-result and fractional-number digest parity", "full repository suite: 43 files and 296 Vitest tests passed", "0 audit vulnerabilities"],
+      "blockers": []
+    },
+    {
+      "id": "P47-050-platform-integration",
+      "title": "Integrate the engine through a TypeScript compatibility boundary",
+      "status": "completed",
+      "ownerRole": "platform-integration-engineer",
+      "dependencies": ["P47-040-service"],
+      "scope": ["API client", "stored result versioning", "legacy heuristic label", "UI abstention states", "tenant isolation"],
+      "acceptance": ["current users retain workflow continuity", "legacy heuristic is not labelled probability", "service failure does not invent or reuse stale intelligence silently"],
+      "documentation": ["docs/api/scoring.md", "docs/architecture/scoring.md", "docs/kb/current-surface-kb.md", "docs/engine/status.md"],
+      "verification": ["API integration tests", "browser-like evidence states", "Mongo-backed smoke", "full repository gates"],
+      "evidence": ["remote commit eefcf3a", "GitHub Actions CI run 33247151199 and quality-gates job 99086489141 passed", "real MongoDB persistence smoke passed in CI", "10 Python tests and 306 Vitest tests across 46 files passed", "9 real-process service tests and 6 browser-like smoke tests passed", "0 audit vulnerabilities"],
+      "blockers": []
+    },
+    {
+      "id": "P47-060-data-inventory",
+      "title": "Verify Maricopa source and outcome-label availability",
+      "status": "completed",
+      "ownerRole": "data-product-engineer",
+      "dependencies": ["P47-010-governance"],
+      "scope": ["source inventory", "licensing", "update cadence", "historical coverage", "redemption labels", "observation timestamps"],
+      "acceptance": ["every source has authority, license, fields, cadence, and provenance", "label gaps are explicit", "no unverified scraped dataset enters production"],
+      "documentation": ["docs/engine/data-inventory.md", "docs/engine/status.md"],
+      "verification": ["npm run validate:data-inventory", "source URL checks", "schema sampling", "license review", "data-card draft", "full repository gates"],
+      "evidence": ["remote commit 9cbc841", "GitHub Actions run 33248227529 and quality-gates job 99089286887 passed", "docs/engine/data-source-inventory.json", "real 2026-08-17 Assessor Secured Master archive and 39-field schema sampled", "county GIS ArcGIS item and two feature-layer schemas reviewed", "0 external sources approved for production or training", "10 Python tests and 306 Vitest tests across 46 files passed", "real MongoDB persistence smoke passed in CI", "0 audit vulnerabilities"],
+      "blockers": []
+    },
+    {
+      "id": "P47-065-lawful-data-acquisition",
+      "title": "Prepare and execute lawful longitudinal data acquisition",
+      "status": "planned",
+      "ownerRole": "data-partnerships-engineer",
+      "dependencies": ["P47-060-data-inventory"],
+      "scope": ["commercial-purpose request package", "written data-use terms", "certificate lifecycle schema", "raw artifact manifest", "privacy and retention review", "time-aware entity resolution"],
+      "acceptance": ["all intended commercial and model-training uses are disclosed to the records custodian", "written terms cover access, retention, derived features, model training, and redistribution", "received artifacts have source timestamps and checksums", "certificate, sale, redemption, terminal-event, and observed-through fields pass quality review", "no acquired record enters production or training before approval"],
+      "documentation": ["docs/engine/data-acquisition.md", "docs/engine/data-source-inventory.json", "dataset manifest", "privacy review", "WORK_LEDGER.md"],
+      "verification": ["request and terms review", "source-manifest validation", "schema and temporal-quality report", "entity-resolution report", "legal and product approval evidence", "full repository gates"],
+      "evidence": [],
+      "blockers": []
+    },
+    {
+      "id": "P47-070-trained-models",
+      "title": "Train valuation, redemption, and liquidity baselines",
+      "status": "planned",
+      "ownerRole": "applied-ml-engineer",
+      "dependencies": ["P47-040-service", "P47-065-lawful-data-acquisition"],
+      "scope": ["interpretable baseline", "survival model", "valuation interval", "artifact versioning"],
+      "acceptance": ["training uses verified labels", "time censoring and leakage controls are explicit", "artifacts are reproducible and licensed"],
+      "documentation": ["model cards", "dataset cards", "docs/engine/status.md"],
+      "verification": ["out-of-time evaluation", "county holdout", "calibration", "artifact reproduction"],
+      "evidence": [],
+      "blockers": ["written commercial and model-training authorization has not been obtained", "historical certificate redemption outcomes and sufficient observation windows have not been acquired or verified"]
+    },
+    {
+      "id": "P47-080-evaluation",
+      "title": "Establish model promotion and abstention gates",
+      "status": "planned",
+      "ownerRole": "model-risk-engineer",
+      "dependencies": ["P47-070-trained-models"],
+      "scope": ["temporal metrics", "calibration", "IAAO valuation metrics", "segment performance", "out-of-distribution abstention", "shadow mode"],
+      "acceptance": ["promotion thresholds beat declared baselines", "weak segments abstain", "reports are reproducible"],
+      "documentation": ["evaluation report", "model cards", "docs/engine/status.md"],
+      "verification": ["independent evaluation run", "reproduction manifest", "shadow comparison"],
+      "evidence": [],
+      "blockers": []
+    },
+    {
+      "id": "P47-090-chatgpt-interface",
+      "title": "Expose a read-only ChatGPT evidence interface",
+      "status": "completed",
+      "ownerRole": "chatgpt-product-engineer",
+      "dependencies": ["P47-050-platform-integration", "P47-060-data-inventory"],
+      "scope": ["read-only tools", "evidence citations", "comparison", "missing-evidence guidance", "memo drafting"],
+      "acceptance": ["ChatGPT cannot alter engine values or execute bids", "answers cite stored evidence and separate facts, inferences, and unknowns", "tenant authorization is enforced server-side"],
+      "documentation": ["plugin tool contract", "privacy and safety review", "docs/engine/status.md"],
+      "verification": ["tool authorization tests", "evidence-grounding evals", "adversarial prompt tests", "release-readiness review"],
+      "evidence": [
+        "Implementation published at 8f6a1bd846336a47e01e2a05c55c3631e8f2a1ad",
+        "GitHub Actions run 33249393142 and quality-gates job 99092320186 completed successfully",
+        "CI passed graph and data-source validators, audit, typecheck, tests, builds, real-process intelligence smoke, and real Mongo intelligence persistence smoke",
+        "Focused MCP verification passed 2 files and 9 tests for authentication, read-only annotations, tenant resolution, grounding, privacy reduction, invalid input, no ranking, and adversarial source text",
+        "Tool contract and privacy/safety review record public OAuth, HTTPS deployment, observability, and live validation as release blockers rather than completed capability"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "P47-092-chatgpt-product-definition",
+      "title": "Lock the ChatGPT product definition and release boundary",
+      "status": "completed",
+      "ownerRole": "chatgpt-product-lead",
+      "dependencies": ["P47-090-chatgpt-interface"],
+      "scope": [
+        "primary user and first three jobs",
+        "evidence-first product promise and prohibited claims",
+        "thin ChatGPT release-repository boundary",
+        "tool-to-user-journey map",
+        "pilot hypotheses, success measures, and failure taxonomy",
+        "OAuth, deployment, privacy, support, and incident ownership map"
+      ],
+      "acceptance": [
+        "one primary user segment and the triage, diligence, and decision-brief jobs are explicit",
+        "the ChatGPT product remains read-only evidence support and is not autonomous underwriting, legal advice, or bidding",
+        "a thin release product is designed to consume the existing engine interface without copying calculations, evidence state, or tenancy logic",
+        "the minimum pilot journey, onboarding handoff, evaluation set, measurable release gates, and named external decisions are documented",
+        "no extra tool, model, data source, county expansion, or web-app feature is authorized without pilot evidence"
+      ],
+      "documentation": [
+        "docs/product/chatgpt-priority-plan.md",
+        "docs/product/chatgpt-release-evaluation.json",
+        "docs/decisions/0003-chatgpt-product-boundary.md",
+        "docs/engine/status.md",
+        "WORK_LEDGER.md"
+      ],
+      "verification": [
+        "product and architecture review against the existing MCP contract",
+        "npm run validate:work-graph",
+        "npm run typecheck",
+        "git diff --check"
+      ],
+      "evidence": [
+        "Priority-one product definition published at 81f466414e54f87f9b4c6ad99ce8570d82fc5fdf",
+        "GitHub Actions run 33251144894 and quality-gates job 99096911716 completed successfully",
+        "CI passed graph and data-source validators, dependency audit, typecheck, complete tests and builds, real-process intelligence-service smoke, and real Mongo intelligence-persistence smoke",
+        "docs/product/chatgpt-priority-plan.md defines one primary user, three jobs, six tools, four gates, owners, telemetry, and no-drift rules",
+        "docs/product/chatgpt-release-evaluation.json defines 30 live cases including 18 critical authorization, grounding, injection, and scope cases"
+      ],
+      "blockers": []
+    },
+    {
+      "id": "P47-093-chatgpt-private-staging",
+      "title": "Connect a private ChatGPT staging product",
+      "status": "in_progress",
+      "ownerRole": "chatgpt-release-engineer",
+      "dependencies": ["P47-092-chatgpt-product-definition"],
+      "scope": [
+        "thin release repository and engine provenance pin",
+        "stable HTTPS staging MCP deployment",
+        "approved OAuth authorization and token lifecycle",
+        "tenant-safe onboarding and secure data-upload handoff",
+        "payload-safe telemetry, rate limits, rollback, and support runbook"
+      ],
+      "acceptance": [
+        "a connected private ChatGPT product completes the core journey against the real staging service",
+        "OAuth discovery, issuance, expiry, revocation, and workspace membership are tested without manual application JWT handling",
+        "owner, admin, member, denied, expired, revoked, and cross-workspace cases fail closed",
+        "the deployed tool inventory remains the approved read-only set and exposes no bid, purchase, score mutation, or legal-conclusion action",
+        "deployment provenance, monitoring, redaction, rate limits, rollback, and incident ownership are recorded"
+      ],
+      "documentation": [
+        "staging deployment runbook",
+        "OAuth and token threat model",
+        "release repository README and provenance manifest",
+        "docs/engine/status.md",
+        "WORK_LEDGER.md"
+      ],
+      "verification": [
+        "live ChatGPT staging connection tests",
+        "OAuth lifecycle and tenant isolation tests",
+        "tool inventory and read-only annotation tests",
+        "load, rate-limit, redaction, health, and rollback tests",
+        "full repository gates"
+      ],
+      "evidence": [
+        "OAuth staging source checkpoint published at 627b60b5a2b316b704263df2c9cb0623b6cb53b9",
+        "GitHub Actions run 33253453470 and quality-gates job 99102992513 passed validators, audit, typecheck, 323 Vitest tests plus Python tests, build, real service smoke, real intelligence Mongo smoke, and real OAuth Mongo smoke",
+        "Branch evidence head a9272bc6cc759d2632ae43775dcd68b3e9edfa2f passed GitHub Actions run 33253657970 and quality-gates job 99103542844",
+        "Pull request 1 opened against main at https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/1; it integrates the verified source checkpoint but is not live private-staging evidence",
+        "apps/api/src/oauth implements OAuth discovery, explicit consent, PKCE S256, exact client/redirect/resource/scope validation, code exchange, refresh rotation/replay protection, and revocation",
+        "tests/integration/oauth.test.ts covers repository-level OAuth lifecycle and OAuth-only MCP access",
+        "products/chatgpt/tax-lien-intelligence is the validated source-only release package with pinned engine provenance and no fabricated endpoint",
+        "docs/product/chatgpt-private-staging-runbook.md and docs/architecture/chatgpt-oauth-threat-model.md record promotion, rollback, and residual risk"
+      ],
+      "blockers": [
+        "the GitHub integration cannot create the planned separate thin repository, so the canonical source-only package remains isolated inside this project until repository creation is available",
+        "the stable staging domain, deployment target, deployment credentials, OAuth secret ownership, and authorization owner are not supplied",
+        "the privacy/security approver, retention and deletion decisions, pilot consent owner, support owner, and incident owner are not assigned"
+      ]
+    },
+    {
+      "id": "P47-094-chatgpt-real-user-pilot",
+      "title": "Validate the ChatGPT product with real target users",
+      "status": "planned",
+      "ownerRole": "chatgpt-product-lead",
+      "dependencies": ["P47-093-chatgpt-private-staging"],
+      "scope": [
+        "real-user pilot onboarding",
+        "triage, diligence, comparison, and decision-brief task evaluation",
+        "grounding, authorization, abstention, latency, and tool-failure measurement",
+        "qualitative trust and usability feedback",
+        "evidence-based product backlog decision"
+      ],
+      "acceptance": [
+        "at least five distinct target users complete at least ten real tasks on their own authorized data",
+        "the scripted release suite covers at least thirty direct, indirect, invalid-input, cross-tenant, prompt-injection, and out-of-scope scenarios",
+        "all authorization and tenant-isolation critical cases pass and no uncited numeric, legal, bid, or purchase conclusion is emitted",
+        "at least eighty percent of core tasks complete without operator intervention and every failure is classified",
+        "the pilot report identifies keep, change, stop, and deferred-engine decisions from observed evidence rather than roadmap preference"
+      ],
+      "documentation": [
+        "pilot protocol and consent notice",
+        "evaluation manifest",
+        "pilot results and failure taxonomy",
+        "prioritized product backlog",
+        "docs/engine/status.md",
+        "WORK_LEDGER.md"
+      ],
+      "verification": [
+        "real-user session evidence",
+        "reproducible scripted ChatGPT evaluation run",
+        "authorization and grounding audit",
+        "privacy and support review",
+        "go or no-go review"
+      ],
+      "evidence": [],
+      "blockers": []
+    },
+    {
+      "id": "P47-095-chatgpt-public-release",
+      "title": "Approve and release the public ChatGPT product",
+      "status": "blocked",
+      "ownerRole": "chatgpt-release-engineer",
+      "dependencies": ["P47-094-chatgpt-real-user-pilot"],
+      "scope": [
+        "production ChatGPT connection",
+        "public listing and review materials",
+        "approved privacy, retention, deletion, and support controls",
+        "release monitoring and incident response",
+        "pilot-backed launch decision and rollback"
+      ],
+      "acceptance": [
+        "the production connection passes the private-staging authorization, isolation, grounding, safety, reliability, and rollback gates",
+        "the connected tool inventory remains read-only and cannot alter engine values or execute bids",
+        "privacy, retention, deletion, user support, incident ownership, and public disclosures are approved and tested",
+        "public listing claims match verified capability and do not claim prediction, legal advice, live county verification, or autonomous investing",
+        "the release decision cites the real-user pilot and has a named owner, monitored launch window, and tested rollback"
+      ],
+      "documentation": [
+        "production release runbook",
+        "public listing and policy materials",
+        "production privacy review",
+        "live connection evidence",
+        "launch decision and rollback record",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "production connection and role-isolation tests",
+        "full release evaluation manifest",
+        "load, rate-limit, logging-redaction, monitoring, and rollback tests",
+        "listing and policy review",
+        "release-readiness and post-launch review"
+      ],
+      "evidence": [],
+      "blockers": [
+        "the private staging and real-user pilot dependencies are not complete",
+        "deployment, publication, and production configuration are not yet authorized",
+        "the production domain, OAuth ownership, privacy, retention, deletion, support, and incident decisions are not approved"
+      ]
+    }
+  ]
+}

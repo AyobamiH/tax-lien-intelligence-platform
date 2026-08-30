@@ -63,6 +63,11 @@ import type { ApprovalService } from "./approvals/approval-service.js";
 import { createApprovalRouter } from "./routes/approvals.js";
 import { createMyWorkService } from "./my-work/factory.js";
 import type { MyWorkService } from "./my-work/my-work-service.js";
+import { PlatformMcpEvidenceService, type McpEvidenceServiceContract } from "./mcp/evidence-service.js";
+import { createMcpRouter } from "./mcp/router.js";
+import { createOAuthService } from "./oauth/factory.js";
+import type { OAuthService } from "./oauth/oauth-service.js";
+import { createOAuthRouter } from "./oauth/router.js";
 import { createMyWorkRouter } from "./routes/my-work.js";
 import { createFollowService } from "./follows/factory.js";
 import type { FollowService } from "./follows/follow-service.js";
@@ -103,6 +108,8 @@ export interface AppDependencies {
   decisionOutcomeService?: DecisionOutcomeService;
   outcomeReviewService?: OutcomeReviewService;
   scoringRequestLimit?: FixedWindowRateLimitOptions;
+  mcpEvidenceService?: McpEvidenceServiceContract;
+  oauthService?: OAuthService | null;
 }
 
 export function buildCorsOptions(config: typeof apiConfig = apiConfig): CorsOptions {
@@ -130,6 +137,7 @@ export function buildCorsOptions(config: typeof apiConfig = apiConfig): CorsOpti
 
 export function createApp(dependencies: AppDependencies = {}): Express {
   const app = express();
+  app.set("trust proxy", apiConfig.trustProxyHops);
   const authService = dependencies.authService ?? createAuthService();
   const datasetService = dependencies.datasetService ?? createDatasetService();
   const notificationPreferenceService =
@@ -183,6 +191,17 @@ export function createApp(dependencies: AppDependencies = {}): Express {
       workspacePolicyService,
       decisionOutcomeService,
     );
+  const mcpEvidenceService =
+    dependencies.mcpEvidenceService ??
+    new PlatformMcpEvidenceService(
+      workspaceService,
+      datasetService,
+      scoringService,
+      decisionBriefService,
+      apiConfig.mcp.appBaseUrl,
+    );
+  const oauthService =
+    dependencies.oauthService === undefined ? createOAuthService(authService) : dependencies.oauthService;
 
   app.use(helmet());
   app.use(cors(buildCorsOptions()));
@@ -200,6 +219,10 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   });
 
   app.use("/auth", createAuthRouter(authService));
+  if (oauthService) {
+    app.use(createOAuthRouter(oauthService, apiConfig.mcp.oauth.rateLimit));
+  }
+  app.use("/mcp", createMcpRouter(authService, mcpEvidenceService, oauthService));
   app.use("/workspaces", createWorkspaceRouter(authService, workspaceService, workspaceActivityService));
   app.use("/comments", createWorkspaceCommentRouter(authService, workspaceService, workspaceCommentService));
   app.use("/assignments", createWorkspaceAssignmentRouter(authService, workspaceService, workspaceAssignmentService));

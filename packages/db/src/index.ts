@@ -171,6 +171,9 @@ export {
   type ExternalEnrichmentProviderRecord,
   type ExternalEnrichmentResultRecord,
   type ExternalEnrichmentStatusRecord,
+  type IntelligenceEvaluationFailureCodeRecord,
+  type IntelligenceEvaluationRecord,
+  type IntelligenceEvaluationStateRecord,
   type NormalizedScoredRecordFieldsRecord,
   type PropertyTypeCategoryRecord,
   type ScoredRecordDocument,
@@ -192,6 +195,21 @@ export {
   type SavedViewSurfaceRecord,
 } from "./models/saved-view.js";
 export { UserModel, type UserDocument, type UserRecord } from "./models/user.js";
+export {
+  OAuthAuthorizationCodeModel,
+  type OAuthAuthorizationCodeDocument,
+  type OAuthAuthorizationCodeRecord,
+} from "./models/oauth-authorization-code.js";
+export {
+  OAuthRefreshTokenModel,
+  type OAuthRefreshTokenDocument,
+  type OAuthRefreshTokenRecord,
+} from "./models/oauth-refresh-token.js";
+export {
+  OAuthRevokedAccessTokenModel,
+  type OAuthRevokedAccessTokenDocument,
+  type OAuthRevokedAccessTokenRecord,
+} from "./models/oauth-revoked-access-token.js";
 export {
   WorkspaceModel,
   type WorkspaceDocument,

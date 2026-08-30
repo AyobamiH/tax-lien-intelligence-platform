@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://taxlien.local/schemas/candidate-evidence-v1.schema.json",
+  "title": "CandidateEvidenceV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "evidenceVersion",
+    "requestId",
+    "candidateId",
+    "asOf",
+    "jurisdiction",
+    "provenance",
+    "fields",
+    "limitations"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.1.0" },
+    "evidenceVersion": { "$ref": "#/$defs/nonEmptyString" },
+    "requestId": { "$ref": "#/$defs/nonEmptyString" },
+    "candidateId": { "$ref": "#/$defs/nonEmptyString" },
+    "asOf": { "$ref": "#/$defs/timestamp" },
+    "jurisdiction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["country", "state", "county"],
+      "properties": {
+        "country": { "$ref": "#/$defs/nonEmptyString" },
+        "state": { "$ref": "#/$defs/nonEmptyString" },
+        "county": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidenceSource" }
+    },
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parcelId",
+        "lienAmount",
+        "estimatedValue",
+        "propertyType",
+        "roadAccess",
+        "buildable",
+        "utilitiesAvailable",
+        "locationQuality"
+      ],
+      "properties": {
+        "parcelId": { "$ref": "#/$defs/stringEvidence" },
+        "lienAmount": { "$ref": "#/$defs/moneyEvidence" },
+        "estimatedValue": { "$ref": "#/$defs/moneyEvidence" },
+        "propertyType": { "$ref": "#/$defs/stringEvidence" },
+        "roadAccess": { "$ref": "#/$defs/booleanEvidence" },
+        "buildable": { "$ref": "#/$defs/booleanEvidence" },
+        "utilitiesAvailable": { "$ref": "#/$defs/booleanEvidence" },
+        "locationQuality": { "$ref": "#/$defs/scoreEvidence" }
+      }
+    },
+    "limitations": { "$ref": "#/$defs/stringArray" }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$"
+    },
+    "stringArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonEmptyString" }
+    },
+    "evidenceSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "sourceType", "authority", "uri", "retrievedAt"],
+      "properties": {
+        "sourceId": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceType": {
+          "enum": [
+            "county_record",
+            "assessor_record",
+            "auction_record",
+            "market_sale",
+            "geospatial",
+            "manual_verification",
+            "user_upload"
+          ]
+        },
+        "authority": { "$ref": "#/$defs/nonEmptyString" },
+        "uri": { "$ref": "#/$defs/nonEmptyString" },
+        "retrievedAt": { "$ref": "#/$defs/timestamp" },
+        "effectiveAt": { "$ref": "#/$defs/timestamp" },
+        "adapterVersion": { "$ref": "#/$defs/nonEmptyString" },
+        "license": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "money": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["amount", "currency"],
+      "properties": {
+        "amount": { "type": "number", "minimum": 0 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+      }
+    },
+    "stringEvidence": {
+      "allOf": [
+        { "$ref": "#/$defs/evidenceBase" },
+        {
+          "type": "object",
+          "properties": { "value": { "$ref": "#/$defs/nonEmptyString" } }
+        }
+      ]
+    },
+    "moneyEvidence": {
+      "allOf": [
+        { "$ref": "#/$defs/evidenceBase" },
+        { "type": "object", "properties": { "value": { "$ref": "#/$defs/money" } } }
+      ]
+    },
+    "booleanEvidence": {
+      "allOf": [
+        { "$ref": "#/$defs/evidenceBase" },
+        { "type": "object", "properties": { "value": { "type": "boolean" } } }
+      ]
+    },
+    "scoreEvidence": {
+      "allOf": [
+        { "$ref": "#/$defs/evidenceBase" },
+        {
+          "type": "object",
+          "properties": { "value": { "type": "number", "minimum": 0, "maximum": 100 } }
+        }
+      ]
+    },
+    "evidenceBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "sourceRefs"],
+      "properties": {
+        "state": { "enum": ["observed", "derived", "unknown", "not_applicable"] },
+        "value": {},
+        "sourceRefs": { "$ref": "#/$defs/stringArray" },
+        "observedAt": { "$ref": "#/$defs/timestamp" },
+        "derivation": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "enum": ["observed", "derived"] } } },
+          "then": {
+            "required": ["value"],
+            "properties": { "sourceRefs": { "minItems": 1 } }
+          },
+          "else": { "not": { "required": ["value"] } }
+        },
+        {
+          "if": { "properties": { "state": { "const": "derived" } } },
+          "then": { "required": ["derivation"] }
+        }
+      ]
+    }
+  }
+}

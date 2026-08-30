@@ -9,6 +9,43 @@ It does not replace endpoint-specific API docs or implementation tests.
 
 ## Current Shared Types
 
+Phase 47 adds an independent engine-boundary package at
+`packages/engine-contract`:
+
+- `CandidateEvidenceV1` with versioned, field-level provenance and explicit
+  observed, derived, unknown, and not-applicable states;
+- `EngineResultV1` with assessed, insufficient-evidence, and out-of-scope
+  outcomes;
+- method and availability distinctions for deterministic, heuristic,
+  model-backed, unknown, unavailable, and not-applicable signals;
+- `ModelArtifactRefV1` with artifact digest, training-dataset version, and
+  evaluation-report reference;
+- dependency-free runtime validators and strict JSON Schemas;
+- a hard contract rule that a redemption probability is available only from a
+  versioned model artifact.
+
+The existing `packages/scoring` output remains a compatibility contract. API
+responses add `legacyScoring` metadata so its `redemptionProbability` value is
+identified as a fixed heuristic and not a probability.
+
+`packages/types` now also defines the platform compatibility envelope:
+
+- `completed` contains a contract-valid `EngineResultV1`;
+- `not_configured` contains no result;
+- `failed` contains a bounded failure code and no result;
+- internal-job summaries count each state for operational visibility.
+
+The API client verifies result identity, evidence version, and digest before
+the completed state can cross into persistence.
+
+Phase 47 also adds `packages/jurisdiction-rules` as a server-side consumer of
+the engine contract. Its registry is exact-jurisdiction and version based. The
+current Maricopa pack returns a contract-valid assessed,
+insufficient-evidence, or out-of-scope result; resolves legal findings through
+versioned citations; computes only deterministic value coverage; and keeps
+redemption probability unavailable. Current county auction mechanics are not
+yet a verified contract.
+
 Current shared types in `packages/types`:
 
 - Phase 45 extends the follow-up contract with `completed` due state,
