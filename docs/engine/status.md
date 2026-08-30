@@ -84,6 +84,13 @@ Last updated: 2026-08-30
   `[deploy-private-staging]` commit marker enables the deploy job, which derives
   the authorized workers.dev origin and synchronizes five Worker bindings from
   six GitHub environment secret references over stdin.
+- Live external prerequisites now exist: a `$0` MongoDB Atlas Free cluster
+  `TaxLienStaging` in AWS `eu-west-1`, a SCRAM application user restricted to
+  that cluster, the user-approved dynamic-egress access-list rule, and all six
+  required `chatgpt-staging` GitHub environment secret names. No secret value
+  was read or committed. The current MongoDB role remains
+  `readWriteAnyDatabase@admin` within the single cluster and must be narrowed
+  to `readWrite@tax_lien_platform` before this node closes.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.
@@ -110,10 +117,10 @@ implementation, source packaging, and private staging are authorized. The
 deployment boundary is now source-controlled inside this project without
 duplicating runtime logic. Remaining work is the real stable HTTPS deployment,
 private ChatGPT connection, live tenancy and load/redaction/rollback
-verification, and ownership decisions. No Cloudflare credential or domain and
-no managed staging Mongo connection is visible in the current environment, so
-no deployment or connection receipt exists. No deferred node becomes runnable
-while this product gate is active.
+verification, database-role narrowing, and ownership decisions. The required
+GitHub environment secret names and managed staging Mongo connection now exist,
+but no successful Cloudflare deployment or ChatGPT connection receipt exists.
+No deferred node becomes runnable while this product gate is active.
 
 ## Next Graph Work
 
