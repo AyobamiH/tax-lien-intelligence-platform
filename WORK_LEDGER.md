@@ -1,5 +1,19 @@
 # Work Ledger
 
+## 2026-08-30T21:05:00Z - P47-093 container build-stage repair
+
+- Exact-head staging run `33335163254` proved the Wrangler preflight repair:
+  all governed source gates, secret synchronization, and Cloudflare authority
+  checks passed.
+- Cloudflare then built the real container and failed closed because the
+  Node-only build stage invoked the repository-wide build, which also calls
+  `python3`. The Node base image does not contain Python. No deployment or live
+  endpoint was created.
+- Split image validation by runtime: the Node stage now builds only npm
+  workspaces, while the final Python stage compiles the intelligence service
+  and supervisor. The staging validator enforces this boundary and forbids the
+  repository-wide build command in the Node-only stage.
+
 ## 2026-08-30T20:58:00Z - P47-093 first live deployment repair
 
 - Exact-head staging run `33334912896` checked out `2b0b736`, passed the full
