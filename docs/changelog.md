@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Extended the private-staging tail startup classifier to cover Wrangler's
+  non-JSON stdout diagnostics after run `33338765853` returned only
+  `exit_code_1`. The raw provider output remains suppressed and no live
+  redaction receipt is claimed.
+
 - Recorded failed-closed log-tail run `33338469468`: deployment and all 24
   public/authenticated live cases passed at `a17afd5`, but Wrangler tail
   exited before the redaction probe. Added bounded startup-failure

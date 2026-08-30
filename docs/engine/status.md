@@ -152,6 +152,13 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- Exact-head run `33338765853` deployed `1b489e9` as Worker version
+  `1f5bcdd3-de99-4078-8317-d4ec395e1985` with container digest
+  `sha256:1d8a7fa702c09207c496da6ff5136acdd0a1f1ef7cd1cdbff542775d1179ee4a`.
+  Source and both live boundary suites passed. Tail startup again exited before
+  a probe; its first classifier returned only `exit_code_1`, so the bounded
+  classifier now reads non-JSON stdout as well as stderr without emitting raw
+  diagnostics. No redaction receipt exists from this run.
 - Exact-head run `33338469468` deployed `a17afd5` as Worker version
   `f7300a86-9e30-49a8-9c39-fa7f2a872b23` with container digest
   `sha256:26da7da0922bf770ef6a4c4d4fc8c2db0e5402e2ffc5e9fec624344e7a39700e`.

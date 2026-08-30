@@ -1,5 +1,20 @@
 # Work Ledger
 
+## 2026-08-30T22:23:51.853Z - P47-093 tail diagnostic stdout correction
+
+- Exact-head run `33338765853` again passed source, secret, Cloudflare,
+  deployment, public-boundary, and authenticated-boundary gates at `1b489e9`.
+  It deployed Worker version `1f5bcdd3-de99-4078-8317-d4ec395e1985` and
+  container digest
+  `sha256:1d8a7fa702c09207c496da6ff5136acdd0a1f1ef7cd1cdbff542775d1179ee4a`.
+- Wrangler tail again exited before a probe. The first bounded classifier
+  returned only `exit_code_1`, proving the provider explanation was not on
+  stderr. No raw output or redaction receipt was stored.
+- Non-JSON startup lines from stdout are now held only in bounded process
+  memory and classified into an allowlisted authority, argument, config,
+  worker, creation, or provider-network category. The raw text remains
+  suppressed.
+
 ## 2026-08-30T22:17:48.292Z - P47-093 first live log-tail attempt failed closed
 
 - Exact-head run `33338469468` passed the full source gate, secret

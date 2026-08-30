@@ -20,6 +20,7 @@ const observed = {
 let stdoutBuffer = "";
 let stderrBytes = 0;
 let stderrBuffer = "";
+let startupDiagnosticBuffer = "";
 let capturedBytes = 0;
 let captureFailure = null;
 let tailExit = null;
@@ -193,7 +194,11 @@ function consumeCompleteLines(flush = false) {
   stdoutBuffer = flush ? "" : (lines.pop() ?? "");
   for (const line of lines) {
     const event = parseJsonLine(line);
-    if (!event || !Array.isArray(event.logs)) continue;
+    if (!event) {
+      startupDiagnosticBuffer += line + "\n";
+      continue;
+    }
+    if (!Array.isArray(event.logs)) continue;
     for (const entry of event.logs) {
       const parts = Array.isArray(entry?.message)
         ? entry.message
@@ -299,9 +304,9 @@ async function closeTail() {
 }
 
 function classifyTailFailure() {
-  const diagnostic = stderrBuffer.toLowerCase();
+  const diagnostic = (stderrBuffer + "\n" + startupDiagnosticBuffer + "\n" + stdoutBuffer).toLowerCase();
   if (
-    /workers tail read|permission|not authorized|authentication|invalid api token|status.?403|code.?10000/.test(
+    /workers tail read|permission|not authorized|unauthorized|forbidden|authentication|invalid api token|status.?403|code.?10000/.test(
       diagnostic,
     )
   ) {
@@ -313,8 +318,14 @@ function classifyTailFailure() {
   if (/configuration|config file|wrangler\.json/.test(diagnostic)) {
     return "configuration_rejected";
   }
+  if (/worker.*not found|no worker|script.*not found|code.?10090/.test(diagnostic)) {
+    return "worker_not_found";
+  }
   if (/could not create|failed to create|tail.*failed|tail.*error/.test(diagnostic)) {
     return "tail_creation_failed";
+  }
+  if (/network|fetch failed|connection|timed out|timeout|api request failed/.test(diagnostic)) {
+    return "provider_network_or_api";
   }
   if (tailExit?.signal) return "signal_" + tailExit.signal.toLowerCase();
   if (Number.isInteger(tailExit?.code)) return "exit_code_" + tailExit.code;
