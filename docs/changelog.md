@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Recorded failed-closed log-tail run `33338469468`: deployment and all 24
+  public/authenticated live cases passed at `a17afd5`, but Wrangler tail
+  exited before the redaction probe. Added bounded startup-failure
+  classification; no raw diagnostics or false redaction receipt are stored.
+
 - Added an exact-head Cloudflare log-redaction gate for private staging. It
   verifies the deployed Worker and API custom logs against unique payload and
   credential markers, stores only a sanitized pass receipt, and disables

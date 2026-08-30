@@ -152,6 +152,13 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- Exact-head run `33338469468` deployed `a17afd5` as Worker version
+  `f7300a86-9e30-49a8-9c39-fa7f2a872b23` with container digest
+  `sha256:26da7da0922bf770ef6a4c4d4fc8c2db0e5402e2ffc5e9fec624344e7a39700e`.
+  Source, public, and authenticated live gates passed; the log-tail process
+  exited before its probe, so no live redaction receipt exists. A bounded
+  classifier will identify the startup authority/configuration class on the
+  next exact-head run without exposing raw diagnostics.
 - The staging source now disables persistent provider invocation logs and adds
   an exact-head real-time-tail gate. The gate must observe both Worker and API
   payload-free events while unique payload and credential markers remain

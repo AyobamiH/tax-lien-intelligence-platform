@@ -1,5 +1,21 @@
 # Work Ledger
 
+## 2026-08-30T22:17:48.292Z - P47-093 first live log-tail attempt failed closed
+
+- Exact-head run `33338469468` passed the full source gate, secret
+  synchronization, Cloudflare authority check, real deployment, 12 public
+  boundary cases, and 12 authenticated OAuth/tenant/tool cases at `a17afd5`.
+- Worker version `f7300a86-9e30-49a8-9c39-fa7f2a872b23` and container image
+  digest `sha256:26da7da0922bf770ef6a4c4d4fc8c2db0e5402e2ffc5e9fec624344e7a39700e`
+  became live. Persistent provider invocation logs are disabled.
+- The redaction verifier failed before sending a probe because the Wrangler tail
+  process exited. It intentionally emitted no raw provider diagnostic, marker,
+  header, body, token, or log event, and no redaction receipt was archived.
+- The verifier now classifies the bounded startup failure without revealing raw
+  diagnostics. The next exact-head run will distinguish missing Tail Read
+  authority from argument/configuration drift before any human action is
+  requested.
+
 ## 2026-08-30T22:11:24.038Z - P47-093 live log-redaction verification source
 
 - Added a governed post-deploy verifier that tails the real Cloudflare Worker,

@@ -19,6 +19,7 @@ const observed = {
 };
 let stdoutBuffer = "";
 let stderrBytes = 0;
+let stderrBuffer = "";
 let capturedBytes = 0;
 let captureFailure = null;
 let tailExit = null;
@@ -63,7 +64,9 @@ tail.stderr.on("data", (chunk) => {
   if (stderrBytes > 262_144) {
     captureFailure = "tail_diagnostic_bound_exceeded";
     tail.kill("SIGINT");
+    return;
   }
+  stderrBuffer += chunk.toString("utf8");
 });
 tail.once("error", () => {
   captureFailure = "tail_process_start_failed";
@@ -71,7 +74,7 @@ tail.once("error", () => {
 
 try {
   await delay(8_000);
-  assert(!tailExit, "tail_session_exited_before_probe");
+  assert(!tailExit, "tail_session_exited_before_probe:" + classifyTailFailure());
   assert(!captureFailure, captureFailure ?? "tail_capture_failed");
 
   const probeBody = JSON.stringify({
@@ -278,7 +281,7 @@ async function waitForRequiredLogs(timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     assert(!captureFailure, captureFailure ?? "tail_capture_failed");
-    assert(!tailExit, "tail_session_exited_during_probe");
+    assert(!tailExit, "tail_session_exited_during_probe:" + classifyTailFailure());
     if (observed.gateway > 0 && observed.application > 0) return;
     await delay(500);
   }
@@ -293,6 +296,29 @@ async function closeTail() {
     tail.kill("SIGTERM");
     await Promise.race([exitPromise, delay(3_000)]);
   }
+}
+
+function classifyTailFailure() {
+  const diagnostic = stderrBuffer.toLowerCase();
+  if (
+    /workers tail read|permission|not authorized|authentication|invalid api token|status.?403|code.?10000/.test(
+      diagnostic,
+    )
+  ) {
+    return "permission_or_auth";
+  }
+  if (/unknown argument|invalid.*sampling|sampling.*invalid|not enough non-option/.test(diagnostic)) {
+    return "argument_rejected";
+  }
+  if (/configuration|config file|wrangler\.json/.test(diagnostic)) {
+    return "configuration_rejected";
+  }
+  if (/could not create|failed to create|tail.*failed|tail.*error/.test(diagnostic)) {
+    return "tail_creation_failed";
+  }
+  if (tailExit?.signal) return "signal_" + tailExit.signal.toLowerCase();
+  if (Number.isInteger(tailExit?.code)) return "exit_code_" + tailExit.code;
+  return "unclassified";
 }
 
 function requireCanonicalOrigin(value) {
