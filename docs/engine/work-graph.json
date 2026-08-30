@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-30T23:42:00.000Z",
+  "updatedAt": "2026-08-30T23:45:00.000Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/p47-093-chatgpt-private-staging",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
@@ -595,10 +595,11 @@
         "Exact-head run 33340916921 deployed 593a733 as Worker c0585f03-5b0f-470b-bce7-0d93d4a8fc55 with container digest sha256:46e475c7b26896e3c2cae32e0b08021cfbb4361d76304fd3fcf1ffd75772a84a; all source/public/authenticated gates passed and the application log had the exact expected keys plus Cloudflare $cf provider enrichment",
         "Exact-head run 33341199247 deployed 2c7862e as Worker fbf89d34-5868-4105-921f-980e07bf6437 with container digest sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d; all 12 public, 12 authenticated, and live log-redaction gates passed, observing 3 gateway and 1 application events with all payload, credential, secret, and marker checks clean",
         "Governed rollback/recovery source discovers the current and preceding single-version Cloudflare deployments, verifies the preceding version, and restores the exact current version in a finally path; live execution remains pending",
-        "Exact-head run 33341894651 passed source, deployment, all public/authenticated/log gates at 6f663f7, then failed closed before traffic mutation because WRANGLER_LOG=none suppressed deployment-status JSON; the retry parses bounded stdout/stderr without storing it and uses the documented rollback message to skip prompts"
+        "Exact-head run 33341894651 passed source, deployment, all public/authenticated/log gates at 6f663f7, then failed closed before traffic mutation because WRANGLER_LOG=none suppressed deployment-status JSON; the retry parses bounded stdout/stderr without storing it and uses the documented rollback message to skip prompts",
+        "Exact-head run 33342222795 passed source, deployment, all 12 public, 12 authenticated, 6 log-redaction, and 8 rollback/recovery checks at 4fd41e5; traffic rolled back to 580b752e-d1b8-4e9f-9d28-94e07ba9ba80 and the exact current Worker 72e2302b-0531-44ac-a9e7-df945c9a9ff1 was restored at 100%"
       ],
       "blockers": [
-        "the private ChatGPT connection, approved real-data grounding and prompt-injection cases, and rollback/recovery receipt do not exist yet",
+        "the private ChatGPT connection and approved real-data grounding and prompt-injection cases do not exist yet",
         "the Atlas application user is cluster-scoped but currently has readWriteAnyDatabase@admin; narrow it to readWrite@tax_lien_chatgpt_staging before closing this node",
         "the privacy/security approver, retention and deletion decisions, pilot consent owner, support owner, and incident owner are not assigned"
       ]

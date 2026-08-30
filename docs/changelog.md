@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Passed governed rollback/recovery in exact-head workflow `33342222795` at
+  `4fd41e568d8b8a231534ac7b2e610d69a0ff43a3`. Staging rolled back to preceding verified Worker
+  `580b752e-d1b8-4e9f-9d28-94e07ba9ba80`, passed health/readiness/OAuth/MCP
+  and dependency checks, restored current Worker
+  `72e2302b-0531-44ac-a9e7-df945c9a9ff1` at 100%, and repeated the checks.
+  Exact sanitized receipts and deployment provenance are pinned in the ChatGPT
+  product package.
+
 - Corrected the governed rollback verifier after exact-head run
   `33341894651` failed closed before traffic mutation: Wrangler log
   suppression had also suppressed deployment-status JSON. The verifier now

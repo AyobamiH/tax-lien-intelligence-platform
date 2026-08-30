@@ -10,16 +10,20 @@ local tests into live evidence.
 
 ## Latest verified deployment
 
-Exact-head workflow [33341199247](https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33341199247) passed the source, secret,
-deployment, 12 public-boundary, 12 authenticated-boundary, and live
-log-redaction gates for revision `2c7862e74dc80aaaba6677173293d06801ac2546`. It deployed Worker version
-`fbf89d34-5868-4105-921f-980e07bf6437` and container digest
-`sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d`.
-Only sanitized receipts are retained in the product package; no provider event,
-application log, marker, credential, token, email, request body, or response
-body is retained. The remaining order is governed rollback/recovery, Atlas
-least-privilege narrowing, then the real private ChatGPT OAuth connection and
-approved-data verification.
+Exact-head workflow [33342222795](https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33342222795) passed governed source and
+secret validation, deployment, 12 public-boundary checks, 12 authenticated
+OAuth / role / tenant / tool checks, live log redaction, and governed
+rollback/recovery for revision `4fd41e568d8b8a231534ac7b2e610d69a0ff43a3`. It deployed Worker version
+`72e2302b-0531-44ac-a9e7-df945c9a9ff1` and container digest
+`sha256:7a2273ce0a33abdb43bbf09e3a7c6a502aa5d8b2278912851a9342539fd592ef`.
+The rollback routed 100% of traffic to preceding verified version
+`580b752e-d1b8-4e9f-9d28-94e07ba9ba80`, proved health, readiness, OAuth
+discovery, MCP fail-closed behavior, MongoDB, and intelligence readiness, then
+restored the exact current version at 100% and repeated the proof. Only
+sanitized receipts are retained; no provider event, application log, command
+output, marker, credential, token, email, request body, or response body is
+retained. The remaining order is Atlas least-privilege narrowing, the real
+private ChatGPT OAuth connection, then approved-data verification.
 
 ## Selected staging topology
 

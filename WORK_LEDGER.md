@@ -1,5 +1,23 @@
 # Work Ledger
 
+## 2026-08-30T23:45:00.000Z - P47-093 governed rollback/recovery passed
+
+- Exact-head workflow `33342222795` passed source, secrets, deployment, all 12
+  public checks, all 12 authenticated checks, six live log-redaction checks,
+  and eight governed rollback/recovery checks at `4fd41e568d8b8a231534ac7b2e610d69a0ff43a3`.
+- The workflow deployed Worker `72e2302b-0531-44ac-a9e7-df945c9a9ff1` with
+  container digest
+  `sha256:7a2273ce0a33abdb43bbf09e3a7c6a502aa5d8b2278912851a9342539fd592ef`.
+  It routed 100% of staging traffic to preceding verified Worker
+  `580b752e-d1b8-4e9f-9d28-94e07ba9ba80`, proved the HTTPS, OAuth, MCP,
+  MongoDB, and intelligence boundary, restored the exact current Worker at
+  100%, and repeated the proof.
+- Artifact `9740953262` has SHA-256
+  `2d1589c8c4152d3fad4ee4c16c5f3ce6a8e2dcd883815cb84eeb212ca041de67`
+  and contains only sanitized public, authenticated, log-redaction, and
+  rollback/recovery receipts. Exact copies and deployment provenance are now
+  pinned in the ChatGPT product package.
+
 ## 2026-08-30T23:42:00.000Z - P47-093 rollback status parser correction
 
 - Exact-head workflow `33341894651` passed governed source validation,

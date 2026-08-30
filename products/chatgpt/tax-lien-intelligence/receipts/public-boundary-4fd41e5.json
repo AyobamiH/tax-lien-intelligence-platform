@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_public_boundary",
+  "status": "passed",
+  "observedAt": "2026-08-30T23:39:31.980Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "4fd41e568d8b8a231534ac7b2e610d69a0ff43a3",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33342222795"
+  },
+  "checks": [
+    {
+      "name": "health",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 4968,
+      "responseSha256": "9dc5d8916c77ce1e43be2bcabd26de70fec820174849b9d0fbaad9e4b1dde99d"
+    },
+    {
+      "name": "readiness",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 150,
+      "responseSha256": "7b3652bfa0fa616972eaeb7dd9b3c17f439f3a411dc9ce88c7a19e70bdeb2e91"
+    },
+    {
+      "name": "protected_resource_discovery",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 124,
+      "responseSha256": "b689deb79c9220891da4d025b42004f7e1ff437595c14f4b7d2dd2435151d376"
+    },
+    {
+      "name": "authorization_server_discovery",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 130,
+      "responseSha256": "93fa2b46c1470b48c788e1e11a0d07cdd51030d4837e866798c8f191953aae6a"
+    },
+    {
+      "name": "mcp_oauth_challenge",
+      "status": "passed",
+      "httpStatus": 401,
+      "durationMs": 135,
+      "responseSha256": "ac5798c0c73040af9d4510f6cd44c2053ee240cedf1f6b413ea34167aa6054bf"
+    },
+    {
+      "name": "ingress_body_bound",
+      "status": "passed",
+      "httpStatus": 413,
+      "durationMs": 169,
+      "responseSha256": "a3c945b255912ec5d8b9d04bdb29d8e2af80adacc6c883823a41c0aff6a14bb3"
+    },
+    {
+      "name": "closed_route:/auth/register",
+      "status": "passed",
+      "httpStatus": 404,
+      "durationMs": 29,
+      "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639"
+    },
+    {
+      "name": "closed_route:/datasets",
+      "status": "passed",
+      "httpStatus": 404,
+      "durationMs": 29,
+      "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639"
+    },
+    {
+      "name": "closed_route:/scores",
+      "status": "passed",
+      "httpStatus": 404,
+      "durationMs": 31,
+      "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639"
+    },
+    {
+      "name": "closed_route:/bid",
+      "status": "passed",
+      "httpStatus": 404,
+      "durationMs": 27,
+      "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639"
+    },
+    {
+      "name": "closed_route:/purchase",
+      "status": "passed",
+      "httpStatus": 404,
+      "durationMs": 29,
+      "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639"
+    },
+    {
+      "name": "closed_route:/graphql",
+      "status": "passed",
+      "httpStatus": 404,
+      "durationMs": 29,
+      "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639"
+    }
+  ],
+  "evidencePolicy": {
+    "responseBodiesStored": false,
+    "credentialsStored": false,
+    "tokensStored": false,
+    "payloadsStored": false
+  },
+  "remainingGates": [
+    "authenticated OAuth lifecycle and role/tenant isolation",
+    "exact six-tool authenticated inventory",
+    "private ChatGPT connection",
+    "live log-redaction inspection",
+    "rollback and recovery"
+  ]
+}

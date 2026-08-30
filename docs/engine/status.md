@@ -20,11 +20,20 @@ Last updated: 2026-08-30
   `WRANGLER_LOG=none` suppressed the deployment-status JSON document. The
   retry removes that suppression, parses bounded stdout/stderr in memory, and
   uses the documented `--message` non-interactive rollback behavior.
-- `P47-093-chatgpt-private-staging` remains in progress. The governed
-  rollback/recovery verifier is now source-controlled and runs only after the
-  public, authenticated, and log-redaction gates; its live receipt is pending
-  the exact-head deployment. Atlas role narrowing, the real private ChatGPT
-  OAuth connection, and approved real-data / prompt-injection cases remain open.
+- Exact-head workflow `33342222795` is green at `4fd41e568d8b8a231534ac7b2e610d69a0ff43a3`.
+  Worker `72e2302b-0531-44ac-a9e7-df945c9a9ff1` and container digest
+  `sha256:7a2273ce0a33abdb43bbf09e3a7c6a502aa5d8b2278912851a9342539fd592ef`
+  passed all 24 public/authenticated cases and live log redaction. Governed
+  rollback verified preceding version `580b752e-d1b8-4e9f-9d28-94e07ba9ba80`
+  and restored the exact current version at 100%, with eight rollback/recovery
+  boundary checks passing.
+- Artifact `9740953262` (SHA-256
+  `2d1589c8c4152d3fad4ee4c16c5f3ce6a8e2dcd883815cb84eeb212ca041de67`)
+  contains only four sanitized live receipts; exact copies and deployment
+  provenance are pinned in the ChatGPT product package.
+- `P47-093-chatgpt-private-staging` remains in progress for Atlas role
+  narrowing, the real private ChatGPT OAuth connection, and approved real-data /
+  prompt-injection verification.
 
 
 - Active implementation repository for this run:

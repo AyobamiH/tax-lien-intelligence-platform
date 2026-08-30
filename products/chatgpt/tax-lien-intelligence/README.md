@@ -11,11 +11,13 @@ The plugin metadata is source-controlled and validation-ready. The runtime MCP
 server and OAuth 2.1 implementation live in `apps/api`; the staging deployment
 boundary lives in `infra/cloudflare`. The package is now
 `private_staging_deployed`: exact-head deployment, public-boundary,
-authenticated-boundary, and live log-redaction receipts are pinned in
-`release-provenance.json`. The stable origin passed all 24 public and OAuth /
-tenant / tool cases, and Cloudflare telemetry proved gateway and application
-logs remain payload-free. A `.mcp.json` remains intentionally absent until the
-real private ChatGPT OAuth connection is verified.
+authenticated-boundary, live log-redaction, and governed rollback/recovery
+receipts are pinned in `release-provenance.json`. The stable origin passed all
+24 public and OAuth / tenant / tool cases, Cloudflare telemetry proved gateway
+and application logs remain payload-free, and the preceding Worker version was
+verified before the exact current version was restored at 100%. A `.mcp.json`
+remains intentionally absent until the real private ChatGPT OAuth connection is
+verified.
 
 ## Approved capability
 
