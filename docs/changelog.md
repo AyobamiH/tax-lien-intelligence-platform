@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Passed the real authenticated staging boundary at exact revision `60d3cca`:
+  12 public checks, 12 OAuth/role/tenant/tool checks, fixture cleanup, receipt
+  archival, and a bounded 100-request rate-limit probe. The product package now
+  pins the exact deployment, public-boundary, and authenticated-boundary
+  receipts without credentials, codes, tokens, emails, fixture identifiers, or
+  evidence payloads.
 - Corrected the live denied-role case after the real service proved that users
   with no membership receive a personal owner workspace. The test now requires
   isolation to an explicit personal fixture workspace and denial of the target

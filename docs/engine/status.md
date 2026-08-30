@@ -141,6 +141,17 @@ Last updated: 2026-08-30
   for a denied principal. No authenticated receipt is claimed. The test now
   requires that the denied principal sees only its own isolated test workspace
   and is denied the target, with ownership-aware fixture cleanup.
+- Exact-head run `33337608603` passed every source, deployment, public-boundary,
+  authenticated-boundary, cleanup, and artifact gate at `60d3cca`. Live OAuth
+  now proves PKCE, code replay rejection, refresh rotation and family replay
+  revocation, access revocation, expiry, exact redirects, owner/admin/member/
+  denied isolation, cross-workspace denial, and exactly six deployed read-only
+  tools. The normalized repository receipts pin Worker version
+  `6c96de84-9571-4724-85ab-61a6e252ecce`, container image digest
+  `sha256:f9c69e865f19422a9d5fab73dc403f232a9d2022fc4d08fd1b7fbb9f34e91d82`,
+  and workflow artifact `9739571402`.
+- A bounded 100-request probe against that exact deployment again returned 70
+  `429` responses after 30 handled validations while health remained `200`.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.
@@ -166,8 +177,10 @@ and push access. No OneClickPostFactory repository is consulted or synchronized.
 implementation, source packaging, and private staging are authorized. The real
 stable HTTPS service is deployed and its public boundary has a sanitized live
 receipt. Remaining work is authenticated OAuth and tenant verification, the
-private ChatGPT connection, tool-inventory and load/redaction/rollback
-verification, database-role narrowing, and ownership decisions. No ChatGPT
+private ChatGPT connection, approved real-data grounding/prompt-injection
+checks, live redaction/rollback verification, database-role narrowing, and
+ownership decisions. Authenticated OAuth, roles, tenant isolation, deployed
+tool inventory, and bounded rate limiting now have live receipts; no ChatGPT
 connection receipt exists yet.
 No deferred node becomes runnable while this product gate is active.
 

@@ -47,6 +47,26 @@ if (provenance.releaseStatus === "source_only") {
   assert(receipt.source?.revision === provenance.systemOfRecord.engineRevision, "deployment revision drifted");
   assert(receipt.evidencePolicy?.credentialsStored === false, "deployment receipt must store no credentials");
   assert(receipt.evidencePolicy?.tokensStored === false, "deployment receipt must store no tokens");
+  assert(
+    typeof provenance.liveEvidence.authenticatedBoundaryReceipt === "string",
+    "deployed staging needs an authenticated boundary receipt",
+  );
+  const authenticatedReceipt = JSON.parse(
+    await readFile(path.join(product, provenance.liveEvidence.authenticatedBoundaryReceipt), "utf8"),
+  );
+  assert(authenticatedReceipt.status === "passed", "authenticated boundary receipt did not pass");
+  assert(authenticatedReceipt.origin === issuer.origin, "authenticated boundary origin drifted");
+  assert(
+    authenticatedReceipt.source?.revision === provenance.systemOfRecord.engineRevision,
+    "authenticated boundary revision drifted",
+  );
+  assert(
+    JSON.stringify(authenticatedReceipt.toolInventory) === JSON.stringify(expectedTools),
+    "authenticated deployed tool inventory drifted",
+  );
+  assert(authenticatedReceipt.fixturePolicy?.removedAfterVerification === true, "test fixture cleanup is unverified");
+  assert(authenticatedReceipt.evidencePolicy?.credentialsStored === false, "authenticated receipt stored credentials");
+  assert(authenticatedReceipt.evidencePolicy?.tokensStored === false, "authenticated receipt stored tokens");
   if (provenance.releaseStatus === "private_staging_deployed") {
     assert(provenance.liveEvidence.chatgptConnectionReceipt === null, "unconnected staging cannot claim ChatGPT evidence");
   }

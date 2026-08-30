@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_public_boundary",
+  "status": "passed",
+  "observedAt": "2026-08-30T21:56:38.453Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "60d3ccadc4d7456e68fa9b345527f4463b01d4ea",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33337608603"
+  },
+  "checks": [
+    { "name": "health", "status": "passed", "httpStatus": 200, "responseSha256": "f9fdffbae9ceb683ce9486dc2cf393c7aedb90b9316c540fad2c3d42ab14e4eb" },
+    { "name": "readiness", "status": "passed", "httpStatus": 200, "responseSha256": "c2927e403bd08086d0fd3f94e18deec62548f9295f3ef3ad6bed457914d85ef6" },
+    { "name": "protected_resource_discovery", "status": "passed", "httpStatus": 200, "responseSha256": "b689deb79c9220891da4d025b42004f7e1ff437595c14f4b7d2dd2435151d376" },
+    { "name": "authorization_server_discovery", "status": "passed", "httpStatus": 200, "responseSha256": "93fa2b46c1470b48c788e1e11a0d07cdd51030d4837e866798c8f191953aae6a" },
+    { "name": "mcp_oauth_challenge", "status": "passed", "httpStatus": 401, "responseSha256": "ac5798c0c73040af9d4510f6cd44c2053ee240cedf1f6b413ea34167aa6054bf" },
+    { "name": "ingress_body_bound", "status": "passed", "httpStatus": 413, "responseSha256": "a3c945b255912ec5d8b9d04bdb29d8e2af80adacc6c883823a41c0aff6a14bb3" },
+    { "name": "closed_route:/auth/register", "status": "passed", "httpStatus": 404, "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639" },
+    { "name": "closed_route:/datasets", "status": "passed", "httpStatus": 404, "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639" },
+    { "name": "closed_route:/scores", "status": "passed", "httpStatus": 404, "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639" },
+    { "name": "closed_route:/bid", "status": "passed", "httpStatus": 404, "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639" },
+    { "name": "closed_route:/purchase", "status": "passed", "httpStatus": 404, "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639" },
+    { "name": "closed_route:/graphql", "status": "passed", "httpStatus": 404, "responseSha256": "80ecb80546d76e7b2e512861da8cd10c6d042974416ea844abd3b249525e1639" }
+  ],
+  "evidencePolicy": {
+    "responseBodiesStored": false,
+    "credentialsStored": false,
+    "tokensStored": false,
+    "payloadsStored": false
+  }
+}

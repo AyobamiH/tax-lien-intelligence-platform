@@ -1,5 +1,30 @@
 # Work Ledger
 
+## 2026-08-30T21:59:00Z - P47-093 authenticated live boundary passed
+
+- Exact-head staging run `33337608603` completed successfully at
+  `60d3ccadc4d7456e68fa9b345527f4463b01d4ea`. It deployed Worker version
+  `6c96de84-9571-4724-85ab-61a6e252ecce` and container image digest
+  `sha256:f9c69e865f19422a9d5fab73dc403f232a9d2022fc4d08fd1b7fbb9f34e91d82`.
+- The public boundary passed 12 exact-origin checks. The authenticated boundary
+  then passed 12 cases covering PKCE code exchange/replay, refresh
+  rotation/replay-family revocation, access revocation, expiry, exact redirect
+  allowlisting, owner/admin/member/denied isolation, cross-workspace denial,
+  and the exact six deployed read-only tools.
+- The authenticated test removed its current fixture and two stale test-only
+  personal workspaces left by the earlier failed runs. Cleanup was restricted
+  to recent P47 fixture-name matches whose owner users no longer existed.
+- Workflow artifact `9739571402`, digest
+  `sha256:960fc0cb053e7e09ab71d3206a0bd43ac209d5a7034b804dac4049d221e7e2bc`,
+  contains both sanitized receipts. Exact normalized copies and deployment
+  provenance are now stored in the product package.
+- A post-deployment bounded 100-request OAuth probe returned 30 handled
+  validation responses and 70 `429` responses; health remained `200`.
+- Remaining P47-093 gates are the dedicated real staging user and private
+  ChatGPT connection, approved real-data evidence/prompt-injection checks, live
+  log-redaction inspection, rollback/recovery, Atlas role narrowing, and named
+  accountable owners.
+
 ## 2026-08-30T21:51:00Z - P47-093 denied-user live case correction
 
 - Exact-head run `33337338853` passed source gates, deployed revision

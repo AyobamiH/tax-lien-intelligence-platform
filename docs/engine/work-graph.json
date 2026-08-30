@@ -284,10 +284,12 @@
         "A bounded 100-request OAuth load probe returned 70 HTTP 429 responses after 30 handled validation responses while health remained HTTP 200; no credential, token, user, prompt, or evidence payload was used",
         "The governed staging workflow now includes a post-deploy authenticated verifier that creates and removes a unique test-only fixture and covers real PKCE, code replay, refresh rotation and replay, revocation, expiry, owner/admin/member/denied workspace isolation, cross-workspace denial, and the exact six read-only tools without storing fixture identifiers or secrets",
         "Exact-head run 33337074423 passed deployment and the public live boundary but produced no authenticated receipt because the verifier's failure reporter hit an initialization-order ReferenceError; the reporter is repaired without changing security assertions or finally cleanup",
-        "Run 33337338853 showed that a no-membership user receives the intended personal owner workspace; the denied live case now requires isolation to an explicit test workspace plus denial of the target, and cleanup discovers all workspaces owned by fixture users before exact deletion"
+        "Run 33337338853 showed that a no-membership user receives the intended personal owner workspace; the denied live case now requires isolation to an explicit test workspace plus denial of the target, and cleanup discovers all workspaces owned by fixture users before exact deletion",
+        "Exact-head run 33337608603 passed at 60d3ccadc4d7456e68fa9b345527f4463b01d4ea with 12 public-boundary and 12 authenticated-boundary cases, exact six-tool read-only inventory, fixture cleanup, Worker version 6c96de84-9571-4724-85ab-61a6e252ecce, container digest sha256:f9c69e865f19422a9d5fab73dc403f232a9d2022fc4d08fd1b7fbb9f34e91d82, and sanitized artifact 9739571402",
+        "A bounded 100-request rate-limit probe against exact deployment 60d3cca returned 70 HTTP 429 responses after 30 handled validations while health remained HTTP 200"
       ],
       "blockers": [
-        "authenticated OAuth lifecycle, tenant-role isolation, exact six-tool inventory, private ChatGPT connection, live log redaction, rate-limit/load, and rollback receipts do not exist yet",
+        "the private ChatGPT connection, approved real-data grounding and prompt-injection cases, live log-redaction inspection, and rollback/recovery receipts do not exist yet",
         "the Atlas application user is cluster-scoped but currently has readWriteAnyDatabase@admin; narrow it to readWrite@tax_lien_chatgpt_staging before closing this node",
         "the privacy/security approver, retention and deletion decisions, pilot consent owner, support owner, and incident owner are not assigned"
       ]
