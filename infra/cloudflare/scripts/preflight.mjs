@@ -26,7 +26,7 @@ try {
 
 let listedSecrets;
 try {
-  listedSecrets = JSON.parse(runWrangler(["secret", "list", "--json"]));
+  listedSecrets = JSON.parse(runWrangler(["secret", "list", "--format=json"]));
 } catch {
   console.error("Cloudflare preflight failed: secret names could not be listed.");
   process.exit(1);
