@@ -194,9 +194,11 @@ evidence payloads.
 ## Immediate Next Node
 
 `P47-093-chatgpt-private-staging` is in progress. The operator authorized
-implementation inside the connected GitHub project. The repository now owns
-the OAuth source and thin source-only release package; deployment and live
-connection remain blocked until a stable staging domain/target, deployment
-credentials, privacy and retention decisions, pilot consent, support, and
-incident ownership are supplied. No deferred node becomes runnable while this
-product gate is active.
+implementation and private deployment inside the connected GitHub project. The
+repository now owns the OAuth source, thin source-only release package, and a
+bounded Cloudflare Worker/Container deployment boundary with external MongoDB,
+readiness, redacted telemetry, rate limits, and rollback controls. Live
+deployment and connection remain blocked until an authorized Cloudflare Workers
+Paid account/origin, the required secret bindings including a managed staging
+Mongo URI, and privacy/retention/consent/support/incident ownership are
+verified. No deferred node becomes runnable while this product gate is active.

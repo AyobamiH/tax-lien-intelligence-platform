@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T16:15:00Z",
+  "updatedAt": "2026-08-30T18:33:53Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
-  "branch": "feature/intelligence-engine-foundation",
+  "branch": "feature/p47-093-chatgpt-private-staging",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
   "policies": {
     "noMockIntelligence": true,
@@ -267,11 +267,14 @@
         "apps/api/src/oauth implements OAuth discovery, explicit consent, PKCE S256, exact client/redirect/resource/scope validation, code exchange, refresh rotation/replay protection, and revocation",
         "tests/integration/oauth.test.ts covers repository-level OAuth lifecycle and OAuth-only MCP access",
         "products/chatgpt/tax-lien-intelligence is the validated source-only release package with pinned engine provenance and no fabricated endpoint",
-        "docs/product/chatgpt-private-staging-runbook.md and docs/architecture/chatgpt-oauth-threat-model.md record promotion, rollback, and residual risk"
+        "docs/product/chatgpt-private-staging-runbook.md and docs/architecture/chatgpt-oauth-threat-model.md record promotion, rollback, and residual risk",
+        "Private-staging source adds one closed-route Cloudflare Worker, one supervised Node/Python Container instance, external managed Mongo persistence, dependency readiness, payload-free telemetry, edge and process rate limits, manual deployment workflow, and rollback controls",
+        "Local staging checks passed the new source validator, Cloudflare TypeScript build, Python supervisor compilation, and 13 focused health, redaction, and ingress-policy tests",
+        "Complete local gates passed 10 Python tests, 332 Vitest tests across 51 files, the full workspace build, local API/web smoke, 6 browser-like tests, 9 real-process intelligence-service tests, and dependency audit with 0 vulnerabilities"
       ],
       "blockers": [
-        "the GitHub integration cannot create the planned separate thin repository, so the canonical source-only package remains isolated inside this project until repository creation is available",
-        "the stable staging domain, deployment target, deployment credentials, OAuth secret ownership, and authorization owner are not supplied",
+        "no connected Cloudflare account, existing Workers Paid entitlement, authorized workers.dev origin, deployment credential, or required Worker secret-name inventory is visible in the current execution environment",
+        "no managed staging MongoDB connection has been supplied or verified; MongoDB must not run on ephemeral container disk",
         "the privacy/security approver, retention and deletion decisions, pilot consent owner, support owner, and incident owner are not assigned"
       ]
     },

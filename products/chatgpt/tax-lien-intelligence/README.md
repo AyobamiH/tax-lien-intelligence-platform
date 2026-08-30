@@ -8,10 +8,11 @@ workspace-membership logic.
 ## Current state
 
 The plugin metadata is source-controlled and validation-ready. The runtime MCP
-server and OAuth 2.1 implementation live in `apps/api`. A `.mcp.json` is
-intentionally absent until an operator supplies and deploys the real stable
-HTTPS `/mcp` endpoint. Adding a sample or placeholder server URL would create a
-connection that cannot be truthfully tested.
+server and OAuth 2.1 implementation live in `apps/api`; the staging deployment
+boundary lives in `infra/cloudflare`. The package remains `source_only`, and a
+`.mcp.json` is intentionally absent until the real stable HTTPS `/mcp`
+deployment and private connection are verified. Adding a sample or placeholder
+server URL would create a connection that cannot be truthfully tested.
 
 ## Approved capability
 

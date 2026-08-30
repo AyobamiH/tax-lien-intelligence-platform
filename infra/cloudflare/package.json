@@ -1,0 +1,19 @@
+{
+  "name": "@tax-lien/cloudflare-staging",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit -p tsconfig.json",
+    "deploy": "node scripts/preflight.mjs && wrangler deploy --config wrangler.jsonc",
+    "preflight": "node scripts/preflight.mjs"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "0.3.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260830.1",
+    "typescript": "^5.9.3",
+    "wrangler": "4.127.1"
+  }
+}

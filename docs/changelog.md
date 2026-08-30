@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Added a bounded Cloudflare private-staging deployment boundary: one Worker,
+  one supervised Node/Python Container instance, external managed MongoDB,
+  exact-origin and route allowlists, ingress body limits, edge rate-limit
+  bindings, payload-free logs, dependency readiness, SIGTERM handling,
+  secret-name preflight, a manual deployment workflow, and documented rollback.
+- The staging Worker exposes only health/readiness, OAuth discovery/lifecycle,
+  and `/mcp`; ordinary auth registration, uploads, dataset/scoring mutations,
+  bids, purchases, and every unlisted route remain unavailable at ingress.
+- Added `npm run validate:chatgpt-staging` and focused readiness, redaction, and
+  gateway-policy tests. These are source checks, not a live endpoint, paid-plan,
+  Mongo, ChatGPT connection, load, log, or rollback receipt.
+- Reconciled repository truth after pull request #1 merged at `main@50dae44`
+  and GitHub Actions run `33309185096` passed its complete quality-gates job.
 - Opened pull request #1 to integrate the verified Phase 47 engine, evidence,
   MCP, and OAuth source checkpoints into `main`. Exact feature head `a9272bc`
   passed GitHub Actions run `33253657970`; the PR does not represent a deployed

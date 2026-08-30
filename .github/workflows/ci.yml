@@ -52,6 +52,9 @@ jobs:
       - name: Validate ChatGPT release package
         run: npm run validate:chatgpt-release
 
+      - name: Validate ChatGPT private-staging boundary
+        run: npm run validate:chatgpt-staging
+
       - name: Audit high-severity dependency risk
         run: npm run audit
 

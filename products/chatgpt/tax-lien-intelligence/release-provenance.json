@@ -4,8 +4,8 @@
   "product": "tax-lien-intelligence",
   "systemOfRecord": {
     "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
-    "branch": "feature/intelligence-engine-foundation",
-    "engineRevision": "627b60b5a2b316b704263df2c9cb0623b6cb53b9",
+    "branch": "feature/p47-093-chatgpt-private-staging",
+    "engineRevision": "50dae44f797af6b1c99f8bc4044c5965f2f36381",
     "mcpContractVersion": "1.0.0"
   },
   "connection": {

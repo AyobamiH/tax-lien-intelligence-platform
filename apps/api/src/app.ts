@@ -75,6 +75,11 @@ import { createFollowRouter } from "./routes/follows.js";
 import { createFollowUpService } from "./follow-ups/factory.js";
 import type { FollowUpService } from "./follow-ups/follow-up-service.js";
 import { createFollowUpRouter } from "./routes/follow-ups.js";
+import { probeReadiness, type ReadinessProbe } from "./health/readiness.js";
+import {
+  createOperationalTelemetry,
+  type OperationalTelemetryOptions,
+} from "./observability/request-telemetry.js";
 import { createReviewChecklistService } from "./review-checklists/factory.js";
 import type { ReviewChecklistService } from "./review-checklists/review-checklist-service.js";
 import { createReviewChecklistRouter } from "./routes/review-checklists.js";
@@ -110,6 +115,8 @@ export interface AppDependencies {
   scoringRequestLimit?: FixedWindowRateLimitOptions;
   mcpEvidenceService?: McpEvidenceServiceContract;
   oauthService?: OAuthService | null;
+  readinessProbe?: ReadinessProbe;
+  operationalTelemetry?: Partial<OperationalTelemetryOptions>;
 }
 
 export function buildCorsOptions(config: typeof apiConfig = apiConfig): CorsOptions {
@@ -205,6 +212,20 @@ export function createApp(dependencies: AppDependencies = {}): Express {
 
   app.use(helmet());
   app.use(cors(buildCorsOptions()));
+  app.use(
+    createOperationalTelemetry({
+      enabled: dependencies.operationalTelemetry?.enabled ?? apiConfig.operationalLoggingEnabled,
+      ...(dependencies.operationalTelemetry?.sink
+        ? { sink: dependencies.operationalTelemetry.sink }
+        : {}),
+      ...(dependencies.operationalTelemetry?.now
+        ? { now: dependencies.operationalTelemetry.now }
+        : {}),
+      ...(dependencies.operationalTelemetry?.createRequestId
+        ? { createRequestId: dependencies.operationalTelemetry.createRequestId }
+        : {}),
+    }),
+  );
   app.use(express.json({ limit: "1mb" }));
 
   app.get("/healthz", (_request, response) => {
@@ -216,6 +237,11 @@ export function createApp(dependencies: AppDependencies = {}): Express {
     };
 
     response.status(200).json(payload);
+  });
+
+  app.get("/readyz", async (_request, response) => {
+    const payload = await (dependencies.readinessProbe ?? probeReadiness)();
+    response.status(payload.status === "ready" ? 200 : 503).json(payload);
   });
 
   app.use("/auth", createAuthRouter(authService));

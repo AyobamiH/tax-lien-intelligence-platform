@@ -11,6 +11,7 @@ echo "[pre-push] Validating governed project state"
 npm run validate:work-graph
 npm run validate:data-inventory
 npm run validate:chatgpt-release
+npm run validate:chatgpt-staging
 
 echo "[pre-push] Running TypeScript checks"
 npm run typecheck

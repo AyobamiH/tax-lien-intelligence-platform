@@ -6,12 +6,13 @@
   "type": "module",
   "workspaces": [
     "apps/*",
+    "infra/cloudflare",
     "packages/*"
   ],
   "scripts": {
     "audit": "npm audit --audit-level=high",
     "build": "npm run build --workspaces --if-present && npm run build:intelligence:python",
-    "build:intelligence:python": "PYTHONPATH=services/intelligence/src python3 -m compileall -q services/intelligence/src services/intelligence/tests",
+    "build:intelligence:python": "PYTHONPATH=services/intelligence/src python3 -m compileall -q services/intelligence/src services/intelligence/tests infra/cloudflare/entrypoint.py",
     "dev:api": "npm run dev -w @tax-lien/api",
     "dev:worker": "npm run dev:worker -w @tax-lien/api",
     "dev:web": "npm run dev -w @tax-lien/web",
@@ -27,6 +28,7 @@
     "typecheck": "tsc -b",
     "validate:data-inventory": "node scripts/validate-data-source-inventory.mjs",
     "validate:chatgpt-release": "node scripts/validate-chatgpt-release.mjs",
+    "validate:chatgpt-staging": "node scripts/validate-chatgpt-staging.mjs",
     "validate:work-graph": "node scripts/validate-work-graph.mjs"
   },
   "engines": {

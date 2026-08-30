@@ -1,5 +1,80 @@
 # Work Ledger
 
+## 2026-08-30T18:33:53Z - P47-093 private-staging deployment boundary
+
+- Controlling task: continue only `P47-093-chatgpt-private-staging` from the
+  merged repository state, deploy a real stable HTTPS service, connect it
+  privately in ChatGPT, preserve WIP 1, and stop only at a human-only boundary.
+- Repository truth: cloned `AyobamiH/tax-lien-intelligence-platform`, verified
+  `main@50dae44f797af6b1c99f8bc4044c5965f2f36381`, admin/push access, merged PR
+  #1, and GitHub Actions run `33309185096` / quality-gates job `99251022127`
+  with all 16 steps successful. Created bounded branch
+  `feature/p47-093-chatgpt-private-staging` from that exact head.
+- Required governance read: `AGENTS.md`, `MISSION.md`, `ACCEPTANCE.md`,
+  `OPENCLAW_RUNBOOK.md`, complete `WORK_LEDGER.md`, `docs/README.md`, engine
+  operating guide and graph, private-staging runbook, and OAuth threat model.
+  The graph already had only `P47-093` in progress.
+- Current platform research: official Cloudflare documentation confirms
+  Containers can run existing Linux images and pass Worker secret bindings,
+  but require Workers Paid; container disk is ephemeral; Worker rate-limit
+  bindings are per location and permissive; deployments and container rollouts
+  are not transactional. Official OpenAI documentation confirms private
+  developer-mode connections require a public HTTPS endpoint or Secure MCP
+  Tunnel, OAuth discovery, PKCE/client identification, exact redirect behavior,
+  and live tool inspection.
+- Mongo decision: the Python service is stateless and receives no database
+  credential. The Node API requires durable persistence for 27 existing product
+  models and three OAuth collections whose atomic consume/rotation/revocation
+  behavior cannot live on ephemeral container disk. Keeping one managed Mongo
+  connection is less risky than a database rewrite during this gate; no public
+  Mongo API or second database layer was added.
+- Source completed:
+  - one Cloudflare Worker with exact HTTPS origin enforcement, a closed ingress
+    route set, a streaming 1 MiB body bound, OAuth/MCP rate-limit bindings, and
+    payload-free gateway telemetry;
+  - one `basic`, max-one Cloudflare Container running the real Node API and
+    unchanged Python intelligence service under a SIGTERM-aware supervisor;
+  - Worker-secret injection for only `STAGING_ORIGIN`, `MONGODB_URI`,
+    `JWT_SECRET`, `INTELLIGENCE_SERVICE_TOKEN`, and
+    `MCP_OAUTH_SIGNING_SECRET`;
+  - API `/readyz`, dependency-safe responses, payload-free request telemetry,
+    generated request ids, and graceful Mongo disconnect on shutdown;
+  - staging-only Dockerfile, source validator, secret-name preflight, and
+    manual GitHub deployment workflow with no automatic push deployment;
+  - topology, health, MCP, staging, product, graph, status, changelog, and thin
+    package documentation updated together.
+- Closed surface: the Worker does not admit registration, upload, dataset or
+  score mutation, bidding, purchasing, or other application routes. It admits
+  only health/readiness, OAuth discovery/lifecycle, and the existing `/mcp`.
+- Verification so far:
+  - `npm run typecheck` passed;
+  - `npm run build -w @tax-lien/cloudflare-staging` passed;
+  - Python supervisor compilation passed;
+  - `npm run validate:chatgpt-staging` passed for five secret references, one
+    container instance, and the closed ingress set;
+  - 13 focused health, telemetry-redaction, and gateway-policy tests passed;
+  - complete local gates passed with 10 Python tests, 332 Vitest tests across
+    51 files, the full workspace build, six browser-like tests, nine
+    real-process intelligence-service tests, and zero audit vulnerabilities;
+  - the local API/web runtime smoke passed;
+  - `git diff --check` passed.
+- Live infrastructure evidence: no `CLOUDFLARE_*`, `MONGO*`, `WRANGLER`, or
+  staging secret names are present in the current environment. The app bridge
+  has no installed Cloudflare plugin, its Cloudflare search connection failed,
+  and the non-mutating Wrangler preflight could not execute because outbound
+  account access was not approved in this runtime. Docker is also unavailable
+  locally. No Cloudflare account, paid entitlement, zone, workers.dev origin,
+  secret inventory, Mongo service, deployment, or URL is claimed.
+- Remaining human-only boundaries: authenticate or connect the authorized
+  Cloudflare account and confirm existing Workers Paid entitlement; configure
+  the five Worker bindings including a managed TLS staging Mongo URI; assign
+  the privacy/retention/deletion/consent/support/incident owners. No paid plan,
+  domain, secret, or owner was invented.
+- Next exact work before requesting that boundary action: finish the static
+  change-safety review, commit and push the source checkpoint, open a PR, and
+  verify exact-head CI. `P47-093` remains in progress and no live receipt is
+  added.
+
 ## 2026-08-30T11:25:22Z - Phase 47 current-state reconciliation and PR handoff
 
 - Requested task: revisit the controlling `Project Vision Review`, inspect the

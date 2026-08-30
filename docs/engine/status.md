@@ -6,8 +6,8 @@ Last updated: 2026-08-30
 
 - Active implementation repository for this run:
   `AyobamiH/tax-lien-intelligence-platform`.
-- Active branch: `feature/intelligence-engine-foundation`.
-- Starting main commit: `f7b6cbeab0d35712a60933c598e6fcfa39ffdd5d`.
+- Active branch: `feature/p47-093-chatgpt-private-staging`.
+- Starting main commit: `50dae44f797af6b1c99f8bc4044c5965f2f36381`.
 - Baseline recovery is published at `ba1b0cb`.
 - Graph governance is published at `f236b72`.
 - `P47-020-contracts` adds the versioned `CandidateEvidenceV1` and
@@ -63,35 +63,45 @@ Last updated: 2026-08-30
   run `33253453470`, quality-gates job `99102992513`, passed every validator,
   audit, typecheck, complete tests/build, real-service smoke, real intelligence
   Mongo smoke, and the new real OAuth Mongo atomicity/revocation smoke.
-- The branch evidence record is current at `a9272bc`. GitHub Actions run
-  `33253657970`, quality-gates job `99103542844`, passed at that exact head.
-  Pull request [#1](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/1)
-  is open against `main` for review; this is integration evidence, not private
+- Pull request [#1](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/1)
+  is merged with preserved history at `main@50dae44`. GitHub Actions run
+  `33309185096`, quality-gates job `99251022127`, passed all 16 steps at the
+  supplied integrated head. This is source integration evidence, not private
   staging or release evidence.
+- Private-staging source now selects one Cloudflare Worker and one `basic`
+  Cloudflare Container instance. The Worker exposes only health/readiness,
+  OAuth discovery/lifecycle, and `/mcp`; the container runs the existing Node
+  API and Python service; MongoDB remains external and available only to the
+  API.
+- The source adds exact-origin enforcement, a 1 MiB ingress bound, edge OAuth
+  and MCP rate-limit bindings, process-local OAuth limiting, dependency
+  readiness, payload-free operational telemetry, SIGTERM supervision, a
+  staging-only manual deployment workflow, secret-name preflight, and a
+  rollback procedure.
+- Local staging verification passed the source validator, Cloudflare TypeScript
+  build, Python supervisor compilation, and 11 focused readiness, redaction,
+  and gateway-policy tests. No live Cloudflare or Mongo receipt is claimed.
 - The graph enforces ChatGPT product priority one with WIP 1. The data
   acquisition and model track is deferred pending real-user pilot evidence or
   public release.
 
-## Repository Authority Limit
+## Repository Authority
 
-Repository documentation identifies a OneClickPostFactory repository as the
-startup source of truth and the AyobamiH repository as a mirror. That external
-startup repository was not verified or mutated in this run. This branch is
-being developed in AyobamiH because the operator explicitly selected it and the
-connected GitHub account has administrative access. No cross-repository sync is
-claimed.
+The operator selected `AyobamiH/tax-lien-intelligence-platform` as the sole
+source of truth for this continuation. The connected GitHub account has admin
+and push access. No OneClickPostFactory repository is consulted or synchronized.
 
 ## Current Work
 
 `P47-093-chatgpt-private-staging` is the only in-progress node. Repository
-implementation and source packaging are authorized. The remaining work is the
-real stable HTTPS deployment, private ChatGPT connection, live tenancy and
-load/redaction/rollback verification, and ownership decisions. The connected
-GitHub API cannot create the planned separate release repository, so the
-validated thin package remains inside this project without duplicating runtime
-logic. Pull request #1 now carries the verified source checkpoint toward
-`main`; merging it would not complete the staging node. No deferred node becomes
-runnable while this product gate is active.
+implementation, source packaging, and private staging are authorized. The
+deployment boundary is now source-controlled inside this project without
+duplicating runtime logic. Remaining work is the real stable HTTPS deployment,
+private ChatGPT connection, live tenancy and load/redaction/rollback
+verification, and ownership decisions. No Cloudflare credential or domain and
+no managed staging Mongo connection is visible in the current environment, so
+no deployment or connection receipt exists. No deferred node becomes runnable
+while this product gate is active.
 
 ## Next Graph Work
 
@@ -118,7 +128,7 @@ them as the highest-impact product blocker or after public release completes.
 - liquidity prediction accuracy;
 - broad county coverage;
 - model calibration or fairness;
-- deployed service behavior;
+- deployed service behavior (source configuration exists; no live receipt);
 - service-mesh transport, load, failover, and production-traffic behavior;
 - production user outcome improvement;
 - a private connected ChatGPT staging product;
