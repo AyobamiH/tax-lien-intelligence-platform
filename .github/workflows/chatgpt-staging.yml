@@ -88,6 +88,14 @@ jobs:
           LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: npm run verify:chatgpt-staging:log-redaction-live
 
+      - name: Verify governed rollback and recovery
+        env:
+          STAGING_ORIGIN: ${{ steps.staging-config.outputs.staging_origin }}
+          ROLLBACK_RECEIPT_PATH: artifacts/chatgpt-staging-rollback-recovery-receipt.json
+          LIVE_SOURCE_REVISION: ${{ github.sha }}
+          LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: npm run verify:chatgpt-staging:rollback-live
+
       - name: Archive sanitized live receipt
         uses: actions/upload-artifact@v4
         with:
@@ -96,5 +104,6 @@ jobs:
             artifacts/chatgpt-staging-live-receipt.json
             artifacts/chatgpt-staging-authenticated-live-receipt.json
             artifacts/chatgpt-staging-log-redaction-receipt.json
+            artifacts/chatgpt-staging-rollback-recovery-receipt.json
           if-no-files-found: error
           retention-days: 30

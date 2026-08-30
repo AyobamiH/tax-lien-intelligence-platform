@@ -149,6 +149,20 @@ Cloudflare invocation logs are disabled; only the explicit payload-free custom
 events remain enabled.
 
 
+## Governed rollback and recovery
+
+After the public, authenticated, and log-redaction checks pass, the workflow
+discovers the current single-version deployment and the most recent preceding
+single-version deployment. It uses Wrangler's governed rollback command to
+route 100% of staging traffic to the preceding version, verifies health,
+readiness, OAuth discovery, MCP fail-closed behavior, and MongoDB/intelligence
+readiness, then restores the exact current version from a `finally` recovery
+path and repeats the same checks. Cloudflare Worker rollback does not roll back
+the bound Container resources; dependency readiness is therefore proved on both
+sides of the route change. The receipt stores only version identifiers,
+timestamps, response hashes, statuses, and durations. Wrangler output and
+response bodies are never archived.
+
 ## ChatGPT connection
 
 1. In ChatGPT developer mode, add the exact public HTTPS `/mcp` URL.

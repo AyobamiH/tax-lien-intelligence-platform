@@ -14,9 +14,11 @@ Last updated: 2026-08-30
   contains only the sanitized public, authenticated, and log-redaction
   receipts. Exact copies and deployment provenance are pinned under
   `products/chatgpt/tax-lien-intelligence/receipts`.
-- `P47-093-chatgpt-private-staging` remains in progress. Rollback/recovery,
-  Atlas role narrowing, the real private ChatGPT OAuth connection, and
-  approved real-data / prompt-injection cases remain open.
+- `P47-093-chatgpt-private-staging` remains in progress. The governed
+  rollback/recovery verifier is now source-controlled and runs only after the
+  public, authenticated, and log-redaction gates; its live receipt is pending
+  the exact-head deployment. Atlas role narrowing, the real private ChatGPT
+  OAuth connection, and approved real-data / prompt-injection cases remain open.
 
 
 - Active implementation repository for this run:

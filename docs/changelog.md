@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added governed live rollback/recovery verification for private staging. The
+  workflow routes to the most recent preceding single-version Worker, verifies
+  the real HTTPS/OAuth/dependency boundary, restores the exact current version
+  in a `finally` path, re-verifies recovery, and archives only sanitized
+  receipt fields. Live execution remains pending.
+
 - Passed the exact-head live Cloudflare log-redaction gate in workflow
   `33341199247` at `2c7862e74dc80aaaba6677173293d06801ac2546`. The real stable staging origin passed 12
   public and 12 authenticated boundary checks; the verifier observed three

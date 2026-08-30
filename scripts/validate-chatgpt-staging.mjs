@@ -12,8 +12,9 @@ const workflowPath = resolve(root, ".github/workflows/chatgpt-staging.yml");
 const liveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-live.mjs");
 const authenticatedLiveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-authenticated-live.mjs");
 const logRedactionLiveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-log-redaction-live.mjs");
+const rollbackLiveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-rollback-live.mjs");
 
-const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow, liveVerifier, authenticatedLiveVerifier, logRedactionLiveVerifier] = await Promise.all([
+const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow, liveVerifier, authenticatedLiveVerifier, logRedactionLiveVerifier, rollbackLiveVerifier] = await Promise.all([
   readFile(configPath, "utf8"),
   readFile(workerPath, "utf8"),
   readFile(policyPath, "utf8"),
@@ -24,6 +25,7 @@ const [configSource, workerSource, policySource, dockerfile, preflight, secretSy
   readFile(liveVerifierPath, "utf8"),
   readFile(authenticatedLiveVerifierPath, "utf8"),
   readFile(logRedactionLiveVerifierPath, "utf8"),
+  readFile(rollbackLiveVerifierPath, "utf8"),
 ]);
 
 const config = JSON.parse(configSource);
@@ -95,6 +97,8 @@ if (
   !workflow.includes("npm run verify:chatgpt-staging:live") ||
   !workflow.includes("npm run verify:chatgpt-staging:authenticated-live") ||
   !workflow.includes("npm run verify:chatgpt-staging:log-redaction-live") ||
+  !workflow.includes("npm run verify:chatgpt-staging:rollback-live") ||
+  !workflow.includes("chatgpt-staging-rollback-recovery-receipt.json") ||
   !workflow.includes("actions/upload-artifact@v4") ||
   !secretSync.includes("staging_origin=")
 ) {
@@ -129,6 +133,22 @@ for (const logRequirement of [
 ]) {
   if (!logRedactionLiveVerifier.includes(logRequirement)) {
     errors.push(`Live log-redaction verifier is missing required assertion: ${logRequirement}.`);
+  }
+}
+
+for (const rollbackRequirement of [
+  '"rollback"',
+  '"--yes"',
+  "try {",
+  "} finally {",
+  "rollback_to_previous_version",
+  "recover_current_version",
+  "chatgpt_private_staging_rollback_recovery",
+  "responseBodiesStored: false",
+  "commandOutputStored: false",
+]) {
+  if (!rollbackLiveVerifier.includes(rollbackRequirement)) {
+    errors.push(`Rollback/recovery verifier is missing required assertion: ${rollbackRequirement}.`);
   }
 }
 

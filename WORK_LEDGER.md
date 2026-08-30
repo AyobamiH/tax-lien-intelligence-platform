@@ -1,5 +1,20 @@
 # Work Ledger
 
+## 2026-08-30T23:35:00.000Z - P47-093 governed rollback/recovery source
+
+- Added a fail-closed live verifier that discovers the current and preceding
+  100%-routed Worker versions, rolls staging back to the preceding version,
+  proves health, readiness, OAuth discovery, MCP denial, MongoDB, and
+  intelligence readiness, then restores and re-verifies the exact current
+  version from a `finally` path.
+- The verifier bounds all command and HTTP output and archives only version
+  identifiers, timestamps, response hashes, statuses, and durations. It stores
+  no Wrangler output, response body, credential, token, email, or evidence
+  payload.
+- The staging workflow runs rollback/recovery only after the public,
+  authenticated, and live log-redaction gates and archives the sanitized
+  receipt. Live execution remains pending on the exact source commit.
+
 ## 2026-08-30T23:20:00.000Z - P47-093 exact-head live redaction receipt
 
 - Exact-head workflow `33341199247` passed source governance, secret sync,

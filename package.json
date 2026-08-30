@@ -32,7 +32,8 @@
     "verify:chatgpt-staging:live": "node scripts/verify-chatgpt-staging-live.mjs",
     "verify:chatgpt-staging:authenticated-live": "node scripts/verify-chatgpt-staging-authenticated-live.mjs",
     "validate:work-graph": "node scripts/validate-work-graph.mjs",
-    "verify:chatgpt-staging:log-redaction-live": "node scripts/verify-chatgpt-staging-log-redaction-live.mjs"
+    "verify:chatgpt-staging:log-redaction-live": "node scripts/verify-chatgpt-staging-log-redaction-live.mjs",
+    "verify:chatgpt-staging:rollback-live": "node scripts/verify-chatgpt-staging-rollback-live.mjs"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
