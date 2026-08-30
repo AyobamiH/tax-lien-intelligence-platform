@@ -91,6 +91,11 @@ Last updated: 2026-08-30
   was read or committed. The current MongoDB role remains
   `readWriteAnyDatabase@admin` within the single cluster and must be narrowed
   to `readWrite@tax_lien_platform` before this node closes.
+- First live staging run `33334912896` passed the 332-test governed source gate
+  and synchronized all five Worker secret-name bindings, then failed closed
+  before deployment because Wrangler `4.127.1` no longer accepts
+  `secret list --json`. The source now uses `--format=json`, with a validator
+  guard; no endpoint is claimed from the failed run.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.
