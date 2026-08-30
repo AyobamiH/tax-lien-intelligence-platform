@@ -50,6 +50,13 @@ for (const name of requiredSecrets) {
   }
 }
 
+if (
+  !preflight.includes('runWrangler(["secret", "list", "--format=json"])') ||
+  preflight.includes('"--json"')
+) {
+  errors.push("Cloudflare preflight must use Wrangler's supported JSON format flag.");
+}
+
 for (const name of [
   "CLOUDFLARE_API_TOKEN",
   "CLOUDFLARE_ACCOUNT_ID",
