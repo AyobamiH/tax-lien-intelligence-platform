@@ -57,6 +57,14 @@ if (
   errors.push("Cloudflare preflight must use Wrangler's supported JSON format flag.");
 }
 
+if (
+  !dockerfile.includes("RUN npm run build --workspaces --if-present") ||
+  !dockerfile.includes("RUN python -m compileall -q") ||
+  dockerfile.includes("RUN npm run build\n")
+) {
+  errors.push("The staging image must build Node workspaces and validate Python in its Python stage.");
+}
+
 for (const name of [
   "CLOUDFLARE_API_TOKEN",
   "CLOUDFLARE_ACCOUNT_ID",
