@@ -281,7 +281,8 @@
         "A sanitized repository receipt records 12 live public-boundary checks: TLS/HSTS health, Mongo and intelligence readiness, exact OAuth discovery, fail-closed unauthenticated MCP, the ingress body bound, and rejection of registration and mutation-shaped routes; it stores no credentials, tokens, users, prompts, or evidence payloads",
         "The staging workflow now disables preview URLs, verifies its derived exact origin after deployment, and archives a sanitized receipt before the deployment job can pass",
         "Governed redeployment run 33336257365 attempt 2 passed at exact head aca4081724969094dcdf5b50d4cf1e600febc1c2, deployed Worker version 0b6656c5-4535-4552-9f8a-37a3fc19cef2, and archived artifact 9739215376",
-        "A bounded 100-request OAuth load probe returned 70 HTTP 429 responses after 30 handled validation responses while health remained HTTP 200; no credential, token, user, prompt, or evidence payload was used"
+        "A bounded 100-request OAuth load probe returned 70 HTTP 429 responses after 30 handled validation responses while health remained HTTP 200; no credential, token, user, prompt, or evidence payload was used",
+        "The governed staging workflow now includes a post-deploy authenticated verifier that creates and removes a unique test-only fixture and covers real PKCE, code replay, refresh rotation and replay, revocation, expiry, owner/admin/member/denied workspace isolation, cross-workspace denial, and the exact six read-only tools without storing fixture identifiers or secrets"
       ],
       "blockers": [
         "authenticated OAuth lifecycle, tenant-role isolation, exact six-tool inventory, private ChatGPT connection, live log redaction, rate-limit/load, and rollback receipts do not exist yet",

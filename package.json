@@ -30,6 +30,7 @@
     "validate:chatgpt-release": "node scripts/validate-chatgpt-release.mjs",
     "validate:chatgpt-staging": "node scripts/validate-chatgpt-staging.mjs",
     "verify:chatgpt-staging:live": "node scripts/verify-chatgpt-staging-live.mjs",
+    "verify:chatgpt-staging:authenticated-live": "node scripts/verify-chatgpt-staging-authenticated-live.mjs",
     "validate:work-graph": "node scripts/validate-work-graph.mjs"
   },
   "engines": {

@@ -72,10 +72,20 @@ jobs:
           LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: npm run verify:chatgpt-staging:live
 
+      - name: Verify deployed OAuth, roles, tenancy, and tools
+        env:
+          STAGING_ORIGIN: ${{ steps.staging-config.outputs.staging_origin }}
+          AUTHENTICATED_LIVE_RECEIPT_PATH: artifacts/chatgpt-staging-authenticated-live-receipt.json
+          LIVE_SOURCE_REVISION: ${{ github.sha }}
+          LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: npm run verify:chatgpt-staging:authenticated-live
+
       - name: Archive sanitized live receipt
         uses: actions/upload-artifact@v4
         with:
           name: chatgpt-staging-live-receipt-${{ github.sha }}
-          path: artifacts/chatgpt-staging-live-receipt.json
+          path: |
+            artifacts/chatgpt-staging-live-receipt.json
+            artifacts/chatgpt-staging-authenticated-live-receipt.json
           if-no-files-found: error
           retention-days: 30

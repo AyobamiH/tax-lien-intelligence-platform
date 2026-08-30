@@ -1,5 +1,23 @@
 # Work Ledger
 
+## 2026-08-30T21:40:00Z - P47-093 authenticated live-verification harness
+
+- Added a post-deploy authenticated verifier that uses only the existing
+  `MONGODB_URI` and `MCP_OAUTH_SIGNING_SECRET` environment references. It does
+  not require a new human credential or expose either secret.
+- The verifier creates a unique ephemeral test fixture directly in the staging
+  database, exercises real public OAuth and MCP over the stable HTTPS origin,
+  and deletes the fixture plus its OAuth records in `finally` cleanup.
+- The fixture is explicitly classified as test-only and cannot be recorded as
+  a real user, county record, model result, deployment result, or pilot outcome.
+- Governed live cases cover PKCE exchange and code replay, refresh rotation and
+  replay-family revocation, access revocation, expired access, exact redirect
+  allowlisting, owner/admin/member/denied workspace views, cross-workspace
+  denial, and the exact six-tool read-only inventory.
+- The workflow now archives a second sanitized receipt containing case names
+  and the tool inventory but no fixture identifiers, emails, passwords, codes,
+  tokens, response bodies, prompts, or evidence payloads.
+
 ## 2026-08-30T21:33:51Z - P47-093 governed redeployment and rate-limit receipt
 
 - Published the live verifier, preview-URL hardening, and deployment provenance

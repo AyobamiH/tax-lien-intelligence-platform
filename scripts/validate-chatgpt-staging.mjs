@@ -10,8 +10,9 @@ const preflightPath = resolve(root, "infra/cloudflare/scripts/preflight.mjs");
 const secretSyncPath = resolve(root, "infra/cloudflare/scripts/sync-secrets.mjs");
 const workflowPath = resolve(root, ".github/workflows/chatgpt-staging.yml");
 const liveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-live.mjs");
+const authenticatedLiveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-authenticated-live.mjs");
 
-const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow, liveVerifier] = await Promise.all([
+const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow, liveVerifier, authenticatedLiveVerifier] = await Promise.all([
   readFile(configPath, "utf8"),
   readFile(workerPath, "utf8"),
   readFile(policyPath, "utf8"),
@@ -20,6 +21,7 @@ const [configSource, workerSource, policySource, dockerfile, preflight, secretSy
   readFile(secretSyncPath, "utf8"),
   readFile(workflowPath, "utf8"),
   readFile(liveVerifierPath, "utf8"),
+  readFile(authenticatedLiveVerifierPath, "utf8"),
 ]);
 
 const config = JSON.parse(configSource);
@@ -85,10 +87,28 @@ if (!workflow.includes("[deploy-private-staging]")) {
 }
 if (
   !workflow.includes("npm run verify:chatgpt-staging:live") ||
+  !workflow.includes("npm run verify:chatgpt-staging:authenticated-live") ||
   !workflow.includes("actions/upload-artifact@v4") ||
   !secretSync.includes("staging_origin=")
 ) {
   errors.push("A deployment must verify the derived HTTPS origin and archive a sanitized receipt.");
+}
+
+for (const authenticatedRequirement of [
+  "authorization_code_replay",
+  "refresh_rotation_and_replay",
+  "access_token_revocation",
+  "expired_access_token",
+  "owner_workspace_isolation",
+  "admin_workspace_isolation",
+  "member_workspace_isolation",
+  "denied_workspace_isolation",
+  "cross_workspace_denial",
+  "exact_read_only_tool_inventory",
+]) {
+  if (!authenticatedLiveVerifier.includes(authenticatedRequirement)) {
+    errors.push(`Authenticated live verifier is missing required assertion: ${authenticatedRequirement}.`);
+  }
 }
 
 for (const liveRequirement of [

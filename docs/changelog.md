@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added a real post-deploy authenticated OAuth/MCP verifier. Its unique
+  ephemeral test fixture covers PKCE, code replay, refresh rotation/replay,
+  revocation, expiry, owner/admin/member/denied roles, cross-workspace denial,
+  and the exact six read-only tools, then removes the fixture and archives only
+  sanitized case-level evidence.
 - Deployed the real private-staging topology at exact revision `fec745e` in
   successful GitHub Actions run `33335437008`. The stable workers.dev origin
   reports Mongo connected and the Python intelligence service ready.

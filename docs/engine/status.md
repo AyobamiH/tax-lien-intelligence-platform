@@ -124,6 +124,13 @@ Last updated: 2026-08-30
   handled validation responses, while `/healthz` remained `200`. This proves
   the deployed ingress/application throttling path without using credentials
   or tokens.
+- The next governed deployment will run an authenticated live verifier after
+  the public-boundary verifier. It creates and removes a unique test-only
+  Mongo fixture and covers real PKCE, code replay, refresh rotation/replay,
+  access revocation and expiry, exact redirects, owner/admin/member/denied
+  views, cross-workspace denial, and the exact six read-only deployed tools.
+  Its receipt excludes fixture identifiers and all credentials, codes, tokens,
+  response bodies, prompts, and evidence payloads.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.

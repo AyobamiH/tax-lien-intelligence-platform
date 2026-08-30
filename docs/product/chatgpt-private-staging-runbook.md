@@ -113,6 +113,13 @@ TLS certificate, health endpoint, token expiry, refresh rotation/replay,
 revocation, and rate limiting. Do not record tokens, codes, emails, prompts, or
 evidence payloads in receipts.
 
+The deployment workflow runs both public-boundary and authenticated-boundary
+verifiers. The authenticated verifier may create deterministic fixtures only
+inside the live test. It must use unique `example.invalid` identities, mark all
+workspace names as test-only, remove users, memberships, workspaces, and OAuth
+records in `finally` cleanup, and never present the fixture as a real staging
+user, county record, model result, deployment result, or pilot outcome.
+
 Also verify the Worker rejects `/auth/register`, `/datasets`, `/scores`,
 `/bid`, `/purchase`, and every unlisted route before the container. Inspect
 logs using known injection-shaped test values and prove none of those values
