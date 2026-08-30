@@ -9,8 +9,9 @@ const dockerfilePath = resolve(root, "Dockerfile.staging");
 const preflightPath = resolve(root, "infra/cloudflare/scripts/preflight.mjs");
 const secretSyncPath = resolve(root, "infra/cloudflare/scripts/sync-secrets.mjs");
 const workflowPath = resolve(root, ".github/workflows/chatgpt-staging.yml");
+const liveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-live.mjs");
 
-const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow] = await Promise.all([
+const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow, liveVerifier] = await Promise.all([
   readFile(configPath, "utf8"),
   readFile(workerPath, "utf8"),
   readFile(policyPath, "utf8"),
@@ -18,6 +19,7 @@ const [configSource, workerSource, policySource, dockerfile, preflight, secretSy
   readFile(preflightPath, "utf8"),
   readFile(secretSyncPath, "utf8"),
   readFile(workflowPath, "utf8"),
+  readFile(liveVerifierPath, "utf8"),
 ]);
 
 const config = JSON.parse(configSource);
@@ -25,6 +27,7 @@ const errors = [];
 
 if (config.name !== "tax-lien-chatgpt-staging") errors.push("Worker name must remain staging-only.");
 if (config.workers_dev !== true) errors.push("The bounded workers.dev HTTPS origin must remain enabled.");
+if (config.preview_urls !== false) errors.push("Unstable Worker preview URLs must remain disabled.");
 if (config.routes !== undefined) errors.push("Custom/public routes require a separately reviewed domain decision.");
 if (config.observability?.enabled !== true) errors.push("Workers observability must remain enabled.");
 if (config.containers?.length !== 1) errors.push("Private staging must use exactly one container definition.");
@@ -79,6 +82,28 @@ for (const name of [
 }
 if (!workflow.includes("[deploy-private-staging]")) {
   errors.push("Feature-branch staging deployment must require the exact reviewed commit marker.");
+}
+if (
+  !workflow.includes("npm run verify:chatgpt-staging:live") ||
+  !workflow.includes("actions/upload-artifact@v4") ||
+  !secretSync.includes("staging_origin=")
+) {
+  errors.push("A deployment must verify the derived HTTPS origin and archive a sanitized receipt.");
+}
+
+for (const liveRequirement of [
+  "/healthz",
+  "/readyz",
+  "/.well-known/oauth-protected-resource",
+  "/.well-known/oauth-authorization-server",
+  "/mcp",
+  "oauth_missing_token",
+  "request_too_large",
+  "route_not_found",
+]) {
+  if (!liveVerifier.includes(liveRequirement)) {
+    errors.push(`Live staging verifier is missing required assertion: ${liveRequirement}.`);
+  }
 }
 
 for (const forbidden of ["mongodb://localhost", "mongo:7", "mongo:8", "redemptionProbability"]) {

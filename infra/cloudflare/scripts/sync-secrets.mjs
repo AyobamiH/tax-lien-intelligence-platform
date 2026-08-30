@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { appendFileSync } from "node:fs";
 
 const workerName = "tax-lien-chatgpt-staging";
 const requiredEnvironmentSecrets = [
@@ -62,6 +63,12 @@ const result = spawnSync("wrangler", ["secret", "bulk", "--config", "wrangler.js
 if (result.status !== 0) {
   console.error("Cloudflare secret sync failed: Wrangler could not install the required bindings.");
   process.exit(1);
+}
+
+if (process.env.GITHUB_OUTPUT) {
+  appendFileSync(process.env.GITHUB_OUTPUT, `staging_origin=${secretPayload.STAGING_ORIGIN}\n`, {
+    encoding: "utf8",
+  });
 }
 
 console.log(`Cloudflare secret sync passed for ${Object.keys(secretPayload).length} secret-name bindings.`);

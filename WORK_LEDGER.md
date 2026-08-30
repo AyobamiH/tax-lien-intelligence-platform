@@ -1,5 +1,29 @@
 # Work Ledger
 
+## 2026-08-30T21:15:24Z - P47-093 live HTTPS boundary verification
+
+- Exact-head deployment run `33335437008` completed successfully at
+  `fec745e0e1e08e7ce3fcf4da0c647cf030f668cd`. It built and pushed the real
+  Node/Python container, created the bounded Cloudflare container application,
+  and deployed Worker version `cfc90ff0-729a-4622-8a0c-4b1c2e760d42` at the
+  stable named workers.dev origin. No preview, localhost, or fabricated URL is
+  used as evidence.
+- A direct live verifier passed 12 public-boundary checks: TLS/HSTS health,
+  Mongo and intelligence readiness, exact OAuth protected-resource and
+  authorization-server discovery, fail-closed unauthenticated MCP, the 1 MiB
+  ingress bound, and rejection of registration, dataset, score, bid, purchase,
+  and GraphQL routes.
+- Stored a sanitized deployment receipt under the ChatGPT product package. It
+  contains deployment identifiers, status codes, and dependency states but no
+  response payloads, credentials, authorization codes, tokens, users, or
+  evidence data.
+- Added an exact-origin post-deploy verifier and artifact upload to the staging
+  workflow, disabled unstable Worker preview URLs, and extended both staging
+  and release validators so deployment provenance cannot drift.
+- `P47-093` remains in progress. Authenticated OAuth/tenant cases, the six-tool
+  inventory, private ChatGPT connection, live redaction inspection, rollback,
+  database-role narrowing, and accountable owners remain unverified.
+
 ## 2026-08-30T21:05:00Z - P47-093 container build-stage repair
 
 - Exact-head staging run `33335163254` proved the Wrangler preflight repair:
@@ -34,7 +58,7 @@
 - Confirmed a SCRAM application user named `tax_lien_chatgpt_staging`. Atlas
   reports `readWriteAnyDatabase@admin`, restricted to the single
   `TaxLienStaging` cluster. This is not represented as database-specific least
-  privilege; narrowing it to `readWrite@tax_lien_platform` remains a hardening
+  privilege; narrowing it to `readWrite@tax_lien_chatgpt_staging` remains a hardening
   item before this node can be closed.
 - Added the user-approved `0.0.0.0/0` Atlas access-list entry required by the
   Cloudflare Container's dynamic TCP egress. TLS and database credentials

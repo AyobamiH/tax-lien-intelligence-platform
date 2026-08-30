@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Deployed the real private-staging topology at exact revision `fec745e` in
+  successful GitHub Actions run `33335437008`. The stable workers.dev origin
+  reports Mongo connected and the Python intelligence service ready.
+- Added and ran a live public-boundary verifier covering TLS/HSTS health,
+  readiness, exact OAuth discovery, fail-closed MCP authentication, the ingress
+  body bound, and closed mutation/registration routes. A sanitized receipt is
+  stored with the ChatGPT product; no credentials, tokens, users, or evidence
+  payloads are stored.
+- Disabled Worker preview URLs and made every future staging deployment verify
+  the derived exact origin and archive a sanitized receipt before its workflow
+  can pass.
 - Added a bounded Cloudflare private-staging deployment boundary: one Worker,
   one supervised Node/Python Container instance, external managed MongoDB,
   exact-origin and route allowlists, ingress body limits, edge rate-limit

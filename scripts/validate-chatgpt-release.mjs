@@ -16,20 +16,43 @@ const expectedTools = [
 
 assert(manifest.name === "tax-lien-intelligence", "plugin name changed");
 assert(manifest.version === "0.1.0", "plugin version must be explicit");
-assert(!("mcpServers" in manifest), "source-only package must not publish an unverified MCP endpoint");
-assert(provenance.releaseStatus === "source_only", "unverified package must remain source_only");
+assert(!("mcpServers" in manifest), "private package must not publish an MCP endpoint through the source manifest");
+assert(
+  ["source_only", "private_staging_deployed", "private_staging_connected"].includes(provenance.releaseStatus),
+  "release status is not governed",
+);
 assert(/^[a-f0-9]{40}$/.test(provenance.systemOfRecord.engineRevision), "engine revision must be a full commit");
 assert(provenance.systemOfRecord.mcpContractVersion === "1.0.0", "MCP contract version drifted");
 assert(JSON.stringify(provenance.approvedTools) === JSON.stringify(expectedTools), "approved tool inventory drifted");
 assert(provenance.permissions.readOnly === true, "ChatGPT package must remain read-only");
 assert(provenance.permissions.writes === false, "write permission is prohibited");
-assert(provenance.connection.mcpUrl === null, "source-only package cannot claim a deployment URL");
-assert(provenance.connection.oauthIssuer === null, "source-only package cannot claim an OAuth issuer");
-for (const receipt of Object.values(provenance.liveEvidence)) {
-  assert(receipt === null, "source-only package cannot claim live evidence");
+if (provenance.releaseStatus === "source_only") {
+  assert(provenance.connection.mcpUrl === null, "source-only package cannot claim a deployment URL");
+  assert(provenance.connection.oauthIssuer === null, "source-only package cannot claim an OAuth issuer");
+  for (const receipt of Object.values(provenance.liveEvidence)) {
+    assert(receipt === null, "source-only package cannot claim live evidence");
+  }
+} else {
+  const issuer = new URL(provenance.connection.oauthIssuer);
+  assert(issuer.protocol === "https:" && issuer.pathname === "/", "staging issuer must be an HTTPS origin");
+  assert(
+    provenance.connection.mcpUrl === `${issuer.origin}/mcp`,
+    "staging MCP URL must use the OAuth issuer origin",
+  );
+  assert(typeof provenance.liveEvidence.deploymentReceipt === "string", "deployed staging needs a receipt");
+  const receiptPath = path.join(product, provenance.liveEvidence.deploymentReceipt);
+  const receipt = JSON.parse(await readFile(receiptPath, "utf8"));
+  assert(receipt.status === "passed", "deployment receipt did not pass");
+  assert(receipt.origin === issuer.origin, "deployment receipt origin drifted");
+  assert(receipt.source?.revision === provenance.systemOfRecord.engineRevision, "deployment revision drifted");
+  assert(receipt.evidencePolicy?.credentialsStored === false, "deployment receipt must store no credentials");
+  assert(receipt.evidencePolicy?.tokensStored === false, "deployment receipt must store no tokens");
+  if (provenance.releaseStatus === "private_staging_deployed") {
+    assert(provenance.liveEvidence.chatgptConnectionReceipt === null, "unconnected staging cannot claim ChatGPT evidence");
+  }
 }
 await access(path.join(product, "README.md"));
-console.log(`Validated ChatGPT source package: ${expectedTools.length} read-only tools, no unverified endpoint.`);
+console.log(`Validated ChatGPT ${provenance.releaseStatus} package: ${expectedTools.length} read-only tools.`);
 
 function assert(condition, message) {
   if (!condition) throw new Error(`ChatGPT release validation failed: ${message}`);

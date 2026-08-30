@@ -1,16 +1,16 @@
 {
   "schemaVersion": "1.0.0",
-  "releaseStatus": "source_only",
+  "releaseStatus": "private_staging_deployed",
   "product": "tax-lien-intelligence",
   "systemOfRecord": {
     "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
     "branch": "feature/p47-093-chatgpt-private-staging",
-    "engineRevision": "eed50b6ac9f08cc99825cbeff33715ea2722100a",
+    "engineRevision": "fec745e0e1e08e7ce3fcf4da0c647cf030f668cd",
     "mcpContractVersion": "1.0.0"
   },
   "connection": {
-    "mcpUrl": null,
-    "oauthIssuer": null,
+    "mcpUrl": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev/mcp",
+    "oauthIssuer": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
     "scope": "tax_lien:read"
   },
   "approvedTools": [
@@ -28,7 +28,7 @@
     "legalConclusions": false
   },
   "liveEvidence": {
-    "deploymentReceipt": null,
+    "deploymentReceipt": "receipts/deployment-fec745e.json",
     "chatgptConnectionReceipt": null,
     "rollbackReceipt": null
   }

@@ -90,7 +90,7 @@ Last updated: 2026-08-30
   required `chatgpt-staging` GitHub environment secret names. No secret value
   was read or committed. The current MongoDB role remains
   `readWriteAnyDatabase@admin` within the single cluster and must be narrowed
-  to `readWrite@tax_lien_platform` before this node closes.
+  to `readWrite@tax_lien_chatgpt_staging` before this node closes.
 - First live staging run `33334912896` passed the 332-test governed source gate
   and synchronized all five Worker secret-name bindings, then failed closed
   before deployment because Wrangler `4.127.1` no longer accepts
@@ -101,6 +101,20 @@ Last updated: 2026-08-30
   build stage invoked Python. The Dockerfile now builds Node workspaces in the
   Node stage and validates Python source in the final Python stage. The failed
   run created no endpoint.
+- Exact-head staging run `33335437008` succeeded at
+  `fec745e0e1e08e7ce3fcf4da0c647cf030f668cd`. It built and pushed container
+  image digest `sha256:5826a233fab2a84a3b4823bc7be96c80ccbd28384e7518f6b63894566481ab71`
+  and deployed Worker version `cfc90ff0-729a-4622-8a0c-4b1c2e760d42` at the
+  stable named workers.dev origin.
+- Direct live verification passed 12 checks against that origin: TLS/HSTS and
+  health, Mongo and intelligence readiness, exact protected-resource and
+  authorization-server metadata, unauthenticated MCP rejection, the ingress
+  body bound, and rejection of registration, dataset, score, bid, purchase,
+  and GraphQL routes. The sanitized receipt stores no bodies, credentials,
+  tokens, users, prompts, or evidence payloads.
+- Future staging deployments now disable preview URLs, run the same exact-origin
+  live verifier after deployment, and archive its sanitized receipt before the
+  workflow can pass.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.
@@ -123,13 +137,12 @@ and push access. No OneClickPostFactory repository is consulted or synchronized.
 ## Current Work
 
 `P47-093-chatgpt-private-staging` is the only in-progress node. Repository
-implementation, source packaging, and private staging are authorized. The
-deployment boundary is now source-controlled inside this project without
-duplicating runtime logic. Remaining work is the real stable HTTPS deployment,
-private ChatGPT connection, live tenancy and load/redaction/rollback
-verification, database-role narrowing, and ownership decisions. The required
-GitHub environment secret names and managed staging Mongo connection now exist,
-but no successful Cloudflare deployment or ChatGPT connection receipt exists.
+implementation, source packaging, and private staging are authorized. The real
+stable HTTPS service is deployed and its public boundary has a sanitized live
+receipt. Remaining work is authenticated OAuth and tenant verification, the
+private ChatGPT connection, tool-inventory and load/redaction/rollback
+verification, database-role narrowing, and ownership decisions. No ChatGPT
+connection receipt exists yet.
 No deferred node becomes runnable while this product gate is active.
 
 ## Next Graph Work
@@ -157,7 +170,7 @@ them as the highest-impact product blocker or after public release completes.
 - liquidity prediction accuracy;
 - broad county coverage;
 - model calibration or fairness;
-- deployed service behavior (source configuration exists; no live receipt);
+- authenticated deployed service behavior beyond the verified public boundary;
 - service-mesh transport, load, failover, and production-traffic behavior;
 - production user outcome improvement;
 - a private connected ChatGPT staging product;

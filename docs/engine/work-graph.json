@@ -39,31 +39,11 @@
       "status": "completed",
       "ownerRole": "platform-maintainer",
       "dependencies": [],
-      "scope": [
-        "latest internal-job ordering",
-        "dependency advisory remediation",
-        "baseline gates"
-      ],
-      "acceptance": [
-        "maintenance policy reads the newest target job deterministically",
-        "audit, typecheck, tests, and build pass"
-      ],
-      "documentation": [
-        "WORK_LEDGER.md",
-        "docs/changelog.md"
-      ],
-      "verification": [
-        "focused internal-job and scoring tests",
-        "npm run audit",
-        "npm run typecheck",
-        "npm run test",
-        "npm run build"
-      ],
-      "evidence": [
-        "remote commit ba1b0cb",
-        "40 test files and 270 tests passed",
-        "0 audit vulnerabilities"
-      ],
+      "scope": ["latest internal-job ordering", "dependency advisory remediation", "baseline gates"],
+      "acceptance": ["maintenance policy reads the newest target job deterministically", "audit, typecheck, tests, and build pass"],
+      "documentation": ["WORK_LEDGER.md", "docs/changelog.md"],
+      "verification": ["focused internal-job and scoring tests", "npm run audit", "npm run typecheck", "npm run test", "npm run build"],
+      "evidence": ["remote commit ba1b0cb", "40 test files and 270 tests passed", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
@@ -71,41 +51,12 @@
       "title": "Establish graph-governed engine delivery",
       "status": "completed",
       "ownerRole": "engine-architect",
-      "dependencies": [
-        "P47-000-baseline-recovery"
-      ],
-      "scope": [
-        "work graph",
-        "validator",
-        "CI gate",
-        "agent handoff",
-        "engine decision records"
-      ],
-      "acceptance": [
-        "graph is acyclic and machine validated",
-        "every node declares ownership, dependencies, acceptance, evidence, and blockers",
-        "no-mock rule is explicit"
-      ],
-      "documentation": [
-        "AGENTS.md",
-        "ACCEPTANCE.md",
-        "docs/engine",
-        "docs/decisions/0002-intelligence-engine-boundary.md",
-        "WORK_LEDGER.md"
-      ],
-      "verification": [
-        "npm run validate:work-graph",
-        "git diff --check",
-        "npm run typecheck",
-        "npm run test",
-        "npm run build",
-        "npm run audit"
-      ],
-      "evidence": [
-        "scripts/validate-work-graph.mjs",
-        ".github/workflows/ci.yml",
-        "docs/engine/README.md"
-      ],
+      "dependencies": ["P47-000-baseline-recovery"],
+      "scope": ["work graph", "validator", "CI gate", "agent handoff", "engine decision records"],
+      "acceptance": ["graph is acyclic and machine validated", "every node declares ownership, dependencies, acceptance, evidence, and blockers", "no-mock rule is explicit"],
+      "documentation": ["AGENTS.md", "ACCEPTANCE.md", "docs/engine", "docs/decisions/0002-intelligence-engine-boundary.md", "WORK_LEDGER.md"],
+      "verification": ["npm run validate:work-graph", "git diff --check", "npm run typecheck", "npm run test", "npm run build", "npm run audit"],
+      "evidence": ["scripts/validate-work-graph.mjs", ".github/workflows/ci.yml", "docs/engine/README.md"],
       "blockers": []
     },
     {
@@ -113,44 +64,12 @@
       "title": "Define CandidateEvidenceV1 and EngineResultV1",
       "status": "completed",
       "ownerRole": "contract-engineer",
-      "dependencies": [
-        "P47-010-governance"
-      ],
-      "scope": [
-        "shared TypeScript contracts",
-        "JSON Schema",
-        "provenance",
-        "applicability",
-        "abstention",
-        "version manifest"
-      ],
-      "acceptance": [
-        "contracts reject unsupported precision",
-        "all signals distinguish heuristic, deterministic, model, unknown, and unavailable",
-        "compatibility impact is documented"
-      ],
-      "documentation": [
-        "docs/api/scoring.md",
-        "docs/architecture/scoring.md",
-        "docs/kb/shared-contract-kb.md",
-        "docs/engine/status.md"
-      ],
-      "verification": [
-        "runtime validator tests",
-        "JSON Schema and manifest shape tests",
-        "npm run audit",
-        "npm run validate:work-graph",
-        "npm run typecheck",
-        "npm run test",
-        "npm run build",
-        "git diff --check"
-      ],
-      "evidence": [
-        "packages/engine-contract",
-        "tests/unit/engine-contract.test.ts: 9 tests passed",
-        "full repository suite: 41 files and 279 tests passed",
-        "0 audit vulnerabilities"
-      ],
+      "dependencies": ["P47-010-governance"],
+      "scope": ["shared TypeScript contracts", "JSON Schema", "provenance", "applicability", "abstention", "version manifest"],
+      "acceptance": ["contracts reject unsupported precision", "all signals distinguish heuristic, deterministic, model, unknown, and unavailable", "compatibility impact is documented"],
+      "documentation": ["docs/api/scoring.md", "docs/architecture/scoring.md", "docs/kb/shared-contract-kb.md", "docs/engine/status.md"],
+      "verification": ["runtime validator tests", "JSON Schema and manifest shape tests", "npm run audit", "npm run validate:work-graph", "npm run typecheck", "npm run test", "npm run build", "git diff --check"],
+      "evidence": ["packages/engine-contract", "tests/unit/engine-contract.test.ts: 9 tests passed", "full repository suite: 41 files and 279 tests passed", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
@@ -158,37 +77,12 @@
       "title": "Create versioned jurisdiction rule packs",
       "status": "completed",
       "ownerRole": "domain-rules-engineer",
-      "dependencies": [
-        "P47-020-contracts"
-      ],
-      "scope": [
-        "rule-pack interface",
-        "Arizona and Maricopa applicability",
-        "hard exclusions",
-        "source citations",
-        "rule versioning"
-      ],
-      "acceptance": [
-        "rules are deterministic and source-versioned",
-        "unknown jurisdiction rules cause abstention",
-        "legal claims are not inferred by an LLM"
-      ],
-      "documentation": [
-        "docs/architecture/scoring.md",
-        "docs/engine/status.md"
-      ],
-      "verification": [
-        "rule fixtures from verified public rules",
-        "contract tests",
-        "full repository gates"
-      ],
-      "evidence": [
-        "packages/jurisdiction-rules",
-        "tests/unit/jurisdiction-rules.test.ts: 10 tests passed",
-        "Arizona Legislature A.R.S. 42-18053, 42-18101, 42-18114, 42-18115, 42-18118, 42-18127, 42-18152, 42-18201, and 42-18202 verified 2026-08-29",
-        "full repository suite: 42 files and 289 tests passed",
-        "0 audit vulnerabilities"
-      ],
+      "dependencies": ["P47-020-contracts"],
+      "scope": ["rule-pack interface", "Arizona and Maricopa applicability", "hard exclusions", "source citations", "rule versioning"],
+      "acceptance": ["rules are deterministic and source-versioned", "unknown jurisdiction rules cause abstention", "legal claims are not inferred by an LLM"],
+      "documentation": ["docs/architecture/scoring.md", "docs/engine/status.md"],
+      "verification": ["rule fixtures from verified public rules", "contract tests", "full repository gates"],
+      "evidence": ["packages/jurisdiction-rules", "tests/unit/jurisdiction-rules.test.ts: 10 tests passed", "Arizona Legislature A.R.S. 42-18053, 42-18101, 42-18114, 42-18115, 42-18118, 42-18127, 42-18152, 42-18201, and 42-18202 verified 2026-08-29", "full repository suite: 42 files and 289 tests passed", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
@@ -196,41 +90,12 @@
       "title": "Implement the production intelligence-service boundary",
       "status": "completed",
       "ownerRole": "analytics-platform-engineer",
-      "dependencies": [
-        "P47-020-contracts",
-        "P47-030-rule-engine"
-      ],
-      "scope": [
-        "Python service",
-        "request validation",
-        "provenance",
-        "health and version endpoints",
-        "truthful abstention"
-      ],
-      "acceptance": [
-        "service never fabricates a model output",
-        "contract parity is automated",
-        "runtime and failure behavior are verified without placeholder providers"
-      ],
-      "documentation": [
-        "docs/api",
-        "docs/architecture",
-        "docs/engine/status.md"
-      ],
-      "verification": [
-        "real process contract tests",
-        "service unit tests",
-        "runtime smoke",
-        "full repository gates"
-      ],
-      "evidence": [
-        "services/intelligence",
-        "10 dependency-free Python unit tests passed",
-        "tests/integration/intelligence-service.test.ts: 7 real-process HTTP tests passed",
-        "TypeScript/Python full-result and fractional-number digest parity",
-        "full repository suite: 43 files and 296 Vitest tests passed",
-        "0 audit vulnerabilities"
-      ],
+      "dependencies": ["P47-020-contracts", "P47-030-rule-engine"],
+      "scope": ["Python service", "request validation", "provenance", "health and version endpoints", "truthful abstention"],
+      "acceptance": ["service never fabricates a model output", "contract parity is automated", "runtime and failure behavior are verified without placeholder providers"],
+      "documentation": ["docs/api", "docs/architecture", "docs/engine/status.md"],
+      "verification": ["real process contract tests", "service unit tests", "runtime smoke", "full repository gates"],
+      "evidence": ["services/intelligence", "10 dependency-free Python unit tests passed", "tests/integration/intelligence-service.test.ts: 7 real-process HTTP tests passed", "TypeScript/Python full-result and fractional-number digest parity", "full repository suite: 43 files and 296 Vitest tests passed", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
@@ -238,41 +103,12 @@
       "title": "Integrate the engine through a TypeScript compatibility boundary",
       "status": "completed",
       "ownerRole": "platform-integration-engineer",
-      "dependencies": [
-        "P47-040-service"
-      ],
-      "scope": [
-        "API client",
-        "stored result versioning",
-        "legacy heuristic label",
-        "UI abstention states",
-        "tenant isolation"
-      ],
-      "acceptance": [
-        "current users retain workflow continuity",
-        "legacy heuristic is not labelled probability",
-        "service failure does not invent or reuse stale intelligence silently"
-      ],
-      "documentation": [
-        "docs/api/scoring.md",
-        "docs/architecture/scoring.md",
-        "docs/kb/current-surface-kb.md",
-        "docs/engine/status.md"
-      ],
-      "verification": [
-        "API integration tests",
-        "browser-like evidence states",
-        "Mongo-backed smoke",
-        "full repository gates"
-      ],
-      "evidence": [
-        "remote commit eefcf3a",
-        "GitHub Actions CI run 33247151199 and quality-gates job 99086489141 passed",
-        "real MongoDB persistence smoke passed in CI",
-        "10 Python tests and 306 Vitest tests across 46 files passed",
-        "9 real-process service tests and 6 browser-like smoke tests passed",
-        "0 audit vulnerabilities"
-      ],
+      "dependencies": ["P47-040-service"],
+      "scope": ["API client", "stored result versioning", "legacy heuristic label", "UI abstention states", "tenant isolation"],
+      "acceptance": ["current users retain workflow continuity", "legacy heuristic is not labelled probability", "service failure does not invent or reuse stale intelligence silently"],
+      "documentation": ["docs/api/scoring.md", "docs/architecture/scoring.md", "docs/kb/current-surface-kb.md", "docs/engine/status.md"],
+      "verification": ["API integration tests", "browser-like evidence states", "Mongo-backed smoke", "full repository gates"],
+      "evidence": ["remote commit eefcf3a", "GitHub Actions CI run 33247151199 and quality-gates job 99086489141 passed", "real MongoDB persistence smoke passed in CI", "10 Python tests and 306 Vitest tests across 46 files passed", "9 real-process service tests and 6 browser-like smoke tests passed", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
@@ -280,45 +116,12 @@
       "title": "Verify Maricopa source and outcome-label availability",
       "status": "completed",
       "ownerRole": "data-product-engineer",
-      "dependencies": [
-        "P47-010-governance"
-      ],
-      "scope": [
-        "source inventory",
-        "licensing",
-        "update cadence",
-        "historical coverage",
-        "redemption labels",
-        "observation timestamps"
-      ],
-      "acceptance": [
-        "every source has authority, license, fields, cadence, and provenance",
-        "label gaps are explicit",
-        "no unverified scraped dataset enters production"
-      ],
-      "documentation": [
-        "docs/engine/data-inventory.md",
-        "docs/engine/status.md"
-      ],
-      "verification": [
-        "npm run validate:data-inventory",
-        "source URL checks",
-        "schema sampling",
-        "license review",
-        "data-card draft",
-        "full repository gates"
-      ],
-      "evidence": [
-        "remote commit 9cbc841",
-        "GitHub Actions run 33248227529 and quality-gates job 99089286887 passed",
-        "docs/engine/data-source-inventory.json",
-        "real 2026-08-17 Assessor Secured Master archive and 39-field schema sampled",
-        "county GIS ArcGIS item and two feature-layer schemas reviewed",
-        "0 external sources approved for production or training",
-        "10 Python tests and 306 Vitest tests across 46 files passed",
-        "real MongoDB persistence smoke passed in CI",
-        "0 audit vulnerabilities"
-      ],
+      "dependencies": ["P47-010-governance"],
+      "scope": ["source inventory", "licensing", "update cadence", "historical coverage", "redemption labels", "observation timestamps"],
+      "acceptance": ["every source has authority, license, fields, cadence, and provenance", "label gaps are explicit", "no unverified scraped dataset enters production"],
+      "documentation": ["docs/engine/data-inventory.md", "docs/engine/status.md"],
+      "verification": ["npm run validate:data-inventory", "source URL checks", "schema sampling", "license review", "data-card draft", "full repository gates"],
+      "evidence": ["remote commit 9cbc841", "GitHub Actions run 33248227529 and quality-gates job 99089286887 passed", "docs/engine/data-source-inventory.json", "real 2026-08-17 Assessor Secured Master archive and 39-field schema sampled", "county GIS ArcGIS item and two feature-layer schemas reviewed", "0 external sources approved for production or training", "10 Python tests and 306 Vitest tests across 46 files passed", "real MongoDB persistence smoke passed in CI", "0 audit vulnerabilities"],
       "blockers": []
     },
     {
@@ -326,39 +129,11 @@
       "title": "Prepare and execute lawful longitudinal data acquisition",
       "status": "planned",
       "ownerRole": "data-partnerships-engineer",
-      "dependencies": [
-        "P47-060-data-inventory"
-      ],
-      "scope": [
-        "commercial-purpose request package",
-        "written data-use terms",
-        "certificate lifecycle schema",
-        "raw artifact manifest",
-        "privacy and retention review",
-        "time-aware entity resolution"
-      ],
-      "acceptance": [
-        "all intended commercial and model-training uses are disclosed to the records custodian",
-        "written terms cover access, retention, derived features, model training, and redistribution",
-        "received artifacts have source timestamps and checksums",
-        "certificate, sale, redemption, terminal-event, and observed-through fields pass quality review",
-        "no acquired record enters production or training before approval"
-      ],
-      "documentation": [
-        "docs/engine/data-acquisition.md",
-        "docs/engine/data-source-inventory.json",
-        "dataset manifest",
-        "privacy review",
-        "WORK_LEDGER.md"
-      ],
-      "verification": [
-        "request and terms review",
-        "source-manifest validation",
-        "schema and temporal-quality report",
-        "entity-resolution report",
-        "legal and product approval evidence",
-        "full repository gates"
-      ],
+      "dependencies": ["P47-060-data-inventory"],
+      "scope": ["commercial-purpose request package", "written data-use terms", "certificate lifecycle schema", "raw artifact manifest", "privacy and retention review", "time-aware entity resolution"],
+      "acceptance": ["all intended commercial and model-training uses are disclosed to the records custodian", "written terms cover access, retention, derived features, model training, and redistribution", "received artifacts have source timestamps and checksums", "certificate, sale, redemption, terminal-event, and observed-through fields pass quality review", "no acquired record enters production or training before approval"],
+      "documentation": ["docs/engine/data-acquisition.md", "docs/engine/data-source-inventory.json", "dataset manifest", "privacy review", "WORK_LEDGER.md"],
+      "verification": ["request and terms review", "source-manifest validation", "schema and temporal-quality report", "entity-resolution report", "legal and product approval evidence", "full repository gates"],
       "evidence": [],
       "blockers": []
     },
@@ -367,69 +142,24 @@
       "title": "Train valuation, redemption, and liquidity baselines",
       "status": "planned",
       "ownerRole": "applied-ml-engineer",
-      "dependencies": [
-        "P47-040-service",
-        "P47-065-lawful-data-acquisition"
-      ],
-      "scope": [
-        "interpretable baseline",
-        "survival model",
-        "valuation interval",
-        "artifact versioning"
-      ],
-      "acceptance": [
-        "training uses verified labels",
-        "time censoring and leakage controls are explicit",
-        "artifacts are reproducible and licensed"
-      ],
-      "documentation": [
-        "model cards",
-        "dataset cards",
-        "docs/engine/status.md"
-      ],
-      "verification": [
-        "out-of-time evaluation",
-        "county holdout",
-        "calibration",
-        "artifact reproduction"
-      ],
+      "dependencies": ["P47-040-service", "P47-065-lawful-data-acquisition"],
+      "scope": ["interpretable baseline", "survival model", "valuation interval", "artifact versioning"],
+      "acceptance": ["training uses verified labels", "time censoring and leakage controls are explicit", "artifacts are reproducible and licensed"],
+      "documentation": ["model cards", "dataset cards", "docs/engine/status.md"],
+      "verification": ["out-of-time evaluation", "county holdout", "calibration", "artifact reproduction"],
       "evidence": [],
-      "blockers": [
-        "written commercial and model-training authorization has not been obtained",
-        "historical certificate redemption outcomes and sufficient observation windows have not been acquired or verified"
-      ]
+      "blockers": ["written commercial and model-training authorization has not been obtained", "historical certificate redemption outcomes and sufficient observation windows have not been acquired or verified"]
     },
     {
       "id": "P47-080-evaluation",
       "title": "Establish model promotion and abstention gates",
       "status": "planned",
       "ownerRole": "model-risk-engineer",
-      "dependencies": [
-        "P47-070-trained-models"
-      ],
-      "scope": [
-        "temporal metrics",
-        "calibration",
-        "IAAO valuation metrics",
-        "segment performance",
-        "out-of-distribution abstention",
-        "shadow mode"
-      ],
-      "acceptance": [
-        "promotion thresholds beat declared baselines",
-        "weak segments abstain",
-        "reports are reproducible"
-      ],
-      "documentation": [
-        "evaluation report",
-        "model cards",
-        "docs/engine/status.md"
-      ],
-      "verification": [
-        "independent evaluation run",
-        "reproduction manifest",
-        "shadow comparison"
-      ],
+      "dependencies": ["P47-070-trained-models"],
+      "scope": ["temporal metrics", "calibration", "IAAO valuation metrics", "segment performance", "out-of-distribution abstention", "shadow mode"],
+      "acceptance": ["promotion thresholds beat declared baselines", "weak segments abstain", "reports are reproducible"],
+      "documentation": ["evaluation report", "model cards", "docs/engine/status.md"],
+      "verification": ["independent evaluation run", "reproduction manifest", "shadow comparison"],
       "evidence": [],
       "blockers": []
     },
@@ -438,33 +168,11 @@
       "title": "Expose a read-only ChatGPT evidence interface",
       "status": "completed",
       "ownerRole": "chatgpt-product-engineer",
-      "dependencies": [
-        "P47-050-platform-integration",
-        "P47-060-data-inventory"
-      ],
-      "scope": [
-        "read-only tools",
-        "evidence citations",
-        "comparison",
-        "missing-evidence guidance",
-        "memo drafting"
-      ],
-      "acceptance": [
-        "ChatGPT cannot alter engine values or execute bids",
-        "answers cite stored evidence and separate facts, inferences, and unknowns",
-        "tenant authorization is enforced server-side"
-      ],
-      "documentation": [
-        "plugin tool contract",
-        "privacy and safety review",
-        "docs/engine/status.md"
-      ],
-      "verification": [
-        "tool authorization tests",
-        "evidence-grounding evals",
-        "adversarial prompt tests",
-        "release-readiness review"
-      ],
+      "dependencies": ["P47-050-platform-integration", "P47-060-data-inventory"],
+      "scope": ["read-only tools", "evidence citations", "comparison", "missing-evidence guidance", "memo drafting"],
+      "acceptance": ["ChatGPT cannot alter engine values or execute bids", "answers cite stored evidence and separate facts, inferences, and unknowns", "tenant authorization is enforced server-side"],
+      "documentation": ["plugin tool contract", "privacy and safety review", "docs/engine/status.md"],
+      "verification": ["tool authorization tests", "evidence-grounding evals", "adversarial prompt tests", "release-readiness review"],
       "evidence": [
         "Implementation published at 8f6a1bd846336a47e01e2a05c55c3631e8f2a1ad",
         "GitHub Actions run 33249393142 and quality-gates job 99092320186 completed successfully",
@@ -479,9 +187,7 @@
       "title": "Lock the ChatGPT product definition and release boundary",
       "status": "completed",
       "ownerRole": "chatgpt-product-lead",
-      "dependencies": [
-        "P47-090-chatgpt-interface"
-      ],
+      "dependencies": ["P47-090-chatgpt-interface"],
       "scope": [
         "primary user and first three jobs",
         "evidence-first product promise and prohibited claims",
@@ -524,9 +230,7 @@
       "title": "Connect a private ChatGPT staging product",
       "status": "in_progress",
       "ownerRole": "chatgpt-release-engineer",
-      "dependencies": [
-        "P47-092-chatgpt-product-definition"
-      ],
+      "dependencies": ["P47-092-chatgpt-product-definition"],
       "scope": [
         "thin release repository and engine provenance pin",
         "stable HTTPS staging MCP deployment",
@@ -572,11 +276,14 @@
         "Feature-branch deployment bootstrap requires the exact [deploy-private-staging] commit marker, derives the authorized workers.dev origin, and synchronizes five Worker bindings from six GitHub environment secret references without a repository secret file",
         "Live prerequisites include the zero-cost TaxLienStaging Atlas Free cluster in AWS eu-west-1, a SCRAM application user restricted to that cluster, the user-approved dynamic-egress access-list rule, and all six required GitHub chatgpt-staging environment secret names; no secret value was read or committed",
         "Exact-head staging run 33334912896 passed the 332-test governed source gate and synchronized all five Worker secret-name bindings, then failed closed before deployment because Wrangler 4.127.1 rejected the obsolete secret list --json option; source now uses the validated --format=json form",
-        "Exact-head staging run 33335163254 passed the repaired preflight and reached the real Cloudflare container build, then failed closed because the Node-only image stage invoked Python; the Dockerfile now builds Node workspaces in the Node stage and validates Python source in the final Python stage"
+        "Exact-head staging run 33335163254 passed the repaired preflight and reached the real Cloudflare container build, then failed closed because the Node-only image stage invoked Python; the Dockerfile now builds Node workspaces in the Node stage and validates Python source in the final Python stage",
+        "Exact-head staging run 33335437008 succeeded at fec745e0e1e08e7ce3fcf4da0c647cf030f668cd, deploying the real Node/Python container and Worker version cfc90ff0-729a-4622-8a0c-4b1c2e760d42 at the stable named workers.dev origin",
+        "A sanitized repository receipt records 12 live public-boundary checks: TLS/HSTS health, Mongo and intelligence readiness, exact OAuth discovery, fail-closed unauthenticated MCP, the ingress body bound, and rejection of registration and mutation-shaped routes; it stores no credentials, tokens, users, prompts, or evidence payloads",
+        "The staging workflow now disables preview URLs, verifies its derived exact origin after deployment, and archives a sanitized receipt before the deployment job can pass"
       ],
       "blockers": [
-        "the live Cloudflare deployment, stable HTTPS origin, private ChatGPT connection, and runtime verification receipts do not exist yet",
-        "the Atlas application user is cluster-scoped but currently has readWriteAnyDatabase@admin; narrow it to readWrite@tax_lien_platform before closing this node",
+        "authenticated OAuth lifecycle, tenant-role isolation, exact six-tool inventory, private ChatGPT connection, live log redaction, rate-limit/load, and rollback receipts do not exist yet",
+        "the Atlas application user is cluster-scoped but currently has readWriteAnyDatabase@admin; narrow it to readWrite@tax_lien_chatgpt_staging before closing this node",
         "the privacy/security approver, retention and deletion decisions, pilot consent owner, support owner, and incident owner are not assigned"
       ]
     },
@@ -585,9 +292,7 @@
       "title": "Validate the ChatGPT product with real target users",
       "status": "planned",
       "ownerRole": "chatgpt-product-lead",
-      "dependencies": [
-        "P47-093-chatgpt-private-staging"
-      ],
+      "dependencies": ["P47-093-chatgpt-private-staging"],
       "scope": [
         "real-user pilot onboarding",
         "triage, diligence, comparison, and decision-brief task evaluation",
@@ -625,9 +330,7 @@
       "title": "Approve and release the public ChatGPT product",
       "status": "blocked",
       "ownerRole": "chatgpt-release-engineer",
-      "dependencies": [
-        "P47-094-chatgpt-real-user-pilot"
-      ],
+      "dependencies": ["P47-094-chatgpt-real-user-pilot"],
       "scope": [
         "production ChatGPT connection",
         "public listing and review materials",
