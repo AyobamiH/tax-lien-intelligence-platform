@@ -198,7 +198,10 @@ function consumeCompleteLines(flush = false) {
       startupDiagnosticBuffer += line + "\n";
       continue;
     }
-    if (!Array.isArray(event.logs)) continue;
+    if (!Array.isArray(event.logs)) {
+      startupDiagnosticBuffer += JSON.stringify(event) + "\n";
+      continue;
+    }
     for (const entry of event.logs) {
       const parts = Array.isArray(entry?.message)
         ? entry.message

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Included structured, non-log Wrangler JSON objects in the bounded live-tail
+  startup classifier after run `33339042402` again returned only
+  `exit_code_1`. Raw provider diagnostics remain suppressed.
+
 - Extended the private-staging tail startup classifier to cover Wrangler's
   non-JSON stdout diagnostics after run `33338765853` returned only
   `exit_code_1`. The raw provider output remains suppressed and no live

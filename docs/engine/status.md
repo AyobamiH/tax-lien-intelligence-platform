@@ -152,6 +152,12 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- Exact-head run `33339042402` deployed `17cd71f` as Worker version
+  `ce9df7d9-4540-4947-ab71-46e519179f2c` with container digest
+  `sha256:38f220a5b6239d5b3ded53eb5158bd8ca01e628e027b66393ea7a63e5e66adf6`.
+  All source, public, and authenticated gates passed. Tail startup still
+  returned only `exit_code_1`; structured non-log Wrangler JSON is now
+  included in the bounded classifier. No redaction receipt is claimed.
 - Exact-head run `33338765853` deployed `1b489e9` as Worker version
   `1f5bcdd3-de99-4078-8317-d4ec395e1985` with container digest
   `sha256:1d8a7fa702c09207c496da6ff5136acdd0a1f1ef7cd1cdbff542775d1179ee4a`.

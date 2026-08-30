@@ -1,5 +1,18 @@
 # Work Ledger
 
+## 2026-08-30T22:29:50.231Z - P47-093 structured tail diagnostic correction
+
+- Exact-head run `33339042402` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `17cd71f`, deploying
+  Worker `ce9df7d9-4540-4947-ab71-46e519179f2c` and container digest
+  `sha256:38f220a5b6239d5b3ded53eb5158bd8ca01e628e027b66393ea7a63e5e66adf6`.
+- Tail startup again returned `exit_code_1`. Wrangler's JSON mode can emit a
+  structured diagnostic object without a `logs` array; that object had been
+  excluded from the bounded classifier. No raw diagnostic or receipt exists.
+- The classifier now serializes non-log JSON diagnostics into bounded process
+  memory for allowlisted categorization only. It still emits and stores no raw
+  provider output.
+
 ## 2026-08-30T22:23:51.853Z - P47-093 tail diagnostic stdout correction
 
 - Exact-head run `33338765853` again passed source, secret, Cloudflare,
