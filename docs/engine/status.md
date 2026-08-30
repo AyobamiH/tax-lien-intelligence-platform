@@ -152,6 +152,12 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- Exact-head run `33339651921` deployed `71cfa4d` as Worker version
+  `35807be0-4fb6-4ed7-8c12-8428bf66774f` with container digest
+  `sha256:370d813eb110094b75f53abc3c67237526d90c882e34f0b05d84c33466c6ffbb`.
+  Source and all 24 live application cases passed. The sanitized diagnostic
+  classified tail startup as `argument_rejected`; the verifier now uses a
+  documented sub-1 sampling fraction. No redaction receipt is claimed.
 - Exact-head run `33339301424` deployed `a3d7ec8` as Worker version
   `13a00fa6-40e9-4597-8884-937489a00c52` with container digest
   `sha256:8954252bbf7d639f5c714a5290a0708d719718b3c4bce0dd0a0530086d8b7308`.

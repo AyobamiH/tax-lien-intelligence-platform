@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Corrected the live Wrangler tail sampling fraction to `0.99` after
+  sanitized exact-head diagnostics classified run `33339651921` as
+  `argument_rejected`; no Cloudflare permission change is required.
+
 - Added a sanitized, ephemeral Wrangler debug-log fallback after exact-head
   run `33339301424` passed all 24 live application cases but the tail process
   still returned only `exit_code_1`. Raw provider output is never printed or

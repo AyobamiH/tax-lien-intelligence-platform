@@ -1,5 +1,17 @@
 # Work Ledger
 
+## 2026-08-30T22:43:00.000Z - P47-093 tail sampling correction
+
+- Exact-head run `33339651921` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `71cfa4d`, deploying
+  Worker `35807be0-4fb6-4ed7-8c12-8428bf66774f` and container digest
+  `sha256:370d813eb110094b75f53abc3c67237526d90c882e34f0b05d84c33466c6ffbb`.
+- The sanitized Wrangler diagnostic classified the pre-probe failure as
+  `argument_rejected`, ruling out a Tail Read permission blocker. No raw
+  provider output or redaction receipt was stored.
+- The real-time tail now requests a documented sub-1 sampling fraction
+  (`0.99`) and records that exact value in a passing receipt.
+
 ## 2026-08-30T22:38:00.000Z - P47-093 sanitized Wrangler diagnostic fallback
 
 - Exact-head run `33339301424` passed source, secret, Cloudflare, deployment,

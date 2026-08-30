@@ -40,7 +40,7 @@ const tail = spawn(
     "--format",
     "json",
     "--sampling-rate",
-    "1",
+    "0.99",
   ],
   {
     cwd: process.cwd(),
@@ -156,7 +156,7 @@ try {
     },
     capture: {
       provider: "cloudflare_workers_realtime_tail",
-      samplingRate: 1,
+      samplingRate: 0.99,
       probeRoute: "mcp",
       probeRequestCount: 3,
       gatewayEventsObserved: observed.gateway,
