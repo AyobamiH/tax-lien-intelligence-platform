@@ -30,6 +30,10 @@
   passed source gates and secret synchronization but failed closed on
   Wrangler's obsolete `secret list --json` option. Preflight now uses the
   supported `--format=json` flag, enforced by the source validator.
+- Repaired the next live packaging failure from run `33335163254`: the
+  Node-only image stage no longer invokes the Python portion of the root build.
+  Node workspaces build in the Node stage and Python source validation runs in
+  the final Python stage, with a validator guard for the runtime boundary.
 - Reconciled repository truth after pull request #1 merged at `main@50dae44`
   and GitHub Actions run `33309185096` passed its complete quality-gates job.
 - Opened pull request #1 to integrate the verified Phase 47 engine, evidence,
