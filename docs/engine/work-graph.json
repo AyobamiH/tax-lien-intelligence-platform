@@ -262,6 +262,8 @@
       "evidence": [
         "OAuth staging source checkpoint published at 627b60b5a2b316b704263df2c9cb0623b6cb53b9",
         "GitHub Actions run 33253453470 and quality-gates job 99102992513 passed validators, audit, typecheck, 323 Vitest tests plus Python tests, build, real service smoke, real intelligence Mongo smoke, and real OAuth Mongo smoke",
+        "Branch evidence head a9272bc6cc759d2632ae43775dcd68b3e9edfa2f passed GitHub Actions run 33253657970 and quality-gates job 99103542844",
+        "Pull request 1 opened against main at https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/1; it integrates the verified source checkpoint but is not live private-staging evidence",
         "apps/api/src/oauth implements OAuth discovery, explicit consent, PKCE S256, exact client/redirect/resource/scope validation, code exchange, refresh rotation/replay protection, and revocation",
         "tests/integration/oauth.test.ts covers repository-level OAuth lifecycle and OAuth-only MCP access",
         "products/chatgpt/tax-lien-intelligence is the validated source-only release package with pinned engine provenance and no fabricated endpoint",
