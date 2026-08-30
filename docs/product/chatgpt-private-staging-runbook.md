@@ -159,9 +159,12 @@ readiness, OAuth discovery, MCP fail-closed behavior, and MongoDB/intelligence
 readiness, then restores the exact current version from a `finally` recovery
 path and repeats the same checks. Cloudflare Worker rollback does not roll back
 the bound Container resources; dependency readiness is therefore proved on both
-sides of the route change. The receipt stores only version identifiers,
-timestamps, response hashes, statuses, and durations. Wrangler output and
-response bodies are never archived.
+sides of the route change. Cloudflare's current Wrangler command reference documents JSON output for
+[deployment status](https://developers.cloudflare.com/workers/wrangler/commands/workers/#deployments-status)
+and states that a rollback `--message` skips the interactive prompts. The
+receipt stores only version identifiers, timestamps, response hashes, statuses,
+and durations. Bounded Wrangler output is held only long enough to extract the
+deployment document; Wrangler output and response bodies are never archived.
 
 ## ChatGPT connection
 

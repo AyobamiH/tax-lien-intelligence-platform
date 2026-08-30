@@ -1,5 +1,19 @@
 # Work Ledger
 
+## 2026-08-30T23:42:00.000Z - P47-093 rollback status parser correction
+
+- Exact-head workflow `33341894651` passed governed source validation,
+  deployment, all 12 public checks, all 12 authenticated checks, and live
+  log-redaction verification at `6f663f7`.
+- Rollback verification failed closed with `deployment_status_invalid` before
+  `rollbackStarted`; no staging traffic mutation occurred and no rollback
+  receipt was written.
+- The cause was verifier-local `WRANGLER_LOG=none`, which suppressed the
+  deployment-status JSON. The retry retains bounded stdout/stderr in process
+  memory only, extracts the JSON document without logging or archiving command
+  output, and removes the undocumented `--yes` rollback option. Cloudflare's
+  documented `--message` option supplies non-interactive confirmation.
+
 ## 2026-08-30T23:35:00.000Z - P47-093 governed rollback/recovery source
 
 - Added a fail-closed live verifier that discovers the current and preceding

@@ -14,6 +14,12 @@ Last updated: 2026-08-30
   contains only the sanitized public, authenticated, and log-redaction
   receipts. Exact copies and deployment provenance are pinned under
   `products/chatgpt/tax-lien-intelligence/receipts`.
+- Exact-head run `33341894651` passed source, deployment, all 24
+  public/authenticated cases, and live log redaction at `6f663f7`. The
+  rollback verifier then failed closed before any traffic mutation because
+  `WRANGLER_LOG=none` suppressed the deployment-status JSON document. The
+  retry removes that suppression, parses bounded stdout/stderr in memory, and
+  uses the documented `--message` non-interactive rollback behavior.
 - `P47-093-chatgpt-private-staging` remains in progress. The governed
   rollback/recovery verifier is now source-controlled and runs only after the
   public, authenticated, and log-redaction gates; its live receipt is pending

@@ -138,7 +138,6 @@ for (const logRequirement of [
 
 for (const rollbackRequirement of [
   '"rollback"',
-  '"--yes"',
   "try {",
   "} finally {",
   "rollback_to_previous_version",

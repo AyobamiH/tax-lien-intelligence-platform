@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Corrected the governed rollback verifier after exact-head run
+  `33341894651` failed closed before traffic mutation: Wrangler log
+  suppression had also suppressed deployment-status JSON. The verifier now
+  extracts JSON from bounded in-memory stdout/stderr without storing command
+  output and uses the documented rollback-message non-interactive path.
+
 - Added governed live rollback/recovery verification for private staging. The
   workflow routes to the most recent preceding single-version Worker, verifies
   the real HTTPS/OAuth/dependency boundary, restores the exact current version

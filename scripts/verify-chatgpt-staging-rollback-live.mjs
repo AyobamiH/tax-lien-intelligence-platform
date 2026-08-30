@@ -30,7 +30,6 @@ try {
     rollbackVersionId,
     "--message",
     "P47-093 governed rollback verification",
-    "--yes",
     "--config",
     wranglerConfig,
   ]);
@@ -47,7 +46,6 @@ try {
         recoveryVersionId,
         "--message",
         "P47-093 governed recovery",
-        "--yes",
         "--config",
         wranglerConfig,
       ]);
@@ -124,7 +122,10 @@ async function getDeployments() {
     "--config",
     wranglerConfig,
   ]);
-  const payload = parseJson(result.stdout, "deployments_list_invalid");
+  const payload = parseJsonDocument(
+    result.stdout + "\n" + result.stderr,
+    "deployments_list_invalid",
+  );
   assert(Array.isArray(payload), "deployments_list_not_array");
   return payload;
 }
@@ -137,7 +138,10 @@ async function getDeploymentStatus() {
     "--config",
     wranglerConfig,
   ]);
-  return parseJson(result.stdout, "deployment_status_invalid");
+  return parseJsonDocument(
+    result.stdout + "\n" + result.stderr,
+    "deployment_status_invalid",
+  );
 }
 
 function selectPreviousVersion(deployments, currentVersionId) {
@@ -282,14 +286,14 @@ function runWrangler(args) {
       env: {
         ...process.env,
         FORCE_COLOR: "0",
-        WRANGLER_LOG: "none",
         WRANGLER_LOG_SANITIZE: "true",
         WRANGLER_SEND_ERROR_REPORTS: "false",
+        WRANGLER_SEND_METRICS: "false",
       },
       stdio: ["ignore", "pipe", "pipe"],
     });
     let stdout = "";
-    let stderrBytes = 0;
+    let stderr = "";
     let settled = false;
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
@@ -304,8 +308,8 @@ function runWrangler(args) {
       }
     });
     child.stderr.on("data", (chunk) => {
-      stderrBytes += chunk.byteLength;
-      if (stderrBytes > 262_144) {
+      stderr += chunk.toString("utf8");
+      if (Buffer.byteLength(stderr) > 262_144) {
         child.kill("SIGTERM");
         finish(new Error("Rollback verification failed: wrangler_stderr_bound_exceeded"));
       }
@@ -316,7 +320,7 @@ function runWrangler(args) {
         finish(new Error("Rollback verification failed: wrangler_exit_" + String(code)));
         return;
       }
-      finish(null, { stdout });
+      finish(null, { stdout, stderr });
     });
 
     function finish(error, result) {
@@ -329,12 +333,25 @@ function runWrangler(args) {
   });
 }
 
-function parseJson(value, errorCode) {
+function parseJsonDocument(value, errorCode) {
+  const trimmed = value.trim();
   try {
-    return JSON.parse(value);
+    return JSON.parse(trimmed);
   } catch {
-    throw new Error("Rollback verification failed: " + errorCode);
+    for (let start = 0; start < trimmed.length; start += 1) {
+      const opening = trimmed[start];
+      if (opening !== "{" && opening !== "[") continue;
+      const closing = opening === "{" ? "}" : "]";
+      for (let end = trimmed.lastIndexOf(closing); end > start; end = trimmed.lastIndexOf(closing, end - 1)) {
+        try {
+          return JSON.parse(trimmed.slice(start, end + 1));
+        } catch {
+          // Continue scanning bounded Wrangler output without exposing it.
+        }
+      }
+    }
   }
+  throw new Error("Rollback verification failed: " + errorCode);
 }
 
 function requireCanonicalOrigin(value) {
