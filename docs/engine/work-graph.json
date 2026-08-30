@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-30T22:51:00.000Z",
+  "updatedAt": "2026-08-30T23:01:00.000Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/p47-093-chatgpt-private-staging",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
@@ -589,7 +589,8 @@
         "Exact-head run 33339042402 deployed 17cd71f as Worker ce9df7d9-4540-4947-ab71-46e519179f2c with container digest sha256:38f220a5b6239d5b3ded53eb5158bd8ca01e628e027b66393ea7a63e5e66adf6; all source/public/authenticated gates passed, but structured non-log Wrangler JSON was missing from the bounded tail classifier and no redaction receipt exists",
         "Exact-head run 33339301424 deployed a3d7ec8 as Worker 13a00fa6-40e9-4597-8884-937489a00c52 with container digest sha256:8954252bbf7d639f5c714a5290a0708d719718b3c4bce0dd0a0530086d8b7308; all source/public/authenticated gates passed, but Wrangler tail again returned exit_code_1 and no redaction receipt exists",
         "Exact-head run 33339651921 deployed 71cfa4d as Worker 35807be0-4fb6-4ed7-8c12-8428bf66774f with container digest sha256:370d813eb110094b75f53abc3c67237526d90c882e34f0b05d84c33466c6ffbb; all source/public/authenticated gates passed and sanitized diagnostics classified the tail failure as argument_rejected",
-        "Exact-head run 33339888358 deployed c52bbdf as Worker a5e83918-e6c3-4ea6-a5c4-d1164ad3816d with container digest sha256:030a8f2294ac7c1c558317c64c31966aac7e8335be2fceed07fed08c62e6d95e; all source/public/authenticated gates passed and the tail session/probes ran, but the one-line parser did not recognize Wrangler's multi-line JSON events"
+        "Exact-head run 33339888358 deployed c52bbdf as Worker a5e83918-e6c3-4ea6-a5c4-d1164ad3816d with container digest sha256:030a8f2294ac7c1c558317c64c31966aac7e8335be2fceed07fed08c62e6d95e; all source/public/authenticated gates passed and the tail session/probes ran, but the one-line parser did not recognize Wrangler's multi-line JSON events",
+        "Exact-head run 33340248905 deployed ed85a44 as Worker 81e2777f-08e5-43b6-a222-0fa4229894e6 with container digest sha256:237c21a51d304e6a20a892a2019a90c5ec160af909586c5833399617622204ac; all source/public/authenticated gates passed and live tail proved 3/3 gateway events, while application events were correctly identified as a separate Workers Observability query surface"
       ],
       "blockers": [
         "the private ChatGPT connection, approved real-data grounding and prompt-injection cases, exact-head live log-redaction receipt, and rollback/recovery receipts do not exist yet",

@@ -152,6 +152,13 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- Exact-head run `33340248905` deployed `ed85a44` as Worker version
+  `81e2777f-08e5-43b6-a222-0fa4229894e6` with container digest
+  `sha256:237c21a51d304e6a20a892a2019a90c5ec160af909586c5833399617622204ac`.
+  Source and all 24 application cases passed. The corrected parser observed
+  eight provider events, four console entries, and all three gateway events;
+  application events were absent from Worker tail because container logs use
+  Workers Observability. No redaction receipt is claimed.
 - Exact-head run `33339888358` deployed `c52bbdf` as Worker version
   `a5e83918-e6c3-4ea6-a5c4-d1164ad3816d` with container digest
   `sha256:030a8f2294ac7c1c558317c64c31966aac7e8335be2fceed07fed08c62e6d95e`.

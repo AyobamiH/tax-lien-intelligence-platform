@@ -1,5 +1,21 @@
 # Work Ledger
 
+## 2026-08-30T23:01:00.000Z - P47-093 container observability query source
+
+- Exact-head run `33340248905` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `ed85a44`, deploying
+  Worker `81e2777f-08e5-43b6-a222-0fa4229894e6` and container digest
+  `sha256:237c21a51d304e6a20a892a2019a90c5ec160af909586c5833399617622204ac`.
+- The streaming parser observed eight real provider events, four console
+  entries, and all three exact gateway events. It observed zero application
+  events, confirming Worker real-time tail does not include container stdout.
+  No raw events or redaction receipt were stored.
+- The verifier now uses Worker real-time tail for the gateway and Cloudflare's
+  documented Workers Observability query API for persisted container custom
+  logs. It queries a narrow probe timeframe, validates the exact application
+  event shape, checks both unique markers return zero provider events, retains
+  raw query responses only in bounded process memory, and archives only counts.
+
 ## 2026-08-30T22:51:00.000Z - P47-093 multi-line tail event parser
 
 - Exact-head run `33339888358` passed source, secret, Cloudflare, deployment,

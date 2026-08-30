@@ -5,6 +5,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const origin = requireCanonicalOrigin(process.env.STAGING_ORIGIN);
+const accountId = requireIdentifier(process.env.CLOUDFLARE_ACCOUNT_ID, "cloudflare_account_id_missing");
+const cloudflareApiToken = requireSecretReference(
+  process.env.CLOUDFLARE_API_TOKEN,
+  "cloudflare_api_token_missing",
+);
 const receiptPath = resolve(
   process.env.LOG_REDACTION_RECEIPT_PATH ??
     "artifacts/chatgpt-staging-log-redaction-receipt.json",
@@ -92,6 +97,7 @@ try {
   assert(!tailExit, "tail_session_exited_before_probe:" + classifyTailFailure());
   assert(!captureFailure, captureFailure ?? "tail_capture_failed");
 
+  const probeStartedAt = Date.now() - 5_000;
   const probeBody = JSON.stringify({
     jsonrpc: "2.0",
     id: 1,
@@ -123,13 +129,15 @@ try {
     await delay(750);
   }
 
-  await waitForRequiredLogs(45_000);
+  await waitForGatewayLogs(45_000);
   consumeAvailableJsonObjects(true);
   assert(!captureFailure, captureFailure ?? "tail_capture_failed");
   assert(observed.gateway > 0, "gateway_log_not_observed");
+
+  const applicationMessages = await waitForApplicationLogs(probeStartedAt, 75_000);
   assert(observed.application > 0, "application_log_not_observed");
 
-  const applicationLogText = consoleMessages.join("\n").toLowerCase();
+  const applicationLogText = [...consoleMessages, ...applicationMessages].join("\n").toLowerCase();
   assert(!applicationLogText.includes(payloadMarker.toLowerCase()), "payload_marker_reached_application_logs");
   assert(!applicationLogText.includes(credentialMarker.toLowerCase()), "credential_marker_reached_application_logs");
   for (const forbidden of [
@@ -157,7 +165,10 @@ try {
       workflowRun: process.env.LIVE_WORKFLOW_RUN_URL ?? null,
     },
     capture: {
-      provider: "cloudflare_workers_realtime_tail",
+      providers: [
+        "cloudflare_workers_realtime_tail",
+        "cloudflare_workers_observability_query",
+      ],
       samplingRate: 0.99,
       probeRoute: "mcp",
       probeRequestCount: 3,
@@ -167,6 +178,7 @@ try {
       applicationEventsObserved: observed.application,
       rawProviderEnvelopeStored: false,
       rawConsoleMessagesStored: false,
+      rawObservabilityEventsStored: false,
     },
     checks: [
       { name: "gateway_payload_free_shape", status: "passed" },
@@ -181,6 +193,7 @@ try {
       representedAsUserCountyModelOrDeploymentEvidence: false,
       providerEnvelopeStored: false,
       consoleMessagesStored: false,
+      observabilityEventsStored: false,
       markersStored: false,
       credentialsStored: false,
       tokensStored: false,
@@ -349,25 +362,175 @@ function assertExactKeys(value, expected, errorCode) {
   assert(JSON.stringify(actual) === JSON.stringify(required), errorCode);
 }
 
-async function waitForRequiredLogs(timeoutMs) {
+async function waitForGatewayLogs(timeoutMs) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     assert(!captureFailure, captureFailure ?? "tail_capture_failed");
     assert(!tailExit, "tail_session_exited_during_probe:" + classifyTailFailure());
-    if (observed.gateway > 0 && observed.application > 0) return;
+    if (observed.gateway > 0) return;
     await delay(500);
   }
   throw new Error(
-    "Live staging log-redaction verification failed: required_operational_logs_not_observed" +
+    "Live staging log-redaction verification failed: gateway_operational_logs_not_observed" +
       ":provider_" +
       observed.providerEvents +
       ":console_" +
-      observed.consoleEntries +
-      ":gateway_" +
-      observed.gateway +
-      ":application_" +
-      observed.application,
+      observed.consoleEntries,
   );
+}
+
+async function waitForApplicationLogs(fromMs, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const toMs = Date.now() + 1_000;
+    const applicationQuery = await queryObservabilityEvents(
+      "http_request_completed",
+      fromMs,
+      toMs,
+    );
+    const applicationEvents = [];
+    const applicationMessages = [];
+    for (const event of applicationQuery.events) {
+      for (const candidate of extractOperationalCandidates(event)) {
+        if (
+          candidate.event !== "http_request_completed" ||
+          candidate.route !== "mcp" ||
+          candidate.method !== "POST" ||
+          candidate.status !== 401 ||
+          candidate.redactionOutcome !== "payload_not_logged"
+        ) {
+          continue;
+        }
+        assertExactKeys(
+          candidate,
+          [
+            "durationMs",
+            "errorClass",
+            "event",
+            "interfaceVersion",
+            "method",
+            "redactionOutcome",
+            "requestId",
+            "responseBytes",
+            "route",
+            "status",
+          ],
+          "application_log_shape_drifted",
+        );
+        applicationEvents.push(candidate);
+        applicationMessages.push(JSON.stringify(candidate));
+      }
+    }
+
+    if (applicationEvents.length > 0) {
+      const payloadQuery = await queryObservabilityEvents(payloadMarker, fromMs, toMs);
+      const credentialQuery = await queryObservabilityEvents(credentialMarker, fromMs, toMs);
+      assert(payloadQuery.count === 0 && payloadQuery.events.length === 0, "payload_marker_reached_provider_logs");
+      assert(
+        credentialQuery.count === 0 && credentialQuery.events.length === 0,
+        "credential_marker_reached_provider_logs",
+      );
+      observed.application = applicationEvents.length;
+      return applicationMessages;
+    }
+    await delay(3_000);
+  }
+  throw new Error(
+    "Live staging log-redaction verification failed: application_operational_logs_not_observed",
+  );
+}
+
+async function queryObservabilityEvents(needle, fromMs, toMs) {
+  const response = await fetch(
+    "https://api.cloudflare.com/client/v4/accounts/" +
+      accountId +
+      "/workers/observability/telemetry/query",
+    {
+      method: "POST",
+      headers: {
+        authorization: "Bearer " + cloudflareApiToken,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        queryId: "p47-private-staging-log-redaction",
+        timeframe: { from: fromMs, to: toMs },
+        dry: true,
+        limit: 100,
+        parameters: {
+          datasets: [],
+          filterCombination: "and",
+          filters: [],
+          limit: 100,
+          needle: {
+            value: needle,
+            isRegex: false,
+            matchCase: true,
+          },
+        },
+        view: "events",
+      }),
+      signal: AbortSignal.timeout(30_000),
+    },
+  );
+
+  if (response.status === 401 || response.status === 403) {
+    await response.arrayBuffer();
+    throw new Error(
+      "Live staging log-redaction verification failed: observability_permission_or_auth",
+    );
+  }
+
+  const bytes = await response.arrayBuffer();
+  assert(bytes.byteLength <= 2_097_152, "observability_response_bound_exceeded");
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(bytes).toString("utf8"));
+  } catch {
+    throw new Error(
+      "Live staging log-redaction verification failed: observability_response_invalid",
+    );
+  }
+  if (!response.ok || payload?.success === false) {
+    const providerCode = Array.isArray(payload?.errors)
+      ? payload.errors.find((entry) => Number.isInteger(entry?.code))?.code
+      : null;
+    throw new Error(
+      "Live staging log-redaction verification failed: observability_query_rejected_status_" +
+        response.status +
+        "_code_" +
+        (providerCode ?? "unknown"),
+    );
+  }
+
+  const result = payload?.result?.events;
+  const events = Array.isArray(result?.events) ? result.events.slice(0, 100) : [];
+  const count = Number.isInteger(result?.count) ? result.count : events.length;
+  return { count, events };
+}
+
+function extractOperationalCandidates(event) {
+  const candidates = [];
+  for (const value of [
+    event?.source,
+    event?.["$metadata"]?.message,
+    event?.["$metadata"]?.messageTemplate,
+  ]) {
+    const parsed = parseOperationalValue(value);
+    if (parsed) candidates.push(parsed);
+  }
+  return candidates;
+}
+
+function parseOperationalValue(value) {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    if (typeof value.event === "string") return value;
+    for (const key of ["message", "log", "data"]) {
+      const nested = parseOperationalValue(value[key]);
+      if (nested) return nested;
+    }
+    return null;
+  }
+  return typeof value === "string" ? parseOperationalEvent(value) : null;
 }
 
 async function closeTail() {
@@ -433,6 +596,16 @@ function normalizeDiagnostic(value) {
     .replace(/\u001b\[[0-?]*[ -/]*[@-~]/gu, "")
     .toLowerCase()
     .replace(/[^a-z0-9+_.:/-]+/gu, " ");
+}
+
+function requireIdentifier(value, code) {
+  assert(typeof value === "string" && /^[a-f0-9]{32}$/u.test(value), code);
+  return value;
+}
+
+function requireSecretReference(value, code) {
+  assert(typeof value === "string" && value.length >= 20, code);
+  return value;
 }
 
 function requireCanonicalOrigin(value) {

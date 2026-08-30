@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Split the live redaction proof across Cloudflare's actual telemetry
+  surfaces after run `33340248905`: Worker real-time tail verifies gateway
+  events, while the Workers Observability query API verifies persisted
+  container application events and marker absence. Raw events are not stored.
+
 - Replaced the live-tail line parser with a bounded streaming JSON-object
   parser after run `33339888358` proved current Wrangler emits pretty,
   multi-line JSON. Failure diagnostics now expose only aggregate event counts.
