@@ -1,5 +1,27 @@
 # Work Ledger
 
+## 2026-08-30T20:52:02Z - P47-093 external staging prerequisites
+
+- Provisioned the staging-only MongoDB Atlas project `Tax Lien Intelligence
+  Staging` and the `$0` Free shared cluster `TaxLienStaging` on AWS
+  `eu-west-1`. No paid MongoDB resource was created.
+- Confirmed a SCRAM application user named `tax_lien_chatgpt_staging`. Atlas
+  reports `readWriteAnyDatabase@admin`, restricted to the single
+  `TaxLienStaging` cluster. This is not represented as database-specific least
+  privilege; narrowing it to `readWrite@tax_lien_platform` remains a hardening
+  item before this node can be closed.
+- Added the user-approved `0.0.0.0/0` Atlas access-list entry required by the
+  Cloudflare Container's dynamic TCP egress. TLS and database credentials
+  remain mandatory. The Free Atlas tier has no private-endpoint support, and no
+  paid static-egress service was authorized.
+- Confirmed that GitHub environment `chatgpt-staging` contains all six required
+  secret names: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`,
+  `MONGODB_URI`, `JWT_SECRET`, `INTELLIGENCE_SERVICE_TOKEN`, and
+  `MCP_OAUTH_SIGNING_SECRET`. Values were not read, logged, or committed.
+- `P47-093` remains in progress. These are live external prerequisites, not a
+  deployment, endpoint, OAuth, ChatGPT connection, load, log, or rollback
+  receipt.
+
 ## 2026-08-30T19:10:00Z - P47-093 non-interactive staging bootstrap
 
 - Closed the feature-branch dispatch gap without enabling deployment on an
