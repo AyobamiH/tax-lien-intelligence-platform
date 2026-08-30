@@ -136,6 +136,11 @@ Last updated: 2026-08-30
   referenced a class before initialization. No authenticated receipt is
   claimed. The reporter is repaired without changing any security assertion or
   the `finally` cleanup path, pending an exact-head rerun.
+- Repaired-reporting run `33337338853` revealed that the application's intended
+  personal-workspace bootstrap invalidated the test's zero-workspace assumption
+  for a denied principal. No authenticated receipt is claimed. The test now
+  requires that the denied principal sees only its own isolated test workspace
+  and is denied the target, with ownership-aware fixture cleanup.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.

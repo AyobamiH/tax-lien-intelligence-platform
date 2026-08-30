@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Corrected the live denied-role case after the real service proved that users
+  with no membership receive a personal owner workspace. The test now requires
+  isolation to an explicit personal fixture workspace and denial of the target
+  workspace, with ownership-aware cleanup for auto-created fixture workspaces.
 - Repaired the authenticated live verifier's failure reporter after run
   `33337074423` exposed an initialization-order `ReferenceError`. The exact
   OAuth, tenancy, tool, receipt, and fixture-cleanup assertions are unchanged;

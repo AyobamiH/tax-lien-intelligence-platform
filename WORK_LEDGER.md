@@ -1,5 +1,23 @@
 # Work Ledger
 
+## 2026-08-30T21:51:00Z - P47-093 denied-user live case correction
+
+- Exact-head run `33337338853` passed source gates, deployed revision
+  `ce7a9ae`, and passed the public live boundary. The authenticated gate then
+  failed closed because the application correctly auto-bootstraps a personal
+  owner workspace for a user with no memberships; the test had incorrectly
+  expected zero workspaces. No authenticated receipt was archived.
+- Corrected the denied case to give that principal an explicit isolated test
+  workspace, require that only that workspace is listed, and separately require
+  denial when the principal requests the target workspace.
+- Strengthened `finally` cleanup to discover every workspace owned by a fixture
+  user before deletion, remove memberships by fixture workspace or user, and
+  remove only those exact owned workspaces.
+- Added a bounded pre-test cleanup for the single class of orphaned auto-created
+  workspace from the failed test: its test-only name must match the P47 fixture
+  pattern, it must be less than 24 hours old, and its owner user must no longer
+  exist. No general user or workspace cleanup is permitted.
+
 ## 2026-08-30T21:45:00Z - P47-093 authenticated verifier error reporting repair
 
 - Exact-head run `33337074423` deployed revision `773fec3`, passed the public

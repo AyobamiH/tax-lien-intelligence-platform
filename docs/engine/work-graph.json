@@ -283,7 +283,8 @@
         "Governed redeployment run 33336257365 attempt 2 passed at exact head aca4081724969094dcdf5b50d4cf1e600febc1c2, deployed Worker version 0b6656c5-4535-4552-9f8a-37a3fc19cef2, and archived artifact 9739215376",
         "A bounded 100-request OAuth load probe returned 70 HTTP 429 responses after 30 handled validation responses while health remained HTTP 200; no credential, token, user, prompt, or evidence payload was used",
         "The governed staging workflow now includes a post-deploy authenticated verifier that creates and removes a unique test-only fixture and covers real PKCE, code replay, refresh rotation and replay, revocation, expiry, owner/admin/member/denied workspace isolation, cross-workspace denial, and the exact six read-only tools without storing fixture identifiers or secrets",
-        "Exact-head run 33337074423 passed deployment and the public live boundary but produced no authenticated receipt because the verifier's failure reporter hit an initialization-order ReferenceError; the reporter is repaired without changing security assertions or finally cleanup"
+        "Exact-head run 33337074423 passed deployment and the public live boundary but produced no authenticated receipt because the verifier's failure reporter hit an initialization-order ReferenceError; the reporter is repaired without changing security assertions or finally cleanup",
+        "Run 33337338853 showed that a no-membership user receives the intended personal owner workspace; the denied live case now requires isolation to an explicit test workspace plus denial of the target, and cleanup discovers all workspaces owned by fixture users before exact deletion"
       ],
       "blockers": [
         "authenticated OAuth lifecycle, tenant-role isolation, exact six-tool inventory, private ChatGPT connection, live log redaction, rate-limit/load, and rollback receipts do not exist yet",

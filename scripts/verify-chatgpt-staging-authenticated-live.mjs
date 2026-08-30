@@ -40,6 +40,7 @@ const fixture = { userIds: [], workspaceIds: [], tokenIds: [] };
 
 try {
   await connectMongo({ uri: mongoUri, dbName: "tax_lien_chatgpt_staging", serverSelectionTimeoutMs: 15_000 });
+  await cleanupStaleFixtureWorkspaces();
   const principals = await seedFixture();
 
   const owner = await authorize(principals.owner);
@@ -78,7 +79,18 @@ try {
   await assertWorkspaceView(member.tokens.access_token, principals.workspaceOne.id, "member", "member_workspace_isolation");
   const denied = await authorize(principals.denied);
   const deniedView = await callTool(denied.tokens.access_token, "list_workspaces", {});
-  assert(deniedView?.data?.workspaces?.length === 0, "denied principal received a workspace");
+  assert(deniedView?.data?.workspaces?.length === 1, "denied principal workspace count drifted");
+  assert(
+    deniedView.data.workspaces[0]?.id === principals.workspaceDenied.id &&
+      deniedView.data.workspaces[0]?.role === "owner" &&
+      deniedView.data.workspaces[0]?.id !== principals.workspaceOne.id,
+    "denied principal received the target workspace",
+  );
+  const deniedTarget = await mcp(denied.tokens.access_token, "tools/call", {
+    name: "list_datasets",
+    arguments: { workspaceId: principals.workspaceOne.id },
+  });
+  assert(deniedTarget?.result?.isError === true, "denied principal accessed the target workspace");
   pass("denied_workspace_isolation");
 
   const crossWorkspace = await mcp(member.tokens.access_token, "tools/call", {
@@ -219,17 +231,19 @@ async function seedFixture() {
   const users = Object.fromEntries(roles.map((role, index) => [role, created[index]]));
   fixture.userIds.push(...created.map((user) => user.id));
 
-  const [workspaceOne, workspaceTwo] = await WorkspaceModel.create([
+  const [workspaceOne, workspaceTwo, workspaceDenied] = await WorkspaceModel.create([
     { name: `[P47 TEST] ${fixtureTag} one`, ownerUserId: users.owner.id },
     { name: `[P47 TEST] ${fixtureTag} two`, ownerUserId: users.otherOwner.id },
+    { name: `[P47 TEST] ${fixtureTag} denied`, ownerUserId: users.denied.id },
   ]);
-  fixture.workspaceIds.push(workspaceOne.id, workspaceTwo.id);
+  fixture.workspaceIds.push(workspaceOne.id, workspaceTwo.id, workspaceDenied.id);
   const now = new Date();
   await WorkspaceMembershipModel.create([
     membership(workspaceOne.id, users.owner.id, "owner", users.owner.id, true, now),
     membership(workspaceOne.id, users.admin.id, "admin", users.owner.id, true, now),
     membership(workspaceOne.id, users.member.id, "member", users.owner.id, true, now),
     membership(workspaceTwo.id, users.otherOwner.id, "owner", users.otherOwner.id, true, now),
+    membership(workspaceDenied.id, users.denied.id, "owner", users.denied.id, true, now),
   ]);
   return {
     owner: principal(users.owner),
@@ -238,6 +252,7 @@ async function seedFixture() {
     denied: principal(users.denied),
     workspaceOne: { id: workspaceOne.id },
     workspaceTwo: { id: workspaceTwo.id },
+    workspaceDenied: { id: workspaceDenied.id },
   };
 }
 
@@ -336,14 +351,41 @@ async function rawMcp(token, method, params) {
 
 async function cleanupFixture() {
   if (fixture.userIds.length === 0) return;
+  const ownedWorkspaces = await WorkspaceModel.find({ ownerUserId: { $in: fixture.userIds } })
+    .select({ _id: 1 })
+    .exec();
+  const workspaceIds = [...new Set([...fixture.workspaceIds, ...ownedWorkspaces.map((workspace) => workspace.id)])];
   await Promise.all([
     OAuthAuthorizationCodeModel.deleteMany({ userId: { $in: fixture.userIds } }).exec(),
     OAuthRefreshTokenModel.deleteMany({ userId: { $in: fixture.userIds } }).exec(),
     OAuthRevokedAccessTokenModel.deleteMany({ tokenId: { $in: fixture.tokenIds } }).exec(),
-    WorkspaceMembershipModel.deleteMany({ workspaceId: { $in: fixture.workspaceIds } }).exec(),
-    WorkspaceModel.deleteMany({ _id: { $in: fixture.workspaceIds } }).exec(),
+    WorkspaceMembershipModel.deleteMany({
+      $or: [
+        { workspaceId: { $in: workspaceIds } },
+        { userId: { $in: fixture.userIds } },
+        { addedByUserId: { $in: fixture.userIds } },
+      ],
+    }).exec(),
+    WorkspaceModel.deleteMany({ _id: { $in: workspaceIds }, ownerUserId: { $in: fixture.userIds } }).exec(),
     UserModel.deleteMany({ _id: { $in: fixture.userIds } }).exec(),
   ]);
+}
+
+async function cleanupStaleFixtureWorkspaces() {
+  const stale = await WorkspaceModel.find({
+    name: /^P47 Live [A-Fa-f0-9 ]+ Denied Workspace$/,
+    createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+  })
+    .select({ _id: 1, ownerUserId: 1 })
+    .exec();
+  const orphaned = [];
+  for (const workspace of stale) {
+    if (!(await UserModel.exists({ _id: workspace.ownerUserId }))) orphaned.push(workspace.id);
+  }
+  if (orphaned.length === 0) return;
+  await WorkspaceMembershipModel.deleteMany({ workspaceId: { $in: orphaned } }).exec();
+  await WorkspaceModel.deleteMany({ _id: { $in: orphaned } }).exec();
+  console.log(`Removed ${orphaned.length} stale ephemeral fixture workspace(s).`);
 }
 
 function rememberTokenId(token) {
