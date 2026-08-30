@@ -1,5 +1,19 @@
 # Work Ledger
 
+## 2026-08-30T22:38:00.000Z - P47-093 sanitized Wrangler diagnostic fallback
+
+- Exact-head run `33339301424` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `a3d7ec8`. It deployed
+  Worker `13a00fa6-40e9-4597-8884-937489a00c52` and container digest
+  `sha256:8954252bbf7d639f5c714a5290a0708d719718b3c4bce0dd0a0530086d8b7308`.
+- Tail startup again returned `exit_code_1`, so no probe ran and no redaction
+  receipt was archived. The live application remains healthy; the failure is
+  isolated to opening the provider tail session.
+- Wrangler is now directed to an explicit ephemeral debug file with provider
+  sanitization enabled, color disabled, and error reporting disabled. Only an
+  allowlisted failure class or numeric provider code may leave the process; the
+  raw file is never printed or archived and is deleted in `finally`.
+
 ## 2026-08-30T22:29:50.231Z - P47-093 structured tail diagnostic correction
 
 - Exact-head run `33339042402` passed source, secret, Cloudflare, deployment,

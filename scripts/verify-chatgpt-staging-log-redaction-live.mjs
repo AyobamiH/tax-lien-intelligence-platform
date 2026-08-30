@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { spawn } from "node:child_process";
+import { readFileSync, rmSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
@@ -12,6 +13,10 @@ const payloadMarker = "p47-payload-" + randomBytes(16).toString("hex");
 const credentialMarker = "p47-credential-" + randomBytes(16).toString("hex");
 const workerName = "tax-lien-chatgpt-staging";
 const wranglerPath = resolve(process.cwd(), "node_modules/.bin/wrangler");
+const wranglerLogPath = resolve(
+  process.env.RUNNER_TEMP ?? process.cwd(),
+  "p47-wrangler-tail-diagnostic.log",
+);
 const consoleMessages = [];
 const observed = {
   gateway: 0,
@@ -39,7 +44,14 @@ const tail = spawn(
   ],
   {
     cwd: process.cwd(),
-    env: process.env,
+    env: {
+      ...process.env,
+      FORCE_COLOR: "0",
+      WRANGLER_LOG: "debug",
+      WRANGLER_LOG_PATH: wranglerLogPath,
+      WRANGLER_LOG_SANITIZE: "true",
+      WRANGLER_SEND_ERROR_REPORTS: "false",
+    },
     stdio: ["ignore", "pipe", "pipe"],
   },
 );
@@ -187,6 +199,7 @@ try {
   );
 } finally {
   await closeTail();
+  rmSync(wranglerLogPath, { force: true });
 }
 
 function consumeCompleteLines(flush = false) {
@@ -307,7 +320,16 @@ async function closeTail() {
 }
 
 function classifyTailFailure() {
-  const diagnostic = (stderrBuffer + "\n" + startupDiagnosticBuffer + "\n" + stdoutBuffer).toLowerCase();
+  let providerDebugLog = "";
+  try {
+    const fileText = readFileSync(wranglerLogPath, "utf8");
+    providerDebugLog = fileText.slice(-262_144);
+  } catch {
+    providerDebugLog = "";
+  }
+  const diagnostic = normalizeDiagnostic(
+    stderrBuffer + "\n" + startupDiagnosticBuffer + "\n" + stdoutBuffer + "\n" + providerDebugLog,
+  );
   if (
     /workers tail read|permission|not authorized|unauthorized|forbidden|authentication|invalid api token|status.?403|code.?10000/.test(
       diagnostic,
@@ -330,9 +352,26 @@ function classifyTailFailure() {
   if (/network|fetch failed|connection|timed out|timeout|api request failed/.test(diagnostic)) {
     return "provider_network_or_api";
   }
+  const providerCode = diagnostic.match(/(?:code|status)[^0-9]{0,12}([1-5][0-9]{2,4})/u);
+  if (providerCode) return "provider_api_code_" + providerCode[1];
   if (tailExit?.signal) return "signal_" + tailExit.signal.toLowerCase();
-  if (Number.isInteger(tailExit?.code)) return "exit_code_" + tailExit.code;
+  if (Number.isInteger(tailExit?.code)) {
+    return (
+      "exit_code_" +
+      tailExit.code +
+      "_debug_" +
+      (providerDebugLog.length > 0 ? "present" : "absent")
+    );
+  }
   return "unclassified";
+}
+
+function normalizeDiagnostic(value) {
+  return value
+    .normalize("NFKD")
+    .replace(/\u001b\[[0-?]*[ -/]*[@-~]/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9+_.:/-]+/gu, " ");
 }
 
 function requireCanonicalOrigin(value) {

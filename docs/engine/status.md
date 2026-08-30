@@ -152,6 +152,13 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- Exact-head run `33339301424` deployed `a3d7ec8` as Worker version
+  `13a00fa6-40e9-4597-8884-937489a00c52` with container digest
+  `sha256:8954252bbf7d639f5c714a5290a0708d719718b3c4bce0dd0a0530086d8b7308`.
+  The source gate and all 24 public/authenticated live cases passed. Tail
+  startup still returned `exit_code_1`; the next diagnostic uses Wrangler's
+  sanitized, ephemeral debug file only for allowlisted classification and
+  deletes it before exit. No redaction receipt is claimed.
 - Exact-head run `33339042402` deployed `17cd71f` as Worker version
   `ce9df7d9-4540-4947-ab71-46e519179f2c` with container digest
   `sha256:38f220a5b6239d5b3ded53eb5158bd8ca01e628e027b66393ea7a63e5e66adf6`.

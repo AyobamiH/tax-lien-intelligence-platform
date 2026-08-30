@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added a sanitized, ephemeral Wrangler debug-log fallback after exact-head
+  run `33339301424` passed all 24 live application cases but the tail process
+  still returned only `exit_code_1`. Raw provider output is never printed or
+  archived and the temporary file is deleted before exit.
+
 - Included structured, non-log Wrangler JSON objects in the bounded live-tail
   startup classifier after run `33339042402` again returned only
   `exit_code_1`. Raw provider diagnostics remain suppressed.

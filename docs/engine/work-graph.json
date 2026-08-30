@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-30T22:29:50.231Z",
+  "updatedAt": "2026-08-30T22:38:00.000Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/p47-093-chatgpt-private-staging",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
@@ -586,7 +586,8 @@
         "The governed staging source disables persistent provider invocation logs and adds an exact-head real-time-tail gate that requires both Worker and API payload-free custom events while unique payload and credential markers remain absent; live verification is pending",
         "Exact-head run 33338469468 deployed a17afd5 as Worker f7300a86-9e30-49a8-9c39-fa7f2a872b23 with container digest sha256:26da7da0922bf770ef6a4c4d4fc8c2db0e5402e2ffc5e9fec624344e7a39700e; source plus 12 public and 12 authenticated checks passed, but Wrangler tail exited before the redaction probe and no receipt was archived",
         "Exact-head run 33338765853 deployed 1b489e9 as Worker 1f5bcdd3-de99-4078-8317-d4ec395e1985 with container digest sha256:1d8a7fa702c09207c496da6ff5136acdd0a1f1ef7cd1cdbff542775d1179ee4a; all source/public/authenticated gates passed, but the first bounded tail classifier returned exit_code_1 and no redaction receipt",
-        "Exact-head run 33339042402 deployed 17cd71f as Worker ce9df7d9-4540-4947-ab71-46e519179f2c with container digest sha256:38f220a5b6239d5b3ded53eb5158bd8ca01e628e027b66393ea7a63e5e66adf6; all source/public/authenticated gates passed, but structured non-log Wrangler JSON was missing from the bounded tail classifier and no redaction receipt exists"
+        "Exact-head run 33339042402 deployed 17cd71f as Worker ce9df7d9-4540-4947-ab71-46e519179f2c with container digest sha256:38f220a5b6239d5b3ded53eb5158bd8ca01e628e027b66393ea7a63e5e66adf6; all source/public/authenticated gates passed, but structured non-log Wrangler JSON was missing from the bounded tail classifier and no redaction receipt exists",
+        "Exact-head run 33339301424 deployed a3d7ec8 as Worker 13a00fa6-40e9-4597-8884-937489a00c52 with container digest sha256:8954252bbf7d639f5c714a5290a0708d719718b3c4bce0dd0a0530086d8b7308; all source/public/authenticated gates passed, but Wrangler tail again returned exit_code_1 and no redaction receipt exists"
       ],
       "blockers": [
         "the private ChatGPT connection, approved real-data grounding and prompt-injection cases, exact-head live log-redaction receipt, and rollback/recovery receipts do not exist yet",
