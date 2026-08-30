@@ -1,6 +1,6 @@
 # Intelligence Engine Status
 
-Last updated: 2026-08-29
+Last updated: 2026-08-30
 
 ## Verified Current State
 
@@ -63,6 +63,11 @@ Last updated: 2026-08-29
   run `33253453470`, quality-gates job `99102992513`, passed every validator,
   audit, typecheck, complete tests/build, real-service smoke, real intelligence
   Mongo smoke, and the new real OAuth Mongo atomicity/revocation smoke.
+- The branch evidence record is current at `a9272bc`. GitHub Actions run
+  `33253657970`, quality-gates job `99103542844`, passed at that exact head.
+  Pull request [#1](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/1)
+  is open against `main` for review; this is integration evidence, not private
+  staging or release evidence.
 - The graph enforces ChatGPT product priority one with WIP 1. The data
   acquisition and model track is deferred pending real-user pilot evidence or
   public release.
@@ -84,7 +89,9 @@ real stable HTTPS deployment, private ChatGPT connection, live tenancy and
 load/redaction/rollback verification, and ownership decisions. The connected
 GitHub API cannot create the planned separate release repository, so the
 validated thin package remains inside this project without duplicating runtime
-logic. No deferred node becomes runnable while this product gate is active.
+logic. Pull request #1 now carries the verified source checkpoint toward
+`main`; merging it would not complete the staging node. No deferred node becomes
+runnable while this product gate is active.
 
 ## Next Graph Work
 
