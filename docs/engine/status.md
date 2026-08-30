@@ -8,6 +8,8 @@ Last updated: 2026-08-30
   `AyobamiH/tax-lien-intelligence-platform`.
 - Active branch: `feature/p47-093-chatgpt-private-staging`.
 - Starting main commit: `50dae44f797af6b1c99f8bc4044c5965f2f36381`.
+- Verified private-staging source checkpoint:
+  `eed50b6ac9f08cc99825cbeff33715ea2722100a`.
 - Baseline recovery is published at `ba1b0cb`.
 - Graph governance is published at `f236b72`.
 - `P47-020-contracts` adds the versioned `CandidateEvidenceV1` and
@@ -79,8 +81,14 @@ Last updated: 2026-08-30
   staging-only manual deployment workflow, secret-name preflight, and a
   rollback procedure.
 - Local staging verification passed the source validator, Cloudflare TypeScript
-  build, Python supervisor compilation, and 11 focused readiness, redaction,
-  and gateway-policy tests. No live Cloudflare or Mongo receipt is claimed.
+  build, Python supervisor compilation, 13 focused readiness, redaction, and
+  gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.
+- Pull request [#2](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/2)
+  is open. Exact-head GitHub Actions run `33329355584`, quality-gates job
+  `99305018587`, passed every validator, audit, typecheck, complete tests and
+  builds, real-process intelligence smoke, real Mongo intelligence persistence
+  smoke, and real Mongo OAuth atomicity/revocation smoke. No live Cloudflare or
+  Mongo deployment receipt is claimed.
 - The graph enforces ChatGPT product priority one with WIP 1. The data
   acquisition and model track is deferred pending real-user pilot evidence or
   public release.

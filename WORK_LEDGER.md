@@ -1,5 +1,26 @@
 # Work Ledger
 
+## 2026-08-30T18:57:36Z - P47-093 source checkpoint and exact-head CI
+
+- Published the source tree to
+  `feature/p47-093-chatgpt-private-staging@eed50b6ac9f08cc99825cbeff33715ea2722100a`.
+- Opened pull request
+  [#2](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/2)
+  against `main@50dae44f797af6b1c99f8bc4044c5965f2f36381`.
+- Exact-head GitHub Actions run `33329355584`, quality-gates job
+  `99305018587`, completed successfully. It passed all four validators,
+  zero-vulnerability audit, typecheck, complete Python and Vitest suites,
+  complete builds, real-process intelligence smoke, real Mongo intelligence
+  persistence smoke, and real Mongo OAuth atomicity/revocation smoke.
+- Static change-safety review found no credential pattern, database migration,
+  automatic deployment trigger, new mutation route, or public product action.
+  The only new API route is `/readyz`; public staging ingress remains the
+  explicit closed allowlist.
+- The release package now pins the verified implementation checkpoint while
+  retaining `source_only`, null connection URLs, and null live receipts.
+- `P47-093` remains the only in-progress graph node. This remote CI is source
+  proof, not Cloudflare deployment or private ChatGPT connection proof.
+
 ## 2026-08-30T18:33:53Z - P47-093 private-staging deployment boundary
 
 - Controlling task: continue only `P47-093-chatgpt-private-staging` from the

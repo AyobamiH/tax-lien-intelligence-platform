@@ -13,6 +13,10 @@
 - Added `npm run validate:chatgpt-staging` and focused readiness, redaction, and
   gateway-policy tests. These are source checks, not a live endpoint, paid-plan,
   Mongo, ChatGPT connection, load, log, or rollback receipt.
+- Published the private-staging source checkpoint at `eed50b6`, opened pull
+  request #2, and passed exact-head GitHub Actions run `33329355584` including
+  the real intelligence and OAuth Mongo smokes. Live connection fields and
+  receipts remain deliberately null.
 - Reconciled repository truth after pull request #1 merged at `main@50dae44`
   and GitHub Actions run `33309185096` passed its complete quality-gates job.
 - Opened pull request #1 to integrate the verified Phase 47 engine, evidence,

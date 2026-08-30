@@ -5,7 +5,7 @@
   "systemOfRecord": {
     "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
     "branch": "feature/p47-093-chatgpt-private-staging",
-    "engineRevision": "50dae44f797af6b1c99f8bc4044c5965f2f36381",
+    "engineRevision": "eed50b6ac9f08cc99825cbeff33715ea2722100a",
     "mcpContractVersion": "1.0.0"
   },
   "connection": {
