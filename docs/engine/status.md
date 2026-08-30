@@ -131,6 +131,11 @@ Last updated: 2026-08-30
   views, cross-workspace denial, and the exact six read-only deployed tools.
   Its receipt excludes fixture identifiers and all credentials, codes, tokens,
   response bodies, prompts, and evidence payloads.
+- First authenticated-gate run `33337074423` passed deployment and the public
+  live boundary but failed closed because the verifier's error reporter
+  referenced a class before initialization. No authenticated receipt is
+  claimed. The reporter is repaired without changing any security assertion or
+  the `finally` cleanup path, pending an exact-head rerun.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.

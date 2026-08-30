@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Repaired the authenticated live verifier's failure reporter after run
+  `33337074423` exposed an initialization-order `ReferenceError`. The exact
+  OAuth, tenancy, tool, receipt, and fixture-cleanup assertions are unchanged;
+  the failed run produced no authenticated receipt.
 - Added a real post-deploy authenticated OAuth/MCP verifier. Its unique
   ephemeral test fixture covers PKCE, code replay, refresh rotation/replay,
   revocation, expiry, owner/admin/member/denied roles, cross-workspace denial,

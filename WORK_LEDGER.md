@@ -1,5 +1,17 @@
 # Work Ledger
 
+## 2026-08-30T21:45:00Z - P47-093 authenticated verifier error reporting repair
+
+- Exact-head run `33337074423` deployed revision `773fec3`, passed the public
+  live boundary, then failed closed in the new authenticated step. No
+  authenticated receipt was archived.
+- The verifier's catch path referenced a class before top-level initialization,
+  masking the bounded verification error with a `ReferenceError`. Replaced the
+  temporal-dead-zone-prone class check with an explicitly named ordinary
+  `Error`; all security assertions and `finally` fixture cleanup are unchanged.
+- The deployed service remains healthy, but this failed run is not accepted as
+  OAuth, tenancy, tool-inventory, or cleanup evidence.
+
 ## 2026-08-30T21:40:00Z - P47-093 authenticated live-verification harness
 
 - Added a post-deploy authenticated verifier that uses only the existing

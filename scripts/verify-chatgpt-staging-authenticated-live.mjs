@@ -199,7 +199,11 @@ try {
   await writeFile(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
   console.log(`Authenticated live staging verification passed: ${checks.length} checks; ephemeral fixture removed.`);
 } catch (error) {
-  console.error(error instanceof VerificationError ? error.message : "Authenticated live staging verification failed safely.");
+  console.error(
+    error instanceof Error && error.name === "AuthenticatedLiveVerificationError"
+      ? error.message
+      : "Authenticated live staging verification failed safely.",
+  );
   process.exitCode = 1;
 } finally {
   await cleanupFixture();
@@ -381,11 +385,9 @@ function requireCanonicalOrigin(value) {
 }
 
 function assert(condition, message) {
-  if (!condition) throw new VerificationError(message);
-}
-
-class VerificationError extends Error {
-  constructor(message) {
-    super(`Authenticated live staging verification failed: ${message}`);
+  if (!condition) {
+    const error = new Error(`Authenticated live staging verification failed: ${message}`);
+    error.name = "AuthenticatedLiveVerificationError";
+    throw error;
   }
 }
