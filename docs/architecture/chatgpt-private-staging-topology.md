@@ -65,8 +65,10 @@ The Worker passes only these secret-name bindings into the container:
 - `MCP_OAUTH_SIGNING_SECRET`.
 
 Secret values are never stored in repository files or receipts. The exact
-staging origin is injected as a binding so OAuth issuer, MCP resource, and app
-links cannot drift from the deployed URL. Preflight lists secret names only.
+staging origin is derived from the authorized account's workers.dev subdomain
+and injected as a binding so OAuth issuer, MCP resource, and app links cannot
+drift from the deployed URL. GitHub environment references flow to Wrangler
+over stdin; no secret file is created, and preflight lists secret names only.
 
 ## Observability And Rollback
 

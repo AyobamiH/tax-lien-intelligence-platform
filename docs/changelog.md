@@ -17,6 +17,10 @@
   request #2, and passed exact-head GitHub Actions run `33329355584` including
   the real intelligence and OAuth Mongo smokes. Live connection fields and
   receipts remain deliberately null.
+- Added a feature-branch-safe deployment bootstrap: ordinary pushes skip the
+  deploy job, the exact `[deploy-private-staging]` commit marker enables it,
+  and six GitHub environment secret references derive and install the five
+  required Worker bindings over stdin without logging their values.
 - Reconciled repository truth after pull request #1 merged at `main@50dae44`
   and GitHub Actions run `33309185096` passed its complete quality-gates job.
 - Opened pull request #1 to integrate the verified Phase 47 engine, evidence,

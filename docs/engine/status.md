@@ -80,6 +80,10 @@ Last updated: 2026-08-30
   readiness, payload-free operational telemetry, SIGTERM supervision, a
   staging-only manual deployment workflow, secret-name preflight, and a
   rollback procedure.
+- Feature-branch deployment is inert on ordinary pushes. The exact
+  `[deploy-private-staging]` commit marker enables the deploy job, which derives
+  the authorized workers.dev origin and synchronizes five Worker bindings from
+  six GitHub environment secret references over stdin.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.

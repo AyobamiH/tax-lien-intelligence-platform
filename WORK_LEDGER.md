@@ -1,5 +1,29 @@
 # Work Ledger
 
+## 2026-08-30T19:10:00Z - P47-093 non-interactive staging bootstrap
+
+- Closed the feature-branch dispatch gap without enabling deployment on an
+  ordinary push. The staging workflow deploy job now requires either
+  `workflow_dispatch` or the exact `[deploy-private-staging]` commit marker on
+  the bounded feature branch.
+- Added a non-interactive secret synchronization step. It consumes six GitHub
+  `chatgpt-staging` environment secret references, resolves the authorized
+  workers.dev subdomain, derives the canonical staging origin, and passes five
+  Worker bindings to `wrangler secret bulk` over stdin.
+- No secret value is written to a file or emitted by the synchronization
+  script. Missing inputs and provider failures report only bounded error
+  classes or secret names.
+- Wrangler configuration now declares the five required runtime secret names,
+  and the staging validator checks the GitHub references, synchronization,
+  declaration, preflight, and exact deployment marker together.
+- Verification passed the work-graph and staging validators, repository
+  typecheck, Cloudflare workspace build, Wrangler schema support check, diff
+  whitespace check, and a missing-input failure check that emitted names only
+  and no credential-shaped value.
+- `P47-093` remains in progress. This is deployment-bootstrap source, not a
+  Cloudflare account, paid entitlement, Mongo service, deployment, or ChatGPT
+  connection receipt.
+
 ## 2026-08-30T18:57:36Z - P47-093 source checkpoint and exact-head CI
 
 - Published the source tree to

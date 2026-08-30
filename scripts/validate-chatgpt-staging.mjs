@@ -7,13 +7,17 @@ const workerPath = resolve(root, "infra/cloudflare/src/index.ts");
 const policyPath = resolve(root, "infra/cloudflare/src/gateway-policy.ts");
 const dockerfilePath = resolve(root, "Dockerfile.staging");
 const preflightPath = resolve(root, "infra/cloudflare/scripts/preflight.mjs");
+const secretSyncPath = resolve(root, "infra/cloudflare/scripts/sync-secrets.mjs");
+const workflowPath = resolve(root, ".github/workflows/chatgpt-staging.yml");
 
-const [configSource, workerSource, policySource, dockerfile, preflight] = await Promise.all([
+const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow] = await Promise.all([
   readFile(configPath, "utf8"),
   readFile(workerPath, "utf8"),
   readFile(policyPath, "utf8"),
   readFile(dockerfilePath, "utf8"),
   readFile(preflightPath, "utf8"),
+  readFile(secretSyncPath, "utf8"),
+  readFile(workflowPath, "utf8"),
 ]);
 
 const config = JSON.parse(configSource);
@@ -36,9 +40,30 @@ const requiredSecrets = [
   "MCP_OAUTH_SIGNING_SECRET",
 ];
 for (const name of requiredSecrets) {
-  if (!workerSource.includes(`env.${name}`) || !preflight.includes(`\"${name}\"`)) {
+  if (
+    !workerSource.includes(`env.${name}`) ||
+    !preflight.includes(`\"${name}\"`) ||
+    !config.secrets?.required?.includes(name) ||
+    !secretSync.includes(name)
+  ) {
     errors.push(`${name} must be injected by secret reference and checked before deployment.`);
   }
+}
+
+for (const name of [
+  "CLOUDFLARE_API_TOKEN",
+  "CLOUDFLARE_ACCOUNT_ID",
+  "MONGODB_URI",
+  "JWT_SECRET",
+  "INTELLIGENCE_SERVICE_TOKEN",
+  "MCP_OAUTH_SIGNING_SECRET",
+]) {
+  if (!workflow.includes(`secrets.${name}`)) {
+    errors.push(`The staging workflow must consume ${name} only as a GitHub environment secret reference.`);
+  }
+}
+if (!workflow.includes("[deploy-private-staging]")) {
+  errors.push("Feature-branch staging deployment must require the exact reviewed commit marker.");
 }
 
 for (const forbidden of ["mongodb://localhost", "mongo:7", "mongo:8", "redemptionProbability"]) {

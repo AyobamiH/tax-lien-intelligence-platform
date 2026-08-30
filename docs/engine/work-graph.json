@@ -272,7 +272,8 @@
         "Local staging checks passed the new source validator, Cloudflare TypeScript build, Python supervisor compilation, and 13 focused health, redaction, and ingress-policy tests",
         "Complete local gates passed 10 Python tests, 332 Vitest tests across 51 files, the full workspace build, local API/web smoke, 6 browser-like tests, 9 real-process intelligence-service tests, and dependency audit with 0 vulnerabilities",
         "Private-staging source checkpoint eed50b6ac9f08cc99825cbeff33715ea2722100a is published in pull request 2 at https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/2",
-        "Exact-head GitHub Actions run 33329355584 and quality-gates job 99305018587 passed all validators, audit, typecheck, complete tests/builds, real-process intelligence smoke, real Mongo intelligence persistence smoke, and real Mongo OAuth atomicity/revocation smoke"
+        "Exact-head GitHub Actions run 33329355584 and quality-gates job 99305018587 passed all validators, audit, typecheck, complete tests/builds, real-process intelligence smoke, real Mongo intelligence persistence smoke, and real Mongo OAuth atomicity/revocation smoke",
+        "Feature-branch deployment bootstrap requires the exact [deploy-private-staging] commit marker, derives the authorized workers.dev origin, and synchronizes five Worker bindings from six GitHub environment secret references without a repository secret file"
       ],
       "blockers": [
         "no connected Cloudflare account, existing Workers Paid entitlement, authorized workers.dev origin, deployment credential, or required Worker secret-name inventory is visible in the current execution environment",

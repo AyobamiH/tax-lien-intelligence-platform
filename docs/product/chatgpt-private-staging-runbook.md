@@ -35,10 +35,19 @@ Record these in the work ledger before deployment:
 
 ## Build and configure
 
-1. Confirm GitHub environment `chatgpt-staging` contains the secret names
-   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Do not print values.
-2. In the Cloudflare Worker secret manager, create or verify these exact
-   bindings without copying their values into logs or repository files:
+1. Confirm GitHub environment `chatgpt-staging` contains these secret names.
+   Do not print values:
+
+   - `CLOUDFLARE_API_TOKEN`;
+   - `CLOUDFLARE_ACCOUNT_ID`;
+   - `MONGODB_URI`;
+   - `JWT_SECRET`;
+   - `INTELLIGENCE_SERVICE_TOKEN`;
+   - `MCP_OAUTH_SIGNING_SECRET`.
+
+2. The workflow resolves the authorized workers.dev subdomain and synchronizes
+   these exact Worker bindings over Wrangler stdin without writing a secret
+   file or printing a value:
 
    - `STAGING_ORIGIN`;
    - `MONGODB_URI`;
@@ -46,8 +55,9 @@ Record these in the work ledger before deployment:
    - `INTELLIGENCE_SERVICE_TOKEN`;
    - `MCP_OAUTH_SIGNING_SECRET`.
 
-3. Set `STAGING_ORIGIN` to the exact origin only. The source derives the MCP
-   resource as that origin plus `/mcp` and rejects preview or mismatched hosts.
+3. `STAGING_ORIGIN` is derived as the exact named Worker origin. The source
+   derives the MCP resource as that origin plus `/mcp` and rejects preview or
+   mismatched hosts.
 4. Run the source and authority preflight:
 
    ```bash
@@ -56,10 +66,13 @@ Record these in the work ledger before deployment:
    npm run preflight -w @tax-lien/cloudflare-staging
    ```
 
-5. Dispatch `.github/workflows/chatgpt-staging.yml` at the exact verified
-   feature commit, or run `npm run deploy -w @tax-lien/cloudflare-staging` from
-   an authenticated machine with Docker. Deployment is staging-only and the
-   gateway intentionally exposes no ordinary mutation routes.
+5. Dispatch `.github/workflows/chatgpt-staging.yml` when it is available on the
+   default branch, or push a reviewed commit to the bounded feature branch
+   whose message contains exactly `[deploy-private-staging]`. Ordinary feature
+   pushes create no deployment job. An authenticated local operator with
+   Docker may instead run `npm run deploy -w @tax-lien/cloudflare-staging`.
+   Deployment is staging-only and the gateway intentionally exposes no
+   ordinary mutation routes.
 
 Then complete the application checks below:
 
