@@ -1,5 +1,19 @@
 # Work Ledger
 
+## 2026-08-30T23:08:00.000Z - P47-093 observability key-shape diagnostic
+
+- Exact-head run `33340616895` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `d381a84`, deploying
+  Worker `c9c4387b-74e9-45bb-a0e5-d01d420b682f` and container digest
+  `sha256:e0fa0ec21fe245c71d9bd4cd7c654cdccb187c96b661c82472f7c4bb5f8440ee`.
+- Worker tail again observed the gateway proof. The existing API token
+  successfully queried Workers Observability and found a matching container
+  application event, proving no new Cloudflare permission is required.
+- The event failed closed on exact key shape because the persisted provider
+  representation differs from the in-process event. The next run reports only
+  sanitized key names on mismatch; it never emits values, raw source, metadata,
+  request content, credentials, or markers. No receipt was archived.
+
 ## 2026-08-30T23:01:00.000Z - P47-093 container observability query source
 
 - Exact-head run `33340248905` passed source, secret, Cloudflare, deployment,

@@ -359,7 +359,16 @@ function parseOperationalEvent(message) {
 function assertExactKeys(value, expected, errorCode) {
   const actual = Object.keys(value).sort();
   const required = [...expected].sort();
-  assert(JSON.stringify(actual) === JSON.stringify(required), errorCode);
+  if (JSON.stringify(actual) === JSON.stringify(required)) return;
+  const safeKeys = actual.map((key) =>
+    /^[a-zA-Z0-9_$-]{1,64}$/u.test(key) ? key : "nonstandard",
+  );
+  throw new Error(
+    "Live staging log-redaction verification failed: " +
+      errorCode +
+      ":keys_" +
+      safeKeys.join("_"),
+  );
 }
 
 async function waitForGatewayLogs(timeoutMs) {

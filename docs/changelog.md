@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Added key-name-only diagnostics for persisted application log-shape drift
+  after run `33340616895` proved the existing Cloudflare token can query
+  Workers Observability and locate the real container event. Values and raw
+  events remain suppressed.
+
 - Split the live redaction proof across Cloudflare's actual telemetry
   surfaces after run `33340248905`: Worker real-time tail verifies gateway
   events, while the Workers Observability query API verifies persisted

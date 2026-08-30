@@ -152,6 +152,12 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- Exact-head run `33340616895` deployed `d381a84` as Worker version
+  `c9c4387b-74e9-45bb-a0e5-d01d420b682f` with container digest
+  `sha256:e0fa0ec21fe245c71d9bd4cd7c654cdccb187c96b661c82472f7c4bb5f8440ee`.
+  Source and all 24 application cases passed. The existing token successfully
+  queried Workers Observability and found the application event, then failed
+  closed on provider key-shape drift. No redaction receipt is claimed.
 - Exact-head run `33340248905` deployed `ed85a44` as Worker version
   `81e2777f-08e5-43b6-a222-0fa4229894e6` with container digest
   `sha256:237c21a51d304e6a20a892a2019a90c5ec160af909586c5833399617622204ac`.
