@@ -19,6 +19,8 @@ const wranglerLogPath = resolve(
 );
 const consoleMessages = [];
 const observed = {
+  providerEvents: 0,
+  consoleEntries: 0,
   gateway: 0,
   application: 0,
 };
@@ -47,7 +49,7 @@ const tail = spawn(
     env: {
       ...process.env,
       FORCE_COLOR: "0",
-      WRANGLER_LOG: "debug",
+      WRANGLER_LOG: "none",
       WRANGLER_LOG_PATH: wranglerLogPath,
       WRANGLER_LOG_SANITIZE: "true",
       WRANGLER_SEND_ERROR_REPORTS: "false",
@@ -70,7 +72,7 @@ tail.stdout.on("data", (chunk) => {
     return;
   }
   stdoutBuffer += chunk.toString("utf8");
-  consumeCompleteLines();
+  consumeAvailableJsonObjects();
 });
 tail.stderr.on("data", (chunk) => {
   stderrBytes += chunk.byteLength;
@@ -122,7 +124,7 @@ try {
   }
 
   await waitForRequiredLogs(45_000);
-  consumeCompleteLines(true);
+  consumeAvailableJsonObjects(true);
   assert(!captureFailure, captureFailure ?? "tail_capture_failed");
   assert(observed.gateway > 0, "gateway_log_not_observed");
   assert(observed.application > 0, "application_log_not_observed");
@@ -159,6 +161,8 @@ try {
       samplingRate: 0.99,
       probeRoute: "mcp",
       probeRequestCount: 3,
+      providerEventsObserved: observed.providerEvents,
+      consoleEntriesObserved: observed.consoleEntries,
       gatewayEventsObserved: observed.gateway,
       applicationEventsObserved: observed.application,
       rawProviderEnvelopeStored: false,
@@ -202,19 +206,39 @@ try {
   rmSync(wranglerLogPath, { force: true });
 }
 
-function consumeCompleteLines(flush = false) {
-  const lines = stdoutBuffer.split(/\r?\n/u);
-  stdoutBuffer = flush ? "" : (lines.pop() ?? "");
-  for (const line of lines) {
-    const event = parseJsonLine(line);
-    if (!event) {
-      startupDiagnosticBuffer += line + "\n";
+function consumeAvailableJsonObjects(flush = false) {
+  while (stdoutBuffer.length > 0) {
+    const start = stdoutBuffer.indexOf("{");
+    if (start < 0) {
+      if (flush) {
+        startupDiagnosticBuffer += stdoutBuffer;
+        stdoutBuffer = "";
+      }
+      return;
+    }
+    if (start > 0) {
+      startupDiagnosticBuffer += stdoutBuffer.slice(0, start);
+      stdoutBuffer = stdoutBuffer.slice(start);
+    }
+
+    const end = findJsonObjectEnd(stdoutBuffer);
+    if (end < 0) {
+      if (flush) {
+        startupDiagnosticBuffer += stdoutBuffer;
+        stdoutBuffer = "";
+      }
+      return;
+    }
+
+    const serialized = stdoutBuffer.slice(0, end + 1);
+    stdoutBuffer = stdoutBuffer.slice(end + 1);
+    const event = parseJsonObject(serialized);
+    if (!event || !Array.isArray(event.logs)) {
+      startupDiagnosticBuffer += serialized + "\n";
       continue;
     }
-    if (!Array.isArray(event.logs)) {
-      startupDiagnosticBuffer += JSON.stringify(event) + "\n";
-      continue;
-    }
+
+    observed.providerEvents += 1;
     for (const entry of event.logs) {
       const parts = Array.isArray(entry?.message)
         ? entry.message
@@ -223,6 +247,7 @@ function consumeCompleteLines(flush = false) {
           : [];
       for (const part of parts) {
         if (typeof part !== "string") continue;
+        observed.consoleEntries += 1;
         consoleMessages.push(part);
         const operational = parseOperationalEvent(part);
         if (!operational) continue;
@@ -269,11 +294,37 @@ function consumeCompleteLines(flush = false) {
   }
 }
 
-function parseJsonLine(line) {
-  const trimmed = line.trim();
-  if (!trimmed.startsWith("{")) return null;
+function findJsonObjectEnd(value) {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (character === "\\") {
+        escaped = true;
+      } else if (character === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (character === '"') {
+      inString = true;
+    } else if (character === "{") {
+      depth += 1;
+    } else if (character === "}") {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  return -1;
+}
+
+function parseJsonObject(value) {
   try {
-    return JSON.parse(trimmed);
+    return JSON.parse(value);
   } catch {
     return null;
   }
@@ -306,7 +357,17 @@ async function waitForRequiredLogs(timeoutMs) {
     if (observed.gateway > 0 && observed.application > 0) return;
     await delay(500);
   }
-  throw new Error("Live staging log-redaction verification failed: required_operational_logs_not_observed");
+  throw new Error(
+    "Live staging log-redaction verification failed: required_operational_logs_not_observed" +
+      ":provider_" +
+      observed.providerEvents +
+      ":console_" +
+      observed.consoleEntries +
+      ":gateway_" +
+      observed.gateway +
+      ":application_" +
+      observed.application,
+  );
 }
 
 async function closeTail() {

@@ -152,6 +152,12 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- Exact-head run `33339888358` deployed `c52bbdf` as Worker version
+  `a5e83918-e6c3-4ea6-a5c4-d1164ad3816d` with container digest
+  `sha256:030a8f2294ac7c1c558317c64c31966aac7e8335be2fceed07fed08c62e6d95e`.
+  Source and all 24 live application cases passed; the tail session remained
+  open and the probes ran, but the line-oriented parser did not recognize
+  Wrangler's pretty multi-line JSON events. No redaction receipt is claimed.
 - Exact-head run `33339651921` deployed `71cfa4d` as Worker version
   `35807be0-4fb6-4ed7-8c12-8428bf66774f` with container digest
   `sha256:370d813eb110094b75f53abc3c67237526d90c882e34f0b05d84c33466c6ffbb`.

@@ -1,5 +1,20 @@
 # Work Ledger
 
+## 2026-08-30T22:51:00.000Z - P47-093 multi-line tail event parser
+
+- Exact-head run `33339888358` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `c52bbdf`, deploying
+  Worker `a5e83918-e6c3-4ea6-a5c4-d1164ad3816d` and container digest
+  `sha256:030a8f2294ac7c1c558317c64c31966aac7e8335be2fceed07fed08c62e6d95e`.
+- The corrected tail session stayed open and all three controlled probes
+  returned fail-closed `401`, but the verifier timed out without recognized
+  events. No raw tail output or redaction receipt was stored.
+- Wrangler's current official logger serializes JSON tail events with
+  four-space indentation. Replaced the one-line assumption with a bounded
+  brace/string-aware streaming JSON-object parser. Any future miss exposes
+  only provider-event, console-entry, gateway-event, and application-event
+  counts.
+
 ## 2026-08-30T22:43:00.000Z - P47-093 tail sampling correction
 
 - Exact-head run `33339651921` passed source, secret, Cloudflare, deployment,

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Replaced the live-tail line parser with a bounded streaming JSON-object
+  parser after run `33339888358` proved current Wrangler emits pretty,
+  multi-line JSON. Failure diagnostics now expose only aggregate event counts.
+
 - Corrected the live Wrangler tail sampling fraction to `0.99` after
   sanitized exact-head diagnostics classified run `33339651921` as
   `argument_rejected`; no Cloudflare permission change is required.
