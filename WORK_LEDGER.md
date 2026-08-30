@@ -1,5 +1,28 @@
 # Work Ledger
 
+## 2026-08-30T21:33:51Z - P47-093 governed redeployment and rate-limit receipt
+
+- Published the live verifier, preview-URL hardening, and deployment provenance
+  at `c103001`, then triggered exact-head staging revision
+  `aca4081724969094dcdf5b50d4cf1e600febc1c2`.
+- Workflow run `33336257365` attempt 1 failed closed before deployment when one
+  process-contract test hit a transient client `EPIPE` while sending an
+  intentionally oversized body. The same unchanged job was rerun; attempt 2
+  passed all 332 Vitest and 10 Python tests, validators, typecheck, builds,
+  secret synchronization, preflight, deployment, live verification, and
+  receipt archival. No gate was weakened.
+- The current deployment is Worker version
+  `0b6656c5-4535-4552-9f8a-37a3fc19cef2` with container image digest
+  `sha256:32ea2bc7adde03a36919abb98cc3ab1aad7ea4097bef1b22ec55c6011e4188a5`.
+  Preview URLs are disabled.
+- A bounded 100-request OAuth load check produced 30 handled validation
+  responses and 70 `429` responses; `/healthz` still returned `200` after the
+  burst. No credential, token, user, prompt, or evidence payload was used or
+  stored.
+- The exact-head sanitized repository receipt now pins the workflow attempt,
+  Worker version, container digest, workflow-artifact digest, 12 public-boundary
+  assertions, and the bounded rate-limit check.
+
 ## 2026-08-30T21:15:24Z - P47-093 live HTTPS boundary verification
 
 - Exact-head deployment run `33335437008` completed successfully at

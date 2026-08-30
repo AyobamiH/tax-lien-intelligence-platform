@@ -115,6 +115,15 @@ Last updated: 2026-08-30
 - Future staging deployments now disable preview URLs, run the same exact-origin
   live verifier after deployment, and archive its sanitized receipt before the
   workflow can pass.
+- Governed redeployment run `33336257365` attempt 2 passed at exact head
+  `aca4081724969094dcdf5b50d4cf1e600febc1c2`, deploying Worker version
+  `0b6656c5-4535-4552-9f8a-37a3fc19cef2` and container image digest
+  `sha256:32ea2bc7adde03a36919abb98cc3ab1aad7ea4097bef1b22ec55c6011e4188a5`.
+  Its workflow-archived and repository-normalized receipts match that head.
+- A bounded 100-request OAuth load probe returned 70 `429` responses after 30
+  handled validation responses, while `/healthz` remained `200`. This proves
+  the deployed ingress/application throttling path without using credentials
+  or tokens.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.

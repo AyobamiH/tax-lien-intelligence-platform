@@ -13,6 +13,10 @@
 - Disabled Worker preview URLs and made every future staging deployment verify
   the derived exact origin and archive a sanitized receipt before its workflow
   can pass.
+- Redeployed the governed boundary at exact revision `aca4081`. Workflow run
+  `33336257365` attempt 2 passed every source and live gate, archived the exact
+  receipt, and a bounded 100-request OAuth probe verified `429` throttling while
+  health remained available.
 - Added a bounded Cloudflare private-staging deployment boundary: one Worker,
   one supervised Node/Python Container instance, external managed MongoDB,
   exact-origin and route allowlists, ingress body limits, edge rate-limit
