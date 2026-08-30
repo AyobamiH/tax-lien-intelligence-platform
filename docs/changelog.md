@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Opened pull request #1 to integrate the verified Phase 47 engine, evidence,
+  MCP, and OAuth source checkpoints into `main`. Exact feature head `a9272bc`
+  passed GitHub Actions run `33253657970`; the PR does not represent a deployed
+  or connected private ChatGPT staging product.
 - Added a real ChatGPT OAuth 2.1 boundary with protected-resource and
   authorization-server discovery, explicit consent/denial, exact client,
   redirect, resource, and scope checks, mandatory PKCE S256, short-lived MCP
