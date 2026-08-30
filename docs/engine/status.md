@@ -96,6 +96,11 @@ Last updated: 2026-08-30
   before deployment because Wrangler `4.127.1` no longer accepts
   `secret list --json`. The source now uses `--format=json`, with a validator
   guard; no endpoint is claimed from the failed run.
+- Repaired exact-head run `33335163254` passed that preflight and reached the
+  real Cloudflare container build, then failed closed because the Node-only
+  build stage invoked Python. The Dockerfile now builds Node workspaces in the
+  Node stage and validates Python source in the final Python stage. The failed
+  run created no endpoint.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.
