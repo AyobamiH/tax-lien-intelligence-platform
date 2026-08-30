@@ -26,6 +26,10 @@
   egress access-list rule, and confirmed all six required GitHub environment
   secret names without reading or storing their values. This is prerequisite
   evidence, not a deployment or ChatGPT connection receipt.
+- Repaired the first live deployment failure after exact-head run `33334912896`
+  passed source gates and secret synchronization but failed closed on
+  Wrangler's obsolete `secret list --json` option. Preflight now uses the
+  supported `--format=json` flag, enforced by the source validator.
 - Reconciled repository truth after pull request #1 merged at `main@50dae44`
   and GitHub Actions run `33309185096` passed its complete quality-gates job.
 - Opened pull request #1 to integrate the verified Phase 47 engine, evidence,
