@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Added an exact-head Cloudflare log-redaction gate for private staging. It
+  verifies the deployed Worker and API custom logs against unique payload and
+  credential markers, stores only a sanitized pass receipt, and disables
+  persistent provider invocation logs while retaining unsampled payload-free
+  operational events. Live verification remains pending.
+
 - Passed the real authenticated staging boundary at exact revision `60d3cca`:
   12 public checks, 12 OAuth/role/tenant/tool checks, fixture cleanup, receipt
   archival, and a bounded 100-request rate-limit probe. The product package now

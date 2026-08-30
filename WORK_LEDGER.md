@@ -1,5 +1,22 @@
 # Work Ledger
 
+## 2026-08-30T22:11:24.038Z - P47-093 live log-redaction verification source
+
+- Added a governed post-deploy verifier that tails the real Cloudflare Worker,
+  sends three fail-closed MCP probes with unique payload and credential
+  markers, and requires both the gateway and API payload-free operational
+  events with exact allowlisted fields.
+- The verifier keeps the raw provider envelope and console messages in bounded
+  process memory only. It archives no marker, header, body, response, user,
+  credential, token, email, or evidence payload.
+- Disabled persistent Cloudflare invocation logs for this private staging
+  Worker because those provider-generated records include request/response
+  metadata. Unsampled custom operational events remain enabled.
+- The workflow, staging validator, package command, runbook, status, graph, and
+  changelog are updated together. Exact-head deployment verification and a
+  sanitized receipt are pending; no live redaction claim is made by this
+  source checkpoint.
+
 ## 2026-08-30T21:59:00Z - P47-093 authenticated live boundary passed
 
 - Exact-head staging run `33337608603` completed successfully at

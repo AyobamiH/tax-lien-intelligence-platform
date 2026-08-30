@@ -11,8 +11,9 @@ const secretSyncPath = resolve(root, "infra/cloudflare/scripts/sync-secrets.mjs"
 const workflowPath = resolve(root, ".github/workflows/chatgpt-staging.yml");
 const liveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-live.mjs");
 const authenticatedLiveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-authenticated-live.mjs");
+const logRedactionLiveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-log-redaction-live.mjs");
 
-const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow, liveVerifier, authenticatedLiveVerifier] = await Promise.all([
+const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow, liveVerifier, authenticatedLiveVerifier, logRedactionLiveVerifier] = await Promise.all([
   readFile(configPath, "utf8"),
   readFile(workerPath, "utf8"),
   readFile(policyPath, "utf8"),
@@ -22,6 +23,7 @@ const [configSource, workerSource, policySource, dockerfile, preflight, secretSy
   readFile(workflowPath, "utf8"),
   readFile(liveVerifierPath, "utf8"),
   readFile(authenticatedLiveVerifierPath, "utf8"),
+  readFile(logRedactionLiveVerifierPath, "utf8"),
 ]);
 
 const config = JSON.parse(configSource);
@@ -32,6 +34,10 @@ if (config.workers_dev !== true) errors.push("The bounded workers.dev HTTPS orig
 if (config.preview_urls !== false) errors.push("Unstable Worker preview URLs must remain disabled.");
 if (config.routes !== undefined) errors.push("Custom/public routes require a separately reviewed domain decision.");
 if (config.observability?.enabled !== true) errors.push("Workers observability must remain enabled.");
+if (config.observability?.head_sampling_rate !== 1) errors.push("Private-staging operational logs must remain unsampled.");
+if (config.observability?.logs?.invocation_logs !== false) {
+  errors.push("Default provider invocation logs must remain disabled; use only the payload-free custom events.");
+}
 if (config.containers?.length !== 1) errors.push("Private staging must use exactly one container definition.");
 if (config.containers?.[0]?.max_instances !== 1) {
   errors.push("Private staging must remain single-instance until shared application limits are adopted.");
@@ -88,6 +94,7 @@ if (!workflow.includes("[deploy-private-staging]")) {
 if (
   !workflow.includes("npm run verify:chatgpt-staging:live") ||
   !workflow.includes("npm run verify:chatgpt-staging:authenticated-live") ||
+  !workflow.includes("npm run verify:chatgpt-staging:log-redaction-live") ||
   !workflow.includes("actions/upload-artifact@v4") ||
   !secretSync.includes("staging_origin=")
 ) {
@@ -108,6 +115,20 @@ for (const authenticatedRequirement of [
 ]) {
   if (!authenticatedLiveVerifier.includes(authenticatedRequirement)) {
     errors.push(`Authenticated live verifier is missing required assertion: ${authenticatedRequirement}.`);
+  }
+}
+
+for (const logRequirement of [
+  "cloudflare_workers_realtime_tail",
+  "gateway_payload_free_shape",
+  "application_payload_free_shape",
+  "payload_marker_absent",
+  "credential_marker_absent",
+  "rawProviderEnvelopeStored: false",
+  "consoleMessagesStored: false",
+]) {
+  if (!logRedactionLiveVerifier.includes(logRequirement)) {
+    errors.push(`Live log-redaction verifier is missing required assertion: ${logRequirement}.`);
   }
 }
 

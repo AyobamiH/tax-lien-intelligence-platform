@@ -152,6 +152,11 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- The staging source now disables persistent provider invocation logs and adds
+  an exact-head real-time-tail gate. The gate must observe both Worker and API
+  payload-free events while unique payload and credential markers remain
+  absent, then archive only a sanitized receipt. This source is pending live
+  verification and is not yet redaction evidence.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.

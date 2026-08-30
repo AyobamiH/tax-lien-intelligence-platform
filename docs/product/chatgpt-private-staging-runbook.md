@@ -125,6 +125,17 @@ Also verify the Worker rejects `/auth/register`, `/datasets`, `/scores`,
 logs using known injection-shaped test values and prove none of those values
 appear in Worker or API logs.
 
+The governed deployment runs
+`npm run verify:chatgpt-staging:log-redaction-live`. It opens a bounded
+Cloudflare real-time tail, sends three fail-closed MCP requests containing
+unique payload and credential markers, requires both the Worker gateway event
+and API operational event with their exact allowlisted fields, and proves the
+markers are absent from application console messages. The verifier never writes
+the provider envelope, console messages, markers, headers, or bodies. Persistent
+Cloudflare invocation logs are disabled; only the explicit payload-free custom
+events remain enabled.
+
+
 ## ChatGPT connection
 
 1. In ChatGPT developer mode, add the exact public HTTPS `/mcp` URL.
