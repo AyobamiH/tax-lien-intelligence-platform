@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_authenticated_boundary",
+  "status": "passed",
+  "observedAt": "2026-08-30T23:16:48.905Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "2c7862e74dc80aaaba6677173293d06801ac2546",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33341199247"
+  },
+  "fixturePolicy": {
+    "classification": "ephemeral_test_fixture",
+    "representedAsUserCountyModelOrDeploymentEvidence": false,
+    "removedAfterVerification": true,
+    "fixtureIdentifiersStored": false
+  },
+  "checks": [
+    {
+      "name": "pkce_authorization_code_exchange",
+      "status": "passed"
+    },
+    {
+      "name": "authorization_code_replay",
+      "status": "passed"
+    },
+    {
+      "name": "exact_read_only_tool_inventory",
+      "status": "passed"
+    },
+    {
+      "name": "owner_workspace_isolation",
+      "status": "passed"
+    },
+    {
+      "name": "admin_workspace_isolation",
+      "status": "passed"
+    },
+    {
+      "name": "member_workspace_isolation",
+      "status": "passed"
+    },
+    {
+      "name": "denied_workspace_isolation",
+      "status": "passed"
+    },
+    {
+      "name": "cross_workspace_denial",
+      "status": "passed"
+    },
+    {
+      "name": "refresh_rotation_and_replay",
+      "status": "passed"
+    },
+    {
+      "name": "access_token_revocation",
+      "status": "passed"
+    },
+    {
+      "name": "expired_access_token",
+      "status": "passed"
+    },
+    {
+      "name": "exact_redirect_allowlist",
+      "status": "passed"
+    }
+  ],
+  "toolInventory": [
+    "list_workspaces",
+    "list_datasets",
+    "list_dataset_candidates",
+    "get_candidate_evidence",
+    "compare_candidates",
+    "get_decision_brief"
+  ],
+  "permissions": {
+    "readOnly": true,
+    "writes": false,
+    "bidding": false,
+    "purchases": false,
+    "legalConclusions": false
+  },
+  "evidencePolicy": {
+    "responseBodiesStored": false,
+    "credentialsStored": false,
+    "authorizationCodesStored": false,
+    "tokensStored": false,
+    "emailsStored": false,
+    "workspaceIdentifiersStored": false,
+    "payloadsStored": false
+  },
+  "remainingGates": [
+    "private ChatGPT connection with a dedicated real staging user",
+    "evidence citation, unknown, heuristic, and prompt-injection cases using approved real staging data",
+    "live log-redaction inspection",
+    "rollback and recovery"
+  ]
+}

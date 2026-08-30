@@ -10,10 +10,12 @@ workspace-membership logic.
 The plugin metadata is source-controlled and validation-ready. The runtime MCP
 server and OAuth 2.1 implementation live in `apps/api`; the staging deployment
 boundary lives in `infra/cloudflare`. The package is now
-`private_staging_deployed`: the exact stable HTTPS origin and sanitized public
-boundary receipt are recorded in `release-provenance.json`. A `.mcp.json`
-remains intentionally absent until the private ChatGPT connection and the
-authenticated release cases are verified.
+`private_staging_deployed`: exact-head deployment, public-boundary,
+authenticated-boundary, and live log-redaction receipts are pinned in
+`release-provenance.json`. The stable origin passed all 24 public and OAuth /
+tenant / tool cases, and Cloudflare telemetry proved gateway and application
+logs remain payload-free. A `.mcp.json` remains intentionally absent until the
+real private ChatGPT OAuth connection is verified.
 
 ## Approved capability
 

@@ -1,5 +1,23 @@
 # Work Ledger
 
+## 2026-08-30T23:20:00.000Z - P47-093 exact-head live redaction receipt
+
+- Exact-head workflow `33341199247` passed source governance, secret sync,
+  deployment, all 12 public checks, all 12 authenticated OAuth / role / tenant /
+  tool checks, and live payload-free log verification at `2c7862e74dc80aaaba6677173293d06801ac2546`.
+- The deployment is Worker `fbf89d34-5868-4105-921f-980e07bf6437`, container
+  digest `sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d`,
+  and sanitized artifact `9740647987` with SHA-256
+  `b6287c547c50b4aa3ef10ed8fa2f54b7398598d85e966137bccb5ccf77a40162`.
+- Cloudflare verification observed three gateway events and one application
+  event. Gateway/application shape, payload-marker absence, credential-marker
+  absence, secret-marker absence, and fail-closed probe behavior all passed.
+  No raw provider envelope, console message, event, marker, credential, token,
+  email, request body, or response body is stored.
+- Exact receipt copies and release provenance are now repository evidence. The
+  node remains in progress for rollback/recovery, Atlas least privilege, the
+  real private ChatGPT OAuth connection, and approved-data verification.
+
 ## 2026-08-30T23:14:00.000Z - P47-093 Cloudflare application enrichment handling
 
 - Exact-head run `33340916921` passed source, secret, Cloudflare, deployment,

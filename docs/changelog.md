@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Passed the exact-head live Cloudflare log-redaction gate in workflow
+  `33341199247` at `2c7862e74dc80aaaba6677173293d06801ac2546`. The real stable staging origin passed 12
+  public and 12 authenticated boundary checks; the verifier observed three
+  payload-free gateway events and one payload-free application event with no
+  marker, credential, or secret leakage. Sanitized receipts and deployment
+  provenance are pinned in the ChatGPT product package.
+
 - Accounted for Cloudflare's `$cf` container-log enrichment after run
   `33340916921` proved the application event otherwise has the exact expected
   schema. The verifier validates and excludes the provider envelope without

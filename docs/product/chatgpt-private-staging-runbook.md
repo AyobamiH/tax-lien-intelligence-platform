@@ -8,6 +8,19 @@ staging work, but this document does not fabricate account entitlement, accept
 new spending, create missing secrets, assign privacy/support roles, or convert
 local tests into live evidence.
 
+## Latest verified deployment
+
+Exact-head workflow [33341199247](https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33341199247) passed the source, secret,
+deployment, 12 public-boundary, 12 authenticated-boundary, and live
+log-redaction gates for revision `2c7862e74dc80aaaba6677173293d06801ac2546`. It deployed Worker version
+`fbf89d34-5868-4105-921f-980e07bf6437` and container digest
+`sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d`.
+Only sanitized receipts are retained in the product package; no provider event,
+application log, marker, credential, token, email, request body, or response
+body is retained. The remaining order is governed rollback/recovery, Atlas
+least-privilege narrowing, then the real private ChatGPT OAuth connection and
+approved-data verification.
+
 ## Selected staging topology
 
 The selected source topology is `infra/cloudflare`: one workers.dev HTTPS

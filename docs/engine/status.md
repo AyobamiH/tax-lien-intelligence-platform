@@ -4,6 +4,21 @@ Last updated: 2026-08-30
 
 ## Verified Current State
 
+- Exact-head private-staging workflow `33341199247` is green at
+  `2c7862e74dc80aaaba6677173293d06801ac2546`: 12 public cases, 12 OAuth / role / tenant / tool cases, and
+  live Cloudflare log-redaction verification all passed. The deployed Worker is
+  `fbf89d34-5868-4105-921f-980e07bf6437`; the container digest is
+  `sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d`.
+- Artifact `9740647987` (SHA-256
+  `b6287c547c50b4aa3ef10ed8fa2f54b7398598d85e966137bccb5ccf77a40162`)
+  contains only the sanitized public, authenticated, and log-redaction
+  receipts. Exact copies and deployment provenance are pinned under
+  `products/chatgpt/tax-lien-intelligence/receipts`.
+- `P47-093-chatgpt-private-staging` remains in progress. Rollback/recovery,
+  Atlas role narrowing, the real private ChatGPT OAuth connection, and
+  approved real-data / prompt-injection cases remain open.
+
+
 - Active implementation repository for this run:
   `AyobamiH/tax-lien-intelligence-platform`.
 - Active branch: `feature/p47-093-chatgpt-private-staging`.
