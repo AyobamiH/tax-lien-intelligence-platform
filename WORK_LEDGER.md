@@ -1,5 +1,18 @@
 # Work Ledger
 
+## 2026-08-30T23:14:00.000Z - P47-093 Cloudflare application enrichment handling
+
+- Exact-head run `33340916921` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `593a733`, deploying
+  Worker `c0585f03-5b0f-470b-bce7-0d93d4a8fc55` and container digest
+  `sha256:46e475c7b26896e3c2cae32e0b08021cfbb4361d76304fd3fcf1ffd75772a84a`.
+- The Workers Observability application event contained the exact ten expected
+  telemetry keys plus Cloudflare's documented `$cf` provider enrichment.
+  No raw event, values, provider envelope, or redaction receipt was stored.
+- The verifier now requires `$cf` to be an object, counts the enrichment,
+  excludes it from the application-owned event, and exact-validates the
+  remaining ten keys. Marker-absence queries still cover the provider dataset.
+
 ## 2026-08-30T23:08:00.000Z - P47-093 observability key-shape diagnostic
 
 - Exact-head run `33340616895` passed source, secret, Cloudflare, deployment,

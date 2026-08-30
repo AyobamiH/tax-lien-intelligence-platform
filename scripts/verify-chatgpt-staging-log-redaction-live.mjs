@@ -26,6 +26,7 @@ const consoleMessages = [];
 const observed = {
   providerEvents: 0,
   consoleEntries: 0,
+  providerEnrichedApplicationEvents: 0,
   gateway: 0,
   application: 0,
 };
@@ -174,6 +175,8 @@ try {
       probeRequestCount: 3,
       providerEventsObserved: observed.providerEvents,
       consoleEntriesObserved: observed.consoleEntries,
+      providerEnrichedApplicationEventsObserved:
+        observed.providerEnrichedApplicationEvents,
       gatewayEventsObserved: observed.gateway,
       applicationEventsObserved: observed.application,
       rawProviderEnvelopeStored: false,
@@ -532,7 +535,19 @@ function extractOperationalCandidates(event) {
 
 function parseOperationalValue(value) {
   if (value && typeof value === "object" && !Array.isArray(value)) {
-    if (typeof value.event === "string") return value;
+    if (typeof value.event === "string") {
+      const { $cf: providerEnrichment, ...operational } = value;
+      if ("$cf" in value) {
+        assert(
+          providerEnrichment &&
+            typeof providerEnrichment === "object" &&
+            !Array.isArray(providerEnrichment),
+          "application_provider_enrichment_invalid",
+        );
+        observed.providerEnrichedApplicationEvents += 1;
+      }
+      return operational;
+    }
     for (const key of ["message", "log", "data"]) {
       const nested = parseOperationalValue(value[key]);
       if (nested) return nested;

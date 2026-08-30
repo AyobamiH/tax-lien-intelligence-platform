@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-30T23:08:00.000Z",
+  "updatedAt": "2026-08-30T23:14:00.000Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
   "branch": "feature/p47-093-chatgpt-private-staging",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
@@ -591,7 +591,8 @@
         "Exact-head run 33339651921 deployed 71cfa4d as Worker 35807be0-4fb6-4ed7-8c12-8428bf66774f with container digest sha256:370d813eb110094b75f53abc3c67237526d90c882e34f0b05d84c33466c6ffbb; all source/public/authenticated gates passed and sanitized diagnostics classified the tail failure as argument_rejected",
         "Exact-head run 33339888358 deployed c52bbdf as Worker a5e83918-e6c3-4ea6-a5c4-d1164ad3816d with container digest sha256:030a8f2294ac7c1c558317c64c31966aac7e8335be2fceed07fed08c62e6d95e; all source/public/authenticated gates passed and the tail session/probes ran, but the one-line parser did not recognize Wrangler's multi-line JSON events",
         "Exact-head run 33340248905 deployed ed85a44 as Worker 81e2777f-08e5-43b6-a222-0fa4229894e6 with container digest sha256:237c21a51d304e6a20a892a2019a90c5ec160af909586c5833399617622204ac; all source/public/authenticated gates passed and live tail proved 3/3 gateway events, while application events were correctly identified as a separate Workers Observability query surface",
-        "Exact-head run 33340616895 deployed d381a84 as Worker c9c4387b-74e9-45bb-a0e5-d01d420b682f with container digest sha256:e0fa0ec21fe245c71d9bd4cd7c654cdccb187c96b661c82472f7c4bb5f8440ee; all source/public/authenticated gates passed, the existing token queried Workers Observability and found the application event, then the verifier failed closed on provider key-shape drift"
+        "Exact-head run 33340616895 deployed d381a84 as Worker c9c4387b-74e9-45bb-a0e5-d01d420b682f with container digest sha256:e0fa0ec21fe245c71d9bd4cd7c654cdccb187c96b661c82472f7c4bb5f8440ee; all source/public/authenticated gates passed, the existing token queried Workers Observability and found the application event, then the verifier failed closed on provider key-shape drift",
+        "Exact-head run 33340916921 deployed 593a733 as Worker c0585f03-5b0f-470b-bce7-0d93d4a8fc55 with container digest sha256:46e475c7b26896e3c2cae32e0b08021cfbb4361d76304fd3fcf1ffd75772a84a; all source/public/authenticated gates passed and the application log had the exact expected keys plus Cloudflare $cf provider enrichment"
       ],
       "blockers": [
         "the private ChatGPT connection, approved real-data grounding and prompt-injection cases, exact-head live log-redaction receipt, and rollback/recovery receipts do not exist yet",

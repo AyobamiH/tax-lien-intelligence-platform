@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Accounted for Cloudflare's `$cf` container-log enrichment after run
+  `33340916921` proved the application event otherwise has the exact expected
+  schema. The verifier validates and excludes the provider envelope without
+  storing it.
+
 - Added key-name-only diagnostics for persisted application log-shape drift
   after run `33340616895` proved the existing Cloudflare token can query
   Workers Observability and locate the real container event. Values and raw

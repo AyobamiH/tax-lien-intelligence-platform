@@ -152,6 +152,12 @@ Last updated: 2026-08-30
   and workflow artifact `9739571402`.
 - A bounded 100-request probe against that exact deployment again returned 70
   `429` responses after 30 handled validations while health remained `200`.
+- Exact-head run `33340916921` deployed `593a733` as Worker version
+  `c0585f03-5b0f-470b-bce7-0d93d4a8fc55` with container digest
+  `sha256:46e475c7b26896e3c2cae32e0b08021cfbb4361d76304fd3fcf1ffd75772a84a`.
+  Source and all 24 application cases passed. The application log contains
+  the exact 10 expected fields plus Cloudflare's `$cf` provider enrichment;
+  the verifier now validates and excludes that envelope. No receipt is claimed.
 - Exact-head run `33340616895` deployed `d381a84` as Worker version
   `c9c4387b-74e9-45bb-a0e5-d01d420b682f` with container digest
   `sha256:e0fa0ec21fe245c71d9bd4cd7c654cdccb187c96b661c82472f7c4bb5f8440ee`.
