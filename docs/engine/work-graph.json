@@ -571,7 +571,8 @@
         "Exact-head GitHub Actions run 33329355584 and quality-gates job 99305018587 passed all validators, audit, typecheck, complete tests/builds, real-process intelligence smoke, real Mongo intelligence persistence smoke, and real Mongo OAuth atomicity/revocation smoke",
         "Feature-branch deployment bootstrap requires the exact [deploy-private-staging] commit marker, derives the authorized workers.dev origin, and synchronizes five Worker bindings from six GitHub environment secret references without a repository secret file",
         "Live prerequisites include the zero-cost TaxLienStaging Atlas Free cluster in AWS eu-west-1, a SCRAM application user restricted to that cluster, the user-approved dynamic-egress access-list rule, and all six required GitHub chatgpt-staging environment secret names; no secret value was read or committed",
-        "Exact-head staging run 33334912896 passed the 332-test governed source gate and synchronized all five Worker secret-name bindings, then failed closed before deployment because Wrangler 4.127.1 rejected the obsolete secret list --json option; source now uses the validated --format=json form"
+        "Exact-head staging run 33334912896 passed the 332-test governed source gate and synchronized all five Worker secret-name bindings, then failed closed before deployment because Wrangler 4.127.1 rejected the obsolete secret list --json option; source now uses the validated --format=json form",
+        "Exact-head staging run 33335163254 passed the repaired preflight and reached the real Cloudflare container build, then failed closed because the Node-only image stage invoked Python; the Dockerfile now builds Node workspaces in the Node stage and validates Python source in the final Python stage"
       ],
       "blockers": [
         "the live Cloudflare deployment, stable HTTPS origin, private ChatGPT connection, and runtime verification receipts do not exist yet",
