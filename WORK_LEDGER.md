@@ -1,5 +1,17 @@
 # Work Ledger
 
+## 2026-08-30T20:58:00Z - P47-093 first live deployment repair
+
+- Exact-head staging run `33334912896` checked out `2b0b736`, passed the full
+  governed source gate with 332 Vitest tests and all builds, and synchronized
+  all five Worker secret-name bindings without printing values.
+- The run then failed closed before deployment because Wrangler `4.127.1`
+  rejects the obsolete `secret list --json` option. No live endpoint or
+  deployment receipt was created.
+- Replaced the unsupported option with `secret list --format=json` and extended
+  the staging validator to require the supported form and reject the obsolete
+  flag. This is a source repair pending an exact-head live rerun.
+
 ## 2026-08-30T20:52:02Z - P47-093 external staging prerequisites
 
 - Provisioned the staging-only MongoDB Atlas project `Tax Lien Intelligence
