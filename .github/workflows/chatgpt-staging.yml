@@ -1,0 +1,109 @@
+name: ChatGPT private staging
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/p47-093-chatgpt-private-staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chatgpt-private-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy-private-staging
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-private-staging]')
+    runs-on: ubuntu-latest
+    environment: chatgpt-staging
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      INTELLIGENCE_SERVICE_TOKEN: ${{ secrets.INTELLIGENCE_SERVICE_TOKEN }}
+      MCP_OAUTH_SIGNING_SECRET: ${{ secrets.MCP_OAUTH_SIGNING_SECRET }}
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Use Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate governed staging source
+        run: |
+          npm run validate:work-graph
+          npm run validate:data-inventory
+          npm run validate:chatgpt-release
+          npm run validate:chatgpt-staging
+          npm run typecheck
+          npm run test
+          npm run build
+
+      - name: Synchronize required Worker secret bindings
+        id: staging-config
+        run: npm run sync-secrets -w @tax-lien/cloudflare-staging
+
+      - name: Verify Cloudflare authority and secret names
+        run: npm run preflight -w @tax-lien/cloudflare-staging
+
+      - name: Deploy private staging
+        run: npm run deploy -w @tax-lien/cloudflare-staging
+
+      - name: Verify deployed HTTPS boundary
+        env:
+          STAGING_ORIGIN: ${{ steps.staging-config.outputs.staging_origin }}
+          LIVE_RECEIPT_PATH: artifacts/chatgpt-staging-live-receipt.json
+          LIVE_SOURCE_REVISION: ${{ github.sha }}
+          LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: npm run verify:chatgpt-staging:live
+
+      - name: Verify deployed OAuth, roles, tenancy, and tools
+        env:
+          STAGING_ORIGIN: ${{ steps.staging-config.outputs.staging_origin }}
+          AUTHENTICATED_LIVE_RECEIPT_PATH: artifacts/chatgpt-staging-authenticated-live-receipt.json
+          LIVE_SOURCE_REVISION: ${{ github.sha }}
+          LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: npm run verify:chatgpt-staging:authenticated-live
+
+      - name: Verify live payload-free operational logs
+        env:
+          STAGING_ORIGIN: ${{ steps.staging-config.outputs.staging_origin }}
+          LOG_REDACTION_RECEIPT_PATH: artifacts/chatgpt-staging-log-redaction-receipt.json
+          LIVE_SOURCE_REVISION: ${{ github.sha }}
+          LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: npm run verify:chatgpt-staging:log-redaction-live
+
+      - name: Verify governed rollback and recovery
+        env:
+          STAGING_ORIGIN: ${{ steps.staging-config.outputs.staging_origin }}
+          ROLLBACK_RECEIPT_PATH: artifacts/chatgpt-staging-rollback-recovery-receipt.json
+          LIVE_SOURCE_REVISION: ${{ github.sha }}
+          LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: npm run verify:chatgpt-staging:rollback-live
+
+      - name: Archive sanitized live receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatgpt-staging-live-receipt-${{ github.sha }}
+          path: |
+            artifacts/chatgpt-staging-live-receipt.json
+            artifacts/chatgpt-staging-authenticated-live-receipt.json
+            artifacts/chatgpt-staging-log-redaction-receipt.json
+            artifacts/chatgpt-staging-rollback-recovery-receipt.json
+          if-no-files-found: error
+          retention-days: 30

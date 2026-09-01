@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "private_pilot_governance",
+  "effectiveDate": "2026-09-01",
+  "status": "approved",
+  "accountableOwner": { "github": "AyobamiH", "role": "pilot owner" },
+  "assignments": {
+    "privacySecurityApprover": "AyobamiH",
+    "retentionDeletionOwner": "AyobamiH",
+    "pilotConsentOwner": "AyobamiH",
+    "supportOwner": "AyobamiH",
+    "incidentOwner": "AyobamiH",
+    "operationsOwner": "AyobamiH"
+  },
+  "controls": {
+    "pilotAccess": "private, named and explicitly approved participants only",
+    "dataPurpose": "evaluate evidence-backed tax-lien shortlist creation",
+    "sharedModelTraining": "explicit opt-in only",
+    "defaultTrainingConsent": false,
+    "dataMinimization": "public-source property evidence and the minimum identity data required for authorization",
+    "retention": "retain pilot workspace evidence only while the private pilot is active and reviewed; reassess at least every 30 days",
+    "deletion": "honor owner-approved workspace deletion requests and revoke OAuth access when participation ends",
+    "supportChannel": "repository-owner coordinated private support until a public support channel is approved",
+    "incidentResponse": "disconnect the ChatGPT product, revoke affected OAuth refresh families, preserve sanitized evidence and execute the governed rollback runbook"
+  },
+  "promotionBoundary": "This approval covers private staging only and does not authorize a public release or autonomous investment action."
+}

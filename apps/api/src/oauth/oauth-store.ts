@@ -1,8 +1,10 @@
 import {
   OAuthAuthorizationCodeModel,
+  OAuthGrantModel,
   OAuthRefreshTokenModel,
   OAuthRevokedAccessTokenModel,
   type OAuthAuthorizationCodeDocument,
+  type OAuthGrantDocument,
   type OAuthRefreshTokenDocument,
 } from "@tax-lien/db";
 
@@ -32,14 +34,33 @@ export interface StoredRefreshToken {
   revokedAt?: Date;
 }
 
+export interface StoredOAuthGrant {
+  grantId: string;
+  userId: string;
+  email: string;
+  clientId: string;
+  resource: string;
+  scopes: string[];
+  currentRefreshTokenHash: string;
+  refreshExpiresAt: Date;
+  purgeAt: Date;
+  revokedAt?: Date;
+}
+
 export interface OAuthStore {
   createAuthorizationCode(record: StoredAuthorizationCode): Promise<void>;
   findAuthorizationCode(codeHash: string): Promise<StoredAuthorizationCode | null>;
   consumeAuthorizationCode(codeHash: string, now: Date): Promise<boolean>;
-  createRefreshToken(record: StoredRefreshToken): Promise<void>;
+  createGrantWithRefreshToken(grant: StoredOAuthGrant, refreshToken: StoredRefreshToken): Promise<void>;
+  findGrant(grantId: string): Promise<StoredOAuthGrant | null>;
   findRefreshToken(tokenHash: string): Promise<StoredRefreshToken | null>;
-  consumeRefreshToken(tokenHash: string, now: Date): Promise<boolean>;
-  revokeRefreshTokenFamily(familyId: string, now: Date): Promise<void>;
+  rotateRefreshToken(
+    grantId: string,
+    currentTokenHash: string,
+    successor: StoredRefreshToken,
+    now: Date,
+  ): Promise<boolean>;
+  revokeGrant(grantId: string, now: Date): Promise<void>;
   revokeAccessToken(tokenId: string, expiresAt: Date, now: Date): Promise<void>;
   isAccessTokenRevoked(tokenId: string): Promise<boolean>;
 }
@@ -74,6 +95,21 @@ function mapRefreshToken(document: OAuthRefreshTokenDocument): StoredRefreshToke
   };
 }
 
+function mapGrant(document: OAuthGrantDocument): StoredOAuthGrant {
+  return {
+    grantId: document.grantId,
+    userId: document.userId,
+    email: document.email,
+    clientId: document.clientId,
+    resource: document.resource,
+    scopes: [...document.scopes],
+    currentRefreshTokenHash: document.currentRefreshTokenHash,
+    refreshExpiresAt: document.refreshExpiresAt,
+    purgeAt: document.purgeAt,
+    ...(document.revokedAt ? { revokedAt: document.revokedAt } : {}),
+  };
+}
+
 export class MongoOAuthStore implements OAuthStore {
   public async createAuthorizationCode(record: StoredAuthorizationCode): Promise<void> {
     await OAuthAuthorizationCodeModel.create(record);
@@ -92,8 +128,22 @@ export class MongoOAuthStore implements OAuthStore {
     return result.modifiedCount === 1;
   }
 
-  public async createRefreshToken(record: StoredRefreshToken): Promise<void> {
-    await OAuthRefreshTokenModel.create(record);
+  public async createGrantWithRefreshToken(
+    grant: StoredOAuthGrant,
+    refreshToken: StoredRefreshToken,
+  ): Promise<void> {
+    await OAuthRefreshTokenModel.create(refreshToken);
+    try {
+      await OAuthGrantModel.create(grant);
+    } catch (error) {
+      await OAuthRefreshTokenModel.deleteOne({ tokenHash: refreshToken.tokenHash }).exec();
+      throw error;
+    }
+  }
+
+  public async findGrant(grantId: string): Promise<StoredOAuthGrant | null> {
+    const document = await OAuthGrantModel.findOne({ grantId }).exec();
+    return document ? mapGrant(document) : null;
   }
 
   public async findRefreshToken(tokenHash: string): Promise<StoredRefreshToken | null> {
@@ -101,22 +151,46 @@ export class MongoOAuthStore implements OAuthStore {
     return document ? mapRefreshToken(document) : null;
   }
 
-  public async consumeRefreshToken(tokenHash: string, now: Date): Promise<boolean> {
-    const result = await OAuthRefreshTokenModel.updateOne(
-      {
-        tokenHash,
-        consumedAt: { $exists: false },
-        revokedAt: { $exists: false },
-        expiresAt: { $gt: now },
-      },
-      { $set: { consumedAt: now } },
-    ).exec();
-    return result.modifiedCount === 1;
+  public async rotateRefreshToken(
+    grantId: string,
+    currentTokenHash: string,
+    successor: StoredRefreshToken,
+    now: Date,
+  ): Promise<boolean> {
+    await OAuthRefreshTokenModel.create(successor);
+    let rotated = false;
+    try {
+      const result = await OAuthGrantModel.updateOne(
+        {
+          grantId,
+          currentRefreshTokenHash: currentTokenHash,
+          revokedAt: { $exists: false },
+          refreshExpiresAt: { $gt: now },
+        },
+        { $set: { currentRefreshTokenHash: successor.tokenHash } },
+      ).exec();
+      rotated = result.modifiedCount === 1;
+      if (!rotated) return false;
+
+      await OAuthRefreshTokenModel.updateOne(
+        { tokenHash: currentTokenHash, consumedAt: { $exists: false } },
+        { $set: { consumedAt: now } },
+      ).exec();
+      return true;
+    } finally {
+      if (!rotated) {
+        await OAuthRefreshTokenModel.deleteOne({ tokenHash: successor.tokenHash }).exec();
+      }
+    }
   }
 
-  public async revokeRefreshTokenFamily(familyId: string, now: Date): Promise<void> {
+  public async revokeGrant(grantId: string, now: Date): Promise<void> {
+    await OAuthGrantModel.updateOne(
+      { grantId, revokedAt: { $exists: false } },
+      { $set: { revokedAt: now } },
+    ).exec();
     await OAuthRefreshTokenModel.updateMany(
-      { familyId, revokedAt: { $exists: false } },
+      { familyId: grantId, revokedAt: { $exists: false } },
       { $set: { revokedAt: now } },
     ).exec();
   }

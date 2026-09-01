@@ -46,6 +46,7 @@ before writing specs, prompts, or implementation plans.
 - [Intelligence Service Architecture](architecture/intelligence-service.md)
 - [ChatGPT MCP Architecture](architecture/chatgpt-mcp.md)
 - [ChatGPT OAuth threat model](architecture/chatgpt-oauth-threat-model.md)
+- [ChatGPT private-staging topology](architecture/chatgpt-private-staging-topology.md)
 - [Enrichment Architecture](architecture/enrichment.md)
 - [Frontend Review Surface Architecture](architecture/frontend-review.md)
 - [Watchlist Workflow Architecture](architecture/watchlist.md)

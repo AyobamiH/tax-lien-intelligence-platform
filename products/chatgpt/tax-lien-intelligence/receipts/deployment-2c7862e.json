@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_deployment",
+  "status": "passed",
+  "observedAt": "2026-08-30T23:17:18.000Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "2c7862e74dc80aaaba6677173293d06801ac2546",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33341199247"
+  },
+  "deployment": {
+    "workerVersionId": "fbf89d34-5868-4105-921f-980e07bf6437",
+    "containerApplicationId": "a03f53e3-7c1a-405f-b4e5-e660d5673cdf",
+    "containerImageDigest": "sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d",
+    "workflowArtifactId": 9740647987,
+    "workflowArtifactSha256": "sha256:b6287c547c50b4aa3ef10ed8fa2f54b7398598d85e966137bccb5ccf77a40162"
+  },
+  "receipts": {
+    "publicBoundary": "public-boundary-2c7862e.json",
+    "authenticatedBoundary": "authenticated-boundary-2c7862e.json",
+    "logRedaction": "log-redaction-2c7862e.json"
+  },
+  "evidencePolicy": {
+    "sanitizedOnly": true,
+    "responseBodiesStored": false,
+    "providerLogsStored": false,
+    "applicationLogsStored": false,
+    "payloadsStored": false,
+    "credentialsStored": false,
+    "authorizationCodesStored": false,
+    "tokensStored": false,
+    "emailsStored": false,
+    "deterministicFixturesRepresentedAsLiveEvidence": false
+  },
+  "remainingGates": [
+    "Connect the private ChatGPT product through real OAuth.",
+    "Verify approved real-data citations, unknowns, heuristic labelling, and prompt-injection-shaped source data.",
+    "Verify governed rollback and recovery.",
+    "Narrow the Atlas application user to readWrite@tax_lien_chatgpt_staging.",
+    "Assign accountable privacy, retention/deletion, pilot-consent, support, and incident owners."
+  ]
+}

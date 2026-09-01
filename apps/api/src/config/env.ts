@@ -10,6 +10,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   API_PORT: z.coerce.number().int().positive().default(4000),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(10).default(0),
+  OPERATIONAL_LOGGING_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
   MONGODB_URI: z.string().min(1).default("mongodb://localhost:27017/tax_lien_platform"),
   MONGODB_DB_NAME: z.string().min(1).default("tax_lien_platform"),
   JWT_SECRET: z.string().min(32).optional(),
@@ -151,6 +152,7 @@ export interface ApiConfig {
   nodeEnv: RuntimeEnvironment;
   port: number;
   trustProxyHops: number;
+  operationalLoggingEnabled: boolean;
   mongoUri: string;
   mongoDbName: string;
   jwtSecret: string;
@@ -239,6 +241,7 @@ export const apiConfig: ApiConfig = {
   nodeEnv: parsedEnv.NODE_ENV,
   port: parsedEnv.API_PORT,
   trustProxyHops: parsedEnv.TRUST_PROXY_HOPS,
+  operationalLoggingEnabled: parsedEnv.OPERATIONAL_LOGGING_ENABLED,
   mongoUri: parsedEnv.MONGODB_URI,
   mongoDbName: parsedEnv.MONGODB_DB_NAME,
   jwtSecret: parsedEnv.JWT_SECRET ?? developmentJwtSecret,

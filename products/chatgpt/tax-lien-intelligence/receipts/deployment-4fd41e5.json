@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_deployment",
+  "status": "passed",
+  "observedAt": "2026-08-30T23:40:47.000Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "4fd41e568d8b8a231534ac7b2e610d69a0ff43a3",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33342222795"
+  },
+  "deployment": {
+    "workerVersionId": "72e2302b-0531-44ac-a9e7-df945c9a9ff1",
+    "containerApplicationId": "a03f53e3-7c1a-405f-b4e5-e660d5673cdf",
+    "containerImageDigest": "sha256:7a2273ce0a33abdb43bbf09e3a7c6a502aa5d8b2278912851a9342539fd592ef",
+    "workflowArtifactId": 9740953262,
+    "workflowArtifactSha256": "sha256:2d1589c8c4152d3fad4ee4c16c5f3ce6a8e2dcd883815cb84eeb212ca041de67"
+  },
+  "receipts": {
+    "publicBoundary": "public-boundary-4fd41e5.json",
+    "authenticatedBoundary": "authenticated-boundary-4fd41e5.json",
+    "logRedaction": "log-redaction-4fd41e5.json",
+    "rollbackRecovery": "rollback-recovery-4fd41e5.json"
+  },
+  "verifiedCounts": {
+    "publicBoundary": 12,
+    "authenticatedBoundary": 12,
+    "logRedaction": 6,
+    "rollbackRecovery": 8
+  },
+  "evidencePolicy": {
+    "sanitizedOnly": true,
+    "responseBodiesStored": false,
+    "providerLogsStored": false,
+    "applicationLogsStored": false,
+    "commandOutputStored": false,
+    "payloadsStored": false,
+    "credentialsStored": false,
+    "authorizationCodesStored": false,
+    "tokensStored": false,
+    "emailsStored": false,
+    "deterministicFixturesRepresentedAsLiveEvidence": false
+  },
+  "remainingGates": [
+    "Connect the private ChatGPT product through real OAuth.",
+    "Verify approved real-data citations, unknowns, heuristic labelling, and prompt-injection-shaped source data.",
+    "Narrow the Atlas application user to readWrite@tax_lien_chatgpt_staging.",
+    "Assign accountable privacy, retention/deletion, pilot-consent, support, and incident owners."
+  ]
+}

@@ -1,5 +1,570 @@
 # Work Ledger
 
+## 2026-09-01 - P47-093 OAuth grant lifecycle hardened before owner connection
+
+- Changed the authorization endpoint so only an exact scalar
+  `decision=allow` reaches credential authentication. Missing, blank, unknown,
+  case-variant, and duplicate decisions fail before any user lookup; an exact
+  denial retains the state-bound callback.
+- Added a durable OAuth grant record with a fixed refresh-family lifetime,
+  atomic current-refresh-hash rotation, replay tombstoning, `grant_id` access
+  claims, and grant validation on every access. Replaying a refresh token or
+  revoking either token type now invalidates every same-grant access and refresh
+  token while leaving independent grants active.
+- Corrected the authenticated live verifier's stale-fixture matcher, added
+  partial-run cleanup and zero-residue checks, and moved success-receipt writing
+  after verified cleanup. The connected-state release validator now refuses a
+  missing, revision-mismatched, or credential-bearing real ChatGPT receipt.
+- Focused OAuth tests pass 17/17; the full Python suite passes 10/10 and Vitest
+  passes 341/341. Typecheck, source validators, script syntax, and build pass.
+  The Mongo CAS smoke still needs GitHub CI's Mongo service because no local
+  Mongo daemon or container runtime is available. These controls are source
+  evidence only until an exact-head staging deployment passes the live gates.
+
+## 2026-09-01 - P47-093 connector created; first-owner bootstrap isolated
+
+- Created the private ChatGPT developer-mode connector `Tax Lien Intelligence`
+  against the deployed `/mcp` endpoint. Discovery selected the public
+  `https://chatgpt.com/oauth/client.json` client, the official connector
+  callback, `tax_lien:read`, public-client token authentication, and no client
+  secret. OAuth reached the real staging authorization page.
+- Atlas Data Explorer proved that the staging `users` collection contains zero
+  documents. The OAuth stop is therefore a missing first product identity, not
+  an OAuth, deployment, MongoDB, or ChatGPT connector defect.
+- Added an idempotent, fail-closed operator provisioner and a separate
+  manual-only workflow that runs trusted default-branch source in a dedicated
+  `chatgpt-pilot-bootstrap` environment. The exact provisioning step consumes
+  only `MONGODB_URI`, `CHATGPT_PILOT_EMAIL`, and a cost-12-or-higher bcrypt
+  `CHATGPT_PILOT_PASSWORD_HASH`; plaintext never enters CI. It refuses another
+  user, credential replacement, workspace or membership drift, opens no
+  registration route, and archives only a sanitized receipt. CI covers empty
+  creation, idempotence, partial recovery, drift rejection, malformed hashes,
+  and receipt redaction.
+- GitHub requires a `workflow_dispatch` definition to exist on the default
+  branch. The bootstrap is therefore isolated as a small prerequisite change;
+  it must be reviewed and merged before the protected first-owner ceremony can
+  run. The operator must attest that the plaintext password was generated and
+  retained in a password manager; regenerating its salted hash is intentionally
+  treated as credential drift.
+- The governed data inventory still reports six sources, zero approved, and
+  four blocked. Official Maricopa assessor, GIS, treasurer, and auction sources
+  are not authorized for this evaluation. The real-data gate requires a small
+  owner-supplied sale-list CSV with explicit rights, provenance, as-of,
+  retention, and no-training attestations; synthetic fixtures do not qualify.
+
+## 2026-09-01 - P47-093 Atlas and private-pilot governance gates closed
+
+- Verified in Atlas that SCRAM user `tax_lien_chatgpt_staging` now has exactly
+  `readWrite@tax_lien_chatgpt_staging`, restricted to the single
+  `TaxLienStaging` cluster. The prior `readWriteAnyDatabase@admin` role is
+  absent. No password, connection string, or credential was read or retained.
+- Recorded `AyobamiH` as the accountable private-pilot owner for
+  privacy/security approval, retention/deletion, consent, support, operations,
+  and incidents. Shared-model training is explicit opt-in only and defaults to
+  off; this approval does not authorize public release or autonomous investment
+  action.
+- `P47-093` remains in progress only for the real private ChatGPT OAuth
+  connection and the approved Maricopa real-data grounding, unknown,
+  heuristic-label, citation, and prompt-injection evaluation.
+
+## 2026-08-30T23:45:00.000Z - P47-093 governed rollback/recovery passed
+
+- Exact-head workflow `33342222795` passed source, secrets, deployment, all 12
+  public checks, all 12 authenticated checks, six live log-redaction checks,
+  and eight governed rollback/recovery checks at `4fd41e568d8b8a231534ac7b2e610d69a0ff43a3`.
+- The workflow deployed Worker `72e2302b-0531-44ac-a9e7-df945c9a9ff1` with
+  container digest
+  `sha256:7a2273ce0a33abdb43bbf09e3a7c6a502aa5d8b2278912851a9342539fd592ef`.
+  It routed 100% of staging traffic to preceding verified Worker
+  `580b752e-d1b8-4e9f-9d28-94e07ba9ba80`, proved the HTTPS, OAuth, MCP,
+  MongoDB, and intelligence boundary, restored the exact current Worker at
+  100%, and repeated the proof.
+- Artifact `9740953262` has SHA-256
+  `2d1589c8c4152d3fad4ee4c16c5f3ce6a8e2dcd883815cb84eeb212ca041de67`
+  and contains only sanitized public, authenticated, log-redaction, and
+  rollback/recovery receipts. Exact copies and deployment provenance are now
+  pinned in the ChatGPT product package.
+
+## 2026-08-30T23:42:00.000Z - P47-093 rollback status parser correction
+
+- Exact-head workflow `33341894651` passed governed source validation,
+  deployment, all 12 public checks, all 12 authenticated checks, and live
+  log-redaction verification at `6f663f7`.
+- Rollback verification failed closed with `deployment_status_invalid` before
+  `rollbackStarted`; no staging traffic mutation occurred and no rollback
+  receipt was written.
+- The cause was verifier-local `WRANGLER_LOG=none`, which suppressed the
+  deployment-status JSON. The retry retains bounded stdout/stderr in process
+  memory only, extracts the JSON document without logging or archiving command
+  output, and removes the undocumented `--yes` rollback option. Cloudflare's
+  documented `--message` option supplies non-interactive confirmation.
+
+## 2026-08-30T23:35:00.000Z - P47-093 governed rollback/recovery source
+
+- Added a fail-closed live verifier that discovers the current and preceding
+  100%-routed Worker versions, rolls staging back to the preceding version,
+  proves health, readiness, OAuth discovery, MCP denial, MongoDB, and
+  intelligence readiness, then restores and re-verifies the exact current
+  version from a `finally` path.
+- The verifier bounds all command and HTTP output and archives only version
+  identifiers, timestamps, response hashes, statuses, and durations. It stores
+  no Wrangler output, response body, credential, token, email, or evidence
+  payload.
+- The staging workflow runs rollback/recovery only after the public,
+  authenticated, and live log-redaction gates and archives the sanitized
+  receipt. Live execution remains pending on the exact source commit.
+
+## 2026-08-30T23:20:00.000Z - P47-093 exact-head live redaction receipt
+
+- Exact-head workflow `33341199247` passed source governance, secret sync,
+  deployment, all 12 public checks, all 12 authenticated OAuth / role / tenant /
+  tool checks, and live payload-free log verification at `2c7862e74dc80aaaba6677173293d06801ac2546`.
+- The deployment is Worker `fbf89d34-5868-4105-921f-980e07bf6437`, container
+  digest `sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d`,
+  and sanitized artifact `9740647987` with SHA-256
+  `b6287c547c50b4aa3ef10ed8fa2f54b7398598d85e966137bccb5ccf77a40162`.
+- Cloudflare verification observed three gateway events and one application
+  event. Gateway/application shape, payload-marker absence, credential-marker
+  absence, secret-marker absence, and fail-closed probe behavior all passed.
+  No raw provider envelope, console message, event, marker, credential, token,
+  email, request body, or response body is stored.
+- Exact receipt copies and release provenance are now repository evidence. The
+  node remains in progress for rollback/recovery, Atlas least privilege, the
+  real private ChatGPT OAuth connection, and approved-data verification.
+
+## 2026-08-30T23:14:00.000Z - P47-093 Cloudflare application enrichment handling
+
+- Exact-head run `33340916921` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `593a733`, deploying
+  Worker `c0585f03-5b0f-470b-bce7-0d93d4a8fc55` and container digest
+  `sha256:46e475c7b26896e3c2cae32e0b08021cfbb4361d76304fd3fcf1ffd75772a84a`.
+- The Workers Observability application event contained the exact ten expected
+  telemetry keys plus Cloudflare's documented `$cf` provider enrichment.
+  No raw event, values, provider envelope, or redaction receipt was stored.
+- The verifier now requires `$cf` to be an object, counts the enrichment,
+  excludes it from the application-owned event, and exact-validates the
+  remaining ten keys. Marker-absence queries still cover the provider dataset.
+
+## 2026-08-30T23:08:00.000Z - P47-093 observability key-shape diagnostic
+
+- Exact-head run `33340616895` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `d381a84`, deploying
+  Worker `c9c4387b-74e9-45bb-a0e5-d01d420b682f` and container digest
+  `sha256:e0fa0ec21fe245c71d9bd4cd7c654cdccb187c96b661c82472f7c4bb5f8440ee`.
+- Worker tail again observed the gateway proof. The existing API token
+  successfully queried Workers Observability and found a matching container
+  application event, proving no new Cloudflare permission is required.
+- The event failed closed on exact key shape because the persisted provider
+  representation differs from the in-process event. The next run reports only
+  sanitized key names on mismatch; it never emits values, raw source, metadata,
+  request content, credentials, or markers. No receipt was archived.
+
+## 2026-08-30T23:01:00.000Z - P47-093 container observability query source
+
+- Exact-head run `33340248905` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `ed85a44`, deploying
+  Worker `81e2777f-08e5-43b6-a222-0fa4229894e6` and container digest
+  `sha256:237c21a51d304e6a20a892a2019a90c5ec160af909586c5833399617622204ac`.
+- The streaming parser observed eight real provider events, four console
+  entries, and all three exact gateway events. It observed zero application
+  events, confirming Worker real-time tail does not include container stdout.
+  No raw events or redaction receipt were stored.
+- The verifier now uses Worker real-time tail for the gateway and Cloudflare's
+  documented Workers Observability query API for persisted container custom
+  logs. It queries a narrow probe timeframe, validates the exact application
+  event shape, checks both unique markers return zero provider events, retains
+  raw query responses only in bounded process memory, and archives only counts.
+
+## 2026-08-30T22:51:00.000Z - P47-093 multi-line tail event parser
+
+- Exact-head run `33339888358` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `c52bbdf`, deploying
+  Worker `a5e83918-e6c3-4ea6-a5c4-d1164ad3816d` and container digest
+  `sha256:030a8f2294ac7c1c558317c64c31966aac7e8335be2fceed07fed08c62e6d95e`.
+- The corrected tail session stayed open and all three controlled probes
+  returned fail-closed `401`, but the verifier timed out without recognized
+  events. No raw tail output or redaction receipt was stored.
+- Wrangler's current official logger serializes JSON tail events with
+  four-space indentation. Replaced the one-line assumption with a bounded
+  brace/string-aware streaming JSON-object parser. Any future miss exposes
+  only provider-event, console-entry, gateway-event, and application-event
+  counts.
+
+## 2026-08-30T22:43:00.000Z - P47-093 tail sampling correction
+
+- Exact-head run `33339651921` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `71cfa4d`, deploying
+  Worker `35807be0-4fb6-4ed7-8c12-8428bf66774f` and container digest
+  `sha256:370d813eb110094b75f53abc3c67237526d90c882e34f0b05d84c33466c6ffbb`.
+- The sanitized Wrangler diagnostic classified the pre-probe failure as
+  `argument_rejected`, ruling out a Tail Read permission blocker. No raw
+  provider output or redaction receipt was stored.
+- The real-time tail now requests a documented sub-1 sampling fraction
+  (`0.99`) and records that exact value in a passing receipt.
+
+## 2026-08-30T22:38:00.000Z - P47-093 sanitized Wrangler diagnostic fallback
+
+- Exact-head run `33339301424` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `a3d7ec8`. It deployed
+  Worker `13a00fa6-40e9-4597-8884-937489a00c52` and container digest
+  `sha256:8954252bbf7d639f5c714a5290a0708d719718b3c4bce0dd0a0530086d8b7308`.
+- Tail startup again returned `exit_code_1`, so no probe ran and no redaction
+  receipt was archived. The live application remains healthy; the failure is
+  isolated to opening the provider tail session.
+- Wrangler is now directed to an explicit ephemeral debug file with provider
+  sanitization enabled, color disabled, and error reporting disabled. Only an
+  allowlisted failure class or numeric provider code may leave the process; the
+  raw file is never printed or archived and is deleted in `finally`.
+
+## 2026-08-30T22:29:50.231Z - P47-093 structured tail diagnostic correction
+
+- Exact-head run `33339042402` passed source, secret, Cloudflare, deployment,
+  public-boundary, and authenticated-boundary gates at `17cd71f`, deploying
+  Worker `ce9df7d9-4540-4947-ab71-46e519179f2c` and container digest
+  `sha256:38f220a5b6239d5b3ded53eb5158bd8ca01e628e027b66393ea7a63e5e66adf6`.
+- Tail startup again returned `exit_code_1`. Wrangler's JSON mode can emit a
+  structured diagnostic object without a `logs` array; that object had been
+  excluded from the bounded classifier. No raw diagnostic or receipt exists.
+- The classifier now serializes non-log JSON diagnostics into bounded process
+  memory for allowlisted categorization only. It still emits and stores no raw
+  provider output.
+
+## 2026-08-30T22:23:51.853Z - P47-093 tail diagnostic stdout correction
+
+- Exact-head run `33338765853` again passed source, secret, Cloudflare,
+  deployment, public-boundary, and authenticated-boundary gates at `1b489e9`.
+  It deployed Worker version `1f5bcdd3-de99-4078-8317-d4ec395e1985` and
+  container digest
+  `sha256:1d8a7fa702c09207c496da6ff5136acdd0a1f1ef7cd1cdbff542775d1179ee4a`.
+- Wrangler tail again exited before a probe. The first bounded classifier
+  returned only `exit_code_1`, proving the provider explanation was not on
+  stderr. No raw output or redaction receipt was stored.
+- Non-JSON startup lines from stdout are now held only in bounded process
+  memory and classified into an allowlisted authority, argument, config,
+  worker, creation, or provider-network category. The raw text remains
+  suppressed.
+
+## 2026-08-30T22:17:48.292Z - P47-093 first live log-tail attempt failed closed
+
+- Exact-head run `33338469468` passed the full source gate, secret
+  synchronization, Cloudflare authority check, real deployment, 12 public
+  boundary cases, and 12 authenticated OAuth/tenant/tool cases at `a17afd5`.
+- Worker version `f7300a86-9e30-49a8-9c39-fa7f2a872b23` and container image
+  digest `sha256:26da7da0922bf770ef6a4c4d4fc8c2db0e5402e2ffc5e9fec624344e7a39700e`
+  became live. Persistent provider invocation logs are disabled.
+- The redaction verifier failed before sending a probe because the Wrangler tail
+  process exited. It intentionally emitted no raw provider diagnostic, marker,
+  header, body, token, or log event, and no redaction receipt was archived.
+- The verifier now classifies the bounded startup failure without revealing raw
+  diagnostics. The next exact-head run will distinguish missing Tail Read
+  authority from argument/configuration drift before any human action is
+  requested.
+
+## 2026-08-30T22:11:24.038Z - P47-093 live log-redaction verification source
+
+- Added a governed post-deploy verifier that tails the real Cloudflare Worker,
+  sends three fail-closed MCP probes with unique payload and credential
+  markers, and requires both the gateway and API payload-free operational
+  events with exact allowlisted fields.
+- The verifier keeps the raw provider envelope and console messages in bounded
+  process memory only. It archives no marker, header, body, response, user,
+  credential, token, email, or evidence payload.
+- Disabled persistent Cloudflare invocation logs for this private staging
+  Worker because those provider-generated records include request/response
+  metadata. Unsampled custom operational events remain enabled.
+- The workflow, staging validator, package command, runbook, status, graph, and
+  changelog are updated together. Exact-head deployment verification and a
+  sanitized receipt are pending; no live redaction claim is made by this
+  source checkpoint.
+
+## 2026-08-30T21:59:00Z - P47-093 authenticated live boundary passed
+
+- Exact-head staging run `33337608603` completed successfully at
+  `60d3ccadc4d7456e68fa9b345527f4463b01d4ea`. It deployed Worker version
+  `6c96de84-9571-4724-85ab-61a6e252ecce` and container image digest
+  `sha256:f9c69e865f19422a9d5fab73dc403f232a9d2022fc4d08fd1b7fbb9f34e91d82`.
+- The public boundary passed 12 exact-origin checks. The authenticated boundary
+  then passed 12 cases covering PKCE code exchange/replay, refresh
+  rotation/replay-family revocation, access revocation, expiry, exact redirect
+  allowlisting, owner/admin/member/denied isolation, cross-workspace denial,
+  and the exact six deployed read-only tools.
+- The authenticated test removed its current fixture and two stale test-only
+  personal workspaces left by the earlier failed runs. Cleanup was restricted
+  to recent P47 fixture-name matches whose owner users no longer existed.
+- Workflow artifact `9739571402`, digest
+  `sha256:960fc0cb053e7e09ab71d3206a0bd43ac209d5a7034b804dac4049d221e7e2bc`,
+  contains both sanitized receipts. Exact normalized copies and deployment
+  provenance are now stored in the product package.
+- A post-deployment bounded 100-request OAuth probe returned 30 handled
+  validation responses and 70 `429` responses; health remained `200`.
+- Remaining P47-093 gates are the dedicated real staging user and private
+  ChatGPT connection, approved real-data evidence/prompt-injection checks, live
+  log-redaction inspection, rollback/recovery, Atlas role narrowing, and named
+  accountable owners.
+
+## 2026-08-30T21:51:00Z - P47-093 denied-user live case correction
+
+- Exact-head run `33337338853` passed source gates, deployed revision
+  `ce7a9ae`, and passed the public live boundary. The authenticated gate then
+  failed closed because the application correctly auto-bootstraps a personal
+  owner workspace for a user with no memberships; the test had incorrectly
+  expected zero workspaces. No authenticated receipt was archived.
+- Corrected the denied case to give that principal an explicit isolated test
+  workspace, require that only that workspace is listed, and separately require
+  denial when the principal requests the target workspace.
+- Strengthened `finally` cleanup to discover every workspace owned by a fixture
+  user before deletion, remove memberships by fixture workspace or user, and
+  remove only those exact owned workspaces.
+- Added a bounded pre-test cleanup for the single class of orphaned auto-created
+  workspace from the failed test: its test-only name must match the P47 fixture
+  pattern, it must be less than 24 hours old, and its owner user must no longer
+  exist. No general user or workspace cleanup is permitted.
+
+## 2026-08-30T21:45:00Z - P47-093 authenticated verifier error reporting repair
+
+- Exact-head run `33337074423` deployed revision `773fec3`, passed the public
+  live boundary, then failed closed in the new authenticated step. No
+  authenticated receipt was archived.
+- The verifier's catch path referenced a class before top-level initialization,
+  masking the bounded verification error with a `ReferenceError`. Replaced the
+  temporal-dead-zone-prone class check with an explicitly named ordinary
+  `Error`; all security assertions and `finally` fixture cleanup are unchanged.
+- The deployed service remains healthy, but this failed run is not accepted as
+  OAuth, tenancy, tool-inventory, or cleanup evidence.
+
+## 2026-08-30T21:40:00Z - P47-093 authenticated live-verification harness
+
+- Added a post-deploy authenticated verifier that uses only the existing
+  `MONGODB_URI` and `MCP_OAUTH_SIGNING_SECRET` environment references. It does
+  not require a new human credential or expose either secret.
+- The verifier creates a unique ephemeral test fixture directly in the staging
+  database, exercises real public OAuth and MCP over the stable HTTPS origin,
+  and deletes the fixture plus its OAuth records in `finally` cleanup.
+- The fixture is explicitly classified as test-only and cannot be recorded as
+  a real user, county record, model result, deployment result, or pilot outcome.
+- Governed live cases cover PKCE exchange and code replay, refresh rotation and
+  replay-family revocation, access revocation, expired access, exact redirect
+  allowlisting, owner/admin/member/denied workspace views, cross-workspace
+  denial, and the exact six-tool read-only inventory.
+- The workflow now archives a second sanitized receipt containing case names
+  and the tool inventory but no fixture identifiers, emails, passwords, codes,
+  tokens, response bodies, prompts, or evidence payloads.
+
+## 2026-08-30T21:33:51Z - P47-093 governed redeployment and rate-limit receipt
+
+- Published the live verifier, preview-URL hardening, and deployment provenance
+  at `c103001`, then triggered exact-head staging revision
+  `aca4081724969094dcdf5b50d4cf1e600febc1c2`.
+- Workflow run `33336257365` attempt 1 failed closed before deployment when one
+  process-contract test hit a transient client `EPIPE` while sending an
+  intentionally oversized body. The same unchanged job was rerun; attempt 2
+  passed all 332 Vitest and 10 Python tests, validators, typecheck, builds,
+  secret synchronization, preflight, deployment, live verification, and
+  receipt archival. No gate was weakened.
+- The current deployment is Worker version
+  `0b6656c5-4535-4552-9f8a-37a3fc19cef2` with container image digest
+  `sha256:32ea2bc7adde03a36919abb98cc3ab1aad7ea4097bef1b22ec55c6011e4188a5`.
+  Preview URLs are disabled.
+- A bounded 100-request OAuth load check produced 30 handled validation
+  responses and 70 `429` responses; `/healthz` still returned `200` after the
+  burst. No credential, token, user, prompt, or evidence payload was used or
+  stored.
+- The exact-head sanitized repository receipt now pins the workflow attempt,
+  Worker version, container digest, workflow-artifact digest, 12 public-boundary
+  assertions, and the bounded rate-limit check.
+
+## 2026-08-30T21:15:24Z - P47-093 live HTTPS boundary verification
+
+- Exact-head deployment run `33335437008` completed successfully at
+  `fec745e0e1e08e7ce3fcf4da0c647cf030f668cd`. It built and pushed the real
+  Node/Python container, created the bounded Cloudflare container application,
+  and deployed Worker version `cfc90ff0-729a-4622-8a0c-4b1c2e760d42` at the
+  stable named workers.dev origin. No preview, localhost, or fabricated URL is
+  used as evidence.
+- A direct live verifier passed 12 public-boundary checks: TLS/HSTS health,
+  Mongo and intelligence readiness, exact OAuth protected-resource and
+  authorization-server discovery, fail-closed unauthenticated MCP, the 1 MiB
+  ingress bound, and rejection of registration, dataset, score, bid, purchase,
+  and GraphQL routes.
+- Stored a sanitized deployment receipt under the ChatGPT product package. It
+  contains deployment identifiers, status codes, and dependency states but no
+  response payloads, credentials, authorization codes, tokens, users, or
+  evidence data.
+- Added an exact-origin post-deploy verifier and artifact upload to the staging
+  workflow, disabled unstable Worker preview URLs, and extended both staging
+  and release validators so deployment provenance cannot drift.
+- `P47-093` remains in progress. Authenticated OAuth/tenant cases, the six-tool
+  inventory, private ChatGPT connection, live redaction inspection, rollback,
+  database-role narrowing, and accountable owners remain unverified.
+
+## 2026-08-30T21:05:00Z - P47-093 container build-stage repair
+
+- Exact-head staging run `33335163254` proved the Wrangler preflight repair:
+  all governed source gates, secret synchronization, and Cloudflare authority
+  checks passed.
+- Cloudflare then built the real container and failed closed because the
+  Node-only build stage invoked the repository-wide build, which also calls
+  `python3`. The Node base image does not contain Python. No deployment or live
+  endpoint was created.
+- Split image validation by runtime: the Node stage now builds only npm
+  workspaces, while the final Python stage compiles the intelligence service
+  and supervisor. The staging validator enforces this boundary and forbids the
+  repository-wide build command in the Node-only stage.
+
+## 2026-08-30T20:58:00Z - P47-093 first live deployment repair
+
+- Exact-head staging run `33334912896` checked out `2b0b736`, passed the full
+  governed source gate with 332 Vitest tests and all builds, and synchronized
+  all five Worker secret-name bindings without printing values.
+- The run then failed closed before deployment because Wrangler `4.127.1`
+  rejects the obsolete `secret list --json` option. No live endpoint or
+  deployment receipt was created.
+- Replaced the unsupported option with `secret list --format=json` and extended
+  the staging validator to require the supported form and reject the obsolete
+  flag. This is a source repair pending an exact-head live rerun.
+
+## 2026-08-30T20:52:02Z - P47-093 external staging prerequisites
+
+- Provisioned the staging-only MongoDB Atlas project `Tax Lien Intelligence
+  Staging` and the `$0` Free shared cluster `TaxLienStaging` on AWS
+  `eu-west-1`. No paid MongoDB resource was created.
+- Confirmed a SCRAM application user named `tax_lien_chatgpt_staging`. Atlas
+  reports `readWriteAnyDatabase@admin`, restricted to the single
+  `TaxLienStaging` cluster. This is not represented as database-specific least
+  privilege; narrowing it to `readWrite@tax_lien_chatgpt_staging` remains a hardening
+  item before this node can be closed.
+- Added the user-approved `0.0.0.0/0` Atlas access-list entry required by the
+  Cloudflare Container's dynamic TCP egress. TLS and database credentials
+  remain mandatory. The Free Atlas tier has no private-endpoint support, and no
+  paid static-egress service was authorized.
+- Confirmed that GitHub environment `chatgpt-staging` contains all six required
+  secret names: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`,
+  `MONGODB_URI`, `JWT_SECRET`, `INTELLIGENCE_SERVICE_TOKEN`, and
+  `MCP_OAUTH_SIGNING_SECRET`. Values were not read, logged, or committed.
+- `P47-093` remains in progress. These are live external prerequisites, not a
+  deployment, endpoint, OAuth, ChatGPT connection, load, log, or rollback
+  receipt.
+
+## 2026-08-30T19:10:00Z - P47-093 non-interactive staging bootstrap
+
+- Closed the feature-branch dispatch gap without enabling deployment on an
+  ordinary push. The staging workflow deploy job now requires either
+  `workflow_dispatch` or the exact `[deploy-private-staging]` commit marker on
+  the bounded feature branch.
+- Added a non-interactive secret synchronization step. It consumes six GitHub
+  `chatgpt-staging` environment secret references, resolves the authorized
+  workers.dev subdomain, derives the canonical staging origin, and passes five
+  Worker bindings to `wrangler secret bulk` over stdin.
+- No secret value is written to a file or emitted by the synchronization
+  script. Missing inputs and provider failures report only bounded error
+  classes or secret names.
+- Wrangler configuration now declares the five required runtime secret names,
+  and the staging validator checks the GitHub references, synchronization,
+  declaration, preflight, and exact deployment marker together.
+- Verification passed the work-graph and staging validators, repository
+  typecheck, Cloudflare workspace build, Wrangler schema support check, diff
+  whitespace check, and a missing-input failure check that emitted names only
+  and no credential-shaped value.
+- `P47-093` remains in progress. This is deployment-bootstrap source, not a
+  Cloudflare account, paid entitlement, Mongo service, deployment, or ChatGPT
+  connection receipt.
+
+## 2026-08-30T18:57:36Z - P47-093 source checkpoint and exact-head CI
+
+- Published the source tree to
+  `feature/p47-093-chatgpt-private-staging@eed50b6ac9f08cc99825cbeff33715ea2722100a`.
+- Opened pull request
+  [#2](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/2)
+  against `main@50dae44f797af6b1c99f8bc4044c5965f2f36381`.
+- Exact-head GitHub Actions run `33329355584`, quality-gates job
+  `99305018587`, completed successfully. It passed all four validators,
+  zero-vulnerability audit, typecheck, complete Python and Vitest suites,
+  complete builds, real-process intelligence smoke, real Mongo intelligence
+  persistence smoke, and real Mongo OAuth atomicity/revocation smoke.
+- Static change-safety review found no credential pattern, database migration,
+  automatic deployment trigger, new mutation route, or public product action.
+  The only new API route is `/readyz`; public staging ingress remains the
+  explicit closed allowlist.
+- The release package now pins the verified implementation checkpoint while
+  retaining `source_only`, null connection URLs, and null live receipts.
+- `P47-093` remains the only in-progress graph node. This remote CI is source
+  proof, not Cloudflare deployment or private ChatGPT connection proof.
+
+## 2026-08-30T18:33:53Z - P47-093 private-staging deployment boundary
+
+- Controlling task: continue only `P47-093-chatgpt-private-staging` from the
+  merged repository state, deploy a real stable HTTPS service, connect it
+  privately in ChatGPT, preserve WIP 1, and stop only at a human-only boundary.
+- Repository truth: cloned `AyobamiH/tax-lien-intelligence-platform`, verified
+  `main@50dae44f797af6b1c99f8bc4044c5965f2f36381`, admin/push access, merged PR
+  #1, and GitHub Actions run `33309185096` / quality-gates job `99251022127`
+  with all 16 steps successful. Created bounded branch
+  `feature/p47-093-chatgpt-private-staging` from that exact head.
+- Required governance read: `AGENTS.md`, `MISSION.md`, `ACCEPTANCE.md`,
+  `OPENCLAW_RUNBOOK.md`, complete `WORK_LEDGER.md`, `docs/README.md`, engine
+  operating guide and graph, private-staging runbook, and OAuth threat model.
+  The graph already had only `P47-093` in progress.
+- Current platform research: official Cloudflare documentation confirms
+  Containers can run existing Linux images and pass Worker secret bindings,
+  but require Workers Paid; container disk is ephemeral; Worker rate-limit
+  bindings are per location and permissive; deployments and container rollouts
+  are not transactional. Official OpenAI documentation confirms private
+  developer-mode connections require a public HTTPS endpoint or Secure MCP
+  Tunnel, OAuth discovery, PKCE/client identification, exact redirect behavior,
+  and live tool inspection.
+- Mongo decision: the Python service is stateless and receives no database
+  credential. The Node API requires durable persistence for 27 existing product
+  models and three OAuth collections whose atomic consume/rotation/revocation
+  behavior cannot live on ephemeral container disk. Keeping one managed Mongo
+  connection is less risky than a database rewrite during this gate; no public
+  Mongo API or second database layer was added.
+- Source completed:
+  - one Cloudflare Worker with exact HTTPS origin enforcement, a closed ingress
+    route set, a streaming 1 MiB body bound, OAuth/MCP rate-limit bindings, and
+    payload-free gateway telemetry;
+  - one `basic`, max-one Cloudflare Container running the real Node API and
+    unchanged Python intelligence service under a SIGTERM-aware supervisor;
+  - Worker-secret injection for only `STAGING_ORIGIN`, `MONGODB_URI`,
+    `JWT_SECRET`, `INTELLIGENCE_SERVICE_TOKEN`, and
+    `MCP_OAUTH_SIGNING_SECRET`;
+  - API `/readyz`, dependency-safe responses, payload-free request telemetry,
+    generated request ids, and graceful Mongo disconnect on shutdown;
+  - staging-only Dockerfile, source validator, secret-name preflight, and
+    manual GitHub deployment workflow with no automatic push deployment;
+  - topology, health, MCP, staging, product, graph, status, changelog, and thin
+    package documentation updated together.
+- Closed surface: the Worker does not admit registration, upload, dataset or
+  score mutation, bidding, purchasing, or other application routes. It admits
+  only health/readiness, OAuth discovery/lifecycle, and the existing `/mcp`.
+- Verification so far:
+  - `npm run typecheck` passed;
+  - `npm run build -w @tax-lien/cloudflare-staging` passed;
+  - Python supervisor compilation passed;
+  - `npm run validate:chatgpt-staging` passed for five secret references, one
+    container instance, and the closed ingress set;
+  - 13 focused health, telemetry-redaction, and gateway-policy tests passed;
+  - complete local gates passed with 10 Python tests, 332 Vitest tests across
+    51 files, the full workspace build, six browser-like tests, nine
+    real-process intelligence-service tests, and zero audit vulnerabilities;
+  - the local API/web runtime smoke passed;
+  - `git diff --check` passed.
+- Live infrastructure evidence: no `CLOUDFLARE_*`, `MONGO*`, `WRANGLER`, or
+  staging secret names are present in the current environment. The app bridge
+  has no installed Cloudflare plugin, its Cloudflare search connection failed,
+  and the non-mutating Wrangler preflight could not execute because outbound
+  account access was not approved in this runtime. Docker is also unavailable
+  locally. No Cloudflare account, paid entitlement, zone, workers.dev origin,
+  secret inventory, Mongo service, deployment, or URL is claimed.
+- Remaining human-only boundaries: authenticate or connect the authorized
+  Cloudflare account and confirm existing Workers Paid entitlement; configure
+  the five Worker bindings including a managed TLS staging Mongo URI; assign
+  the privacy/retention/deletion/consent/support/incident owners. No paid plan,
+  domain, secret, or owner was invented.
+- Next exact work before requesting that boundary action: finish the static
+  change-safety review, commit and push the source checkpoint, open a PR, and
+  verify exact-head CI. `P47-093` remains in progress and no live receipt is
+  added.
+
 ## 2026-08-30T11:25:22Z - Phase 47 current-state reconciliation and PR handoff
 
 - Requested task: revisit the controlling `Project Vision Review`, inspect the

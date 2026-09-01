@@ -8,10 +8,23 @@ workspace-membership logic.
 ## Current state
 
 The plugin metadata is source-controlled and validation-ready. The runtime MCP
-server and OAuth 2.1 implementation live in `apps/api`. A `.mcp.json` is
-intentionally absent until an operator supplies and deploys the real stable
-HTTPS `/mcp` endpoint. Adding a sample or placeholder server URL would create a
-connection that cannot be truthfully tested.
+server and OAuth 2.1 implementation live in `apps/api`; the staging deployment
+boundary lives in `infra/cloudflare`. The package is now
+`private_staging_deployed`: exact-head deployment, public-boundary,
+authenticated-boundary, live log-redaction, and governed rollback/recovery
+receipts are pinned in `release-provenance.json`. The stable origin passed all
+24 public and OAuth / tenant / tool cases, Cloudflare telemetry proved gateway
+and application logs remain payload-free, and the preceding Worker version was
+verified before the exact current version was restored at 100%. A `.mcp.json`
+remains intentionally absent until the real private ChatGPT OAuth connection is
+verified. The Atlas service user is now limited to
+`readWrite@tax_lien_chatgpt_staging` on the single `TaxLienStaging` cluster,
+and private-pilot privacy, retention/deletion, consent, support, operations,
+and incident responsibilities are assigned to the accountable pilot owner. The
+next source revision also requires exact explicit OAuth consent and introduces
+fixed-lifetime, grant-wide refresh/access revocation; those controls remain
+source evidence until the exact revision is deployed and its live receipts are
+pinned here.
 
 ## Approved capability
 

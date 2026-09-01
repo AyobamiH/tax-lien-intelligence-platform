@@ -1,0 +1,66 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tax-lien-chatgpt-staging",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-30",
+  "workers_dev": true,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": {
+      "invocation_logs": false
+    }
+  },
+  "secrets": {
+    "required": [
+      "STAGING_ORIGIN",
+      "MONGODB_URI",
+      "JWT_SECRET",
+      "INTELLIGENCE_SERVICE_TOKEN",
+      "MCP_OAUTH_SIGNING_SECRET"
+    ]
+  },
+  "containers": [
+    {
+      "class_name": "TaxLienStagingContainer",
+      "image": "../../Dockerfile.staging",
+      "max_instances": 1,
+      "instance_type": "basic"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "API_CONTAINER",
+        "class_name": "TaxLienStagingContainer"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "TaxLienStagingContainer"
+      ]
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "OAUTH_GATEWAY_LIMITER",
+      "namespace_id": "4709301",
+      "simple": {
+        "limit": 120,
+        "period": 60
+      }
+    },
+    {
+      "name": "MCP_GATEWAY_LIMITER",
+      "namespace_id": "4709302",
+      "simple": {
+        "limit": 240,
+        "period": 60
+      }
+    }
+  ]
+}

@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-29T16:15:00Z",
+  "updatedAt": "2026-08-30T23:45:00.000Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
-  "branch": "feature/intelligence-engine-foundation",
+  "branch": "feature/p47-093-chatgpt-private-staging",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
   "policies": {
     "noMockIntelligence": true,
@@ -39,11 +39,31 @@
       "status": "completed",
       "ownerRole": "platform-maintainer",
       "dependencies": [],
-      "scope": ["latest internal-job ordering", "dependency advisory remediation", "baseline gates"],
-      "acceptance": ["maintenance policy reads the newest target job deterministically", "audit, typecheck, tests, and build pass"],
-      "documentation": ["WORK_LEDGER.md", "docs/changelog.md"],
-      "verification": ["focused internal-job and scoring tests", "npm run audit", "npm run typecheck", "npm run test", "npm run build"],
-      "evidence": ["remote commit ba1b0cb", "40 test files and 270 tests passed", "0 audit vulnerabilities"],
+      "scope": [
+        "latest internal-job ordering",
+        "dependency advisory remediation",
+        "baseline gates"
+      ],
+      "acceptance": [
+        "maintenance policy reads the newest target job deterministically",
+        "audit, typecheck, tests, and build pass"
+      ],
+      "documentation": [
+        "WORK_LEDGER.md",
+        "docs/changelog.md"
+      ],
+      "verification": [
+        "focused internal-job and scoring tests",
+        "npm run audit",
+        "npm run typecheck",
+        "npm run test",
+        "npm run build"
+      ],
+      "evidence": [
+        "remote commit ba1b0cb",
+        "40 test files and 270 tests passed",
+        "0 audit vulnerabilities"
+      ],
       "blockers": []
     },
     {
@@ -51,12 +71,41 @@
       "title": "Establish graph-governed engine delivery",
       "status": "completed",
       "ownerRole": "engine-architect",
-      "dependencies": ["P47-000-baseline-recovery"],
-      "scope": ["work graph", "validator", "CI gate", "agent handoff", "engine decision records"],
-      "acceptance": ["graph is acyclic and machine validated", "every node declares ownership, dependencies, acceptance, evidence, and blockers", "no-mock rule is explicit"],
-      "documentation": ["AGENTS.md", "ACCEPTANCE.md", "docs/engine", "docs/decisions/0002-intelligence-engine-boundary.md", "WORK_LEDGER.md"],
-      "verification": ["npm run validate:work-graph", "git diff --check", "npm run typecheck", "npm run test", "npm run build", "npm run audit"],
-      "evidence": ["scripts/validate-work-graph.mjs", ".github/workflows/ci.yml", "docs/engine/README.md"],
+      "dependencies": [
+        "P47-000-baseline-recovery"
+      ],
+      "scope": [
+        "work graph",
+        "validator",
+        "CI gate",
+        "agent handoff",
+        "engine decision records"
+      ],
+      "acceptance": [
+        "graph is acyclic and machine validated",
+        "every node declares ownership, dependencies, acceptance, evidence, and blockers",
+        "no-mock rule is explicit"
+      ],
+      "documentation": [
+        "AGENTS.md",
+        "ACCEPTANCE.md",
+        "docs/engine",
+        "docs/decisions/0002-intelligence-engine-boundary.md",
+        "WORK_LEDGER.md"
+      ],
+      "verification": [
+        "npm run validate:work-graph",
+        "git diff --check",
+        "npm run typecheck",
+        "npm run test",
+        "npm run build",
+        "npm run audit"
+      ],
+      "evidence": [
+        "scripts/validate-work-graph.mjs",
+        ".github/workflows/ci.yml",
+        "docs/engine/README.md"
+      ],
       "blockers": []
     },
     {
@@ -64,12 +113,44 @@
       "title": "Define CandidateEvidenceV1 and EngineResultV1",
       "status": "completed",
       "ownerRole": "contract-engineer",
-      "dependencies": ["P47-010-governance"],
-      "scope": ["shared TypeScript contracts", "JSON Schema", "provenance", "applicability", "abstention", "version manifest"],
-      "acceptance": ["contracts reject unsupported precision", "all signals distinguish heuristic, deterministic, model, unknown, and unavailable", "compatibility impact is documented"],
-      "documentation": ["docs/api/scoring.md", "docs/architecture/scoring.md", "docs/kb/shared-contract-kb.md", "docs/engine/status.md"],
-      "verification": ["runtime validator tests", "JSON Schema and manifest shape tests", "npm run audit", "npm run validate:work-graph", "npm run typecheck", "npm run test", "npm run build", "git diff --check"],
-      "evidence": ["packages/engine-contract", "tests/unit/engine-contract.test.ts: 9 tests passed", "full repository suite: 41 files and 279 tests passed", "0 audit vulnerabilities"],
+      "dependencies": [
+        "P47-010-governance"
+      ],
+      "scope": [
+        "shared TypeScript contracts",
+        "JSON Schema",
+        "provenance",
+        "applicability",
+        "abstention",
+        "version manifest"
+      ],
+      "acceptance": [
+        "contracts reject unsupported precision",
+        "all signals distinguish heuristic, deterministic, model, unknown, and unavailable",
+        "compatibility impact is documented"
+      ],
+      "documentation": [
+        "docs/api/scoring.md",
+        "docs/architecture/scoring.md",
+        "docs/kb/shared-contract-kb.md",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "runtime validator tests",
+        "JSON Schema and manifest shape tests",
+        "npm run audit",
+        "npm run validate:work-graph",
+        "npm run typecheck",
+        "npm run test",
+        "npm run build",
+        "git diff --check"
+      ],
+      "evidence": [
+        "packages/engine-contract",
+        "tests/unit/engine-contract.test.ts: 9 tests passed",
+        "full repository suite: 41 files and 279 tests passed",
+        "0 audit vulnerabilities"
+      ],
       "blockers": []
     },
     {
@@ -77,12 +158,37 @@
       "title": "Create versioned jurisdiction rule packs",
       "status": "completed",
       "ownerRole": "domain-rules-engineer",
-      "dependencies": ["P47-020-contracts"],
-      "scope": ["rule-pack interface", "Arizona and Maricopa applicability", "hard exclusions", "source citations", "rule versioning"],
-      "acceptance": ["rules are deterministic and source-versioned", "unknown jurisdiction rules cause abstention", "legal claims are not inferred by an LLM"],
-      "documentation": ["docs/architecture/scoring.md", "docs/engine/status.md"],
-      "verification": ["rule fixtures from verified public rules", "contract tests", "full repository gates"],
-      "evidence": ["packages/jurisdiction-rules", "tests/unit/jurisdiction-rules.test.ts: 10 tests passed", "Arizona Legislature A.R.S. 42-18053, 42-18101, 42-18114, 42-18115, 42-18118, 42-18127, 42-18152, 42-18201, and 42-18202 verified 2026-08-29", "full repository suite: 42 files and 289 tests passed", "0 audit vulnerabilities"],
+      "dependencies": [
+        "P47-020-contracts"
+      ],
+      "scope": [
+        "rule-pack interface",
+        "Arizona and Maricopa applicability",
+        "hard exclusions",
+        "source citations",
+        "rule versioning"
+      ],
+      "acceptance": [
+        "rules are deterministic and source-versioned",
+        "unknown jurisdiction rules cause abstention",
+        "legal claims are not inferred by an LLM"
+      ],
+      "documentation": [
+        "docs/architecture/scoring.md",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "rule fixtures from verified public rules",
+        "contract tests",
+        "full repository gates"
+      ],
+      "evidence": [
+        "packages/jurisdiction-rules",
+        "tests/unit/jurisdiction-rules.test.ts: 10 tests passed",
+        "Arizona Legislature A.R.S. 42-18053, 42-18101, 42-18114, 42-18115, 42-18118, 42-18127, 42-18152, 42-18201, and 42-18202 verified 2026-08-29",
+        "full repository suite: 42 files and 289 tests passed",
+        "0 audit vulnerabilities"
+      ],
       "blockers": []
     },
     {
@@ -90,12 +196,41 @@
       "title": "Implement the production intelligence-service boundary",
       "status": "completed",
       "ownerRole": "analytics-platform-engineer",
-      "dependencies": ["P47-020-contracts", "P47-030-rule-engine"],
-      "scope": ["Python service", "request validation", "provenance", "health and version endpoints", "truthful abstention"],
-      "acceptance": ["service never fabricates a model output", "contract parity is automated", "runtime and failure behavior are verified without placeholder providers"],
-      "documentation": ["docs/api", "docs/architecture", "docs/engine/status.md"],
-      "verification": ["real process contract tests", "service unit tests", "runtime smoke", "full repository gates"],
-      "evidence": ["services/intelligence", "10 dependency-free Python unit tests passed", "tests/integration/intelligence-service.test.ts: 7 real-process HTTP tests passed", "TypeScript/Python full-result and fractional-number digest parity", "full repository suite: 43 files and 296 Vitest tests passed", "0 audit vulnerabilities"],
+      "dependencies": [
+        "P47-020-contracts",
+        "P47-030-rule-engine"
+      ],
+      "scope": [
+        "Python service",
+        "request validation",
+        "provenance",
+        "health and version endpoints",
+        "truthful abstention"
+      ],
+      "acceptance": [
+        "service never fabricates a model output",
+        "contract parity is automated",
+        "runtime and failure behavior are verified without placeholder providers"
+      ],
+      "documentation": [
+        "docs/api",
+        "docs/architecture",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "real process contract tests",
+        "service unit tests",
+        "runtime smoke",
+        "full repository gates"
+      ],
+      "evidence": [
+        "services/intelligence",
+        "10 dependency-free Python unit tests passed",
+        "tests/integration/intelligence-service.test.ts: 7 real-process HTTP tests passed",
+        "TypeScript/Python full-result and fractional-number digest parity",
+        "full repository suite: 43 files and 296 Vitest tests passed",
+        "0 audit vulnerabilities"
+      ],
       "blockers": []
     },
     {
@@ -103,12 +238,41 @@
       "title": "Integrate the engine through a TypeScript compatibility boundary",
       "status": "completed",
       "ownerRole": "platform-integration-engineer",
-      "dependencies": ["P47-040-service"],
-      "scope": ["API client", "stored result versioning", "legacy heuristic label", "UI abstention states", "tenant isolation"],
-      "acceptance": ["current users retain workflow continuity", "legacy heuristic is not labelled probability", "service failure does not invent or reuse stale intelligence silently"],
-      "documentation": ["docs/api/scoring.md", "docs/architecture/scoring.md", "docs/kb/current-surface-kb.md", "docs/engine/status.md"],
-      "verification": ["API integration tests", "browser-like evidence states", "Mongo-backed smoke", "full repository gates"],
-      "evidence": ["remote commit eefcf3a", "GitHub Actions CI run 33247151199 and quality-gates job 99086489141 passed", "real MongoDB persistence smoke passed in CI", "10 Python tests and 306 Vitest tests across 46 files passed", "9 real-process service tests and 6 browser-like smoke tests passed", "0 audit vulnerabilities"],
+      "dependencies": [
+        "P47-040-service"
+      ],
+      "scope": [
+        "API client",
+        "stored result versioning",
+        "legacy heuristic label",
+        "UI abstention states",
+        "tenant isolation"
+      ],
+      "acceptance": [
+        "current users retain workflow continuity",
+        "legacy heuristic is not labelled probability",
+        "service failure does not invent or reuse stale intelligence silently"
+      ],
+      "documentation": [
+        "docs/api/scoring.md",
+        "docs/architecture/scoring.md",
+        "docs/kb/current-surface-kb.md",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "API integration tests",
+        "browser-like evidence states",
+        "Mongo-backed smoke",
+        "full repository gates"
+      ],
+      "evidence": [
+        "remote commit eefcf3a",
+        "GitHub Actions CI run 33247151199 and quality-gates job 99086489141 passed",
+        "real MongoDB persistence smoke passed in CI",
+        "10 Python tests and 306 Vitest tests across 46 files passed",
+        "9 real-process service tests and 6 browser-like smoke tests passed",
+        "0 audit vulnerabilities"
+      ],
       "blockers": []
     },
     {
@@ -116,12 +280,45 @@
       "title": "Verify Maricopa source and outcome-label availability",
       "status": "completed",
       "ownerRole": "data-product-engineer",
-      "dependencies": ["P47-010-governance"],
-      "scope": ["source inventory", "licensing", "update cadence", "historical coverage", "redemption labels", "observation timestamps"],
-      "acceptance": ["every source has authority, license, fields, cadence, and provenance", "label gaps are explicit", "no unverified scraped dataset enters production"],
-      "documentation": ["docs/engine/data-inventory.md", "docs/engine/status.md"],
-      "verification": ["npm run validate:data-inventory", "source URL checks", "schema sampling", "license review", "data-card draft", "full repository gates"],
-      "evidence": ["remote commit 9cbc841", "GitHub Actions run 33248227529 and quality-gates job 99089286887 passed", "docs/engine/data-source-inventory.json", "real 2026-08-17 Assessor Secured Master archive and 39-field schema sampled", "county GIS ArcGIS item and two feature-layer schemas reviewed", "0 external sources approved for production or training", "10 Python tests and 306 Vitest tests across 46 files passed", "real MongoDB persistence smoke passed in CI", "0 audit vulnerabilities"],
+      "dependencies": [
+        "P47-010-governance"
+      ],
+      "scope": [
+        "source inventory",
+        "licensing",
+        "update cadence",
+        "historical coverage",
+        "redemption labels",
+        "observation timestamps"
+      ],
+      "acceptance": [
+        "every source has authority, license, fields, cadence, and provenance",
+        "label gaps are explicit",
+        "no unverified scraped dataset enters production"
+      ],
+      "documentation": [
+        "docs/engine/data-inventory.md",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "npm run validate:data-inventory",
+        "source URL checks",
+        "schema sampling",
+        "license review",
+        "data-card draft",
+        "full repository gates"
+      ],
+      "evidence": [
+        "remote commit 9cbc841",
+        "GitHub Actions run 33248227529 and quality-gates job 99089286887 passed",
+        "docs/engine/data-source-inventory.json",
+        "real 2026-08-17 Assessor Secured Master archive and 39-field schema sampled",
+        "county GIS ArcGIS item and two feature-layer schemas reviewed",
+        "0 external sources approved for production or training",
+        "10 Python tests and 306 Vitest tests across 46 files passed",
+        "real MongoDB persistence smoke passed in CI",
+        "0 audit vulnerabilities"
+      ],
       "blockers": []
     },
     {
@@ -129,11 +326,39 @@
       "title": "Prepare and execute lawful longitudinal data acquisition",
       "status": "planned",
       "ownerRole": "data-partnerships-engineer",
-      "dependencies": ["P47-060-data-inventory"],
-      "scope": ["commercial-purpose request package", "written data-use terms", "certificate lifecycle schema", "raw artifact manifest", "privacy and retention review", "time-aware entity resolution"],
-      "acceptance": ["all intended commercial and model-training uses are disclosed to the records custodian", "written terms cover access, retention, derived features, model training, and redistribution", "received artifacts have source timestamps and checksums", "certificate, sale, redemption, terminal-event, and observed-through fields pass quality review", "no acquired record enters production or training before approval"],
-      "documentation": ["docs/engine/data-acquisition.md", "docs/engine/data-source-inventory.json", "dataset manifest", "privacy review", "WORK_LEDGER.md"],
-      "verification": ["request and terms review", "source-manifest validation", "schema and temporal-quality report", "entity-resolution report", "legal and product approval evidence", "full repository gates"],
+      "dependencies": [
+        "P47-060-data-inventory"
+      ],
+      "scope": [
+        "commercial-purpose request package",
+        "written data-use terms",
+        "certificate lifecycle schema",
+        "raw artifact manifest",
+        "privacy and retention review",
+        "time-aware entity resolution"
+      ],
+      "acceptance": [
+        "all intended commercial and model-training uses are disclosed to the records custodian",
+        "written terms cover access, retention, derived features, model training, and redistribution",
+        "received artifacts have source timestamps and checksums",
+        "certificate, sale, redemption, terminal-event, and observed-through fields pass quality review",
+        "no acquired record enters production or training before approval"
+      ],
+      "documentation": [
+        "docs/engine/data-acquisition.md",
+        "docs/engine/data-source-inventory.json",
+        "dataset manifest",
+        "privacy review",
+        "WORK_LEDGER.md"
+      ],
+      "verification": [
+        "request and terms review",
+        "source-manifest validation",
+        "schema and temporal-quality report",
+        "entity-resolution report",
+        "legal and product approval evidence",
+        "full repository gates"
+      ],
       "evidence": [],
       "blockers": []
     },
@@ -142,24 +367,69 @@
       "title": "Train valuation, redemption, and liquidity baselines",
       "status": "planned",
       "ownerRole": "applied-ml-engineer",
-      "dependencies": ["P47-040-service", "P47-065-lawful-data-acquisition"],
-      "scope": ["interpretable baseline", "survival model", "valuation interval", "artifact versioning"],
-      "acceptance": ["training uses verified labels", "time censoring and leakage controls are explicit", "artifacts are reproducible and licensed"],
-      "documentation": ["model cards", "dataset cards", "docs/engine/status.md"],
-      "verification": ["out-of-time evaluation", "county holdout", "calibration", "artifact reproduction"],
+      "dependencies": [
+        "P47-040-service",
+        "P47-065-lawful-data-acquisition"
+      ],
+      "scope": [
+        "interpretable baseline",
+        "survival model",
+        "valuation interval",
+        "artifact versioning"
+      ],
+      "acceptance": [
+        "training uses verified labels",
+        "time censoring and leakage controls are explicit",
+        "artifacts are reproducible and licensed"
+      ],
+      "documentation": [
+        "model cards",
+        "dataset cards",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "out-of-time evaluation",
+        "county holdout",
+        "calibration",
+        "artifact reproduction"
+      ],
       "evidence": [],
-      "blockers": ["written commercial and model-training authorization has not been obtained", "historical certificate redemption outcomes and sufficient observation windows have not been acquired or verified"]
+      "blockers": [
+        "written commercial and model-training authorization has not been obtained",
+        "historical certificate redemption outcomes and sufficient observation windows have not been acquired or verified"
+      ]
     },
     {
       "id": "P47-080-evaluation",
       "title": "Establish model promotion and abstention gates",
       "status": "planned",
       "ownerRole": "model-risk-engineer",
-      "dependencies": ["P47-070-trained-models"],
-      "scope": ["temporal metrics", "calibration", "IAAO valuation metrics", "segment performance", "out-of-distribution abstention", "shadow mode"],
-      "acceptance": ["promotion thresholds beat declared baselines", "weak segments abstain", "reports are reproducible"],
-      "documentation": ["evaluation report", "model cards", "docs/engine/status.md"],
-      "verification": ["independent evaluation run", "reproduction manifest", "shadow comparison"],
+      "dependencies": [
+        "P47-070-trained-models"
+      ],
+      "scope": [
+        "temporal metrics",
+        "calibration",
+        "IAAO valuation metrics",
+        "segment performance",
+        "out-of-distribution abstention",
+        "shadow mode"
+      ],
+      "acceptance": [
+        "promotion thresholds beat declared baselines",
+        "weak segments abstain",
+        "reports are reproducible"
+      ],
+      "documentation": [
+        "evaluation report",
+        "model cards",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "independent evaluation run",
+        "reproduction manifest",
+        "shadow comparison"
+      ],
       "evidence": [],
       "blockers": []
     },
@@ -168,11 +438,33 @@
       "title": "Expose a read-only ChatGPT evidence interface",
       "status": "completed",
       "ownerRole": "chatgpt-product-engineer",
-      "dependencies": ["P47-050-platform-integration", "P47-060-data-inventory"],
-      "scope": ["read-only tools", "evidence citations", "comparison", "missing-evidence guidance", "memo drafting"],
-      "acceptance": ["ChatGPT cannot alter engine values or execute bids", "answers cite stored evidence and separate facts, inferences, and unknowns", "tenant authorization is enforced server-side"],
-      "documentation": ["plugin tool contract", "privacy and safety review", "docs/engine/status.md"],
-      "verification": ["tool authorization tests", "evidence-grounding evals", "adversarial prompt tests", "release-readiness review"],
+      "dependencies": [
+        "P47-050-platform-integration",
+        "P47-060-data-inventory"
+      ],
+      "scope": [
+        "read-only tools",
+        "evidence citations",
+        "comparison",
+        "missing-evidence guidance",
+        "memo drafting"
+      ],
+      "acceptance": [
+        "ChatGPT cannot alter engine values or execute bids",
+        "answers cite stored evidence and separate facts, inferences, and unknowns",
+        "tenant authorization is enforced server-side"
+      ],
+      "documentation": [
+        "plugin tool contract",
+        "privacy and safety review",
+        "docs/engine/status.md"
+      ],
+      "verification": [
+        "tool authorization tests",
+        "evidence-grounding evals",
+        "adversarial prompt tests",
+        "release-readiness review"
+      ],
       "evidence": [
         "Implementation published at 8f6a1bd846336a47e01e2a05c55c3631e8f2a1ad",
         "GitHub Actions run 33249393142 and quality-gates job 99092320186 completed successfully",
@@ -187,7 +479,9 @@
       "title": "Lock the ChatGPT product definition and release boundary",
       "status": "completed",
       "ownerRole": "chatgpt-product-lead",
-      "dependencies": ["P47-090-chatgpt-interface"],
+      "dependencies": [
+        "P47-090-chatgpt-interface"
+      ],
       "scope": [
         "primary user and first three jobs",
         "evidence-first product promise and prohibited claims",
@@ -230,7 +524,9 @@
       "title": "Connect a private ChatGPT staging product",
       "status": "in_progress",
       "ownerRole": "chatgpt-release-engineer",
-      "dependencies": ["P47-092-chatgpt-product-definition"],
+      "dependencies": [
+        "P47-092-chatgpt-product-definition"
+      ],
       "scope": [
         "thin release repository and engine provenance pin",
         "stable HTTPS staging MCP deployment",
@@ -267,12 +563,48 @@
         "apps/api/src/oauth implements OAuth discovery, explicit consent, PKCE S256, exact client/redirect/resource/scope validation, code exchange, refresh rotation/replay protection, and revocation",
         "tests/integration/oauth.test.ts covers repository-level OAuth lifecycle and OAuth-only MCP access",
         "products/chatgpt/tax-lien-intelligence is the validated source-only release package with pinned engine provenance and no fabricated endpoint",
-        "docs/product/chatgpt-private-staging-runbook.md and docs/architecture/chatgpt-oauth-threat-model.md record promotion, rollback, and residual risk"
+        "docs/product/chatgpt-private-staging-runbook.md and docs/architecture/chatgpt-oauth-threat-model.md record promotion, rollback, and residual risk",
+        "Private-staging source adds one closed-route Cloudflare Worker, one supervised Node/Python Container instance, external managed Mongo persistence, dependency readiness, payload-free telemetry, edge and process rate limits, manual deployment workflow, and rollback controls",
+        "Local staging checks passed the new source validator, Cloudflare TypeScript build, Python supervisor compilation, and 13 focused health, redaction, and ingress-policy tests",
+        "Complete local gates passed 10 Python tests, 332 Vitest tests across 51 files, the full workspace build, local API/web smoke, 6 browser-like tests, 9 real-process intelligence-service tests, and dependency audit with 0 vulnerabilities",
+        "Private-staging source checkpoint eed50b6ac9f08cc99825cbeff33715ea2722100a is published in pull request 2 at https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/2",
+        "Exact-head GitHub Actions run 33329355584 and quality-gates job 99305018587 passed all validators, audit, typecheck, complete tests/builds, real-process intelligence smoke, real Mongo intelligence persistence smoke, and real Mongo OAuth atomicity/revocation smoke",
+        "Feature-branch deployment bootstrap requires the exact [deploy-private-staging] commit marker, derives the authorized workers.dev origin, and synchronizes five Worker bindings from six GitHub environment secret references without a repository secret file",
+        "Live prerequisites include the zero-cost TaxLienStaging Atlas Free cluster in AWS eu-west-1, a SCRAM application user restricted to that cluster, the user-approved dynamic-egress access-list rule, and all six required GitHub chatgpt-staging environment secret names; no secret value was read or committed",
+        "Exact-head staging run 33334912896 passed the 332-test governed source gate and synchronized all five Worker secret-name bindings, then failed closed before deployment because Wrangler 4.127.1 rejected the obsolete secret list --json option; source now uses the validated --format=json form",
+        "Exact-head staging run 33335163254 passed the repaired preflight and reached the real Cloudflare container build, then failed closed because the Node-only image stage invoked Python; the Dockerfile now builds Node workspaces in the Node stage and validates Python source in the final Python stage",
+        "Exact-head staging run 33335437008 succeeded at fec745e0e1e08e7ce3fcf4da0c647cf030f668cd, deploying the real Node/Python container and Worker version cfc90ff0-729a-4622-8a0c-4b1c2e760d42 at the stable named workers.dev origin",
+        "A sanitized repository receipt records 12 live public-boundary checks: TLS/HSTS health, Mongo and intelligence readiness, exact OAuth discovery, fail-closed unauthenticated MCP, the ingress body bound, and rejection of registration and mutation-shaped routes; it stores no credentials, tokens, users, prompts, or evidence payloads",
+        "The staging workflow now disables preview URLs, verifies its derived exact origin after deployment, and archives a sanitized receipt before the deployment job can pass",
+        "Governed redeployment run 33336257365 attempt 2 passed at exact head aca4081724969094dcdf5b50d4cf1e600febc1c2, deployed Worker version 0b6656c5-4535-4552-9f8a-37a3fc19cef2, and archived artifact 9739215376",
+        "A bounded 100-request OAuth load probe returned 70 HTTP 429 responses after 30 handled validation responses while health remained HTTP 200; no credential, token, user, prompt, or evidence payload was used",
+        "The governed staging workflow now includes a post-deploy authenticated verifier that creates and removes a unique test-only fixture and covers real PKCE, code replay, refresh rotation and replay, revocation, expiry, owner/admin/member/denied workspace isolation, cross-workspace denial, and the exact six read-only tools without storing fixture identifiers or secrets",
+        "Exact-head run 33337074423 passed deployment and the public live boundary but produced no authenticated receipt because the verifier's failure reporter hit an initialization-order ReferenceError; the reporter is repaired without changing security assertions or finally cleanup",
+        "Run 33337338853 showed that a no-membership user receives the intended personal owner workspace; the denied live case now requires isolation to an explicit test workspace plus denial of the target, and cleanup discovers all workspaces owned by fixture users before exact deletion",
+        "Exact-head run 33337608603 passed at 60d3ccadc4d7456e68fa9b345527f4463b01d4ea with 12 public-boundary and 12 authenticated-boundary cases, exact six-tool read-only inventory, fixture cleanup, Worker version 6c96de84-9571-4724-85ab-61a6e252ecce, container digest sha256:f9c69e865f19422a9d5fab73dc403f232a9d2022fc4d08fd1b7fbb9f34e91d82, and sanitized artifact 9739571402",
+        "A bounded 100-request rate-limit probe against exact deployment 60d3cca returned 70 HTTP 429 responses after 30 handled validations while health remained HTTP 200",
+        "The governed staging source disables persistent provider invocation logs and adds an exact-head real-time-tail gate that requires both Worker and API payload-free custom events while unique payload and credential markers remain absent; live verification is pending",
+        "Exact-head run 33338469468 deployed a17afd5 as Worker f7300a86-9e30-49a8-9c39-fa7f2a872b23 with container digest sha256:26da7da0922bf770ef6a4c4d4fc8c2db0e5402e2ffc5e9fec624344e7a39700e; source plus 12 public and 12 authenticated checks passed, but Wrangler tail exited before the redaction probe and no receipt was archived",
+        "Exact-head run 33338765853 deployed 1b489e9 as Worker 1f5bcdd3-de99-4078-8317-d4ec395e1985 with container digest sha256:1d8a7fa702c09207c496da6ff5136acdd0a1f1ef7cd1cdbff542775d1179ee4a; all source/public/authenticated gates passed, but the first bounded tail classifier returned exit_code_1 and no redaction receipt",
+        "Exact-head run 33339042402 deployed 17cd71f as Worker ce9df7d9-4540-4947-ab71-46e519179f2c with container digest sha256:38f220a5b6239d5b3ded53eb5158bd8ca01e628e027b66393ea7a63e5e66adf6; all source/public/authenticated gates passed, but structured non-log Wrangler JSON was missing from the bounded tail classifier and no redaction receipt exists",
+        "Exact-head run 33339301424 deployed a3d7ec8 as Worker 13a00fa6-40e9-4597-8884-937489a00c52 with container digest sha256:8954252bbf7d639f5c714a5290a0708d719718b3c4bce0dd0a0530086d8b7308; all source/public/authenticated gates passed, but Wrangler tail again returned exit_code_1 and no redaction receipt exists",
+        "Exact-head run 33339651921 deployed 71cfa4d as Worker 35807be0-4fb6-4ed7-8c12-8428bf66774f with container digest sha256:370d813eb110094b75f53abc3c67237526d90c882e34f0b05d84c33466c6ffbb; all source/public/authenticated gates passed and sanitized diagnostics classified the tail failure as argument_rejected",
+        "Exact-head run 33339888358 deployed c52bbdf as Worker a5e83918-e6c3-4ea6-a5c4-d1164ad3816d with container digest sha256:030a8f2294ac7c1c558317c64c31966aac7e8335be2fceed07fed08c62e6d95e; all source/public/authenticated gates passed and the tail session/probes ran, but the one-line parser did not recognize Wrangler's multi-line JSON events",
+        "Exact-head run 33340248905 deployed ed85a44 as Worker 81e2777f-08e5-43b6-a222-0fa4229894e6 with container digest sha256:237c21a51d304e6a20a892a2019a90c5ec160af909586c5833399617622204ac; all source/public/authenticated gates passed and live tail proved 3/3 gateway events, while application events were correctly identified as a separate Workers Observability query surface",
+        "Exact-head run 33340616895 deployed d381a84 as Worker c9c4387b-74e9-45bb-a0e5-d01d420b682f with container digest sha256:e0fa0ec21fe245c71d9bd4cd7c654cdccb187c96b661c82472f7c4bb5f8440ee; all source/public/authenticated gates passed, the existing token queried Workers Observability and found the application event, then the verifier failed closed on provider key-shape drift",
+        "Exact-head run 33340916921 deployed 593a733 as Worker c0585f03-5b0f-470b-bce7-0d93d4a8fc55 with container digest sha256:46e475c7b26896e3c2cae32e0b08021cfbb4361d76304fd3fcf1ffd75772a84a; all source/public/authenticated gates passed and the application log had the exact expected keys plus Cloudflare $cf provider enrichment",
+        "Exact-head run 33341199247 deployed 2c7862e as Worker fbf89d34-5868-4105-921f-980e07bf6437 with container digest sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d; all 12 public, 12 authenticated, and live log-redaction gates passed, observing 3 gateway and 1 application events with all payload, credential, secret, and marker checks clean",
+        "Governed rollback/recovery source discovers the current and preceding single-version Cloudflare deployments, verifies the preceding version, and restores the exact current version in a finally path; live execution remains pending",
+        "Exact-head run 33341894651 passed source, deployment, all public/authenticated/log gates at 6f663f7, then failed closed before traffic mutation because WRANGLER_LOG=none suppressed deployment-status JSON; the retry parses bounded stdout/stderr without storing it and uses the documented rollback message to skip prompts",
+        "Exact-head run 33342222795 passed source, deployment, all 12 public, 12 authenticated, 6 log-redaction, and 8 rollback/recovery checks at 4fd41e5; traffic rolled back to 580b752e-d1b8-4e9f-9d28-94e07ba9ba80 and the exact current Worker 72e2302b-0531-44ac-a9e7-df945c9a9ff1 was restored at 100%",
+        "On 2026-09-01 Atlas displayed the staging SCRAM user with only readWrite@tax_lien_chatgpt_staging and access restricted to the TaxLienStaging cluster; the sanitized least-privilege receipt stores no password, URI, or credential",
+        "On 2026-09-01 AyobamiH accepted accountable private-pilot ownership for privacy/security, retention/deletion, consent, support, operations, and incidents under explicit-opt-in training and private-staging-only controls",
+        "The ChatGPT developer-mode connector was created with the deployed MCP URL, public OAuth client metadata, tax_lien:read scope, and no client secret; authorization awaits the first persistent pilot owner",
+        "The audited first-owner bootstrap is isolated from deployment, manual-only, default-branch-only, serialized with staging, accepts a step-scoped bcrypt hash instead of plaintext, proves exactly one named owner workspace and membership, and emits a sanitized receipt",
+        "OAuth source now requires exact explicit allow consent before authentication, persists fixed-lifetime grants, rotates refresh tokens with a current-hash compare-and-set, tombstones replayed or revoked grants, validates grant_id on access, and verifies exact stale-fixture cleanup before writing a success receipt; 17 focused OAuth and 341 full Vitest cases pass locally"
       ],
       "blockers": [
-        "the GitHub integration cannot create the planned separate thin repository, so the canonical source-only package remains isolated inside this project until repository creation is available",
-        "the stable staging domain, deployment target, deployment credentials, OAuth secret ownership, and authorization owner are not supplied",
-        "the privacy/security approver, retention and deletion decisions, pilot consent owner, support owner, and incident owner are not assigned"
+        "publish and land the protected first-owner bootstrap, pass GitHub CI including the Mongo CAS smoke, deploy and re-verify the hardened OAuth source, provision the persistent pilot owner, complete the real ChatGPT OAuth journey, obtain an owner-authorized sale-list CSV with rights/provenance/as-of/no-training attestations, and execute the required independent-user real-data cases"
       ]
     },
     {
@@ -280,7 +612,9 @@
       "title": "Validate the ChatGPT product with real target users",
       "status": "planned",
       "ownerRole": "chatgpt-product-lead",
-      "dependencies": ["P47-093-chatgpt-private-staging"],
+      "dependencies": [
+        "P47-093-chatgpt-private-staging"
+      ],
       "scope": [
         "real-user pilot onboarding",
         "triage, diligence, comparison, and decision-brief task evaluation",
@@ -318,7 +652,9 @@
       "title": "Approve and release the public ChatGPT product",
       "status": "blocked",
       "ownerRole": "chatgpt-release-engineer",
-      "dependencies": ["P47-094-chatgpt-real-user-pilot"],
+      "dependencies": [
+        "P47-094-chatgpt-real-user-pilot"
+      ],
       "scope": [
         "production ChatGPT connection",
         "public listing and review materials",

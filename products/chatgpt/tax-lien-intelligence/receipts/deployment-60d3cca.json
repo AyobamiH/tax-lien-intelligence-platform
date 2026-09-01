@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_deployment",
+  "status": "passed",
+  "observedAt": "2026-08-30T21:59:00Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "60d3ccadc4d7456e68fa9b345527f4463b01d4ea",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33337608603"
+  },
+  "deployment": {
+    "workerVersionId": "6c96de84-9571-4724-85ab-61a6e252ecce",
+    "containerApplicationId": "a03f53e3-7c1a-405f-b4e5-e660d5673cdf",
+    "containerImageDigest": "sha256:f9c69e865f19422a9d5fab73dc403f232a9d2022fc4d08fd1b7fbb9f34e91d82",
+    "workflowArtifactId": 9739571402,
+    "workflowArtifactSha256": "sha256:960fc0cb053e7e09ab71d3206a0bd43ac209d5a7034b804dac4049d221e7e2bc"
+  },
+  "receipts": {
+    "publicBoundary": "public-boundary-60d3cca.json",
+    "authenticatedBoundary": "authenticated-boundary-60d3cca.json"
+  },
+  "checks": [
+    {
+      "name": "oauth_bounded_load_rate_limit",
+      "status": "passed",
+      "requestCount": 100,
+      "applicationResponses": 30,
+      "rateLimitedResponses": 70,
+      "rateLimitedHttpStatus": 429,
+      "healthAfterLoadHttpStatus": 200
+    }
+  ],
+  "evidencePolicy": {
+    "responseBodiesStored": false,
+    "credentialsStored": false,
+    "authorizationCodesStored": false,
+    "tokensStored": false,
+    "emailsStored": false,
+    "fixtureIdentifiersStored": false,
+    "payloadsStored": false
+  },
+  "remainingGates": [
+    "private ChatGPT connection with a dedicated real staging user",
+    "evidence citation, unknown, heuristic, and prompt-injection cases using approved real staging data",
+    "live log-redaction inspection",
+    "rollback and recovery"
+  ]
+}

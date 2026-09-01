@@ -1,16 +1,16 @@
 {
   "schemaVersion": "1.0.0",
-  "releaseStatus": "source_only",
+  "releaseStatus": "private_staging_deployed",
   "product": "tax-lien-intelligence",
   "systemOfRecord": {
     "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
-    "branch": "feature/intelligence-engine-foundation",
-    "engineRevision": "627b60b5a2b316b704263df2c9cb0623b6cb53b9",
+    "branch": "feature/p47-093-chatgpt-private-staging",
+    "engineRevision": "4fd41e568d8b8a231534ac7b2e610d69a0ff43a3",
     "mcpContractVersion": "1.0.0"
   },
   "connection": {
-    "mcpUrl": null,
-    "oauthIssuer": null,
+    "mcpUrl": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev/mcp",
+    "oauthIssuer": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
     "scope": "tax_lien:read"
   },
   "approvedTools": [
@@ -28,8 +28,13 @@
     "legalConclusions": false
   },
   "liveEvidence": {
-    "deploymentReceipt": null,
-    "chatgptConnectionReceipt": null,
-    "rollbackReceipt": null
+    "deploymentReceipt": "receipts/deployment-4fd41e5.json",
+    "publicBoundaryReceipt": "receipts/public-boundary-4fd41e5.json",
+    "authenticatedBoundaryReceipt": "receipts/authenticated-boundary-4fd41e5.json",
+    "logRedactionReceipt": "receipts/log-redaction-4fd41e5.json",
+    "rollbackReceipt": "receipts/rollback-recovery-4fd41e5.json",
+    "atlasLeastPrivilegeReceipt": "receipts/atlas-least-privilege-20260901.json",
+    "governanceReceipt": "receipts/private-pilot-governance-20260901.json",
+    "chatgptConnectionReceipt": null
   }
 }

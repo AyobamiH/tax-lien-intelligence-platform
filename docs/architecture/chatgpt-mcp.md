@@ -44,10 +44,19 @@ known performance improvement, not a correctness gap in the returned page.
 
 The stateless MCP server avoids cross-user session memory. OAuth grants and
 revocation state persist in MongoDB so token integrity does not depend on one
-process. The current fixed-window limiter is process-local; a multi-instance
-deployment needs an ingress or shared limiter.
+process. Private staging is configured as one container instance behind two
+Cloudflare rate-limit bindings plus the process-local OAuth limiter. The edge
+bindings are per Cloudflare location and not an exact global counter; a
+multi-instance release still needs a verified shared application limiter.
 
-OAuth is implemented and covered by repository tests. Public operation still
-needs stable HTTPS deployment, ingress validation, payload-safe observability,
-load tests, tenant-role testing from ChatGPT, and rollback evidence. See the
+The private-staging gateway exposes only health/readiness, OAuth discovery and
+lifecycle, and `/mcp`. Payload-safe operational telemetry records bounded route
+metadata and never records prompts, tool arguments, bearer credentials, query
+strings, emails, rows, or evidence bodies. See the
+[private-staging topology](chatgpt-private-staging-topology.md).
+
+OAuth is implemented and covered by repository tests. Deployment source now
+includes ingress validation, readiness, payload-safe telemetry, rate limits,
+and rollback mechanics, but live operation still needs stable HTTPS evidence,
+load tests, tenant-role testing from ChatGPT, and rollback receipts. See the
 [OAuth threat model](chatgpt-oauth-threat-model.md).

@@ -43,12 +43,16 @@ export function createOAuthRouter(
     let authorizationRequest: AuthorizationRequest | undefined;
     try {
       authorizationRequest = oauthService.validateAuthorizationRequest(readAuthorizationRequest(request));
-      if (stringValue(request.body?.decision) === "deny") {
+      const decision = stringValue(request.body?.decision);
+      if (decision === "deny") {
         response.redirect(
           303,
           authorizationErrorRedirect(authorizationRequest, "access_denied", oauthService.config.issuerUrl),
         );
         return;
+      }
+      if (decision !== "allow") {
+        throw new OAuthError("invalid_request", "Explicit consent is required.");
       }
       const credentials = loginSchema.safeParse({
         email: stringValue(request.body?.email),
@@ -101,8 +105,9 @@ export function createOAuthRouter(
   router.post("/oauth/revoke", limit, express.urlencoded({ extended: false, limit: "16kb" }), async (request, response) => {
     try {
       rejectClientSecret(request);
-      oauthService.validatePublicClient(requiredBodyValue(request, "client_id"));
-      await oauthService.revoke(requiredBodyValue(request, "token"));
+      const clientId = requiredBodyValue(request, "client_id");
+      oauthService.validatePublicClient(clientId);
+      await oauthService.revoke(requiredBodyValue(request, "token"), clientId);
       response.status(200).send();
     } catch (error) {
       sendOAuthError(response, error);

@@ -1,0 +1,8 @@
+.git
+.env
+.env.*
+node_modules
+coverage
+**/__pycache__
+**/*.pyc
+npm-debug.log*

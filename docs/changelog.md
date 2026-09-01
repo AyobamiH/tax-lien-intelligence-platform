@@ -2,6 +2,149 @@
 
 ## Unreleased
 
+- Passed governed rollback/recovery in exact-head workflow `33342222795` at
+  `4fd41e568d8b8a231534ac7b2e610d69a0ff43a3`. Staging rolled back to preceding verified Worker
+  `580b752e-d1b8-4e9f-9d28-94e07ba9ba80`, passed health/readiness/OAuth/MCP
+  and dependency checks, restored current Worker
+  `72e2302b-0531-44ac-a9e7-df945c9a9ff1` at 100%, and repeated the checks.
+  Exact sanitized receipts and deployment provenance are pinned in the ChatGPT
+  product package.
+
+- Corrected the governed rollback verifier after exact-head run
+  `33341894651` failed closed before traffic mutation: Wrangler log
+  suppression had also suppressed deployment-status JSON. The verifier now
+  extracts JSON from bounded in-memory stdout/stderr without storing command
+  output and uses the documented rollback-message non-interactive path.
+
+- Added governed live rollback/recovery verification for private staging. The
+  workflow routes to the most recent preceding single-version Worker, verifies
+  the real HTTPS/OAuth/dependency boundary, restores the exact current version
+  in a `finally` path, re-verifies recovery, and archives only sanitized
+  receipt fields. Live execution remains pending.
+
+- Passed the exact-head live Cloudflare log-redaction gate in workflow
+  `33341199247` at `2c7862e74dc80aaaba6677173293d06801ac2546`. The real stable staging origin passed 12
+  public and 12 authenticated boundary checks; the verifier observed three
+  payload-free gateway events and one payload-free application event with no
+  marker, credential, or secret leakage. Sanitized receipts and deployment
+  provenance are pinned in the ChatGPT product package.
+
+- Accounted for Cloudflare's `$cf` container-log enrichment after run
+  `33340916921` proved the application event otherwise has the exact expected
+  schema. The verifier validates and excludes the provider envelope without
+  storing it.
+
+- Added key-name-only diagnostics for persisted application log-shape drift
+  after run `33340616895` proved the existing Cloudflare token can query
+  Workers Observability and locate the real container event. Values and raw
+  events remain suppressed.
+
+- Split the live redaction proof across Cloudflare's actual telemetry
+  surfaces after run `33340248905`: Worker real-time tail verifies gateway
+  events, while the Workers Observability query API verifies persisted
+  container application events and marker absence. Raw events are not stored.
+
+- Replaced the live-tail line parser with a bounded streaming JSON-object
+  parser after run `33339888358` proved current Wrangler emits pretty,
+  multi-line JSON. Failure diagnostics now expose only aggregate event counts.
+
+- Corrected the live Wrangler tail sampling fraction to `0.99` after
+  sanitized exact-head diagnostics classified run `33339651921` as
+  `argument_rejected`; no Cloudflare permission change is required.
+
+- Added a sanitized, ephemeral Wrangler debug-log fallback after exact-head
+  run `33339301424` passed all 24 live application cases but the tail process
+  still returned only `exit_code_1`. Raw provider output is never printed or
+  archived and the temporary file is deleted before exit.
+
+- Included structured, non-log Wrangler JSON objects in the bounded live-tail
+  startup classifier after run `33339042402` again returned only
+  `exit_code_1`. Raw provider diagnostics remain suppressed.
+
+- Extended the private-staging tail startup classifier to cover Wrangler's
+  non-JSON stdout diagnostics after run `33338765853` returned only
+  `exit_code_1`. The raw provider output remains suppressed and no live
+  redaction receipt is claimed.
+
+- Recorded failed-closed log-tail run `33338469468`: deployment and all 24
+  public/authenticated live cases passed at `a17afd5`, but Wrangler tail
+  exited before the redaction probe. Added bounded startup-failure
+  classification; no raw diagnostics or false redaction receipt are stored.
+
+- Added an exact-head Cloudflare log-redaction gate for private staging. It
+  verifies the deployed Worker and API custom logs against unique payload and
+  credential markers, stores only a sanitized pass receipt, and disables
+  persistent provider invocation logs while retaining unsampled payload-free
+  operational events. Live verification remains pending.
+
+- Passed the real authenticated staging boundary at exact revision `60d3cca`:
+  12 public checks, 12 OAuth/role/tenant/tool checks, fixture cleanup, receipt
+  archival, and a bounded 100-request rate-limit probe. The product package now
+  pins the exact deployment, public-boundary, and authenticated-boundary
+  receipts without credentials, codes, tokens, emails, fixture identifiers, or
+  evidence payloads.
+- Corrected the live denied-role case after the real service proved that users
+  with no membership receive a personal owner workspace. The test now requires
+  isolation to an explicit personal fixture workspace and denial of the target
+  workspace, with ownership-aware cleanup for auto-created fixture workspaces.
+- Repaired the authenticated live verifier's failure reporter after run
+  `33337074423` exposed an initialization-order `ReferenceError`. The exact
+  OAuth, tenancy, tool, receipt, and fixture-cleanup assertions are unchanged;
+  the failed run produced no authenticated receipt.
+- Added a real post-deploy authenticated OAuth/MCP verifier. Its unique
+  ephemeral test fixture covers PKCE, code replay, refresh rotation/replay,
+  revocation, expiry, owner/admin/member/denied roles, cross-workspace denial,
+  and the exact six read-only tools, then removes the fixture and archives only
+  sanitized case-level evidence.
+- Deployed the real private-staging topology at exact revision `fec745e` in
+  successful GitHub Actions run `33335437008`. The stable workers.dev origin
+  reports Mongo connected and the Python intelligence service ready.
+- Added and ran a live public-boundary verifier covering TLS/HSTS health,
+  readiness, exact OAuth discovery, fail-closed MCP authentication, the ingress
+  body bound, and closed mutation/registration routes. A sanitized receipt is
+  stored with the ChatGPT product; no credentials, tokens, users, or evidence
+  payloads are stored.
+- Disabled Worker preview URLs and made every future staging deployment verify
+  the derived exact origin and archive a sanitized receipt before its workflow
+  can pass.
+- Redeployed the governed boundary at exact revision `aca4081`. Workflow run
+  `33336257365` attempt 2 passed every source and live gate, archived the exact
+  receipt, and a bounded 100-request OAuth probe verified `429` throttling while
+  health remained available.
+- Added a bounded Cloudflare private-staging deployment boundary: one Worker,
+  one supervised Node/Python Container instance, external managed MongoDB,
+  exact-origin and route allowlists, ingress body limits, edge rate-limit
+  bindings, payload-free logs, dependency readiness, SIGTERM handling,
+  secret-name preflight, a manual deployment workflow, and documented rollback.
+- The staging Worker exposes only health/readiness, OAuth discovery/lifecycle,
+  and `/mcp`; ordinary auth registration, uploads, dataset/scoring mutations,
+  bids, purchases, and every unlisted route remain unavailable at ingress.
+- Added `npm run validate:chatgpt-staging` and focused readiness, redaction, and
+  gateway-policy tests. These are source checks, not a live endpoint, paid-plan,
+  Mongo, ChatGPT connection, load, log, or rollback receipt.
+- Published the private-staging source checkpoint at `eed50b6`, opened pull
+  request #2, and passed exact-head GitHub Actions run `33329355584` including
+  the real intelligence and OAuth Mongo smokes. Live connection fields and
+  receipts remain deliberately null.
+- Added a feature-branch-safe deployment bootstrap: ordinary pushes skip the
+  deploy job, the exact `[deploy-private-staging]` commit marker enables it,
+  and six GitHub environment secret references derive and install the five
+  required Worker bindings over stdin without logging their values.
+- Provisioned the live `$0` Atlas staging project and cluster, confirmed the
+  cluster-scoped SCRAM application user, enabled the user-approved dynamic
+  egress access-list rule, and confirmed all six required GitHub environment
+  secret names without reading or storing their values. This is prerequisite
+  evidence, not a deployment or ChatGPT connection receipt.
+- Repaired the first live deployment failure after exact-head run `33334912896`
+  passed source gates and secret synchronization but failed closed on
+  Wrangler's obsolete `secret list --json` option. Preflight now uses the
+  supported `--format=json` flag, enforced by the source validator.
+- Repaired the next live packaging failure from run `33335163254`: the
+  Node-only image stage no longer invokes the Python portion of the root build.
+  Node workspaces build in the Node stage and Python source validation runs in
+  the final Python stage, with a validator guard for the runtime boundary.
+- Reconciled repository truth after pull request #1 merged at `main@50dae44`
+  and GitHub Actions run `33309185096` passed its complete quality-gates job.
 - Opened pull request #1 to integrate the verified Phase 47 engine, evidence,
   MCP, and OAuth source checkpoints into `main`. Exact feature head `a9272bc`
   passed GitHub Actions run `33253657970`; the PR does not represent a deployed

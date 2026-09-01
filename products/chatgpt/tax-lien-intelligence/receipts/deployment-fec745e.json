@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_public_boundary",
+  "status": "passed",
+  "observedAt": "2026-08-30T21:15:24.911Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "fec745e0e1e08e7ce3fcf4da0c647cf030f668cd",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33335437008"
+  },
+  "deployment": {
+    "workerVersionId": "cfc90ff0-729a-4622-8a0c-4b1c2e760d42",
+    "containerApplicationId": "a03f53e3-7c1a-405f-b4e5-e660d5673cdf",
+    "containerImageDigest": "sha256:5826a233fab2a84a3b4823bc7be96c80ccbd28384e7518f6b63894566481ab71"
+  },
+  "checks": [
+    { "name": "health", "status": "passed", "httpStatus": 200 },
+    { "name": "readiness", "status": "passed", "httpStatus": 200 },
+    { "name": "protected_resource_discovery", "status": "passed", "httpStatus": 200 },
+    { "name": "authorization_server_discovery", "status": "passed", "httpStatus": 200 },
+    { "name": "mcp_oauth_challenge", "status": "passed", "httpStatus": 401 },
+    { "name": "ingress_body_bound", "status": "passed", "httpStatus": 413 },
+    { "name": "closed_route:/auth/register", "status": "passed", "httpStatus": 404 },
+    { "name": "closed_route:/datasets", "status": "passed", "httpStatus": 404 },
+    { "name": "closed_route:/scores", "status": "passed", "httpStatus": 404 },
+    { "name": "closed_route:/bid", "status": "passed", "httpStatus": 404 },
+    { "name": "closed_route:/purchase", "status": "passed", "httpStatus": 404 },
+    { "name": "closed_route:/graphql", "status": "passed", "httpStatus": 404 }
+  ],
+  "runtimeDependencies": {
+    "mongodb": "connected",
+    "intelligence": "ready"
+  },
+  "evidencePolicy": {
+    "responseBodiesStored": false,
+    "credentialsStored": false,
+    "tokensStored": false,
+    "payloadsStored": false
+  },
+  "remainingGates": [
+    "authenticated OAuth lifecycle and role/tenant isolation",
+    "exact six-tool authenticated inventory",
+    "private ChatGPT connection",
+    "live log-redaction inspection",
+    "rollback and recovery"
+  ]
+}

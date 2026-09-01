@@ -201,6 +201,11 @@ export {
   type OAuthAuthorizationCodeRecord,
 } from "./models/oauth-authorization-code.js";
 export {
+  OAuthGrantModel,
+  type OAuthGrantDocument,
+  type OAuthGrantRecord,
+} from "./models/oauth-grant.js";
+export {
   OAuthRefreshTokenModel,
   type OAuthRefreshTokenDocument,
   type OAuthRefreshTokenRecord,

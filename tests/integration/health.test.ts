@@ -25,6 +25,60 @@ describe("API health endpoint", () => {
     });
   });
 
+  it("reports dependency readiness without exposing connection details", async () => {
+    const response = await request(
+      createApp({
+        readinessProbe: async () => ({
+          service: "tax-lien-api",
+          status: "ready",
+          timestamp: "2026-08-30T20:30:00.000Z",
+          environment: "test",
+          dependencies: {
+            mongodb: "connected",
+            intelligence: "ready",
+          },
+        }),
+      }),
+    )
+      .get("/readyz")
+      .expect(200);
+
+    expect(response.body).toEqual({
+      service: "tax-lien-api",
+      status: "ready",
+      timestamp: "2026-08-30T20:30:00.000Z",
+      environment: "test",
+      dependencies: {
+        mongodb: "connected",
+        intelligence: "ready",
+      },
+    });
+  });
+
+  it("fails readiness closed when a dependency is unavailable", async () => {
+    const response = await request(
+      createApp({
+        readinessProbe: async () => ({
+          service: "tax-lien-api",
+          status: "not_ready",
+          timestamp: "2026-08-30T20:30:00.000Z",
+          environment: "test",
+          dependencies: {
+            mongodb: "unavailable",
+            intelligence: "ready",
+          },
+        }),
+      }),
+    )
+      .get("/readyz")
+      .expect(503);
+
+    expect(response.body.dependencies).toEqual({
+      mongodb: "unavailable",
+      intelligence: "ready",
+    });
+  });
+
   it("keeps reflected credentialed CORS out of production when no origins are configured", () => {
     const options = buildCorsOptions({
       nodeEnv: "production",
