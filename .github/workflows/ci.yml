@@ -55,6 +55,9 @@ jobs:
       - name: Validate ChatGPT private-staging boundary
         run: npm run validate:chatgpt-staging
 
+      - name: Validate ChatGPT pilot bootstrap boundary
+        run: npm run validate:chatgpt-pilot-bootstrap
+
       - name: Audit high-severity dependency risk
         run: npm run audit
 
@@ -66,6 +69,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Test ChatGPT pilot bootstrap boundary
+        run: npm run test:chatgpt-pilot-bootstrap
 
       - name: Smoke intelligence service
         run: npm run smoke:intelligence-service

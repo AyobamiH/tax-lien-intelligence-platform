@@ -10,6 +10,7 @@ import type { McpEvidenceServiceContract } from "../../apps/api/src/mcp/evidence
 import type {
   OAuthStore,
   StoredAuthorizationCode,
+  StoredOAuthGrant,
   StoredRefreshToken,
 } from "../../apps/api/src/oauth/oauth-store.js";
 import { OAuthService, pkceChallenge } from "../../apps/api/src/oauth/oauth-service.js";
@@ -25,6 +26,7 @@ const mcpHeaders = { Accept: "application/json, text/event-stream", "Content-Typ
 
 class InMemoryUserStore implements UserStore {
   private readonly users = new Map<string, StoredUser>();
+  public findByEmailCalls = 0;
 
   public async createUser(input: CreateUserInput): Promise<StoredUser> {
     const now = new Date();
@@ -34,6 +36,7 @@ class InMemoryUserStore implements UserStore {
   }
 
   public async findByEmail(email: string): Promise<StoredUser | null> {
+    this.findByEmailCalls += 1;
     return [...this.users.values()].find((user) => user.email === email) ?? null;
   }
 
@@ -48,6 +51,7 @@ class InMemoryUserStore implements UserStore {
 
 class InMemoryOAuthStore implements OAuthStore {
   private readonly codes = new Map<string, StoredAuthorizationCode>();
+  private readonly grants = new Map<string, StoredOAuthGrant>();
   private readonly refreshTokens = new Map<string, StoredRefreshToken>();
   private readonly revokedAccessTokens = new Set<string>();
 
@@ -67,8 +71,17 @@ class InMemoryOAuthStore implements OAuthStore {
     return true;
   }
 
-  public async createRefreshToken(record: StoredRefreshToken): Promise<void> {
-    this.refreshTokens.set(record.tokenHash, { ...record });
+  public async createGrantWithRefreshToken(
+    grant: StoredOAuthGrant,
+    refreshToken: StoredRefreshToken,
+  ): Promise<void> {
+    this.refreshTokens.set(refreshToken.tokenHash, { ...refreshToken });
+    this.grants.set(grant.grantId, { ...grant, scopes: [...grant.scopes] });
+  }
+
+  public async findGrant(grantId: string): Promise<StoredOAuthGrant | null> {
+    const record = this.grants.get(grantId);
+    return record ? { ...record, scopes: [...record.scopes] } : null;
   }
 
   public async findRefreshToken(tokenHash: string): Promise<StoredRefreshToken | null> {
@@ -76,14 +89,32 @@ class InMemoryOAuthStore implements OAuthStore {
     return record ? { ...record } : null;
   }
 
-  public async consumeRefreshToken(tokenHash: string, now: Date): Promise<boolean> {
-    const record = this.refreshTokens.get(tokenHash);
-    if (!record || record.consumedAt || record.revokedAt || record.expiresAt <= now) return false;
-    record.consumedAt = now;
+  public async rotateRefreshToken(
+    grantId: string,
+    currentTokenHash: string,
+    successor: StoredRefreshToken,
+    now: Date,
+  ): Promise<boolean> {
+    const grant = this.grants.get(grantId);
+    if (
+      !grant ||
+      grant.revokedAt ||
+      grant.refreshExpiresAt <= now ||
+      grant.currentRefreshTokenHash !== currentTokenHash
+    ) {
+      return false;
+    }
+    const current = this.refreshTokens.get(currentTokenHash);
+    if (!current || current.consumedAt || current.revokedAt || current.expiresAt <= now) return false;
+    this.refreshTokens.set(successor.tokenHash, { ...successor, scopes: [...successor.scopes] });
+    current.consumedAt = now;
+    grant.currentRefreshTokenHash = successor.tokenHash;
     return true;
   }
 
-  public async revokeRefreshTokenFamily(familyId: string, now: Date): Promise<void> {
+  public async revokeGrant(familyId: string, now: Date): Promise<void> {
+    const grant = this.grants.get(familyId);
+    if (grant && !grant.revokedAt) grant.revokedAt = now;
     for (const record of this.refreshTokens.values()) {
       if (record.familyId === familyId) record.revokedAt = now;
     }
@@ -170,33 +201,117 @@ describe("ChatGPT OAuth 2.1 boundary", () => {
     await exchangeCode(app, code, verifier).expect(400);
   });
 
-  it("rotates refresh tokens, revokes a replayed family, and revokes access tokens", async () => {
+  it("rotates refresh tokens and revokes every same-grant token after replay", async () => {
     const { app } = await fixture();
-    const authorization = await authorize(app);
-    const code = new URL(authorization.headers.location).searchParams.get("code") ?? "";
-    const initial = await exchangeCode(app, code, verifier).expect(200);
+    const initial = await authorizeAndExchange(app);
 
     const rotated = await refresh(app, initial.body.refresh_token).expect(200);
+    await mcpList(app, initial.body.access_token).expect(200);
+    await mcpList(app, rotated.body.access_token).expect(200);
     await refresh(app, initial.body.refresh_token).expect(400);
     await refresh(app, rotated.body.refresh_token).expect(400);
+
+    for (const accessToken of [initial.body.access_token, rotated.body.access_token]) {
+      const revoked = await mcpList(app, accessToken).expect(401);
+      expect(revoked.body.error.code).toBe("oauth_token_revoked");
+    }
+  });
+
+  it("revokes access and refresh tokens grant-wide while preserving an independent grant", async () => {
+    const { app } = await fixture();
+    const initial = await authorizeAndExchange(app);
+    const rotated = await refresh(app, initial.body.refresh_token).expect(200);
+    const independent = await authorizeAndExchange(app);
 
     await request(app).post("/oauth/revoke").type("form").send({
       token: initial.body.access_token,
       client_id: clientId,
     }).expect(200);
-    const revoked = await mcpList(app, initial.body.access_token).expect(401);
+
+    for (const accessToken of [initial.body.access_token, rotated.body.access_token]) {
+      const revoked = await mcpList(app, accessToken).expect(401);
+      expect(revoked.body.error.code).toBe("oauth_token_revoked");
+    }
+    await refresh(app, rotated.body.refresh_token).expect(400);
+    await mcpList(app, independent.body.access_token).expect(200);
+    await refresh(app, independent.body.refresh_token).expect(200);
+  });
+
+  it("revoking a refresh token invalidates its access token", async () => {
+    const { app } = await fixture();
+    const issued = await authorizeAndExchange(app);
+    await request(app).post("/oauth/revoke").type("form").send({
+      token: issued.body.refresh_token,
+      client_id: clientId,
+    }).expect(200);
+
+    const revoked = await mcpList(app, issued.body.access_token).expect(401);
     expect(revoked.body.error.code).toBe("oauth_token_revoked");
+    await refresh(app, issued.body.refresh_token).expect(400);
+  });
+
+  it("fails a concurrent refresh replay closed without leaving a usable successor", async () => {
+    const { app } = await fixture();
+    const issued = await authorizeAndExchange(app);
+    const attempts = await Promise.all([
+      refresh(app, issued.body.refresh_token),
+      refresh(app, issued.body.refresh_token),
+    ]);
+    expect(attempts.filter((attempt) => attempt.status === 200)).toHaveLength(1);
+    expect(attempts.filter((attempt) => attempt.status === 400)).toHaveLength(1);
+
+    const originalAccess = await mcpList(app, issued.body.access_token).expect(401);
+    expect(originalAccess.body.error.code).toBe("oauth_token_revoked");
+    for (const attempt of attempts.filter((candidate) => candidate.status === 200)) {
+      const access = await mcpList(app, attempt.body.access_token).expect(401);
+      expect(access.body.error.code).toBe("oauth_token_revoked");
+      await refresh(app, attempt.body.refresh_token).expect(400);
+    }
+  });
+
+  it("uses one absolute refresh-family expiry across rotations", async () => {
+    const clock = { now: new Date() };
+    const { app } = await fixture(clock);
+    const issued = await authorizeAndExchange(app);
+    clock.now = new Date(clock.now.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const rotated = await refresh(app, issued.body.refresh_token).expect(200);
+    clock.now = new Date(clock.now.getTime() + 2 * 24 * 60 * 60 * 1000);
+    await refresh(app, rotated.body.refresh_token).expect(400);
   });
 
   it("renders consent without leaking credentials after failed sign-in", async () => {
     const { app } = await fixture();
     const response = await request(app).post("/oauth/authorize").type("form").send({
       ...authorizationParameters(),
+      decision: "allow",
       email: "oauth-user@example.com",
       password: "not-the-password",
     }).expect(401);
     expect(response.text).toContain("Email or password is incorrect.");
     expect(response.text).not.toContain("not-the-password");
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["blank", ""],
+    ["unknown", "approve"],
+    ["case variant", "ALLOW"],
+    ["duplicate", ["allow", "deny"]],
+  ])("rejects %s consent without authenticating or issuing a code", async (_label, decision) => {
+    const { app, userStore } = await fixture();
+    const callsBeforeRequest = userStore.findByEmailCalls;
+    const body: Record<string, unknown> = {
+      ...authorizationParameters(),
+      email: "oauth-user@example.com",
+      password: "StrongPassword123!",
+    };
+    if (decision !== undefined) body.decision = decision;
+
+    const response = await request(app).post("/oauth/authorize").type("form").send(body).expect(400);
+    expect(response.body.error).toBe("invalid_request");
+    expect(response.headers.location).toBeUndefined();
+    expect(response.text).not.toContain("code=");
+    expect(userStore.findByEmailCalls).toBe(callsBeforeRequest);
   });
 
   it("returns a state-bound access_denied callback when the user cancels", async () => {
@@ -298,9 +413,16 @@ function authorizationParameters() {
 function authorize(app: ReturnType<typeof createApp>) {
   return request(app).post("/oauth/authorize").type("form").send({
     ...authorizationParameters(),
+    decision: "allow",
     email: "oauth-user@example.com",
     password: "StrongPassword123!",
   }).expect(303);
+}
+
+async function authorizeAndExchange(app: ReturnType<typeof createApp>) {
+  const authorization = await authorize(app);
+  const code = new URL(authorization.headers.location).searchParams.get("code") ?? "";
+  return exchangeCode(app, code, verifier).expect(200);
 }
 
 function exchangeCode(app: ReturnType<typeof createApp>, code: string, codeVerifier: string) {

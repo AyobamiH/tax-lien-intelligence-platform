@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {
   OAuthAuthorizationCodeModel,
+  OAuthGrantModel,
   OAuthRefreshTokenModel,
   OAuthRevokedAccessTokenModel,
   connectMongo,
@@ -34,36 +35,37 @@ async function main() {
     assertEqual(await store.consumeAuthorizationCode("a".repeat(64), now), false, "code replay rejection");
 
     const familyId = "oauth-smoke-family";
-    await store.createRefreshToken({
-      tokenHash: "c".repeat(64),
-      familyId,
-      userId: "oauth-smoke-user",
-      email: "oauth-smoke@example.invalid",
-      clientId: "https://chatgpt.com/oauth/client.json",
-      resource: "https://staging.example.invalid/mcp",
-      scopes: ["tax_lien:read"],
-      expiresAt,
-    });
-    await store.createRefreshToken({
-      tokenHash: "d".repeat(64),
-      familyId,
-      userId: "oauth-smoke-user",
-      email: "oauth-smoke@example.invalid",
-      clientId: "https://chatgpt.com/oauth/client.json",
-      resource: "https://staging.example.invalid/mcp",
-      scopes: ["tax_lien:read"],
-      expiresAt,
-    });
-    assertEqual(await store.consumeRefreshToken("c".repeat(64), now), true, "first refresh consume");
-    assertEqual(await store.consumeRefreshToken("c".repeat(64), now), false, "refresh replay rejection");
-    await store.revokeRefreshTokenFamily(familyId, now);
-    assertPresent((await store.findRefreshToken("d".repeat(64)))?.revokedAt, "refresh family revocation");
-    assertEqual(await store.consumeRefreshToken("d".repeat(64), now), false, "revoked rotation rejection");
+    const initialRefresh = refreshRecord("c", familyId, expiresAt);
+    await store.createGrantWithRefreshToken(
+      {
+        grantId: familyId,
+        userId: initialRefresh.userId,
+        email: initialRefresh.email,
+        clientId: initialRefresh.clientId,
+        resource: initialRefresh.resource,
+        scopes: initialRefresh.scopes,
+        currentRefreshTokenHash: initialRefresh.tokenHash,
+        refreshExpiresAt: expiresAt,
+        purgeAt: new Date(expiresAt.getTime() + 15 * 60_000),
+      },
+      initialRefresh,
+    );
+    const [firstRotation, replayRotation] = await Promise.all([
+      store.rotateRefreshToken(familyId, initialRefresh.tokenHash, refreshRecord("d", familyId, expiresAt), now),
+      store.rotateRefreshToken(familyId, initialRefresh.tokenHash, refreshRecord("e", familyId, expiresAt), now),
+    ]);
+    assertEqual(Number(firstRotation) + Number(replayRotation), 1, "atomic refresh rotation winner count");
+    const successorHash = firstRotation ? "d".repeat(64) : "e".repeat(64);
+    assertEqual((await store.findGrant(familyId))?.currentRefreshTokenHash, successorHash, "grant successor binding");
+    await store.revokeGrant(familyId, now);
+    assertPresent((await store.findGrant(familyId))?.revokedAt, "grant tombstone");
+    assertPresent((await store.findRefreshToken(successorHash))?.revokedAt, "refresh family revocation");
 
     await store.revokeAccessToken("oauth-smoke-jti", expiresAt, now);
     assertEqual(await store.isAccessTokenRevoked("oauth-smoke-jti"), true, "access denylist round trip");
 
     assertEqual(await OAuthAuthorizationCodeModel.countDocuments(), 1, "authorization-code document count");
+    assertEqual(await OAuthGrantModel.countDocuments(), 1, "grant document count");
     assertEqual(await OAuthRefreshTokenModel.countDocuments(), 2, "refresh-token document count");
     assertEqual(await OAuthRevokedAccessTokenModel.countDocuments(), 1, "access-revocation document count");
     console.log(`mongo oauth smoke passed: db=${smokeDbName} atomicCode=true familyRevoked=true accessRevoked=true`);
@@ -79,6 +81,19 @@ function assertEqual(actual, expected, label) {
 
 function assertPresent(actual, label) {
   if (!actual) throw new Error(`${label}: expected value to be present`);
+}
+
+function refreshRecord(hashCharacter, familyId, expiresAt) {
+  return {
+    tokenHash: hashCharacter.repeat(64),
+    familyId,
+    userId: "oauth-smoke-user",
+    email: "oauth-smoke@example.invalid",
+    clientId: "https://chatgpt.com/oauth/client.json",
+    resource: "https://staging.example.invalid/mcp",
+    scopes: ["tax_lien:read"],
+    expiresAt,
+  };
 }
 
 main().catch((error) => {

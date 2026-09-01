@@ -17,7 +17,14 @@ receipts are pinned in `release-provenance.json`. The stable origin passed all
 and application logs remain payload-free, and the preceding Worker version was
 verified before the exact current version was restored at 100%. A `.mcp.json`
 remains intentionally absent until the real private ChatGPT OAuth connection is
-verified.
+verified. The Atlas service user is now limited to
+`readWrite@tax_lien_chatgpt_staging` on the single `TaxLienStaging` cluster,
+and private-pilot privacy, retention/deletion, consent, support, operations,
+and incident responsibilities are assigned to the accountable pilot owner. The
+next source revision also requires exact explicit OAuth consent and introduces
+fixed-lifetime, grant-wide refresh/access revocation; those controls remain
+source evidence until the exact revision is deployed and its live receipts are
+pinned here.
 
 ## Approved capability
 

@@ -1,5 +1,72 @@
 # Work Ledger
 
+## 2026-09-01 - P47-093 OAuth grant lifecycle hardened before owner connection
+
+- Changed the authorization endpoint so only an exact scalar
+  `decision=allow` reaches credential authentication. Missing, blank, unknown,
+  case-variant, and duplicate decisions fail before any user lookup; an exact
+  denial retains the state-bound callback.
+- Added a durable OAuth grant record with a fixed refresh-family lifetime,
+  atomic current-refresh-hash rotation, replay tombstoning, `grant_id` access
+  claims, and grant validation on every access. Replaying a refresh token or
+  revoking either token type now invalidates every same-grant access and refresh
+  token while leaving independent grants active.
+- Corrected the authenticated live verifier's stale-fixture matcher, added
+  partial-run cleanup and zero-residue checks, and moved success-receipt writing
+  after verified cleanup. The connected-state release validator now refuses a
+  missing, revision-mismatched, or credential-bearing real ChatGPT receipt.
+- Focused OAuth tests pass 17/17; the full Python suite passes 10/10 and Vitest
+  passes 341/341. Typecheck, source validators, script syntax, and build pass.
+  The Mongo CAS smoke still needs GitHub CI's Mongo service because no local
+  Mongo daemon or container runtime is available. These controls are source
+  evidence only until an exact-head staging deployment passes the live gates.
+
+## 2026-09-01 - P47-093 connector created; first-owner bootstrap isolated
+
+- Created the private ChatGPT developer-mode connector `Tax Lien Intelligence`
+  against the deployed `/mcp` endpoint. Discovery selected the public
+  `https://chatgpt.com/oauth/client.json` client, the official connector
+  callback, `tax_lien:read`, public-client token authentication, and no client
+  secret. OAuth reached the real staging authorization page.
+- Atlas Data Explorer proved that the staging `users` collection contains zero
+  documents. The OAuth stop is therefore a missing first product identity, not
+  an OAuth, deployment, MongoDB, or ChatGPT connector defect.
+- Added an idempotent, fail-closed operator provisioner and a separate
+  manual-only workflow that runs trusted default-branch source in a dedicated
+  `chatgpt-pilot-bootstrap` environment. The exact provisioning step consumes
+  only `MONGODB_URI`, `CHATGPT_PILOT_EMAIL`, and a cost-12-or-higher bcrypt
+  `CHATGPT_PILOT_PASSWORD_HASH`; plaintext never enters CI. It refuses another
+  user, credential replacement, workspace or membership drift, opens no
+  registration route, and archives only a sanitized receipt. CI covers empty
+  creation, idempotence, partial recovery, drift rejection, malformed hashes,
+  and receipt redaction.
+- GitHub requires a `workflow_dispatch` definition to exist on the default
+  branch. The bootstrap is therefore isolated as a small prerequisite change;
+  it must be reviewed and merged before the protected first-owner ceremony can
+  run. The operator must attest that the plaintext password was generated and
+  retained in a password manager; regenerating its salted hash is intentionally
+  treated as credential drift.
+- The governed data inventory still reports six sources, zero approved, and
+  four blocked. Official Maricopa assessor, GIS, treasurer, and auction sources
+  are not authorized for this evaluation. The real-data gate requires a small
+  owner-supplied sale-list CSV with explicit rights, provenance, as-of,
+  retention, and no-training attestations; synthetic fixtures do not qualify.
+
+## 2026-09-01 - P47-093 Atlas and private-pilot governance gates closed
+
+- Verified in Atlas that SCRAM user `tax_lien_chatgpt_staging` now has exactly
+  `readWrite@tax_lien_chatgpt_staging`, restricted to the single
+  `TaxLienStaging` cluster. The prior `readWriteAnyDatabase@admin` role is
+  absent. No password, connection string, or credential was read or retained.
+- Recorded `AyobamiH` as the accountable private-pilot owner for
+  privacy/security approval, retention/deletion, consent, support, operations,
+  and incidents. Shared-model training is explicit opt-in only and defaults to
+  off; this approval does not authorize public release or autonomous investment
+  action.
+- `P47-093` remains in progress only for the real private ChatGPT OAuth
+  connection and the approved Maricopa real-data grounding, unknown,
+  heuristic-label, citation, and prompt-injection evaluation.
+
 ## 2026-08-30T23:45:00.000Z - P47-093 governed rollback/recovery passed
 
 - Exact-head workflow `33342222795` passed source, secrets, deployment, all 12

@@ -596,12 +596,15 @@
         "Exact-head run 33341199247 deployed 2c7862e as Worker fbf89d34-5868-4105-921f-980e07bf6437 with container digest sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d; all 12 public, 12 authenticated, and live log-redaction gates passed, observing 3 gateway and 1 application events with all payload, credential, secret, and marker checks clean",
         "Governed rollback/recovery source discovers the current and preceding single-version Cloudflare deployments, verifies the preceding version, and restores the exact current version in a finally path; live execution remains pending",
         "Exact-head run 33341894651 passed source, deployment, all public/authenticated/log gates at 6f663f7, then failed closed before traffic mutation because WRANGLER_LOG=none suppressed deployment-status JSON; the retry parses bounded stdout/stderr without storing it and uses the documented rollback message to skip prompts",
-        "Exact-head run 33342222795 passed source, deployment, all 12 public, 12 authenticated, 6 log-redaction, and 8 rollback/recovery checks at 4fd41e5; traffic rolled back to 580b752e-d1b8-4e9f-9d28-94e07ba9ba80 and the exact current Worker 72e2302b-0531-44ac-a9e7-df945c9a9ff1 was restored at 100%"
+        "Exact-head run 33342222795 passed source, deployment, all 12 public, 12 authenticated, 6 log-redaction, and 8 rollback/recovery checks at 4fd41e5; traffic rolled back to 580b752e-d1b8-4e9f-9d28-94e07ba9ba80 and the exact current Worker 72e2302b-0531-44ac-a9e7-df945c9a9ff1 was restored at 100%",
+        "On 2026-09-01 Atlas displayed the staging SCRAM user with only readWrite@tax_lien_chatgpt_staging and access restricted to the TaxLienStaging cluster; the sanitized least-privilege receipt stores no password, URI, or credential",
+        "On 2026-09-01 AyobamiH accepted accountable private-pilot ownership for privacy/security, retention/deletion, consent, support, operations, and incidents under explicit-opt-in training and private-staging-only controls",
+        "The ChatGPT developer-mode connector was created with the deployed MCP URL, public OAuth client metadata, tax_lien:read scope, and no client secret; authorization awaits the first persistent pilot owner",
+        "The audited first-owner bootstrap is isolated from deployment, manual-only, default-branch-only, serialized with staging, accepts a step-scoped bcrypt hash instead of plaintext, proves exactly one named owner workspace and membership, and emits a sanitized receipt",
+        "OAuth source now requires exact explicit allow consent before authentication, persists fixed-lifetime grants, rotates refresh tokens with a current-hash compare-and-set, tombstones replayed or revoked grants, validates grant_id on access, and verifies exact stale-fixture cleanup before writing a success receipt; 17 focused OAuth and 341 full Vitest cases pass locally"
       ],
       "blockers": [
-        "the private ChatGPT connection and approved real-data grounding and prompt-injection cases do not exist yet",
-        "the Atlas application user is cluster-scoped but currently has readWriteAnyDatabase@admin; narrow it to readWrite@tax_lien_chatgpt_staging before closing this node",
-        "the privacy/security approver, retention and deletion decisions, pilot consent owner, support owner, and incident owner are not assigned"
+        "publish and land the protected first-owner bootstrap, pass GitHub CI including the Mongo CAS smoke, deploy and re-verify the hardened OAuth source, provision the persistent pilot owner, complete the real ChatGPT OAuth journey, obtain an owner-authorized sale-list CSV with rights/provenance/as-of/no-training attestations, and execute the required independent-user real-data cases"
       ]
     },
     {

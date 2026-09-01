@@ -4,7 +4,7 @@ import type { AuthenticatedPrincipal } from "@tax-lien/types";
 import type { AuthService } from "../auth/auth-service.js";
 import { ApiError } from "../errors/api-error.js";
 import { OAuthError } from "./oauth-error.js";
-import type { OAuthStore, StoredRefreshToken } from "./oauth-store.js";
+import type { OAuthStore, StoredOAuthGrant, StoredRefreshToken } from "./oauth-store.js";
 
 export interface OAuthServiceConfig {
   issuerUrl: string;
@@ -42,8 +42,11 @@ interface McpAccessTokenPayload extends JwtPayload {
   email: string;
   type: "mcp_access";
   client_id: string;
+  grant_id: string;
   scope: string;
   jti: string;
+  iat: number;
+  exp: number;
 }
 
 export class OAuthService {
@@ -160,9 +163,8 @@ export class OAuthService {
       throw new OAuthError("invalid_grant", "Authorization code has already been used.");
     }
     await this.requireCurrentUser(record.userId);
-    return this.issueTokenPair(
+    return this.issueInitialTokenPair(
       {
-        familyId: randomUUID(),
         userId: record.userId,
         email: record.email,
         clientId: record.clientId,
@@ -191,22 +193,33 @@ export class OAuthService {
     if (!record) {
       throw new OAuthError("invalid_grant", "Refresh token is invalid.");
     }
+    const grant = await this.store.findGrant(record.familyId);
     if (
+      !grant ||
       record.consumedAt ||
       record.revokedAt ||
       record.expiresAt <= now ||
       record.clientId !== input.clientId ||
-      record.resource !== input.resource
+      record.resource !== input.resource ||
+      !refreshGrantMatches(grant, record) ||
+      grant.revokedAt ||
+      grant.refreshExpiresAt <= now ||
+      grant.currentRefreshTokenHash !== hash
     ) {
-      await this.store.revokeRefreshTokenFamily(record.familyId, now);
+      await this.store.revokeGrant(record.familyId, now);
       throw new OAuthError("invalid_grant", "Refresh token is invalid or has been replayed.");
     }
-    if (!(await this.store.consumeRefreshToken(hash, now))) {
-      await this.store.revokeRefreshTokenFamily(record.familyId, now);
-      throw new OAuthError("invalid_grant", "Refresh token is invalid or has been replayed.");
+
+    try {
+      await this.requireCurrentUser(record.userId);
+    } catch (error) {
+      if (error instanceof OAuthError && error.code === "invalid_grant") {
+        await this.store.revokeGrant(record.familyId, now);
+      }
+      throw error;
     }
-    await this.requireCurrentUser(record.userId);
-    return this.issueTokenPair(record, now);
+
+    return this.rotateTokenPair(record, grant, hash, now);
   }
 
   public async verifyAccessToken(token: string): Promise<AuthenticatedPrincipal> {
@@ -219,8 +232,18 @@ export class OAuthService {
       if (!isMcpAccessTokenPayload(decoded) || decoded.scope !== this.config.scope) {
         throw new ApiError(401, "oauth_invalid_token", "OAuth access token is invalid.");
       }
+      if (!this.config.allowedClientIds.includes(decoded.client_id)) {
+        throw new ApiError(401, "oauth_invalid_token", "OAuth access token is invalid.");
+      }
       if (await this.store.isAccessTokenRevoked(decoded.jti)) {
         throw new ApiError(401, "oauth_token_revoked", "OAuth access token has been revoked.");
+      }
+      const grant = await this.store.findGrant(decoded.grant_id);
+      if (grant?.revokedAt) {
+        throw new ApiError(401, "oauth_token_revoked", "OAuth access token has been revoked.");
+      }
+      if (!grant || !accessGrantMatches(grant, decoded, this.config.resourceUrl) || grant.purgeAt <= this.now()) {
+        throw new ApiError(401, "oauth_invalid_token", "OAuth access token is invalid.");
       }
       const user = await this.authService.getCurrentUser(decoded.sub);
       return { userId: user.id, email: user.email };
@@ -235,10 +258,12 @@ export class OAuthService {
     }
   }
 
-  public async revoke(token: string): Promise<void> {
+  public async revoke(token: string, clientId: string): Promise<void> {
     const refresh = await this.store.findRefreshToken(tokenHash(token));
     if (refresh) {
-      await this.store.revokeRefreshTokenFamily(refresh.familyId, this.now());
+      if (refresh.clientId === clientId) {
+        await this.store.revokeGrant(refresh.familyId, this.now());
+      }
       return;
     }
 
@@ -254,8 +279,8 @@ export class OAuthService {
       // RFC 7009 revocation is intentionally idempotent and does not reveal token validity.
       return;
     }
-    if (isMcpAccessTokenPayload(decoded) && typeof decoded.exp === "number") {
-      await this.store.revokeAccessToken(decoded.jti, new Date(decoded.exp * 1000), this.now());
+    if (isMcpAccessTokenPayload(decoded) && decoded.client_id === clientId) {
+      await this.store.revokeGrant(decoded.grant_id, this.now());
     }
   }
 
@@ -270,20 +295,90 @@ export class OAuthService {
     }
   }
 
-  private async issueTokenPair(
-    principal: Pick<StoredRefreshToken, "familyId" | "userId" | "email" | "clientId" | "resource" | "scopes">,
+  private async issueInitialTokenPair(
+    principal: Pick<StoredRefreshToken, "userId" | "email" | "clientId" | "resource" | "scopes">,
     now: Date,
   ): Promise<TokenResponse> {
-    const tokenId = randomUUID();
+    const grantId = randomUUID();
+    const refreshToken = randomToken();
+    const refreshTokenHash = tokenHash(refreshToken);
+    const refreshExpiresAt = addSeconds(now, this.config.refreshTokenTtlSeconds);
+    const grant: StoredOAuthGrant = {
+      grantId,
+      userId: principal.userId,
+      email: principal.email,
+      clientId: principal.clientId,
+      resource: principal.resource,
+      scopes: [...principal.scopes],
+      currentRefreshTokenHash: refreshTokenHash,
+      refreshExpiresAt,
+      purgeAt: addSeconds(refreshExpiresAt, this.config.accessTokenTtlSeconds),
+    };
+    const refreshRecord: StoredRefreshToken = {
+      tokenHash: refreshTokenHash,
+      familyId: grantId,
+      userId: principal.userId,
+      email: principal.email,
+      clientId: principal.clientId,
+      resource: principal.resource,
+      scopes: [...principal.scopes],
+      expiresAt: refreshExpiresAt,
+    };
+    await this.store.createGrantWithRefreshToken(grant, refreshRecord);
+    return this.tokenResponse(principal, grantId, refreshToken, now);
+  }
+
+  private async rotateTokenPair(
+    record: StoredRefreshToken,
+    grant: StoredOAuthGrant,
+    currentTokenHash: string,
+    now: Date,
+  ): Promise<TokenResponse> {
+    const refreshToken = randomToken();
+    const successor: StoredRefreshToken = {
+      tokenHash: tokenHash(refreshToken),
+      familyId: grant.grantId,
+      userId: record.userId,
+      email: record.email,
+      clientId: record.clientId,
+      resource: record.resource,
+      scopes: [...record.scopes],
+      expiresAt: grant.refreshExpiresAt,
+    };
+    if (!(await this.store.rotateRefreshToken(grant.grantId, currentTokenHash, successor, now))) {
+      await this.store.revokeGrant(grant.grantId, now);
+      throw new OAuthError("invalid_grant", "Refresh token is invalid or has been replayed.");
+    }
+
+    const activeGrant = await this.store.findGrant(grant.grantId);
+    if (
+      !activeGrant ||
+      activeGrant.revokedAt ||
+      activeGrant.currentRefreshTokenHash !== successor.tokenHash ||
+      !refreshGrantMatches(activeGrant, successor)
+    ) {
+      throw new OAuthError("invalid_grant", "Refresh token is invalid or has been replayed.");
+    }
+    return this.tokenResponse(record, grant.grantId, refreshToken, now);
+  }
+
+  private tokenResponse(
+    principal: Pick<StoredRefreshToken, "userId" | "email" | "clientId" | "resource" | "scopes">,
+    grantId: string,
+    refreshToken: string,
+    now: Date,
+  ): TokenResponse {
     const accessToken = jwt.sign(
       {
         sub: principal.userId,
         email: principal.email,
         type: "mcp_access",
         client_id: principal.clientId,
+        grant_id: grantId,
         scope: principal.scopes.join(" "),
-        jti: tokenId,
-      } satisfies McpAccessTokenPayload,
+        jti: randomUUID(),
+        iat: Math.floor(now.getTime() / 1000),
+      },
       this.config.signingSecret,
       {
         algorithm: "HS256",
@@ -292,17 +387,6 @@ export class OAuthService {
         expiresIn: this.config.accessTokenTtlSeconds,
       },
     );
-    const refreshToken = randomToken();
-    await this.store.createRefreshToken({
-      tokenHash: tokenHash(refreshToken),
-      familyId: principal.familyId,
-      userId: principal.userId,
-      email: principal.email,
-      clientId: principal.clientId,
-      resource: principal.resource,
-      scopes: [...principal.scopes],
-      expiresAt: addSeconds(now, this.config.refreshTokenTtlSeconds),
-    });
     return {
       access_token: accessToken,
       token_type: "Bearer",
@@ -360,6 +444,37 @@ function secureEqual(left: string, right: string): boolean {
   return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
 }
 
+function refreshGrantMatches(grant: StoredOAuthGrant, token: StoredRefreshToken): boolean {
+  return (
+    grant.grantId === token.familyId &&
+    grant.userId === token.userId &&
+    grant.email === token.email &&
+    grant.clientId === token.clientId &&
+    grant.resource === token.resource &&
+    grant.refreshExpiresAt.getTime() === token.expiresAt.getTime() &&
+    sameScopes(grant.scopes, token.scopes)
+  );
+}
+
+function accessGrantMatches(
+  grant: StoredOAuthGrant,
+  token: McpAccessTokenPayload,
+  resourceUrl: string,
+): boolean {
+  return (
+    grant.grantId === token.grant_id &&
+    grant.userId === token.sub &&
+    grant.email === token.email &&
+    grant.clientId === token.client_id &&
+    grant.resource === resourceUrl &&
+    grant.scopes.join(" ") === token.scope
+  );
+}
+
+function sameScopes(left: string[], right: string[]): boolean {
+  return left.length === right.length && left.every((scope, index) => scope === right[index]);
+}
+
 function isMcpAccessTokenPayload(decoded: string | JwtPayload): decoded is McpAccessTokenPayload {
   return (
     typeof decoded !== "string" &&
@@ -367,7 +482,10 @@ function isMcpAccessTokenPayload(decoded: string | JwtPayload): decoded is McpAc
     typeof decoded.email === "string" &&
     decoded.type === "mcp_access" &&
     typeof decoded.client_id === "string" &&
+    typeof decoded.grant_id === "string" &&
     typeof decoded.scope === "string" &&
-    typeof decoded.jti === "string"
+    typeof decoded.jti === "string" &&
+    typeof decoded.iat === "number" &&
+    typeof decoded.exp === "number"
   );
 }

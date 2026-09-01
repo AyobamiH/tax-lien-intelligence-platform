@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "atlas_least_privilege",
+  "observedAt": "2026-09-01",
+  "status": "passed",
+  "project": "Tax Lien Intelligence Staging",
+  "databaseUser": "tax_lien_chatgpt_staging",
+  "authenticationMethod": "SCRAM",
+  "roles": [{ "role": "readWrite", "database": "tax_lien_chatgpt_staging" }],
+  "resourceRestriction": {
+    "clusters": ["TaxLienStaging"],
+    "federatedDatabaseInstances": 0,
+    "streamProcessingInstances": 0
+  },
+  "forbiddenRoleAbsent": "readWriteAnyDatabase@admin",
+  "evidencePolicy": {
+    "passwordStored": false,
+    "connectionStringStored": false,
+    "credentialStored": false
+  }
+}

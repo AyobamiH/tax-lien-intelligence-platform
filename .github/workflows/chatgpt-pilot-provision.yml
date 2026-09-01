@@ -1,0 +1,74 @@
+name: Provision ChatGPT private-pilot owner
+
+on:
+  workflow_dispatch:
+    inputs:
+      owner_identity_confirmed:
+        description: Confirm this is the single named private-pilot owner
+        required: true
+        type: boolean
+        default: false
+      password_ceremony_confirmed:
+        description: Confirm a password manager generated and retained the 12-256 character password
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chatgpt-private-staging
+  cancel-in-progress: false
+
+jobs:
+  provision:
+    name: provision-exact-first-owner
+    if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      inputs.owner_identity_confirmed &&
+      inputs.password_ceremony_confirmed
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: chatgpt-pilot-bootstrap
+    steps:
+      - name: Checkout trusted default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+
+      - name: Build database dependencies
+        run: |
+          npm run build -w @tax-lien/engine-contract
+          npm run build -w @tax-lien/db
+
+      - name: Validate bootstrap boundary
+        run: npm run validate:chatgpt-pilot-bootstrap
+
+      - name: Provision or verify exact first owner
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          CHATGPT_PILOT_EMAIL: ${{ secrets.CHATGPT_PILOT_EMAIL }}
+          CHATGPT_PILOT_PASSWORD_HASH: ${{ secrets.CHATGPT_PILOT_PASSWORD_HASH }}
+          PILOT_PROVISION_RECEIPT_PATH: artifacts/chatgpt-staging-pilot-provision-receipt.json
+          LIVE_SOURCE_REVISION: ${{ github.sha }}
+          LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: npm run provision:chatgpt-staging:pilot
+
+      - name: Archive sanitized provisioning receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatgpt-staging-pilot-provision-receipt-${{ github.sha }}
+          path: artifacts/chatgpt-staging-pilot-provision-receipt.json
+          if-no-files-found: error
+          retention-days: 30

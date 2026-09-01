@@ -93,6 +93,15 @@ for (const name of [
 if (!workflow.includes("[deploy-private-staging]")) {
   errors.push("Feature-branch staging deployment must require the exact reviewed commit marker.");
 }
+for (const forbiddenPilotCoupling of [
+  "CHATGPT_PILOT_",
+  "provision:chatgpt-staging:pilot",
+  "chatgpt-staging-pilot-provision-receipt.json",
+]) {
+  if (workflow.includes(forbiddenPilotCoupling)) {
+    errors.push(`Deployment must remain isolated from pilot identity provisioning: ${forbiddenPilotCoupling}.`);
+  }
+}
 if (
   !workflow.includes("npm run verify:chatgpt-staging:live") ||
   !workflow.includes("npm run verify:chatgpt-staging:authenticated-live") ||
@@ -106,8 +115,11 @@ if (
 }
 
 for (const authenticatedRequirement of [
+  "explicit_consent_required",
   "authorization_code_replay",
   "refresh_rotation_and_replay",
+  "refresh_replay_access_revocation",
+  "grant_wide_revocation",
   "access_token_revocation",
   "expired_access_token",
   "owner_workspace_isolation",
@@ -116,6 +128,7 @@ for (const authenticatedRequirement of [
   "denied_workspace_isolation",
   "cross_workspace_denial",
   "exact_read_only_tool_inventory",
+  "ephemeral_fixture_cleanup",
 ]) {
   if (!authenticatedLiveVerifier.includes(authenticatedRequirement)) {
     errors.push(`Authenticated live verifier is missing required assertion: ${authenticatedRequirement}.`);

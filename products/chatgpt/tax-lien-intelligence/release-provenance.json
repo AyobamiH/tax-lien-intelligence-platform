@@ -33,6 +33,8 @@
     "authenticatedBoundaryReceipt": "receipts/authenticated-boundary-4fd41e5.json",
     "logRedactionReceipt": "receipts/log-redaction-4fd41e5.json",
     "rollbackReceipt": "receipts/rollback-recovery-4fd41e5.json",
+    "atlasLeastPrivilegeReceipt": "receipts/atlas-least-privilege-20260901.json",
+    "governanceReceipt": "receipts/private-pilot-governance-20260901.json",
     "chatgptConnectionReceipt": null
   }
 }
