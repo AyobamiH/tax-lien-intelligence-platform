@@ -14,6 +14,7 @@ interface StagingEnv {
   OAUTH_GATEWAY_LIMITER: RateLimit;
   MCP_GATEWAY_LIMITER: RateLimit;
   STAGING_ORIGIN: string;
+  SOURCE_REVISION: string;
   MONGODB_URI: string;
   JWT_SECRET: string;
   INTELLIGENCE_SERVICE_TOKEN: string;
@@ -32,6 +33,7 @@ export class TaxLienStagingContainer extends Container<StagingEnv> {
   sleepAfter = "1h";
   envVars = {
     NODE_ENV: "production",
+    SOURCE_REVISION: env.SOURCE_REVISION,
     API_PORT: "4000",
     TRUST_PROXY_HOPS: "1",
     OPERATIONAL_LOGGING_ENABLED: "true",

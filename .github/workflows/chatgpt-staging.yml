@@ -62,7 +62,13 @@ jobs:
         run: npm run preflight -w @tax-lien/cloudflare-staging
 
       - name: Deploy private staging
-        run: npm run deploy -w @tax-lien/cloudflare-staging
+        run: npm run deploy -w @tax-lien/cloudflare-staging -- --var "SOURCE_REVISION:${{ github.sha }}" --containers-rollout=immediate
+
+      - name: Wait for exact container source revision
+        env:
+          STAGING_ORIGIN: ${{ steps.staging-config.outputs.staging_origin }}
+          LIVE_SOURCE_REVISION: ${{ github.sha }}
+        run: npm run verify:chatgpt-staging:revision
 
       - name: Verify deployed HTTPS boundary
         env:

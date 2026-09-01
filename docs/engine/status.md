@@ -1,13 +1,43 @@
 # Intelligence Engine Status
 
-Last updated: 2026-08-30
+Last updated: 2026-09-01
 
 ## Verified Current State
 
+- Pull request #2 is merged at `main@8622b07`, and main CI run `33482952157`
+  passed. Staging workflow `33485144616` deployed that merge twice, but the
+  authenticated gate started during Cloudflare's container replacement window
+  and failed safely with behavior consistent with the prior image. No
+  authenticated, redaction, or rollback receipt or combined workflow artifact
+  was archived, and Atlas cleanup verified zero ephemeral fixture residue.
+- The active correction branch is `fix/p47-093-staging-rollout-gate`. It passes
+  the exact Git revision into the container, exposes the revision on
+  health/readiness only, waits for three consecutive exact ready responses,
+  rechecks the revision in public, authenticated, log-redaction, rollback, and
+  recovery verification, and bounds authenticated JSON parsing. Local
+  validators, typecheck, dependency audit, 10 Python tests, 342 Vitest tests,
+  and build pass. Exact-head PR CI run `33489598973` passed all 19 substantive
+  steps at source commit `90b2de7`; this documentation-only evidence update
+  must retain a green PR check, and merged-main staging evidence is pending.
+- Atlas is already narrowed to `readWrite@tax_lien_chatgpt_staging` on only the
+  `TaxLienStaging` cluster. `AyobamiH` is recorded as owner for privacy,
+  operations, support, and incidents. The genuinely open gates are a persistent
+  owner-role staging identity plus real private-ChatGPT OAuth, and
+  rights-approved real-data evaluation through a separately reviewed protected
+  ingestion lane. The public gateway must continue rejecting `/datasets`, and
+  MCP must remain the exact six read-only tools.
+
+## Historical Evidence
+
+The entries below are time-scoped checkpoints. Later entries and the verified
+current state above supersede historical statements that a control was still
+pending.
+
 - Exact-head private-staging workflow `33341199247` is green at
-  `2c7862e74dc80aaaba6677173293d06801ac2546`: 12 public cases, 12 OAuth / role / tenant / tool cases, and
-  live Cloudflare log-redaction verification all passed. The deployed Worker is
-  `fbf89d34-5868-4105-921f-980e07bf6437`; the container digest is
+  `2c7862e74dc80aaaba6677173293d06801ac2546`: 12 public cases, 12 OAuth / role /
+  tenant / tool cases, and live Cloudflare log-redaction verification all
+  passed. That run deployed Worker
+  `fbf89d34-5868-4105-921f-980e07bf6437`; its container digest was
   `sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d`.
 - Artifact `9740647987` (SHA-256
   `b6287c547c50b4aa3ef10ed8fa2f54b7398598d85e966137bccb5ccf77a40162`)
@@ -31,14 +61,14 @@ Last updated: 2026-08-30
   `2d1589c8c4152d3fad4ee4c16c5f3ce6a8e2dcd883815cb84eeb212ca041de67`)
   contains only four sanitized live receipts; exact copies and deployment
   provenance are pinned in the ChatGPT product package.
-- `P47-093-chatgpt-private-staging` remains in progress for Atlas role
-  narrowing, the real private ChatGPT OAuth connection, and approved real-data /
-  prompt-injection verification.
+- At that checkpoint, `P47-093-chatgpt-private-staging` remained in progress
+  for Atlas role narrowing, the real private ChatGPT OAuth connection, and
+  approved real-data / prompt-injection verification. Atlas was narrowed later.
 
 
 - Active implementation repository for this run:
   `AyobamiH/tax-lien-intelligence-platform`.
-- Active branch: `feature/p47-093-chatgpt-private-staging`.
+- Historical implementation branch: `feature/p47-093-chatgpt-private-staging`.
 - Starting main commit: `50dae44f797af6b1c99f8bc4044c5965f2f36381`.
 - Verified private-staging source checkpoint:
   `eed50b6ac9f08cc99825cbeff33715ea2722100a`.
@@ -72,9 +102,9 @@ Last updated: 2026-08-30
 - Current `packages/scoring` implementation is deterministic rules-based
   prioritization, not a calibrated prediction engine.
 - One Maricopa-style import adapter and generic fallback exist.
-- No verified historical redemption dataset, trained model artifact, temporal
-  evaluation report, deployed intelligence service, live public OAuth flow, or
-  deployed ChatGPT connection exists yet.
+- At the initial engine checkpoint, no verified historical redemption dataset,
+  trained model artifact, temporal evaluation report, deployed intelligence
+  service, live public OAuth flow, or deployed ChatGPT connection existed.
 - The feature branch now contains an authenticated stateless MCP endpoint with
   six read-only evidence tools, explicit tenant resolution, cited stored
   values, labeled legacy heuristics, versioned engine states, unknowns, bounded
@@ -120,9 +150,9 @@ Last updated: 2026-08-30
   `TaxLienStaging` in AWS `eu-west-1`, a SCRAM application user restricted to
   that cluster, the user-approved dynamic-egress access-list rule, and all six
   required `chatgpt-staging` GitHub environment secret names. No secret value
-  was read or committed. The current MongoDB role remains
-  `readWriteAnyDatabase@admin` within the single cluster and must be narrowed
-  to `readWrite@tax_lien_chatgpt_staging` before this node closes.
+  was read or committed. At that checkpoint, the MongoDB role remained
+  `readWriteAnyDatabase@admin` within the single cluster. It was later narrowed
+  to `readWrite@tax_lien_chatgpt_staging`.
 - First live staging run `33334912896` passed the 332-test governed source gate
   and synchronized all five Worker secret-name bindings, then failed closed
   before deployment because Wrangler `4.127.1` no longer accepts
@@ -156,8 +186,8 @@ Last updated: 2026-08-30
   handled validation responses, while `/healthz` remained `200`. This proves
   the deployed ingress/application throttling path without using credentials
   or tokens.
-- The next governed deployment will run an authenticated live verifier after
-  the public-boundary verifier. It creates and removes a unique test-only
+- The source then added an authenticated live verifier after the public-boundary
+  verifier. It creates and removes a unique test-only
   Mongo fixture and covers real PKCE, code replay, refresh rotation/replay,
   access revocation and expiry, exact redirects, owner/admin/member/denied
   views, cross-workspace denial, and the exact six read-only deployed tools.
@@ -242,20 +272,22 @@ Last updated: 2026-08-30
   exited before its probe, so no live redaction receipt exists. A bounded
   classifier will identify the startup authority/configuration class on the
   next exact-head run without exposing raw diagnostics.
-- The staging source now disables persistent provider invocation logs and adds
-  an exact-head real-time-tail gate. The gate must observe both Worker and API
+- At that checkpoint, the staging source disabled persistent provider
+  invocation logs and added an exact-head real-time-tail gate. The gate had to
+  observe both Worker and API
   payload-free events while unique payload and credential markers remain
-  absent, then archive only a sanitized receipt. This source is pending live
-  verification and is not yet redaction evidence.
+  absent, then archive only a sanitized receipt. Live verification was pending
+  at that checkpoint and passed in later runs.
 - Local staging verification passed the source validator, Cloudflare TypeScript
   build, Python supervisor compilation, 13 focused readiness, redaction, and
   gateway-policy tests, plus 10 Python and 332 Vitest tests across 51 files.
-- Pull request [#2](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/2)
-  is open. Exact-head GitHub Actions run `33329355584`, quality-gates job
+- At that checkpoint, pull request
+  [#2](https://github.com/AyobamiH/tax-lien-intelligence-platform/pull/2)
+  was open. Exact-head GitHub Actions run `33329355584`, quality-gates job
   `99305018587`, passed every validator, audit, typecheck, complete tests and
   builds, real-process intelligence smoke, real Mongo intelligence persistence
-  smoke, and real Mongo OAuth atomicity/revocation smoke. No live Cloudflare or
-  Mongo deployment receipt is claimed.
+  smoke, and real Mongo OAuth atomicity/revocation smoke. That source-CI run
+  claimed no live Cloudflare or Mongo deployment receipt; the PR later merged.
 - The graph enforces ChatGPT product priority one with WIP 1. The data
   acquisition and model track is deferred pending real-user pilot evidence or
   public release.
@@ -269,14 +301,15 @@ and push access. No OneClickPostFactory repository is consulted or synchronized.
 ## Current Work
 
 `P47-093-chatgpt-private-staging` is the only in-progress node. Repository
-implementation, source packaging, and private staging are authorized. The real
-stable HTTPS service is deployed and its public boundary has a sanitized live
-receipt. Remaining work is authenticated OAuth and tenant verification, the
-private ChatGPT connection, approved real-data grounding/prompt-injection
-checks, live redaction/rollback verification, database-role narrowing, and
-ownership decisions. Authenticated OAuth, roles, tenant isolation, deployed
-tool inventory, and bounded rate limiting now have live receipts; no ChatGPT
-connection receipt exists yet.
+implementation, source packaging, and private staging are authorized. Prior
+revisions have public, authenticated, redaction, rate-limit, and rollback live
+receipts. Current work is to review and land the exact-revision rollout gate,
+reverify merged main, provision the protected owner-role staging identity, and
+complete the real private-ChatGPT OAuth journey. The final data gate needs
+written-use approval, a field-minimized market-relevant extract, and a
+separately reviewed protected ingestion workflow before the real-data safety
+cases run. Atlas narrowing and accountable ownership are complete; no real
+ChatGPT connection or real-data evaluation receipt exists yet.
 No deferred node becomes runnable while this product gate is active.
 
 ## Next Graph Work
@@ -285,9 +318,10 @@ The single active sequence is:
 
 1. `P47-092-chatgpt-product-definition`: completed with the user, three jobs,
    product promise, thin release boundary, journey, pilot measures, and owners;
-2. `P47-093-chatgpt-private-staging`: in progress; deploy the implemented OAuth
-   and MCP service through stable HTTPS, connect it privately in ChatGPT, then
-   verify tenancy, safety, observability, load, and rollback;
+2. `P47-093-chatgpt-private-staging`: in progress; land the rollout-convergence
+   gate, reverify exact merged source, provision the protected staging identity,
+   complete private ChatGPT OAuth, then ingest approved data through the
+   separately reviewed owner-operated lane and execute the real-data cases;
 3. `P47-094-chatgpt-real-user-pilot`: validate at least five target users, ten
    real tasks, and thirty scripted safety/grounding scenarios;
 4. `P47-095-chatgpt-public-release`: approve policy/listing material and release
@@ -304,7 +338,7 @@ them as the highest-impact product blocker or after public release completes.
 - liquidity prediction accuracy;
 - broad county coverage;
 - model calibration or fairness;
-- authenticated deployed service behavior beyond the verified public boundary;
+- exact-revision authenticated behavior for the current merged-main OAuth source;
 - service-mesh transport, load, failover, and production-traffic behavior;
 - production user outcome improvement;
 - a private connected ChatGPT staging product;

@@ -117,6 +117,7 @@ export interface AppDependencies {
   oauthService?: OAuthService | null;
   readinessProbe?: ReadinessProbe;
   operationalTelemetry?: Partial<OperationalTelemetryOptions>;
+  sourceRevision?: string;
 }
 
 export function buildCorsOptions(config: typeof apiConfig = apiConfig): CorsOptions {
@@ -144,6 +145,7 @@ export function buildCorsOptions(config: typeof apiConfig = apiConfig): CorsOpti
 
 export function createApp(dependencies: AppDependencies = {}): Express {
   const app = express();
+  const sourceRevision = dependencies.sourceRevision ?? apiConfig.sourceRevision;
   app.set("trust proxy", apiConfig.trustProxyHops);
   const authService = dependencies.authService ?? createAuthService();
   const datasetService = dependencies.datasetService ?? createDatasetService();
@@ -236,11 +238,13 @@ export function createApp(dependencies: AppDependencies = {}): Express {
       environment: apiConfig.nodeEnv,
     };
 
+    if (sourceRevision) response.setHeader("X-Tax-Lien-Source-Revision", sourceRevision);
     response.status(200).json(payload);
   });
 
   app.get("/readyz", async (_request, response) => {
     const payload = await (dependencies.readinessProbe ?? probeReadiness)();
+    if (sourceRevision) response.setHeader("X-Tax-Lien-Source-Revision", sourceRevision);
     response.status(payload.status === "ready" ? 200 : 503).json(payload);
   });
 

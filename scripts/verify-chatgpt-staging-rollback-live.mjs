@@ -4,6 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const origin = requireCanonicalOrigin(process.env.STAGING_ORIGIN);
+const expectedRevision = requireSourceRevision(process.env.LIVE_SOURCE_REVISION);
 const receiptPath = resolve(
   process.env.ROLLBACK_RECEIPT_PATH ??
     "artifacts/chatgpt-staging-rollback-recovery-receipt.json",
@@ -76,7 +77,7 @@ const receipt = {
     repository: process.env.GITHUB_REPOSITORY
       ? "https://github.com/" + process.env.GITHUB_REPOSITORY
       : "https://github.com/AyobamiH/tax-lien-intelligence-platform",
-    revision: process.env.LIVE_SOURCE_REVISION ?? null,
+    revision: expectedRevision,
     workflowRun: process.env.LIVE_WORKFLOW_RUN_URL ?? null,
   },
   routing: {
@@ -90,6 +91,9 @@ const receipt = {
   checks,
   boundResources: {
     rolledBack: false,
+    sourceRevision: expectedRevision,
+    sourceRevisionVerifiedAfterRollback: true,
+    sourceRevisionVerifiedAfterRecovery: true,
     readinessVerifiedAfterRollback: ["mongodb", "intelligence"],
     readinessVerifiedAfterRecovery: ["mongodb", "intelligence"],
   },
@@ -187,11 +191,19 @@ async function waitForVersion(expectedVersionId, action) {
 async function verifyBoundary(phase) {
   await checkJson(phase + ":health", "/healthz", 200, (payload, response) => {
     assert(payload?.service === "tax-lien-api" && payload?.status === "ok", phase + "_health_drifted");
+    assert(
+      response.headers.get("x-tax-lien-source-revision") === expectedRevision,
+      phase + "_container_source_revision_drifted",
+    );
     assert(response.headers.get("cache-control") === "no-store", phase + "_health_cache_drifted");
     assert(response.headers.has("strict-transport-security"), phase + "_hsts_missing");
   });
-  await checkJson(phase + ":readiness", "/readyz", 200, (payload) => {
+  await checkJson(phase + ":readiness", "/readyz", 200, (payload, response) => {
     assert(payload?.status === "ready", phase + "_runtime_not_ready");
+    assert(
+      response.headers.get("x-tax-lien-source-revision") === expectedRevision,
+      phase + "_container_source_revision_drifted",
+    );
     assert(payload?.dependencies?.mongodb === "connected", phase + "_mongodb_not_connected");
     assert(payload?.dependencies?.intelligence === "ready", phase + "_intelligence_not_ready");
   });
@@ -363,6 +375,14 @@ function requireCanonicalOrigin(value) {
     "staging_origin_not_stable_workers_dev",
   );
   return url.origin;
+}
+
+function requireSourceRevision(value) {
+  assert(
+    typeof value === "string" && /^[0-9a-f]{40}$/u.test(value),
+    "live_source_revision_invalid",
+  );
+  return value;
 }
 
 function isIdentifier(value) {

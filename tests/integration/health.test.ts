@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { buildCorsOptions, createApp } from "../../apps/api/src/app.js";
 
 describe("API health endpoint", () => {
+  const sourceRevision = "a".repeat(40);
+
   it("returns a typed health payload", async () => {
     const response = await request(createApp()).get("/healthz").expect(200);
 
@@ -53,6 +55,27 @@ describe("API health endpoint", () => {
         intelligence: "ready",
       },
     });
+  });
+
+  it("exposes exact deployment provenance on health and readiness", async () => {
+    const app = createApp({
+      sourceRevision,
+      readinessProbe: async () => ({
+        service: "tax-lien-api",
+        status: "ready",
+        timestamp: "2026-09-01T08:30:00.000Z",
+        environment: "test",
+        dependencies: { mongodb: "connected", intelligence: "ready" },
+      }),
+    });
+
+    const [health, readiness] = await Promise.all([
+      request(app).get("/healthz").expect(200),
+      request(app).get("/readyz").expect(200),
+    ]);
+
+    expect(health.headers["x-tax-lien-source-revision"]).toBe(sourceRevision);
+    expect(readiness.headers["x-tax-lien-source-revision"]).toBe(sourceRevision);
   });
 
   it("fails readiness closed when a dependency is unavailable", async () => {

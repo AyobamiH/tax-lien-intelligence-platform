@@ -1,5 +1,41 @@
 # Work Ledger
 
+## 2026-09-01 - P47-093 exact-revision rollout gate after merged-main verification
+
+- Pull request #2 merged at `8622b07e6592f17c7fa97645b08c2d6215b7cd49`,
+  and main CI run `33482952157` passed. Manual staging workflow
+  `33485144616` then deployed main successfully on attempts 1 and 2, but each
+  authenticated verifier began less than one second after Wrangler returned
+  and failed safely before any receipt could be archived.
+- Timing, old/new source comparison, and the converged live response support a
+  Cloudflare Container rollout-overlap diagnosis: the prior image could still
+  answer while the new image was replacing it. The prior
+  OAuth route returned an empty `303` for missing consent, while the new
+  verifier expected the hardened `400` JSON contract. A later live check
+  returned the hardened response. Atlas cleanup
+  checks found zero fixture users, workspaces, grants, codes, or related test
+  residue after both attempts.
+- The staging workflow now injects the exact Git SHA as a non-secret container
+  variable, exposes it only on health/readiness headers, requires three
+  consecutive ready responses from that exact revision before any live gate,
+  and repeats the exact-revision assertion in public, authenticated,
+  log-redaction, rollback, and recovery verification. Authenticated response
+  parsing is bounded to 1 MiB; parse failures use fixed stage/error classes,
+  and other failures use sanitized code-controlled diagnostics.
+- Script syntax, graph/data/release/staging validators, TypeScript typecheck,
+  dependency audit with zero reported vulnerabilities, 10 Python tests, 342
+  Vitest tests, and the complete build pass locally. Exact-head pull-request CI
+  run `33489598973` passed all 19 substantive steps at rollout source commit
+  `90b2de706a03e34738d4e40f46d0a857d3a58ce8`, including real intelligence and
+  OAuth Mongo smokes. This evidence-record update is documentation-only; its
+  own PR check and merged-main live verification remain required before
+  promotion.
+  Atlas least privilege and accountable ownership are already satisfied; the
+  persistent owner-role staging identity/real ChatGPT OAuth and approved
+  real-data evaluation gates remain open. The latter also needs a separately
+  reviewed protected ingestion lane because the private gateway correctly
+  rejects `/datasets` and MCP stays read-only.
+
 ## 2026-09-01 - P47-093 OAuth grant lifecycle hardened before owner connection
 
 - Changed the authorization endpoint so only an exact scalar

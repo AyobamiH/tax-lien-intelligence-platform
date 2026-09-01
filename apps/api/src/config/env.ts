@@ -8,6 +8,10 @@ const emptyStringToUndefined = (value: unknown): unknown => (value === "" ? unde
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  SOURCE_REVISION: z.preprocess(
+    emptyStringToUndefined,
+    z.string().regex(/^[0-9a-f]{40}$/u).optional(),
+  ),
   API_PORT: z.coerce.number().int().positive().default(4000),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(10).default(0),
   OPERATIONAL_LOGGING_ENABLED: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
@@ -150,6 +154,7 @@ const allowedCorsOrigins =
 
 export interface ApiConfig {
   nodeEnv: RuntimeEnvironment;
+  sourceRevision?: string;
   port: number;
   trustProxyHops: number;
   operationalLoggingEnabled: boolean;
@@ -239,6 +244,7 @@ export interface ApiConfig {
 
 export const apiConfig: ApiConfig = {
   nodeEnv: parsedEnv.NODE_ENV,
+  ...(parsedEnv.SOURCE_REVISION ? { sourceRevision: parsedEnv.SOURCE_REVISION } : {}),
   port: parsedEnv.API_PORT,
   trustProxyHops: parsedEnv.TRUST_PROXY_HOPS,
   operationalLoggingEnabled: parsedEnv.OPERATIONAL_LOGGING_ENABLED,

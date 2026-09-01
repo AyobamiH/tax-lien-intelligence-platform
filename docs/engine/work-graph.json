@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-08-30T23:45:00.000Z",
+  "updatedAt": "2026-09-01T08:32:09.000Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
-  "branch": "feature/p47-093-chatgpt-private-staging",
+  "branch": "fix/p47-093-staging-rollout-gate",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
   "policies": {
     "noMockIntelligence": true,
@@ -594,17 +594,22 @@
         "Exact-head run 33340616895 deployed d381a84 as Worker c9c4387b-74e9-45bb-a0e5-d01d420b682f with container digest sha256:e0fa0ec21fe245c71d9bd4cd7c654cdccb187c96b661c82472f7c4bb5f8440ee; all source/public/authenticated gates passed, the existing token queried Workers Observability and found the application event, then the verifier failed closed on provider key-shape drift",
         "Exact-head run 33340916921 deployed 593a733 as Worker c0585f03-5b0f-470b-bce7-0d93d4a8fc55 with container digest sha256:46e475c7b26896e3c2cae32e0b08021cfbb4361d76304fd3fcf1ffd75772a84a; all source/public/authenticated gates passed and the application log had the exact expected keys plus Cloudflare $cf provider enrichment",
         "Exact-head run 33341199247 deployed 2c7862e as Worker fbf89d34-5868-4105-921f-980e07bf6437 with container digest sha256:f4d431cf31be076ed9756b1893c53ca22432f6e90bf54cc8d90bf8e09e7f69d; all 12 public, 12 authenticated, and live log-redaction gates passed, observing 3 gateway and 1 application events with all payload, credential, secret, and marker checks clean",
-        "Governed rollback/recovery source discovers the current and preceding single-version Cloudflare deployments, verifies the preceding version, and restores the exact current version in a finally path; live execution remains pending",
+        "At the rollback-source checkpoint, governed rollback/recovery discovered the current and preceding single-version Cloudflare deployments, verified the preceding version, and restored the exact current version in a finally path; live execution was pending and later passed in run 33342222795",
         "Exact-head run 33341894651 passed source, deployment, all public/authenticated/log gates at 6f663f7, then failed closed before traffic mutation because WRANGLER_LOG=none suppressed deployment-status JSON; the retry parses bounded stdout/stderr without storing it and uses the documented rollback message to skip prompts",
         "Exact-head run 33342222795 passed source, deployment, all 12 public, 12 authenticated, 6 log-redaction, and 8 rollback/recovery checks at 4fd41e5; traffic rolled back to 580b752e-d1b8-4e9f-9d28-94e07ba9ba80 and the exact current Worker 72e2302b-0531-44ac-a9e7-df945c9a9ff1 was restored at 100%",
         "On 2026-09-01 Atlas displayed the staging SCRAM user with only readWrite@tax_lien_chatgpt_staging and access restricted to the TaxLienStaging cluster; the sanitized least-privilege receipt stores no password, URI, or credential",
         "On 2026-09-01 AyobamiH accepted accountable private-pilot ownership for privacy/security, retention/deletion, consent, support, operations, and incidents under explicit-opt-in training and private-staging-only controls",
-        "The ChatGPT developer-mode connector was created with the deployed MCP URL, public OAuth client metadata, tax_lien:read scope, and no client secret; authorization awaits the first persistent pilot owner",
+        "The ChatGPT developer-mode connector was created with the deployed MCP URL, public OAuth client metadata, tax_lien:read scope, and no client secret; authorization awaits the first persistent owner-role staging identity",
         "The audited first-owner bootstrap is isolated from deployment, manual-only, default-branch-only, serialized with staging, accepts a step-scoped bcrypt hash instead of plaintext, proves exactly one named owner workspace and membership, and emits a sanitized receipt",
-        "OAuth source now requires exact explicit allow consent before authentication, persists fixed-lifetime grants, rotates refresh tokens with a current-hash compare-and-set, tombstones replayed or revoked grants, validates grant_id on access, and verifies exact stale-fixture cleanup before writing a success receipt; 17 focused OAuth and 341 full Vitest cases pass locally"
+        "OAuth source now requires exact explicit allow consent before authentication, persists fixed-lifetime grants, rotates refresh tokens with a current-hash compare-and-set, tombstones replayed or revoked grants, validates grant_id on access, and verifies exact stale-fixture cleanup before writing a success receipt; 17 focused OAuth and 341 full Vitest cases pass locally",
+        "Pull request 2 merged at main revision 8622b07e6592f17c7fa97645b08c2d6215b7cd49 and main CI run 33482952157 passed",
+        "Staging workflow 33485144616 attempts 1 and 2 deployed merged main, then authenticated verification began less than one second after deployment and failed with behavior consistent with Cloudflare container rollout overlap; cleanup verified zero ephemeral fixture residue and no success receipt was archived",
+        "The rollout correction injects the exact Git revision into container health/readiness, requires three consecutive exact ready observations before public and authenticated checks, reasserts it in log-redaction plus rollback/recovery verification, and uses bounded sanitized authenticated JSON parsing",
+        "Local graph, data, release, and staging validators, typecheck, dependency audit with zero reported vulnerabilities, 10 Python tests, 342 Vitest tests, and the complete build pass",
+        "Exact-head pull-request CI run 33489598973 passed all 19 substantive steps at rollout source commit 90b2de706a03e34738d4e40f46d0a857d3a58ce8, including real intelligence and OAuth Mongo smokes; the documentation-only evidence descendant must retain a green PR check and live merged-main proof remains pending"
       ],
       "blockers": [
-        "publish and land the protected first-owner bootstrap, pass GitHub CI including the Mongo CAS smoke, deploy and re-verify the hardened OAuth source, provision the persistent pilot owner, complete the real ChatGPT OAuth journey, obtain an owner-authorized sale-list CSV with rights/provenance/as-of/no-training attestations, and execute the required independent-user real-data cases"
+        "retain a green exact-head pull-request check for the documentation-only evidence update, obtain authorized human review and merge, reverify merged main in live staging, configure the protected chatgpt-pilot-bootstrap environment with explicit authority, provision the persistent owner-role staging identity, complete the real ChatGPT OAuth journey, obtain rights approval for the market-relevant Maricopa pilot dataset with provenance/as-of/retention/no-training attestations, land a separately reviewed protected owner-operated ingestion lane without opening the gateway or MCP mutations, and execute the required real-data cases"
       ]
     },
     {
