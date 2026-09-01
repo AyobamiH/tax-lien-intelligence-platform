@@ -24,8 +24,12 @@
   and other failures use sanitized code-controlled diagnostics.
 - Script syntax, graph/data/release/staging validators, TypeScript typecheck,
   dependency audit with zero reported vulnerabilities, 10 Python tests, 342
-  Vitest tests, and the complete build pass locally. Exact-head CI and live
-  verification remain required before this source correction is promoted.
+  Vitest tests, and the complete build pass locally. Exact-head pull-request CI
+  run `33489598973` passed all 19 substantive steps at rollout source commit
+  `90b2de706a03e34738d4e40f46d0a857d3a58ce8`, including real intelligence and
+  OAuth Mongo smokes. This evidence-record update is documentation-only; its
+  own PR check and merged-main live verification remain required before
+  promotion.
   Atlas least privilege and accountable ownership are already satisfied; the
   persistent owner-role staging identity/real ChatGPT OAuth and approved
   real-data evaluation gates remain open. The latter also needs a separately

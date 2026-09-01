@@ -16,7 +16,9 @@ Last updated: 2026-09-01
   rechecks the revision in public, authenticated, log-redaction, rollback, and
   recovery verification, and bounds authenticated JSON parsing. Local
   validators, typecheck, dependency audit, 10 Python tests, 342 Vitest tests,
-  and build pass; exact-head CI and staging evidence are pending.
+  and build pass. Exact-head PR CI run `33489598973` passed all 19 substantive
+  steps at source commit `90b2de7`; this documentation-only evidence update
+  must retain a green PR check, and merged-main staging evidence is pending.
 - Atlas is already narrowed to `readWrite@tax_lien_chatgpt_staging` on only the
   `TaxLienStaging` cluster. `AyobamiH` is recorded as owner for privacy,
   operations, support, and incidents. The genuinely open gates are a persistent

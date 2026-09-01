@@ -13,6 +13,8 @@
   Rollback and recovery now separately prove the current bound container's
   exact revision while Worker routing changes. Full local gates pass with 10
   Python and 342 Vitest cases and zero reported audit vulnerabilities.
+  Exact-head PR CI run `33489598973` passed all 19 substantive steps at source
+  commit `90b2de7`, including real intelligence and OAuth Mongo smokes.
 
 - Passed governed rollback/recovery in exact-head workflow `33342222795` at
   `4fd41e568d8b8a231534ac7b2e610d69a0ff43a3`. Staging rolled back to preceding verified Worker

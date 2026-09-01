@@ -15,8 +15,10 @@ attempts 1 and 2 began authenticated verification less than one second after
 deployment and failed with behavior consistent with container rollout overlap;
 no completed success receipt was archived. Both attempts cleaned their
 ephemeral fixtures. The exact-revision convergence correction must pass review,
-CI, and live staging before first-owner provisioning or the real ChatGPT OAuth
-journey resumes.
+and exact-head PR CI run `33489598973` has passed its rollout source commit.
+The documentation-only evidence update must keep a green PR check, then an
+authorized human must merge and reverify main in live staging before first-owner
+provisioning or the real ChatGPT OAuth journey resumes.
 
 ## Latest verified deployment
 
