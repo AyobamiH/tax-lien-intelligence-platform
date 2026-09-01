@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_deployment",
+  "status": "passed",
+  "observedAt": "2026-09-01T14:56:24.353Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "branch": "feature/p47-093-chatgpt-private-staging",
+    "revision": "83d94aff19ead3209381320881776a2ee01632a5",
+    "sourceTreeSha": "c81fe249fd465ddcdda1f473b67e864f88716bed",
+    "greenMainRevision": "f80b7acf53584b6c0068605d118c2c0e97916aae",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33521953840",
+    "ciWorkflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33521953486"
+  },
+  "deployment": {
+    "triggerCommitHasNoSourceTreeDiffFromGreenMain": true,
+    "exactRevisionConvergencePassed": true,
+    "finalWorkerVersionId": "447a0169-268b-4363-baf1-20ff9f44e2c8",
+    "rollbackWorkerVersionId": "da417eb1-b116-4969-ba4b-6755ad3341af",
+    "trafficPercentage": 100,
+    "workflowArtifactId": 9806309224,
+    "workflowArtifactName": "chatgpt-staging-live-receipt-83d94aff19ead3209381320881776a2ee01632a5",
+    "workflowArtifactSha256": "sha256:de091837eec11acca84d1442c6f8f1f50a38ce72469957859ec73af9c4406901"
+  },
+  "receipts": {
+    "publicBoundary": "public-boundary-83d94af.json",
+    "authenticatedBoundary": "authenticated-boundary-83d94af.json",
+    "logRedaction": "log-redaction-83d94af.json",
+    "rollbackRecovery": "rollback-recovery-83d94af.json"
+  },
+  "verifiedCounts": {
+    "publicBoundary": 12,
+    "authenticatedBoundary": 17,
+    "logRedaction": 7,
+    "rollbackRecovery": 8
+  },
+  "evidencePolicy": {
+    "sanitizedOnly": true,
+    "responseBodiesStored": false,
+    "providerLogsStored": false,
+    "applicationLogsStored": false,
+    "commandOutputStored": false,
+    "payloadsStored": false,
+    "credentialsStored": false,
+    "authorizationCodesStored": false,
+    "tokensStored": false,
+    "emailsStored": false,
+    "workspaceIdentifiersStored": false,
+    "deterministicFixturesRepresentedAsLiveEvidence": false
+  },
+  "remainingGates": [
+    "Run the protected manual owner-bootstrap workflow and archive its sanitized receipt.",
+    "Complete the private ChatGPT OAuth journey with the persistent owner identity and archive the connection receipt.",
+    "After separate rights approval and protected ingestion review, execute the required market-relevant real-data cases without enabling MCP mutations or training use.",
+    "Keep public release blocked until the real-user pilot and release gates pass."
+  ]
+}
