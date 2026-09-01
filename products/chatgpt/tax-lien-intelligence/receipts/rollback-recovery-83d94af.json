@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_rollback_recovery",
+  "status": "passed",
+  "observedAt": "2026-09-01T14:56:24.353Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "83d94aff19ead3209381320881776a2ee01632a5",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33521953840"
+  },
+  "routing": {
+    "rollbackVersionId": "da417eb1-b116-4969-ba4b-6755ad3341af",
+    "recoveryVersionId": "447a0169-268b-4363-baf1-20ff9f44e2c8",
+    "rollbackRoutedAt": "2026-09-01T14:56:19.994Z",
+    "recoveredAt": "2026-09-01T14:56:23.888Z",
+    "finalVersionId": "447a0169-268b-4363-baf1-20ff9f44e2c8",
+    "trafficPercentage": 100
+  },
+  "checks": [
+    {
+      "name": "rollback:health",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 190,
+      "responseSha256": "62f3a319cf2fe3bcee755ccae9cef682ab58411605e7bde2928bf6d95720fce4"
+    },
+    {
+      "name": "rollback:readiness",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 107,
+      "responseSha256": "05cd6330e4b3e01fa904ab151b0958405d32ad04edea7cd6936e629b16602685"
+    },
+    {
+      "name": "rollback:oauth_discovery",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 99,
+      "responseSha256": "93fa2b46c1470b48c788e1e11a0d07cdd51030d4837e866798c8f191953aae6a"
+    },
+    {
+      "name": "rollback:mcp_fail_closed",
+      "status": "passed",
+      "httpStatus": 401,
+      "durationMs": 112,
+      "responseSha256": "ac5798c0c73040af9d4510f6cd44c2053ee240cedf1f6b413ea34167aa6054bf"
+    },
+    {
+      "name": "recovery:health",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 135,
+      "responseSha256": "52046279d76afa1c6c861522e9db21291eeb1433fe2bd1f34065ed1f14cf27a4"
+    },
+    {
+      "name": "recovery:readiness",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 115,
+      "responseSha256": "98c2047cb48f0171e958c91280402a6363af66a06036f802e6b38947b3e120cc"
+    },
+    {
+      "name": "recovery:oauth_discovery",
+      "status": "passed",
+      "httpStatus": 200,
+      "durationMs": 104,
+      "responseSha256": "93fa2b46c1470b48c788e1e11a0d07cdd51030d4837e866798c8f191953aae6a"
+    },
+    {
+      "name": "recovery:mcp_fail_closed",
+      "status": "passed",
+      "httpStatus": 401,
+      "durationMs": 111,
+      "responseSha256": "ac5798c0c73040af9d4510f6cd44c2053ee240cedf1f6b413ea34167aa6054bf"
+    }
+  ],
+  "boundResources": {
+    "rolledBack": false,
+    "sourceRevision": "83d94aff19ead3209381320881776a2ee01632a5",
+    "sourceRevisionVerifiedAfterRollback": true,
+    "sourceRevisionVerifiedAfterRecovery": true,
+    "readinessVerifiedAfterRollback": [
+      "mongodb",
+      "intelligence"
+    ],
+    "readinessVerifiedAfterRecovery": [
+      "mongodb",
+      "intelligence"
+    ]
+  },
+  "evidencePolicy": {
+    "deterministicProbeOnly": true,
+    "representedAsUserCountyOrModelEvidence": false,
+    "responseBodiesStored": false,
+    "commandOutputStored": false,
+    "credentialsStored": false,
+    "tokensStored": false,
+    "emailsStored": false,
+    "payloadsStored": false
+  }
+}
