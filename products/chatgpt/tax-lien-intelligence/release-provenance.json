@@ -5,7 +5,7 @@
   "systemOfRecord": {
     "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
     "branch": "feature/p47-093-chatgpt-private-staging",
-    "engineRevision": "83d94aff19ead3209381320881776a2ee01632a5",
+    "engineRevision": "4363e3e6c451cee64df903dbe46972f956e014b3",
     "mcpContractVersion": "1.0.0"
   },
   "connection": {
@@ -28,11 +28,11 @@
     "legalConclusions": false
   },
   "liveEvidence": {
-    "deploymentReceipt": "receipts/deployment-83d94af.json",
-    "publicBoundaryReceipt": "receipts/public-boundary-83d94af.json",
-    "authenticatedBoundaryReceipt": "receipts/authenticated-boundary-83d94af.json",
-    "logRedactionReceipt": "receipts/log-redaction-83d94af.json",
-    "rollbackReceipt": "receipts/rollback-recovery-83d94af.json",
+    "deploymentReceipt": "receipts/deployment-4363e3e.json",
+    "publicBoundaryReceipt": "receipts/public-boundary-4363e3e.json",
+    "authenticatedBoundaryReceipt": "receipts/authenticated-boundary-4363e3e.json",
+    "logRedactionReceipt": "receipts/log-redaction-4363e3e.json",
+    "rollbackReceipt": "receipts/rollback-recovery-4363e3e.json",
     "atlasLeastPrivilegeReceipt": "receipts/atlas-least-privilege-20260901.json",
     "governanceReceipt": "receipts/private-pilot-governance-20260901.json",
     "chatgptConnectionReceipt": null

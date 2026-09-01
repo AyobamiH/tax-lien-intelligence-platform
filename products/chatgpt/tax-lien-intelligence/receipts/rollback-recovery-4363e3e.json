@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_rollback_recovery",
+  "status": "passed",
+  "observedAt": "2026-09-01T20:56:11.037Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "4363e3e6c451cee64df903dbe46972f956e014b3",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33557623603"
+  },
+  "routing": {
+    "rollbackVersionId": "e85e55b3-aa24-443e-8246-ee8f78961893",
+    "recoveryVersionId": "6518dc95-e866-4fcc-a48f-edd63b14ad83",
+    "rollbackRoutedAt": "2026-09-01T20:56:04.832Z",
+    "recoveredAt": "2026-09-01T20:56:09.783Z",
+    "finalVersionId": "6518dc95-e866-4fcc-a48f-edd63b14ad83",
+    "trafficPercentage": 100
+  },
+  "checks": [
+    {"name":"rollback:health","status":"passed","httpStatus":200,"durationMs":1176,"responseSha256":"338188f63db82ebcf50f6132e4b95575fab6ce4c86b8ec1c6bdf60c0fe8d6606"},
+    {"name":"rollback:readiness","status":"passed","httpStatus":200,"durationMs":156,"responseSha256":"2e9d4df58dd4678a590a61c3db58f1132765123e137447ce94dcc32e68cf28af"},
+    {"name":"rollback:oauth_discovery","status":"passed","httpStatus":200,"durationMs":156,"responseSha256":"93fa2b46c1470b48c788e1e11a0d07cdd51030d4837e866798c8f191953aae6a"},
+    {"name":"rollback:mcp_fail_closed","status":"passed","httpStatus":401,"durationMs":151,"responseSha256":"ac5798c0c73040af9d4510f6cd44c2053ee240cedf1f6b413ea34167aa6054bf"},
+    {"name":"recovery:health","status":"passed","httpStatus":200,"durationMs":818,"responseSha256":"ab268d57ce11ee1c245fe5d5603406587d6af65dc5aebe19eab40eed6d895e68"},
+    {"name":"recovery:readiness","status":"passed","httpStatus":200,"durationMs":145,"responseSha256":"f2a8324cac27554838b3d59f79c2d6e093c372aa0f30381d874fdee02164838d"},
+    {"name":"recovery:oauth_discovery","status":"passed","httpStatus":200,"durationMs":144,"responseSha256":"93fa2b46c1470b48c788e1e11a0d07cdd51030d4837e866798c8f191953aae6a"},
+    {"name":"recovery:mcp_fail_closed","status":"passed","httpStatus":401,"durationMs":147,"responseSha256":"ac5798c0c73040af9d4510f6cd44c2053ee240cedf1f6b413ea34167aa6054bf"}
+  ],
+  "boundResources": {"rolledBack":false,"sourceRevision":"4363e3e6c451cee64df903dbe46972f956e014b3","sourceRevisionVerifiedAfterRollback":true,"sourceRevisionVerifiedAfterRecovery":true,"readinessVerifiedAfterRollback":["mongodb","intelligence"],"readinessVerifiedAfterRecovery":["mongodb","intelligence"]},
+  "evidencePolicy": {"deterministicProbeOnly":true,"representedAsUserCountyOrModelEvidence":false,"responseBodiesStored":false,"commandOutputStored":false,"credentialsStored":false,"tokensStored":false,"emailsStored":false,"payloadsStored":false}
+}

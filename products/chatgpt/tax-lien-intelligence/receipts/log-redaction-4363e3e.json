@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_log_redaction",
+  "status": "passed",
+  "observedAt": "2026-09-01T20:55:55.355Z",
+  "origin": "https://tax-lien-chatgpt-staging.woeinvests.workers.dev",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "4363e3e6c451cee64df903dbe46972f956e014b3",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33557623603"
+  },
+  "capture": {
+    "providers": ["cloudflare_workers_realtime_tail","cloudflare_workers_observability_query"],
+    "samplingRate": 0.99,
+    "probeRoute": "mcp",
+    "probeRequestCount": 3,
+    "providerEventsObserved": 5,
+    "consoleEntriesObserved": 3,
+    "providerEnrichedApplicationEventsObserved": 1,
+    "gatewayEventsObserved": 3,
+    "applicationEventsObserved": 1,
+    "rawProviderEnvelopeStored": false,
+    "rawConsoleMessagesStored": false,
+    "rawObservabilityEventsStored": false
+  },
+  "checks": [
+    {"name":"exact_source_revision","status":"passed"},
+    {"name":"gateway_payload_free_shape","status":"passed"},
+    {"name":"application_payload_free_shape","status":"passed"},
+    {"name":"payload_marker_absent","status":"passed"},
+    {"name":"credential_marker_absent","status":"passed"},
+    {"name":"secret_markers_absent","status":"passed"},
+    {"name":"probe_failed_closed","status":"passed"}
+  ],
+  "evidencePolicy": {"deterministicProbeOnly":true,"representedAsUserCountyModelOrDeploymentEvidence":false,"providerEnvelopeStored":false,"consoleMessagesStored":false,"observabilityEventsStored":false,"markersStored":false,"credentialsStored":false,"tokensStored":false,"emailsStored":false,"payloadsStored":false}
+}
