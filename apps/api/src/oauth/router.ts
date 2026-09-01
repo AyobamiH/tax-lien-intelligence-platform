@@ -10,6 +10,7 @@ export function createOAuthRouter(
   rateLimit: Omit<FixedWindowRateLimitOptions, "key">,
 ): Router {
   const router = Router();
+  const issuerOrigin = new URL(oauthService.config.issuerUrl).origin;
   const limit = createFixedWindowRateLimit({
     ...rateLimit,
     key: (request) => `oauth:${request.ip ?? request.socket.remoteAddress ?? "unknown"}:${request.path}`,
@@ -18,6 +19,10 @@ export function createOAuthRouter(
   router.use((_request, response, next) => {
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("Pragma", "no-cache");
+    response.setHeader(
+      "Content-Security-Policy",
+      `default-src 'none'; base-uri 'none'; form-action 'self' ${issuerOrigin}; frame-ancestors 'none'`,
+    );
     next();
   });
   router.get("/.well-known/oauth-protected-resource", (_request, response) => {
