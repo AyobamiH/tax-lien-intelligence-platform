@@ -70,6 +70,12 @@ and injected as a binding so OAuth issuer, MCP resource, and app links cannot
 drift from the deployed URL. GitHub environment references flow to Wrangler
 over stdin; no secret file is created, and preflight lists secret names only.
 
+`SOURCE_REVISION` is a separate non-secret plain variable injected from the
+GitHub workflow SHA. The Worker passes it to the container, and only
+`/healthz` and `/readyz` expose it as `X-Tax-Lien-Source-Revision`. Promotion
+does not begin until three consecutive readiness responses identify the exact
+dispatched revision.
+
 ## Observability And Rollback
 
 The API and gateway record request or lifecycle events with route class,
@@ -78,19 +84,25 @@ version, and `payload_not_logged`. They do not record query strings, prompts,
 tool arguments, authorization headers, credentials, email addresses, source
 rows, or evidence payloads.
 
-The deployment uses one versioned Worker and container image. Rollback promotes
-the prior verified Worker version, waits for the container rollout, checks
-`/healthz` and `/readyz`, confirms discovery documents, and proves the failed
-version can no longer serve or mint tokens. Mongo state is not rolled back with
-the container; token-family revocation remains an explicit incident action.
+The deployment uses one versioned Worker and container image. Wrangler
+returning success starts a container rollout but does not prove that the new
+image is the only image answering. The workflow requests immediate rollout,
+then waits for exact-revision convergence before public or authenticated live
+checks. Rollback promotes the prior verified Worker version and separately
+proves both 100% Worker routing and the exact current source revision of the
+bound container on health/readiness. Recovery restores the current Worker and
+repeats both proofs. Mongo state and the bound container are not rolled back
+with the Worker; token-family revocation remains an explicit incident action.
 
 ## Live Boundary
 
 Repository source does not prove that the Cloudflare account has a Workers Paid
 plan, an authorized workers.dev origin, the five required secret bindings, or
-a managed staging Mongo deployment. The container image also cannot be built
-in the current workspace because Docker is unavailable. These facts must be
-verified before deployment; no endpoint or receipt is recorded until then.
+a managed staging Mongo deployment. Prior governed runs verified those
+prerequisites and archived sanitized endpoint receipts. Docker remains
+unavailable in the current workspace, so the rollout correction still requires
+exact-head CI plus a new live staging receipt; source review alone does not
+prove the new revision is serving.
 
 Current platform references:
 

@@ -3,19 +3,28 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const origin = requireCanonicalOrigin(process.env.STAGING_ORIGIN);
+const expectedRevision = requireSourceRevision(process.env.LIVE_SOURCE_REVISION);
 const receiptPath = resolve(process.env.LIVE_RECEIPT_PATH ?? "artifacts/chatgpt-staging-live-receipt.json");
 const observedAt = new Date().toISOString();
 const checks = [];
 
 await checkJson("health", "/healthz", 200, (payload, response) => {
   assert(payload?.service === "tax-lien-api" && payload?.status === "ok", "health payload drifted");
+  assert(
+    response.headers.get("x-tax-lien-source-revision") === expectedRevision,
+    "health source revision drifted",
+  );
   assert(response.headers.get("cache-control") === "no-store", "health cache control drifted");
   assert(response.headers.get("x-content-type-options") === "nosniff", "health content hardening drifted");
   assert(response.headers.has("strict-transport-security"), "HTTPS HSTS header is missing");
 });
 
-await checkJson("readiness", "/readyz", 200, (payload) => {
+await checkJson("readiness", "/readyz", 200, (payload, response) => {
   assert(payload?.status === "ready", "runtime is not ready");
+  assert(
+    response.headers.get("x-tax-lien-source-revision") === expectedRevision,
+    "readiness source revision drifted",
+  );
   assert(payload?.dependencies?.mongodb === "connected", "MongoDB is not connected");
   assert(payload?.dependencies?.intelligence === "ready", "intelligence service is not ready");
 });
@@ -88,7 +97,7 @@ const receipt = {
     repository: process.env.GITHUB_REPOSITORY
       ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
       : "https://github.com/AyobamiH/tax-lien-intelligence-platform",
-    revision: process.env.LIVE_SOURCE_REVISION ?? null,
+    revision: expectedRevision,
     workflowRun: process.env.LIVE_WORKFLOW_RUN_URL ?? null,
   },
   checks,
@@ -152,6 +161,14 @@ function requireCanonicalOrigin(value) {
     "STAGING_ORIGIN must be the stable named workers.dev deployment",
   );
   return url.origin;
+}
+
+function requireSourceRevision(value) {
+  assert(
+    typeof value === "string" && /^[0-9a-f]{40}$/u.test(value),
+    "LIVE_SOURCE_REVISION must be an exact Git commit",
+  );
+  return value;
 }
 
 function assert(condition, message) {

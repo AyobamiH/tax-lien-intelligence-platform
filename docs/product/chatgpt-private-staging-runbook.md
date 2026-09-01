@@ -8,6 +8,16 @@ staging work, but this document does not fabricate account entitlement, accept
 new spending, create missing secrets, assign privacy/support roles, or convert
 local tests into live evidence.
 
+## Current promotion hold
+
+Main CI is green at merge `8622b07`, but staging workflow `33485144616`
+attempts 1 and 2 began authenticated verification less than one second after
+deployment and failed with behavior consistent with container rollout overlap;
+no completed success receipt was archived. Both attempts cleaned their
+ephemeral fixtures. The exact-revision convergence correction must pass review,
+CI, and live staging before first-owner provisioning or the real ChatGPT OAuth
+journey resumes.
+
 ## Latest verified deployment
 
 Exact-head workflow [33342222795](https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33342222795) passed governed source and
@@ -22,8 +32,10 @@ discovery, MCP fail-closed behavior, MongoDB, and intelligence readiness, then
 restored the exact current version at 100% and repeated the proof. Only
 sanitized receipts are retained; no provider event, application log, command
 output, marker, credential, token, email, request body, or response body is
-retained. The remaining order is Atlas least-privilege narrowing, the real
-private ChatGPT OAuth connection, then approved-data verification.
+retained. Atlas least privilege and accountable ownership are now satisfied.
+The remaining order is exact-revision redeployment, the protected owner-role
+staging identity and real private ChatGPT OAuth connection, then approved-data
+ingestion and verification.
 
 ## Selected staging topology
 
@@ -49,6 +61,32 @@ Record these in the work ledger before deployment:
 - pilot consent, support, and incident owners;
 - ingress proxy-hop count and shared/ingress rate-limit design;
 - rollback owner, prior artifact, and rollback trigger.
+
+## Protected first-owner ceremony
+
+The source contains the manual-only
+`.github/workflows/chatgpt-pilot-provision.yml`, but as of 2026-09-01 the
+required GitHub environment `chatgpt-pilot-bootstrap` has not been created.
+Creating or changing that protected environment, its deployment-branch policy,
+or required reviewers is an access-control mutation and requires explicit
+action-time authority.
+
+Once authorized, restrict the environment to the trusted default branch and an
+accountable reviewer, then add exactly these environment secret names:
+
+- `MONGODB_URI`;
+- `CHATGPT_PILOT_EMAIL`;
+- `CHATGPT_PILOT_PASSWORD_HASH`.
+
+Generate and retain the 12–256 character plaintext password in a password
+manager. Put only its bcrypt `$2a$` or `$2b$` hash at cost 12–14 into GitHub;
+never paste the plaintext into a chat message, source, CI inputs, logs, or a
+receipt. Enter it only through password-manager autofill or the dedicated
+staging OAuth authorization form using the approved browser credential channel.
+Dispatch the workflow manually from the default branch with both ceremony
+confirmations true. It serializes with staging, refuses identity/workspace/
+membership drift, and archives only a sanitized receipt. The workflow does not
+open public registration or rotate an existing credential.
 
 ## Build and configure
 
@@ -87,15 +125,24 @@ Record these in the work ledger before deployment:
    default branch, or push a reviewed commit to the bounded feature branch
    whose message contains exactly `[deploy-private-staging]`. Ordinary feature
    pushes create no deployment job. An authenticated local operator with
-   Docker may instead run `npm run deploy -w @tax-lien/cloudflare-staging`.
+   Docker must supply the exact 40-character Git SHA through Wrangler's
+   `SOURCE_REVISION` plain-variable option, request immediate rollout, and run
+   the same convergence verifier; the bare workspace deploy command is not a
+   complete governed deployment.
    Deployment is staging-only and the gateway intentionally exposes no
    ordinary mutation routes.
+6. The workflow injects `${{ github.sha }}` as the non-secret
+   `SOURCE_REVISION`, requests an immediate container rollout, then requires
+   three consecutive `/readyz` responses with the exact
+   `X-Tax-Lien-Source-Revision` header. Do not begin public or authenticated
+   verification merely because Wrangler reports that deployment started.
 
 Then complete the application checks below:
 
-1. Deploy the repository commit recorded in
-   `products/chatgpt/tax-lien-intelligence/release-provenance.json` with the
-   existing MongoDB-backed API. Do not deploy a copied MCP service.
+1. Deploy the exact reviewed workflow SHA with the existing MongoDB-backed API.
+   Do not use the older `release-provenance.json` revision as a deployment
+   selector and do not deploy a copied MCP service. Pin the new revision in
+   provenance only after exact-head live verification succeeds.
 2. Configure the existing required API/database settings plus the
    `MCP_OAUTH_*` values from `.env.example`.
 3. Set `MCP_OAUTH_ISSUER_URL` to the origin only and
@@ -125,7 +172,8 @@ npm run test
 npm run build
 ```
 
-Verify all three discovery documents, the unauthenticated `/mcp` challenge,
+Verify the exact source-revision header first, then all three discovery
+documents, the unauthenticated `/mcp` challenge,
 TLS certificate, health endpoint, token expiry, refresh rotation/replay,
 revocation, and rate limiting. Do not record tokens, codes, emails, prompts, or
 evidence payloads in receipts.
@@ -144,7 +192,8 @@ appear in Worker or API logs.
 
 The governed deployment runs
 `npm run verify:chatgpt-staging:log-redaction-live`. It opens a bounded
-Cloudflare real-time tail, sends three fail-closed MCP requests containing
+Cloudflare real-time tail only after reasserting the exact container source
+revision, sends three fail-closed MCP requests containing
 unique payload and credential markers, requires both the Worker gateway event
 and API operational event with their exact allowlisted fields, and proves the
 markers are absent from application console messages. The verifier never writes
@@ -162,8 +211,10 @@ route 100% of staging traffic to the preceding version, verifies health,
 readiness, OAuth discovery, MCP fail-closed behavior, and MongoDB/intelligence
 readiness, then restores the exact current version from a `finally` recovery
 path and repeats the same checks. Cloudflare Worker rollback does not roll back
-the bound Container resources; dependency readiness is therefore proved on both
-sides of the route change. Cloudflare's current Wrangler command reference documents JSON output for
+the bound Container resources; the exact current container source revision and
+dependency readiness are therefore proved on both sides of the route change
+while Worker version routing is verified separately. Cloudflare's current
+Wrangler command reference documents JSON output for
 [deployment status](https://developers.cloudflare.com/workers/wrangler/commands/workers/#deployments-status)
 and states that a rollback `--message` skips the interactive prompts. The
 receipt stores only version identifiers, timestamps, response hashes, statuses,
@@ -182,14 +233,21 @@ deployment document; Wrangler output and response bodies are never archived.
 5. Store sanitized connection and evaluation receipts in the project, update
    the provenance manifest, then rerun its validator.
 
+Real county evaluation data cannot enter through the public gateway, which
+intentionally rejects `/datasets`, or through the six read-only MCP tools. Once
+written-use permission and the field-minimized pilot extract are approved, use
+a separately reviewed owner-operated protected ingestion workflow. Do not add
+an upload route or mutation-shaped MCP tool to bypass that control.
+
 The official connection procedure is maintained at
 [Connect from ChatGPT](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
 ## Rollback
 
 Disconnect the private ChatGPT product, revoke affected refresh families,
-run `wrangler rollback <VERIFIED_VERSION_ID>`, wait for the container rollout,
-confirm the restored discovery, `/healthz`, and `/readyz` responses, and verify
-that the failed artifact can no longer mint or serve tokens. Record trigger,
+run `wrangler rollback <VERIFIED_VERSION_ID>`, wait for 100% Worker routing,
+confirm the bound container still reports the expected source revision plus
+healthy `/healthz` and `/readyz` responses, and verify that the failed Worker
+can no longer mint or serve tokens. Record trigger,
 owner, Worker version, container image/deployment ids, timestamps, and
 sanitized verification. Never delete evidence needed for an incident review.

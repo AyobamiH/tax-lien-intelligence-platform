@@ -16,6 +16,7 @@ import {
 } from "../packages/db/dist/index.js";
 
 const origin = requireCanonicalOrigin(process.env.STAGING_ORIGIN);
+const expectedRevision = requireSourceRevision(process.env.LIVE_SOURCE_REVISION);
 const mongoUri = requireSecret("MONGODB_URI");
 const signingSecret = requireSecret("MCP_OAUTH_SIGNING_SECRET");
 const receiptPath = resolve(
@@ -54,6 +55,8 @@ let verificationCompleted = false;
 let verificationFailure;
 
 try {
+  await assertExactSourceRevision();
+  pass("exact_source_revision");
   await connectMongo({ uri: mongoUri, dbName: "tax_lien_chatgpt_staging", serverSelectionTimeoutMs: 15_000 });
   mongoConnected = true;
   await cleanupStaleFixtures();
@@ -82,10 +85,10 @@ try {
     "deployed tool inventory drifted",
   );
   for (const tool of inventory) {
-    assert(tool.annotations?.readOnlyHint === true, `${tool.name} is not read-only`);
-    assert(tool.annotations?.destructiveHint === false, `${tool.name} claims destructive behavior`);
-    assert(tool.annotations?.idempotentHint === true, `${tool.name} is not idempotent`);
-    assert(tool.annotations?.openWorldHint === false, `${tool.name} claims open-world behavior`);
+    assert(tool.annotations?.readOnlyHint === true, "tool read-only annotation drifted");
+    assert(tool.annotations?.destructiveHint === false, "tool destructive annotation drifted");
+    assert(tool.annotations?.idempotentHint === true, "tool idempotence annotation drifted");
+    assert(tool.annotations?.openWorldHint === false, "tool open-world annotation drifted");
     assert(!/(?:bid|buy|purchase|approve|write|delete|update|legal)/iu.test(tool.name), "forbidden tool name deployed");
   }
   pass("exact_read_only_tool_inventory");
@@ -278,6 +281,20 @@ async function seedFixture() {
   };
 }
 
+async function assertExactSourceRevision() {
+  const response = await fetch(`${origin}/readyz`, {
+    cache: "no-store",
+    redirect: "manual",
+    signal: AbortSignal.timeout(30_000),
+  });
+  const observedRevision = response.headers.get("x-tax-lien-source-revision");
+  await response.body?.cancel();
+  assert(
+    response.status === 200 && observedRevision === expectedRevision,
+    "container source revision is not exact",
+  );
+}
+
 function membership(workspaceId, userId, role, addedByUserId, isDefault, joinedAt) {
   return { workspaceId, userId, role, status: "active", isDefault, addedByUserId, joinedAt };
 }
@@ -309,7 +326,9 @@ async function authorize(principal) {
     signal: AbortSignal.timeout(30_000),
   });
   assert(response.status === 303, "authorization did not return a callback");
-  const callback = new URL(response.headers.get("location"));
+  const location = response.headers.get("location");
+  assert(location, "authorization callback location is missing");
+  const callback = new URL(location);
   assert(callback.origin === "https://chatgpt.com", "authorization callback origin drifted");
   assert(callback.searchParams.get("state") === state && callback.searchParams.get("iss") === origin, "callback binding drifted");
   const code = callback.searchParams.get("code");
@@ -348,11 +367,11 @@ async function assertExplicitConsentRequired(principal) {
     redirect: "manual",
     signal: AbortSignal.timeout(30_000),
   });
-  const body = await response.json();
-  assert(
-    response.status === 400 && body?.error === "invalid_request" && !response.headers.get("location"),
-    "authorization succeeded without exact explicit consent",
-  );
+  const failedClosed = response.status === 400 && !response.headers.get("location");
+  if (!failedClosed) await response.body?.cancel();
+  assert(failedClosed, "authorization succeeded without exact explicit consent");
+  const body = await readJsonResponse(response, "explicit_consent_response");
+  assert(body?.error === "invalid_request", "authorization consent error contract drifted");
   assert(
     (await OAuthAuthorizationCodeModel.countDocuments({ userId: principal.id }).exec()) === 0,
     "authorization without exact consent created a code",
@@ -366,7 +385,7 @@ async function tokenRequest(values) {
     body: form(values),
     signal: AbortSignal.timeout(30_000),
   });
-  return { response, body: await response.json() };
+  return { response, body: await readJsonResponse(response, "token_response") };
 }
 
 async function assertWorkspaceView(token, workspaceId, role, name) {
@@ -399,7 +418,46 @@ async function rawMcp(token, method, params) {
     body: JSON.stringify({ jsonrpc: "2.0", id: randomUUID(), method, params }),
     signal: AbortSignal.timeout(30_000),
   });
-  return { response, body: await response.json() };
+  return { response, body: await readJsonResponse(response, "mcp_response") };
+}
+
+async function readJsonResponse(response, stage) {
+  const reader = response.body?.getReader();
+  if (!reader) throw safeVerificationFailure(stage, "response_body_missing");
+  const decoder = new TextDecoder();
+  let totalBytes = 0;
+  let text = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > 1_048_576) {
+        await reader.cancel();
+        throw safeVerificationFailure(stage, "response_body_too_large");
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+  } catch (error) {
+    if (error instanceof Error && error.name === "AuthenticatedLiveVerificationError") throw error;
+    throw safeVerificationFailure(stage, "response_body_unreadable");
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw safeVerificationFailure(stage, "response_body_not_json");
+  }
+}
+
+function safeVerificationFailure(stage, errorClass) {
+  const error = new Error(
+    `Authenticated live staging verification failed at ${stage}: ${errorClass}.`,
+  );
+  error.name = "AuthenticatedLiveVerificationError";
+  return error;
 }
 
 async function cleanupFixture() {
@@ -550,7 +608,7 @@ function createReceipt() {
       repository: process.env.GITHUB_REPOSITORY
         ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
         : "https://github.com/AyobamiH/tax-lien-intelligence-platform",
-      revision: process.env.LIVE_SOURCE_REVISION ?? null,
+      revision: expectedRevision,
       workflowRun: process.env.LIVE_WORKFLOW_RUN_URL ?? null,
     },
     fixturePolicy: {
@@ -624,6 +682,14 @@ function requireCanonicalOrigin(value) {
     "STAGING_ORIGIN must be the stable named workers.dev deployment",
   );
   return url.origin;
+}
+
+function requireSourceRevision(value) {
+  assert(
+    typeof value === "string" && /^[0-9a-f]{40}$/u.test(value),
+    "LIVE_SOURCE_REVISION must be an exact Git commit",
+  );
+  return value;
 }
 
 function assert(condition, message) {

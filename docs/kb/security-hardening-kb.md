@@ -50,10 +50,15 @@ The product must earn trust through secure boundaries and explainable output.
   short-lived access tokens, rotating hashed refresh tokens, refresh-family
   replay revocation, persisted access-token revocation, and current-user
   checks. OAuth-enabled MCP does not accept the application login JWT.
-- OAuth code is repository-tested but not deployed or connected from ChatGPT.
-  Stable HTTPS, ingress/proxy validation, multi-instance rate limiting, secret
-  custody, live tenancy/load/redaction/rollback evidence, and named
-  privacy/support/incident owners remain release controls.
+- OAuth is deployed on the private staging boundary and has prior live
+  lifecycle, tenancy, redaction, and rollback evidence. The current merged-main
+  promotion is held because Cloudflare may briefly serve the prior container
+  image after deployment starts. Source now injects an exact Git revision and
+  requires consecutive revision-bearing readiness responses before live OAuth
+  verification. A persistent owner-role staging identity, real ChatGPT OAuth
+  receipt, rights-approved real-data evaluation, and a separately reviewed
+  protected owner-operated ingestion lane remain release controls. The public
+  gateway stays closed to `/datasets`, and MCP stays read-only.
 - MCP evidence responses exclude access tokens, user emails, member lists,
   free-form notes, comments, approval notes, raw rows, and exported brief text.
   Filenames and source labels remain untrusted cited data.

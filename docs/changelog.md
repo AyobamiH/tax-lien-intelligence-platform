@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Added an exact-revision convergence gate after merged-main staging workflow
+  `33485144616` produced timing and response behavior consistent with
+  Cloudflare Container rollout overlap on both governed attempts. Deployments
+  now inject the Git SHA into the container, require
+  three consecutive exact-revision readiness observations before public or
+  authenticated checks, reassert provenance throughout live verification, and parse
+  authenticated JSON through a bounded sanitized reader. Both failed attempts
+  removed their ephemeral fixtures and archived no false success receipt.
+  Rollback and recovery now separately prove the current bound container's
+  exact revision while Worker routing changes. Full local gates pass with 10
+  Python and 342 Vitest cases and zero reported audit vulnerabilities.
+
 - Passed governed rollback/recovery in exact-head workflow `33342222795` at
   `4fd41e568d8b8a231534ac7b2e610d69a0ff43a3`. Staging rolled back to preceding verified Worker
   `580b752e-d1b8-4e9f-9d28-94e07ba9ba80`, passed health/readiness/OAuth/MCP
@@ -20,7 +32,8 @@
   workflow routes to the most recent preceding single-version Worker, verifies
   the real HTTPS/OAuth/dependency boundary, restores the exact current version
   in a `finally` path, re-verifies recovery, and archives only sanitized
-  receipt fields. Live execution remains pending.
+  receipt fields. Live execution was pending at that source checkpoint and
+  later passed in workflow `33342222795`.
 
 - Passed the exact-head live Cloudflare log-redaction gate in workflow
   `33341199247` at `2c7862e74dc80aaaba6677173293d06801ac2546`. The real stable staging origin passed 12
@@ -75,7 +88,8 @@
   verifies the deployed Worker and API custom logs against unique payload and
   credential markers, stores only a sanitized pass receipt, and disables
   persistent provider invocation logs while retaining unsampled payload-free
-  operational events. Live verification remains pending.
+  operational events. Live verification was pending at that source checkpoint
+  and later passed in workflow `33341199247`.
 
 - Passed the real authenticated staging boundary at exact revision `60d3cca`:
   12 public checks, 12 OAuth/role/tenant/tool checks, fixture cleanup, receipt

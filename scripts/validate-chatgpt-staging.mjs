@@ -9,12 +9,32 @@ const dockerfilePath = resolve(root, "Dockerfile.staging");
 const preflightPath = resolve(root, "infra/cloudflare/scripts/preflight.mjs");
 const secretSyncPath = resolve(root, "infra/cloudflare/scripts/sync-secrets.mjs");
 const workflowPath = resolve(root, ".github/workflows/chatgpt-staging.yml");
+const packagePath = resolve(root, "package.json");
+const apiEnvPath = resolve(root, "apps/api/src/config/env.ts");
+const apiAppPath = resolve(root, "apps/api/src/app.ts");
 const liveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-live.mjs");
+const revisionWaitPath = resolve(root, "scripts/wait-chatgpt-staging-revision.mjs");
 const authenticatedLiveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-authenticated-live.mjs");
 const logRedactionLiveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-log-redaction-live.mjs");
 const rollbackLiveVerifierPath = resolve(root, "scripts/verify-chatgpt-staging-rollback-live.mjs");
 
-const [configSource, workerSource, policySource, dockerfile, preflight, secretSync, workflow, liveVerifier, authenticatedLiveVerifier, logRedactionLiveVerifier, rollbackLiveVerifier] = await Promise.all([
+const [
+  configSource,
+  workerSource,
+  policySource,
+  dockerfile,
+  preflight,
+  secretSync,
+  workflow,
+  packageSource,
+  apiEnvSource,
+  apiAppSource,
+  liveVerifier,
+  revisionWait,
+  authenticatedLiveVerifier,
+  logRedactionLiveVerifier,
+  rollbackLiveVerifier,
+] = await Promise.all([
   readFile(configPath, "utf8"),
   readFile(workerPath, "utf8"),
   readFile(policyPath, "utf8"),
@@ -22,13 +42,18 @@ const [configSource, workerSource, policySource, dockerfile, preflight, secretSy
   readFile(preflightPath, "utf8"),
   readFile(secretSyncPath, "utf8"),
   readFile(workflowPath, "utf8"),
+  readFile(packagePath, "utf8"),
+  readFile(apiEnvPath, "utf8"),
+  readFile(apiAppPath, "utf8"),
   readFile(liveVerifierPath, "utf8"),
+  readFile(revisionWaitPath, "utf8"),
   readFile(authenticatedLiveVerifierPath, "utf8"),
   readFile(logRedactionLiveVerifierPath, "utf8"),
   readFile(rollbackLiveVerifierPath, "utf8"),
 ]);
 
 const config = JSON.parse(configSource);
+const packageJson = JSON.parse(packageSource);
 const errors = [];
 
 if (config.name !== "tax-lien-chatgpt-staging") errors.push("Worker name must remain staging-only.");
@@ -93,6 +118,42 @@ for (const name of [
 if (!workflow.includes("[deploy-private-staging]")) {
   errors.push("Feature-branch staging deployment must require the exact reviewed commit marker.");
 }
+const deployIndex = workflow.indexOf("Deploy private staging");
+const convergenceIndex = workflow.indexOf("Wait for exact container source revision");
+const publicVerificationIndex = workflow.indexOf("Verify deployed HTTPS boundary");
+if (
+  !workflow.includes('--var "SOURCE_REVISION:${{ github.sha }}"') ||
+  !workflow.includes("--containers-rollout=immediate") ||
+  !workflow.includes("npm run verify:chatgpt-staging:revision") ||
+  deployIndex < 0 ||
+  convergenceIndex <= deployIndex ||
+  publicVerificationIndex <= convergenceIndex ||
+  packageJson.scripts?.["verify:chatgpt-staging:revision"] !==
+    "node scripts/wait-chatgpt-staging-revision.mjs"
+) {
+  errors.push("Deployment must prove exact container source convergence before live verification.");
+}
+if (
+  !workerSource.includes("SOURCE_REVISION: env.SOURCE_REVISION") ||
+  !apiEnvSource.includes("SOURCE_REVISION") ||
+  !apiEnvSource.includes("/^[0-9a-f]{40}$/u") ||
+  !apiAppSource.includes('setHeader("X-Tax-Lien-Source-Revision", sourceRevision)') ||
+  !revisionWait.includes("/readyz") ||
+  !revisionWait.includes('headers.get("x-tax-lien-source-revision")') ||
+  !revisionWait.includes("requiredConsecutiveMatches = 3") ||
+  !revisionWait.includes("180_000") ||
+  revisionWait.includes("response.text()")
+) {
+  errors.push("Source revision provenance must be exact, bounded, and response-body-free.");
+}
+if (
+  !liveVerifier.includes('headers.get("x-tax-lien-source-revision")') ||
+  !authenticatedLiveVerifier.includes('headers.get("x-tax-lien-source-revision")') ||
+  !logRedactionLiveVerifier.includes('headers.get("x-tax-lien-source-revision")') ||
+  !rollbackLiveVerifier.includes('headers.get("x-tax-lien-source-revision")')
+) {
+  errors.push("Every live verification phase must reassert the exact container source revision.");
+}
 for (const forbiddenPilotCoupling of [
   "CHATGPT_PILOT_",
   "provision:chatgpt-staging:pilot",
@@ -115,6 +176,7 @@ if (
 }
 
 for (const authenticatedRequirement of [
+  "exact_source_revision",
   "explicit_consent_required",
   "authorization_code_replay",
   "refresh_rotation_and_replay",
@@ -134,8 +196,20 @@ for (const authenticatedRequirement of [
     errors.push(`Authenticated live verifier is missing required assertion: ${authenticatedRequirement}.`);
   }
 }
+if (
+  authenticatedLiveVerifier.includes("response.json()") ||
+  !authenticatedLiveVerifier.includes("readJsonResponse") ||
+  !authenticatedLiveVerifier.includes("response_body_not_json") ||
+  !authenticatedLiveVerifier.includes("response_body_too_large")
+) {
+  errors.push("Authenticated live responses must be parsed through the bounded sanitized JSON reader.");
+}
+if (authenticatedLiveVerifier.includes("${tool.name}")) {
+  errors.push("Authenticated live diagnostics must not interpolate remote tool names.");
+}
 
 for (const logRequirement of [
+  "exact_source_revision",
   "cloudflare_workers_realtime_tail",
   "gateway_payload_free_shape",
   "application_payload_free_shape",
@@ -156,6 +230,9 @@ for (const rollbackRequirement of [
   "rollback_to_previous_version",
   "recover_current_version",
   "chatgpt_private_staging_rollback_recovery",
+  "x-tax-lien-source-revision",
+  "sourceRevisionVerifiedAfterRollback: true",
+  "sourceRevisionVerifiedAfterRecovery: true",
   "responseBodiesStored: false",
   "commandOutputStored: false",
 ]) {

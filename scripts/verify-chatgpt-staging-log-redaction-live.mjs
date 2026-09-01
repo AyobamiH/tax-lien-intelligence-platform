@@ -5,11 +5,13 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
 const origin = requireCanonicalOrigin(process.env.STAGING_ORIGIN);
+const expectedRevision = requireSourceRevision(process.env.LIVE_SOURCE_REVISION);
 const accountId = requireIdentifier(process.env.CLOUDFLARE_ACCOUNT_ID, "cloudflare_account_id_missing");
 const cloudflareApiToken = requireSecretReference(
   process.env.CLOUDFLARE_API_TOKEN,
   "cloudflare_api_token_missing",
 );
+await assertExactSourceRevision();
 const receiptPath = resolve(
   process.env.LOG_REDACTION_RECEIPT_PATH ??
     "artifacts/chatgpt-staging-log-redaction-receipt.json",
@@ -162,7 +164,7 @@ try {
       repository: process.env.GITHUB_REPOSITORY
         ? "https://github.com/" + process.env.GITHUB_REPOSITORY
         : "https://github.com/AyobamiH/tax-lien-intelligence-platform",
-      revision: process.env.LIVE_SOURCE_REVISION ?? null,
+      revision: expectedRevision,
       workflowRun: process.env.LIVE_WORKFLOW_RUN_URL ?? null,
     },
     capture: {
@@ -184,6 +186,7 @@ try {
       rawObservabilityEventsStored: false,
     },
     checks: [
+      { name: "exact_source_revision", status: "passed" },
       { name: "gateway_payload_free_shape", status: "passed" },
       { name: "application_payload_free_shape", status: "passed" },
       { name: "payload_marker_absent", status: "passed" },
@@ -641,6 +644,28 @@ function requireCanonicalOrigin(value) {
     "staging_origin_not_named_worker",
   );
   return url.origin;
+}
+
+function requireSourceRevision(value) {
+  assert(
+    typeof value === "string" && /^[0-9a-f]{40}$/u.test(value),
+    "live_source_revision_invalid",
+  );
+  return value;
+}
+
+async function assertExactSourceRevision() {
+  const response = await fetch(origin + "/readyz", {
+    cache: "no-store",
+    redirect: "manual",
+    signal: AbortSignal.timeout(30_000),
+  });
+  const observedRevision = response.headers.get("x-tax-lien-source-revision");
+  await response.body?.cancel();
+  assert(
+    response.status === 200 && observedRevision === expectedRevision,
+    "container_source_revision_drifted",
+  );
 }
 
 function delay(milliseconds) {
