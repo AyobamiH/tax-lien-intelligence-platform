@@ -58,6 +58,9 @@ jobs:
       - name: Validate ChatGPT pilot bootstrap boundary
         run: npm run validate:chatgpt-pilot-bootstrap
 
+      - name: Validate ChatGPT protected real-data boundary
+        run: npm run validate:chatgpt-real-data-pilot
+
       - name: Audit high-severity dependency risk
         run: npm run audit
 
@@ -72,6 +75,9 @@ jobs:
 
       - name: Test ChatGPT pilot bootstrap boundary
         run: npm run test:chatgpt-pilot-bootstrap
+
+      - name: Test ChatGPT protected real-data boundary
+        run: npm run test:chatgpt-real-data-pilot
 
       - name: Smoke intelligence service
         run: npm run smoke:intelligence-service

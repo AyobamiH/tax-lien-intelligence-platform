@@ -1,0 +1,146 @@
+name: Run ChatGPT private-pilot real-data evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      owner_identity_confirmed:
+        description: Confirm the protected dataset belongs to the already-provisioned private-pilot owner
+        required: true
+        type: boolean
+        default: false
+      rights_confirmed:
+        description: Confirm the owner has the right to use this dataset for this private staging evaluation
+        required: true
+        type: boolean
+        default: false
+      pii_minimization_confirmed:
+        description: Confirm direct owner/contact/mailing identifiers may be discarded before persistence
+        required: true
+        type: boolean
+        default: false
+      no_training_confirmed:
+        description: Confirm this dataset is not permitted for model training or shared-model reuse
+        required: true
+        type: boolean
+        default: false
+      source_inventory_id:
+        description: Data-source inventory id represented by this file
+        required: true
+        type: string
+        default: platform-user-upload
+      logical_dataset_id:
+        description: Non-secret logical id for this bounded pilot dataset
+        required: true
+        type: string
+      source_authority:
+        description: Non-secret source authority label; upload alone never establishes county authority
+        required: true
+        type: string
+      rights_basis:
+        description: Rights basis for the bounded private-staging evaluation
+        required: true
+        type: choice
+        default: owner_attestation
+        options:
+          - owner_attestation
+          - written_authorization
+      rights_reference:
+        description: Non-secret written authorization or owner-attestation reference
+        required: true
+        type: string
+      source_as_of:
+        description: ISO date/timestamp representing when the source data was observed
+        required: true
+        type: string
+      dataset_sha256:
+        description: SHA-256 of the exact decoded CSV stored in the protected environment secret
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chatgpt-private-staging
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    name: protected-owner-real-data-pilot
+    if: >-
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+      inputs.owner_identity_confirmed &&
+      inputs.rights_confirmed &&
+      inputs.pii_minimization_confirmed &&
+      inputs.no_training_confirmed
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: chatgpt-real-data-pilot
+    steps:
+      - name: Checkout trusted default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+
+      - name: Build protected-lane runtime dependencies
+        run: |
+          npm run build -w @tax-lien/engine-contract
+          npm run build -w @tax-lien/types
+          npm run build -w @tax-lien/jurisdiction-rules
+          npm run build -w @tax-lien/scoring
+          npm run build -w @tax-lien/db
+          npm run build -w @tax-lien/api
+
+      - name: Validate protected real-data boundary
+        run: npm run validate:chatgpt-real-data-pilot
+
+      - name: Test protected real-data boundary with synthetic fixtures only
+        run: npm run test:chatgpt-real-data-pilot
+
+      - name: Ingest minimized pilot evidence and run deterministic scoring
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB_NAME: tax_lien_chatgpt_staging
+          CHATGPT_PILOT_EMAIL: ${{ secrets.CHATGPT_PILOT_EMAIL }}
+          CHATGPT_PILOT_DATA_B64: ${{ secrets.CHATGPT_PILOT_DATA_B64 }}
+          PILOT_SOURCE_INVENTORY_ID: ${{ inputs.source_inventory_id }}
+          PILOT_LOGICAL_DATASET_ID: ${{ inputs.logical_dataset_id }}
+          PILOT_SOURCE_AUTHORITY: ${{ inputs.source_authority }}
+          PILOT_RIGHTS_BASIS: ${{ inputs.rights_basis }}
+          PILOT_RIGHTS_REFERENCE: ${{ inputs.rights_reference }}
+          PILOT_SOURCE_AS_OF: ${{ inputs.source_as_of }}
+          PILOT_DATASET_SHA256: ${{ inputs.dataset_sha256 }}
+          PILOT_OWNER_IDENTITY_CONFIRMED: "true"
+          PILOT_RIGHTS_CONFIRMED: "true"
+          PILOT_PII_MINIMIZATION_CONFIRMED: "true"
+          PILOT_NO_TRAINING_CONFIRMED: "true"
+          PILOT_TRAINING_PERMITTED: "false"
+          PILOT_RECEIPT_PATH: artifacts/chatgpt-real-data-pilot-receipt.json
+          LIVE_REPOSITORY_URL: https://github.com/${{ github.repository }}
+          LIVE_SOURCE_REVISION: ${{ github.sha }}
+          LIVE_WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          NODE_ENV: test
+          INTELLIGENCE_SERVICE_ENABLED: "false"
+          CENSUS_GEOCODER_ENABLED: "false"
+          EMAIL_DELIVERY_ENABLED: "false"
+          MAINTENANCE_AUTO_REFRESH_ENABLED: "false"
+          OPERATIONAL_LOGGING_ENABLED: "false"
+        run: npm run ingest:chatgpt-real-data-pilot
+
+      - name: Archive sanitized pilot receipt only
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatgpt-real-data-pilot-receipt-${{ github.sha }}
+          path: artifacts/chatgpt-real-data-pilot-receipt.json
+          if-no-files-found: error
+          retention-days: 30
