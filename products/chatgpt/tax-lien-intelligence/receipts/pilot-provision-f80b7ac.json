@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_pilot_provision",
+  "status": "passed",
+  "observedAt": "2026-09-01T19:30:13.329Z",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "revision": "f80b7acf53584b6c0068605d118c2c0e97916aae",
+    "workflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33525658271"
+  },
+  "principal": {
+    "classification": "dedicated_private_pilot_owner",
+    "userAction": "created",
+    "workspaceAction": "created",
+    "membershipAction": "created",
+    "role": "owner",
+    "workspacePurpose": "Maricopa evidence-backed shortlist evaluation"
+  },
+  "controls": {
+    "publicRegistrationOpened": false,
+    "plaintextCredentialProcessed": false,
+    "existingCredentialRotated": false,
+    "exactPersistentUserCount": 1,
+    "exactWorkspaceCount": 1,
+    "exactWorkspaceMembershipCount": 1,
+    "sharedModelTrainingDefault": false
+  },
+  "authoritativeIdentityStorage": {
+    "normalizedEmailStored": true,
+    "bcryptPasswordHashStored": true,
+    "plaintextPasswordStored": false
+  },
+  "evidencePolicy": {
+    "emailStoredInReceipt": false,
+    "passwordStoredInReceipt": false,
+    "passwordHashStoredInReceipt": false,
+    "databaseIdentifierStored": false,
+    "workspaceIdentifierStored": false,
+    "credentialStoredInReceipt": false
+  },
+  "artifact": {
+    "id": 9816976102,
+    "sha256": "sha256:aa5ad061dd4540f820976045efbaeb3d28ce504ecf62dcc7d6ba005837ba377a"
+  }
+}
