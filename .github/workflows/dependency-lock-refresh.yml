@@ -1,0 +1,36 @@
+name: Refresh dependency lock once
+
+on:
+  push:
+    branches:
+      - fix/dependency-audit-20260901
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lock:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dependency repair branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/dependency-audit-20260901
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Regenerate lockfile from patched overrides
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Verify high-severity audit gate
+        run: npm audit --audit-level=high
+      - name: Commit generated lockfile and remove one-shot workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/dependency-lock-refresh.yml
+          git add package-lock.json
+          git commit -m "fix: refresh lockfile for patched build dependencies"
+          git push origin HEAD:fix/dependency-audit-20260901
