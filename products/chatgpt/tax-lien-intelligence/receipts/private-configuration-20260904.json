@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0.0",
+  "receiptKind": "chatgpt_private_staging_configuration",
+  "status": "partially_configured",
+  "observedAt": "2026-09-04T21:40:04Z",
+  "source": {
+    "repository": "https://github.com/AyobamiH/tax-lien-intelligence-platform",
+    "mergedRevision": "3ee3c517975c3707257745fa90ffdf161972f884",
+    "postMergeWorkflowRun": "https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33918193866"
+  },
+  "chatgpt": {
+    "visibility": "personal",
+    "mode": "development",
+    "appId": "asdk_app_6a9731fb7f0c8191a854d8d1ac1ef30d",
+    "versionId": "asdk_app_v_6a9731fb7f1c819185d60461cbe04b96",
+    "installed": true,
+    "oauthConnection": "pending_owner_authentication",
+    "discoveredActionCount": 0,
+    "credentialHandoff": "declined_before_submission"
+  },
+  "githubEnvironment": {
+    "name": "chatgpt-real-data-pilot",
+    "environmentId": 21275904999,
+    "deploymentBranches": [
+      "main"
+    ],
+    "configuredSecretCount": 0,
+    "requiredSecretNames": [
+      "MONGODB_URI",
+      "CHATGPT_PILOT_EMAIL",
+      "CHATGPT_PILOT_DATA_B64"
+    ]
+  },
+  "claims": {
+    "privateConnectorExists": true,
+    "privateConnectorInstalled": true,
+    "ownerCredentialControlVerified": false,
+    "oauthConnectionCompleted": false,
+    "realDataIngested": false,
+    "connectedEvaluationCompleted": false
+  },
+  "evidencePolicy": {
+    "credentialsStored": false,
+    "tokensStored": false,
+    "emailsStored": false,
+    "datasetStored": false,
+    "promptPayloadsStored": false
+  }
+}

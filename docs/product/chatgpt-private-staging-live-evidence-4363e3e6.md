@@ -29,6 +29,25 @@ The protected workflow passed:
 
 The authenticated inventory remains exactly six read-only tools: `list_workspaces`, `list_datasets`, `list_dataset_candidates`, `get_candidate_evidence`, `compare_candidates`, and `get_decision_brief`.
 
+## Private configuration observation — 2026-09-04
+
+- The existing personal developer-mode ChatGPT app is installed as
+  `asdk_app_6a9731fb7f0c8191a854d8d1ac1ef30d`.
+- ChatGPT reports `Connection: Connect` and zero app actions before owner OAuth.
+  The flow reached the deployed issuer's owner sign-in form, but the secure
+  credential handoff was declined before submission. No successful connection,
+  workspace, or tool-discovery claim is made.
+- The accountable owner confirmed that they did not create or retain the
+  bootstrap plaintext credential. The automated database principal exists, but
+  owner credential control is unverified. The plaintext cannot be recovered;
+  the governed next step is the exact-owner credential-recovery workflow.
+- GitHub environment `chatgpt-real-data-pilot` exists as environment
+  `21275904999`, permits deployment only from `main`, and has zero secrets. Its
+  workflow-required secret names are `MONGODB_URI`, `CHATGPT_PILOT_EMAIL`, and
+  `CHATGPT_PILOT_DATA_B64`.
+- Sanitized state is recorded in
+  `products/chatgpt/tax-lien-intelligence/receipts/private-configuration-20260904.json`.
+
 ## Owner identity gate
 
 The persistent private-pilot owner gate is already closed by protected workflow run `33525658271` and sanitized receipt `receipts/pilot-provision-f80b7ac.json`. It proves exactly one persistent user, one workspace, one owner membership, no public registration, no plaintext credential processing, and shared-model training disabled by default.
@@ -37,7 +56,7 @@ The persistent private-pilot owner gate is already closed by protected workflow 
 
 Only the following operational claims remain unproven:
 
-1. A real ChatGPT web session must complete OAuth against this staging issuer using the persistent owner and demonstrate the exact intended workspace/tool surface. The resulting receipt must not retain credentials, tokens or email identity.
+1. The accountable owner must regain credential control through the protected exact-owner recovery workflow. The installed personal ChatGPT app must then complete OAuth against this staging issuer and demonstrate the exact intended workspace/tool surface. The resulting receipts must not retain credentials, tokens or email identity.
 2. A market-relevant Maricopa pilot dataset needs explicit reuse rights plus provenance, source-as-of, retention, minimization and no-training attestations.
 3. That dataset must enter through a separately reviewed protected owner-operated ingestion lane, never through a new public upload/mutation MCP tool.
 4. The required real-data grounding, unknown, heuristic and prompt-injection cases must execute successfully.

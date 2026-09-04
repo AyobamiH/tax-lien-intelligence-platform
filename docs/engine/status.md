@@ -4,6 +4,22 @@ Last updated: 2026-09-04
 
 ## Verified Current State
 
+- Pull request #10 merged at
+  `main@3ee3c517975c3707257745fa90ffdf161972f884`; post-merge workflow
+  `33918193866` passed. The existing personal developer-mode ChatGPT app is now
+  installed. GitHub environment `chatgpt-real-data-pilot` exists as environment
+  `21275904999` with deployment limited to `main` and zero configured secrets.
+  ChatGPT still reports `Connection: Connect` and zero actions because owner
+  OAuth was not submitted. No credential, token, email identity, or dataset was
+  accessed or retained.
+- The accountable owner confirmed that they did not create or retain the
+  plaintext credential used by the automated bootstrap. The database record
+  remains evidenced, but owner control of that credential is unverified and the
+  plaintext is unrecoverable. A controlled recovery workflow now requires the
+  exact one-owner boundary, revokes existing OAuth material, preserves the user,
+  workspace, and membership identifiers, and rotates only the normalized email
+  and bcrypt hash supplied through the protected environment.
+
 - Pull request #9 is merged at
   `main@bdc4ecaebbfe434efc691800f7903b03efc30069`. Post-merge push workflow
   `33908145549` passed every repository gate, including the protected pilot
@@ -30,11 +46,13 @@ Last updated: 2026-09-04
   before the verified merge to `main@bdc4eca`.
 - Atlas remains restricted to `readWrite@tax_lien_chatgpt_staging` on only the
   `TaxLienStaging` cluster, and `AyobamiH` remains the accountable private-pilot
-  owner. The open real gates are a sanitized receipt for the real ChatGPT OAuth
-  connection, an owner-authorized Maricopa dataset with explicit rights,
-  provenance, as-of, retention, and no-training attestations, protected-lane
-  execution, and the connected grounding and safety evaluation. The public
-  gateway continues to reject `/datasets`, and MCP remains read-only.
+  owner. The open real gates are merged and executed owner-credential recovery;
+  owner OAuth and a sanitized successful connection receipt; secure entry of
+  the protected environment's three secret
+  values; an owner-authorized Maricopa dataset with explicit rights, provenance,
+  as-of, retention, and no-training attestations; protected-lane execution; and
+  the connected grounding and safety evaluation. The public gateway continues
+  to reject `/datasets`, and MCP remains read-only.
 
 ## Historical Evidence
 
@@ -310,11 +328,12 @@ and push access. No OneClickPostFactory repository is consulted or synchronized.
 ## Current Work
 
 `P47-093-chatgpt-private-staging` is the only in-progress node. Repository
-implementation, source packaging, and private staging are authorized. Prior
-revisions have public, authenticated, redaction, rate-limit, and rollback live
-receipts. Current work is to review and land the exact-revision rollout gate,
-reverify merged main, provision the protected owner-role staging identity, and
-complete the real private-ChatGPT OAuth journey. The final data gate needs
+implementation, source packaging, private staging, the installed personal app,
+and the `main`-restricted real-data environment are verified. Prior revisions
+have public, authenticated, redaction, rate-limit, and rollback live receipts.
+Current work is to merge and execute controlled owner-credential recovery,
+complete owner OAuth, and securely populate the real-data environment. The
+final data gate needs
 written-use approval, a field-minimized market-relevant extract, and a
 separately reviewed protected ingestion workflow before the real-data safety
 cases run. Atlas narrowing and accountable ownership are complete; no real
@@ -327,9 +346,10 @@ The single active sequence is:
 
 1. `P47-092-chatgpt-product-definition`: completed with the user, three jobs,
    product promise, thin release boundary, journey, pilot measures, and owners;
-2. `P47-093-chatgpt-private-staging`: in progress; land the rollout-convergence
-   gate, reverify exact merged source, provision the protected staging identity,
-   complete private ChatGPT OAuth, then ingest approved data through the
+2. `P47-093-chatgpt-private-staging`: in progress; recover accountable-owner
+   credential control, complete private ChatGPT owner OAuth, securely populate
+   the protected environment, then ingest
+   approved data through the
    separately reviewed owner-operated lane and execute the real-data cases;
 3. `P47-094-chatgpt-real-user-pilot`: validate at least five target users, ten
    real tasks, and thirty scripted safety/grounding scenarios;

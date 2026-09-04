@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Advanced P47-093 live private configuration without overstating completion.
+  The existing personal developer-mode ChatGPT app is installed, and GitHub
+  environment `chatgpt-real-data-pilot` exists with deployment limited to
+  `main`. The environment has no secrets yet. ChatGPT owner OAuth reached the
+  secure sign-in boundary but was not submitted, so the app still exposes zero
+  actions and no connection or evaluation receipt is claimed. A sanitized
+  configuration receipt records only non-secret state.
+
+- Added controlled recovery for the automatically provisioned pilot owner when
+  the accountable person does not possess the original plaintext credential.
+  The manual workflow reuses the existing protected MongoDB URI, refuses any
+  user/workspace/membership drift, invalidates pending codes and active OAuth
+  grants, preserves the sole owner identifiers, rotates only the environment-
+  supplied email and bcrypt hash, and emits no identity or credential material.
+
 - Merged pull request #9 at
   `main@bdc4ecaebbfe434efc691800f7903b03efc30069`. Post-merge push workflow
   `33908145549` passed every repository gate, including the protected pilot

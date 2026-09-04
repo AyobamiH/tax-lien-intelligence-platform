@@ -201,9 +201,16 @@ persistent owner bootstrap are complete. The recovered protected real-data
 branch had one focused camel-case audit-count failure after all general gates
 passed; its repaired source adds strict minimization, idempotency, worker-secret
 isolation, exact-job verification, and disposable-Mongo integration coverage.
-Pull request #9 is merged at `main@bdc4eca`, and post-merge push workflow
-`33908145549` passed every repository gate. The remaining gates are a sanitized
-current ChatGPT connection receipt, protected-environment configuration, an
-owner-authorized Maricopa dataset with explicit rights and handling
-attestations, protected execution, and the connected real-data evaluation. No
-deferred node becomes runnable while this product gate is active.
+Pull request #10 is merged at `main@3ee3c51`, and post-merge push workflow
+`33918193866` passed. The existing personal developer-mode app is installed,
+and GitHub environment `chatgpt-real-data-pilot` exists with deployment limited
+to `main`. It has no secrets yet. Owner OAuth reached the secure sign-in
+boundary but was not submitted, so ChatGPT still reports zero actions and no
+successful connection receipt is claimed. The accountable owner does not
+possess the bootstrap plaintext credential, which is intentionally
+unrecoverable. Controlled credential recovery must therefore merge and execute
+before owner OAuth. The remaining gates are credential recovery, owner OAuth,
+secure environment-secret entry, an owner-authorized Maricopa dataset with
+explicit rights and handling attestations, protected execution, and the
+connected real-data evaluation. No deferred node becomes runnable while this
+product gate is active.
