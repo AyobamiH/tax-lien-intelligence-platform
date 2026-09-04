@@ -1,5 +1,20 @@
 # Work Ledger
 
+## 2026-09-04 - P47-093 protected lane merged and main verified
+
+- Pull request #9 merged into `main` at
+  `bdc4ecaebbfe434efc691800f7903b03efc30069` on 2026-09-04. Post-merge push
+  workflow `33908145549` passed the complete repository quality gate, including
+  the protected pilot bootstrap and real-data boundary tests plus intelligence,
+  intelligence-persistence, and OAuth-persistence smokes.
+- The source-review and merge gate is closed. No real dataset was accessed and
+  no deployment, protected-environment, secret, or connector state was changed
+  during merge verification. The remaining P47-093 gates are the explicitly
+  governed external steps: protected-environment configuration, a sanitized
+  current ChatGPT connection receipt, an owner-authorized Maricopa sale-list
+  dataset with rights and handling attestations, protected execution, and the
+  connected grounding and safety evaluation.
+
 ## 2026-09-04 - P47-093 protected real-data lane recovered and repaired
 
 - Recovered the exact interrupted checkpoint from live GitHub evidence:

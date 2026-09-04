@@ -201,8 +201,9 @@ persistent owner bootstrap are complete. The recovered protected real-data
 branch had one focused camel-case audit-count failure after all general gates
 passed; its repaired source adds strict minimization, idempotency, worker-secret
 isolation, exact-job verification, and disposable-Mongo integration coverage.
-Pull request #9 now has green exact-head push and pull-request checks. The
-remaining gates are authorized human review and merge, a sanitized real ChatGPT
-connection receipt, an owner-authorized Maricopa dataset with explicit rights
-and handling attestations, and the connected real-data evaluation. No deferred
-node becomes runnable while this product gate is active.
+Pull request #9 is merged at `main@bdc4eca`, and post-merge push workflow
+`33908145549` passed every repository gate. The remaining gates are a sanitized
+current ChatGPT connection receipt, protected-environment configuration, an
+owner-authorized Maricopa dataset with explicit rights and handling
+attestations, protected execution, and the connected real-data evaluation. No
+deferred node becomes runnable while this product gate is active.

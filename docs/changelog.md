@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Merged pull request #9 at
+  `main@bdc4ecaebbfe434efc691800f7903b03efc30069`. Post-merge push workflow
+  `33908145549` passed every repository gate, including the protected pilot
+  bootstrap and real-data boundary tests and all persistence smokes. The
+  implementation is therefore verified on `main`; protected configuration,
+  authorized real-data execution, a current sanitized ChatGPT connection
+  receipt, and connected evaluation remain external gates.
+
 - Recovered and completed the interrupted protected ChatGPT real-data ingestion
   source. The original branch correctly dropped owner and mailing fields but
   failed CI because its audit counter did not recognise camel-case headers.
