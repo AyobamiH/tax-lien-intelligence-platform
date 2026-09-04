@@ -58,6 +58,9 @@ jobs:
       - name: Validate ChatGPT pilot bootstrap boundary
         run: npm run validate:chatgpt-pilot-bootstrap
 
+      - name: Validate ChatGPT pilot credential-recovery boundary
+        run: npm run validate:chatgpt-pilot-credential-recovery
+
       - name: Validate ChatGPT protected real-data boundary
         run: npm run validate:chatgpt-real-data-pilot
 
@@ -75,6 +78,9 @@ jobs:
 
       - name: Test ChatGPT pilot bootstrap boundary
         run: npm run test:chatgpt-pilot-bootstrap
+
+      - name: Test ChatGPT pilot credential-recovery boundary
+        run: npm run test:chatgpt-pilot-credential-recovery
 
       - name: Test ChatGPT protected real-data boundary
         run: npm run test:chatgpt-real-data-pilot

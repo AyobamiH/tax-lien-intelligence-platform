@@ -90,6 +90,25 @@ confirmations true. It serializes with staging, refuses identity/workspace/
 membership drift, and archives only a sanitized receipt. The workflow does not
 open public registration or rotate an existing credential.
 
+### Lost bootstrap credential
+
+If the bootstrap receipt proves that the exact one-owner boundary exists but
+the accountable owner did not create or retain the plaintext password, do not
+guess it and do not create a second user. Update only `CHATGPT_PILOT_EMAIL` and
+`CHATGPT_PILOT_PASSWORD_HASH` in the existing `chatgpt-pilot-bootstrap`
+environment after generating and retaining a replacement password in a password
+manager. Leave the existing `MONGODB_URI` unchanged.
+
+After the credential-recovery source is merged to the default branch, dispatch
+`.github/workflows/chatgpt-pilot-credential-recovery.yml` with all three
+confirmations true. The workflow requires exactly one existing user, workspace,
+and active default owner membership; preserves their identifiers; rotates only
+the normalized email and bcrypt hash; invalidates pending authorization codes,
+active OAuth grants, and refresh tokens before rotation; and archives a receipt
+containing no email, password, hash, database identifier, or workspace
+identifier. Use the retained plaintext password only through the approved
+secure OAuth credential channel.
+
 ## Build and configure
 
 1. Confirm GitHub environment `chatgpt-staging` contains these secret names.

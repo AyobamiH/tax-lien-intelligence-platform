@@ -1,5 +1,35 @@
 # Work Ledger
 
+## 2026-09-04 - P47-093 private configuration advanced to owner OAuth
+
+- Pull request #10 merged at
+  `main@3ee3c517975c3707257745fa90ffdf161972f884`; post-merge workflow
+  `33918193866` passed. Live inspection then found the existing personal
+  developer-mode `Tax Lien Intelligence` app, installed it, and confirmed that
+  ChatGPT still reports `Connection: Connect` and zero discovered actions until
+  owner OAuth completes.
+- Created GitHub environment `chatgpt-real-data-pilot` as environment
+  `21275904999` and restricted deployment to `main`. It intentionally has zero
+  secrets pending secure entry of `MONGODB_URI`, `CHATGPT_PILOT_EMAIL`, and
+  `CHATGPT_PILOT_DATA_B64`; no secret value was read, copied, or stored.
+- The OAuth flow reached the deployed issuer's owner email/password form. The
+  secure credential handoff was declined before submission, so no authorization
+  code, token, email identity, workspace list, or action inventory was obtained.
+  The sanitized configuration receipt is
+  `products/chatgpt/tax-lien-intelligence/receipts/private-configuration-20260904.json`.
+- The accountable owner then clarified that they did not create or retain the
+  bootstrap login credential. Workflow `33525658271` proves that automation
+  created one database principal from environment secrets, but its plaintext
+  password is intentionally unrecoverable. Added a manual, default-branch-only
+  credential-recovery workflow that reuses the existing MongoDB URI, requires
+  the exact sole owner/workspace/membership boundary, revokes pending codes and
+  active OAuth/refresh grants, atomically rotates only the normalized email and
+  bcrypt hash, preserves all identifiers, and emits a sanitized receipt.
+- `P47-093` remains in progress. The exact next boundary is merging and running
+  controlled owner-credential recovery, followed by owner OAuth, secure
+  pilot-secret entry, owner-authorized Maricopa ingestion, and the
+  connected grounding, injection, authorization, and out-of-scope evaluation.
+
 ## 2026-09-04 - P47-093 protected lane merged and main verified
 
 - Pull request #9 merged into `main` at
