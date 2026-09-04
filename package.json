@@ -26,7 +26,7 @@
     "smoke:oauth:mongo": "npm run build && node scripts/mongo-oauth-smoke.mjs",
     "test": "npm run test:intelligence:python && vitest run --testTimeout=60000",
     "test:chatgpt-pilot-bootstrap": "node scripts/test-chatgpt-pilot-bootstrap.mjs",
-    "test:chatgpt-real-data-pilot": "node scripts/test-chatgpt-real-data-pilot.mjs",
+    "test:chatgpt-real-data-pilot": "node scripts/test-chatgpt-real-data-pilot.mjs && node scripts/test-chatgpt-real-data-pilot-integration.mjs",
     "test:intelligence:python": "PYTHONPATH=services/intelligence/src python3 -m unittest discover -s services/intelligence/tests -p 'test_*.py'",
     "typecheck": "tsc -b",
     "validate:data-inventory": "node scripts/validate-data-source-inventory.mjs",

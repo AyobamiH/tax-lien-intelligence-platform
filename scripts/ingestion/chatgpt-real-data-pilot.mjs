@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { parse } from "csv-parse/sync";
 import {
@@ -30,17 +31,31 @@ const canonicalColumns = [
   { key: "address", output: "Situs Address", aliases: ["situs address", "site address", "property address", "situs street", "situs full address", "address"] },
 ];
 
-const directIdentifierPatterns = [
-  /(^|\b)owner(\b|$)/iu,
-  /(^|\b)mailing(\b|$)/iu,
-  /(^|\b)e[-_ ]?mail(\b|$)/iu,
-  /(^|\b)phone(\b|$)/iu,
-  /(^|\b)telephone(\b|$)/iu,
-  /(^|\b)taxpayer[ _-]?name(\b|$)/iu,
-  /(^|\b)contact[ _-]?name(\b|$)/iu,
-  /(^|\b)ssn(\b|$)/iu,
-  /social[ _-]?security/iu,
+const directIdentifierFragments = [
+  "owner",
+  "mailing",
+  "email",
+  "phone",
+  "telephone",
+  "taxpayername",
+  "contactname",
+  "ssn",
+  "socialsecurity",
 ];
+
+const scoringWorkerEnvironmentKeys = Object.freeze([
+  "CENSUS_GEOCODER_ENABLED",
+  "EMAIL_DELIVERY_ENABLED",
+  "INTELLIGENCE_SERVICE_ENABLED",
+  "MAINTENANCE_AUTO_REFRESH_ENABLED",
+  "MONGODB_DB_NAME",
+  "MONGODB_URI",
+  "NODE_ENV",
+  "OPERATIONAL_LOGGING_ENABLED",
+]);
+
+const scoringJobTerminalWaitMs = 90_000;
+const scoringJobPollMs = 500;
 
 export function sha256(buffer) {
   return createHash("sha256").update(buffer).digest("hex");
@@ -127,9 +142,13 @@ export function validateInventorySource(inventory, manifest) {
 
 export function decodeAndVerifyPilotData(base64Value, expectedSha256) {
   const encoded = String(base64Value ?? "").replaceAll(/\s+/gu, "");
-  if (!encoded || !/^[A-Za-z0-9+/]+={0,2}$/u.test(encoded)) throw new Error("Pilot dataset secret is not valid base64.");
+  if (!encoded || encoded.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/u.test(encoded)) {
+    throw new Error("Pilot dataset secret is not valid canonical base64.");
+  }
   const buffer = Buffer.from(encoded, "base64");
-  if (buffer.length === 0) throw new Error("Pilot dataset is empty.");
+  if (buffer.length === 0 || buffer.toString("base64") !== encoded) {
+    throw new Error("Pilot dataset secret is not valid canonical base64.");
+  }
   if (buffer.length > PILOT_MAX_RAW_BYTES) {
     throw new Error(`Pilot dataset exceeds the ${PILOT_MAX_RAW_BYTES}-byte protected-lane limit.`);
   }
@@ -160,7 +179,15 @@ export function minimizePilotCsv(buffer) {
   if (headers.length === 0 || headers.some((header) => !header)) throw new Error("Pilot dataset contains a blank header.");
   if (new Set(headers.map(normalizeHeader)).size !== headers.length) throw new Error("Pilot dataset contains duplicate headers.");
 
-  const selected = canonicalColumns.map((column) => ({ ...column, index: findHeaderIndex(headers, column.aliases) }));
+  const normalizedHeaders = headers.map(normalizeHeader);
+  const selected = canonicalColumns.map((column) => {
+    const accepted = new Set(column.aliases.map(normalizeHeader));
+    const indexes = normalizedHeaders.flatMap((header, index) => accepted.has(header) ? [index] : []);
+    if (indexes.length > 1) {
+      throw new Error(`Pilot dataset contains multiple columns for ${column.key}.`);
+    }
+    return { ...column, index: indexes[0] ?? -1 };
+  });
   const parcel = selected.find((column) => column.key === "parcel_id");
   if (!parcel || parcel.index < 0) throw new Error("Pilot dataset must contain a recognized parcel identifier column.");
   if (!selected.some((column) => column.key !== "parcel_id" && column.index >= 0)) {
@@ -180,7 +207,7 @@ export function minimizePilotCsv(buffer) {
 
   const recognizedIndexes = new Set(selected.filter((column) => column.index >= 0).map((column) => column.index));
   const droppedHeaders = headers.filter((_header, index) => !recognizedIndexes.has(index));
-  const directIdentifierHeadersDropped = droppedHeaders.filter((header) => directIdentifierPatterns.some((pattern) => pattern.test(header)));
+  const directIdentifierHeadersDropped = droppedHeaders.filter(isDirectIdentifierHeader);
   const minimized = [outputHeaders, ...outputRows].map((row) => row.map(csvEscape).join(",")).join("\n") + "\n";
 
   return {
@@ -195,11 +222,33 @@ export function minimizePilotCsv(buffer) {
 }
 
 export function sourceLabelForPilot(manifest, digest) {
-  const logical = manifest.logicalDatasetId.slice(0, 16);
-  const inventory = manifest.sourceInventoryId.slice(0, 20);
-  const label = `pilot-evidence-only|id=${logical}|inv=${inventory}|asof=${manifest.sourceAsOf.slice(0, 10)}|sha=${digest.slice(0, 12)}|not-county-authority`;
+  const datasetDigest = normalizeExpectedSha256(digest);
+  const idempotencyDigest = sha256(Buffer.from(JSON.stringify({
+    logicalDatasetId: manifest.logicalDatasetId,
+    sourceInventoryId: manifest.sourceInventoryId,
+    sourceAsOf: manifest.sourceAsOf,
+    datasetDigest,
+  }), "utf8"));
+  const label = `pilot-evidence-only|key=${idempotencyDigest}|not-county-authority`;
   if (label.length > 120) throw new Error("Generated pilot source label exceeds the dataset contract.");
   return label;
+}
+
+export function buildScoringWorkerEnvironment(mongoUri) {
+  const environment = {
+    NODE_ENV: "test",
+    MONGODB_URI: requiredText(mongoUri, "MongoDB URI", 4096),
+    MONGODB_DB_NAME: "tax_lien_chatgpt_staging",
+    INTELLIGENCE_SERVICE_ENABLED: "false",
+    CENSUS_GEOCODER_ENABLED: "false",
+    EMAIL_DELIVERY_ENABLED: "false",
+    MAINTENANCE_AUTO_REFRESH_ENABLED: "false",
+    OPERATIONAL_LOGGING_ENABLED: "false",
+  };
+  if (Object.keys(environment).sort().join("\n") !== [...scoringWorkerEnvironmentKeys].sort().join("\n")) {
+    throw new Error("Protected pilot scoring worker environment drifted from its allowlist.");
+  }
+  return environment;
 }
 
 export function buildSanitizedReceipt(input) {
@@ -356,32 +405,39 @@ async function main() {
       const { createScoringService } = await import("../../apps/api/dist/scoring/factory.js");
       const internalJobService = createInternalJobService();
       const scoringService = createScoringService(internalJobService);
-      await scoringService.scoreDataset(datasetId, ownerUserId);
+      const queued = await scoringService.scoreDataset(datasetId, ownerUserId);
+      const scoringJobId = queued.job.id;
       await disconnectMongo();
 
       const worker = spawnSync(process.execPath, ["apps/api/dist/worker.js", "--once"], {
         cwd: process.cwd(),
         stdio: "ignore",
-        env: {
-          ...process.env,
-          NODE_ENV: "test",
-          MONGODB_URI: mongoUri,
-          MONGODB_DB_NAME: "tax_lien_chatgpt_staging",
-          INTELLIGENCE_SERVICE_ENABLED: "false",
-          CENSUS_GEOCODER_ENABLED: "false",
-          EMAIL_DELIVERY_ENABLED: "false",
-          MAINTENANCE_AUTO_REFRESH_ENABLED: "false",
-          OPERATIONAL_LOGGING_ENABLED: "false",
-        },
+        env: buildScoringWorkerEnvironment(mongoUri),
+        timeout: 120_000,
+        killSignal: "SIGTERM",
       });
-      if (worker.status !== 0) throw new Error("Protected pilot scoring worker did not complete successfully.");
 
       await connectMongo({ uri: mongoUri, dbName: "tax_lien_chatgpt_staging", serverSelectionTimeoutMs: 10_000 });
-      const latestJob = await InternalJobModel.findOne({ userId: ownerUserId, targetEntityId: datasetId, type: "dataset_scoring" })
-        .sort({ createdAt: -1 })
-        .lean();
-      if (!latestJob || latestJob.status !== "completed") throw new Error("Pilot dataset scoring job did not reach completed state.");
+      const completedJob = await waitForScoringJob({
+        jobId: scoringJobId,
+        ownerUserId,
+        datasetId,
+        workerExitedCleanly: worker.status === 0 && !worker.error && !worker.signal,
+      });
+      verifyPilotJobSummary(completedJob, minimized.rowCount);
       scoredRecordCount = await ScoredRecordModel.countDocuments({ userId: ownerUserId, datasetId });
+    } else {
+      const completedJob = await InternalJobModel.findOne({
+        userId: ownerUserId,
+        targetEntityId: datasetId,
+        targetEntityType: "dataset",
+        type: "dataset_scoring",
+        status: "completed",
+      }).lean();
+      if (!completedJob) {
+        throw new Error("Existing pilot scores do not have a completed scoring job.");
+      }
+      verifyPilotJobSummary(completedJob, minimized.rowCount);
     }
 
     if (scoredRecordCount !== minimized.rowCount) throw new Error("Scored record count does not match the minimized pilot row count.");
@@ -414,9 +470,13 @@ function normalizeHeader(value) {
   return String(value).trim().toLowerCase().replaceAll(/[_\s-]+/gu, " ");
 }
 
-function findHeaderIndex(headers, aliases) {
-  const accepted = new Set(aliases.map(normalizeHeader));
-  return headers.findIndex((header) => accepted.has(normalizeHeader(header)));
+function isDirectIdentifierHeader(header) {
+  const compact = String(header)
+    .normalize("NFKC")
+    .replaceAll(/([a-z0-9])([A-Z])/gu, "$1 $2")
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/gu, "");
+  return directIdentifierFragments.some((fragment) => compact.includes(fragment));
 }
 
 function sanitizeCell(value) {
@@ -445,9 +505,56 @@ function requiredLogicalId(value) {
 
 function requiredIsoDate(value, label) {
   const text = requiredText(value, label, 80);
+  const isoDateOnly = /^\d{4}-\d{2}-\d{2}$/u;
+  const isoTimestamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/u;
+  if (!isoDateOnly.test(text) && !isoTimestamp.test(text)) {
+    throw new Error(`${label} must be an ISO date or timestamp.`);
+  }
+  const datePart = text.slice(0, 10);
+  const [year, month, day] = datePart.split("-").map(Number);
+  const calendarProbe = new Date(Date.UTC(year, month - 1, day));
+  if (calendarProbe.toISOString().slice(0, 10) !== datePart) {
+    throw new Error(`${label} must be a real calendar date.`);
+  }
   const time = Date.parse(text);
   if (!Number.isFinite(time)) throw new Error(`${label} must be an ISO date or timestamp.`);
   return new Date(time);
+}
+
+async function waitForScoringJob(input) {
+  const deadline = Date.now() + scoringJobTerminalWaitMs;
+  while (true) {
+    const job = await InternalJobModel.findOne({
+      _id: input.jobId,
+      userId: input.ownerUserId,
+      targetEntityId: input.datasetId,
+      targetEntityType: "dataset",
+      type: "dataset_scoring",
+    }).lean();
+    if (!job) throw new Error("Protected pilot scoring job could not be verified.");
+    if (job.status === "completed") return job;
+    if (job.status === "failed") throw new Error("Protected pilot scoring job failed safely.");
+    if (!new Set(["queued", "running"]).has(job.status)) {
+      throw new Error("Protected pilot scoring job entered an unsupported state.");
+    }
+    if (Date.now() >= deadline) {
+      throw new Error(input.workerExitedCleanly
+        ? "Protected pilot scoring job did not reach a terminal state in time."
+        : "Protected pilot scoring worker did not complete successfully.");
+    }
+    await delay(scoringJobPollMs);
+  }
+}
+
+function verifyPilotJobSummary(job, expectedRowCount) {
+  if (
+    job.summary?.scoredRecordCount !== expectedRowCount ||
+    job.summary?.intelligenceNotConfiguredCount !== expectedRowCount ||
+    job.summary?.intelligenceCompletedCount !== 0 ||
+    job.summary?.intelligenceFailedCount !== 0
+  ) {
+    throw new Error("Protected pilot scoring summary does not prove deterministic pre-model evaluation.");
+  }
 }
 
 function requiredRevision(value) {

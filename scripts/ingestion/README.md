@@ -15,12 +15,17 @@ The product's normal authenticated CSV ingestion remains inside the existing API
 - discards owner, mailing, contact, email, phone, taxpayer-name, SSN, and every other unneeded column;
 - verifies the already-provisioned identity has exactly one active owner workspace;
 - reuses the existing `DatasetService`, then the existing scoring job/worker path;
+- gives the scoring worker only an explicit eight-variable environment, never the protected CSV, owner email, rights reference, or unrelated workflow secrets;
+- verifies the exact queued job through completion even when the deployed staging worker wins the claim race;
 - keeps versioned intelligence disabled for this pre-model evaluation so legacy heuristic outputs remain explicitly non-probabilistic;
-- is idempotent for the same logical dataset, source date, and input digest; and
+- uses a full SHA-256 idempotency key over the logical dataset, inventory source, source date, and exact input digest; and
 - archives only a sanitized aggregate receipt. Raw CSV, raw rows, parcel values, credentials, tokens, email identity, workspace ids, and database ids are not artifacts.
 
-The persisted source label explicitly says `private-pilot-evidence-only` and `upload-does-not-establish-county-authority`. A rights attestation allows this bounded private evaluation; it does not silently promote a tenant upload into an official county source or a model-training dataset.
+The persisted source label explicitly says `pilot-evidence-only` and
+`not-county-authority`. A rights attestation allows this bounded private
+evaluation; it does not silently promote a tenant upload into an official
+county source or a model-training dataset.
 
 The lane has a fixed 30-day pilot retention policy recorded in the sanitized receipt. Operational deletion remains under the accountable pilot owner's retention/deletion process until a separately reviewed automatic retention job is added; the lane does not claim automated deletion.
 
-Synthetic-only boundary tests live in `scripts/test-chatgpt-real-data-pilot.mjs`. Actual real-data execution evidence must come from the protected workflow and must still be followed by the real connected ChatGPT evaluation suite in `docs/product/chatgpt-release-evaluation.json`.
+Synthetic-only boundary tests live in `scripts/test-chatgpt-real-data-pilot.mjs`. A disposable local-Mongo integration test proves identifier removal after persistence, scoring completion, receipt redaction, and idempotent reruns without treating its fixture as product evidence. Actual real-data execution evidence must come from the protected workflow and must still be followed by the real connected ChatGPT evaluation suite in `docs/product/chatgpt-release-evaluation.json`.
