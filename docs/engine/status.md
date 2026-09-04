@@ -4,6 +4,10 @@ Last updated: 2026-09-04
 
 ## Verified Current State
 
+- Pull request #9 is merged at
+  `main@bdc4ecaebbfe434efc691800f7903b03efc30069`. Post-merge push workflow
+  `33908145549` passed every repository gate, including the protected pilot
+  bootstrap and real-data boundary tests plus all persistence smokes.
 - Pull request #8 is merged at
   `main@8046875d18fb781748f3e58deadb4ccfe9fc9a53`. Private-staging workflow
   `33557623603` passed its source, exact-revision deploy, public, authenticated,
@@ -21,9 +25,9 @@ Last updated: 2026-09-04
   isolates the scoring worker to eight environment variables, waits for the
   exact queued scoring job, and includes disposable-Mongo coverage for tenant
   ownership, minimization, persistence, scoring, receipt redaction, and rerun
-  idempotence. The repair is published in pull request #9 at `b3628ad`, where
-  exact-head push run `33906716575` and pull-request run `33906735905` passed
-  every gate. Authorized human review and merge remain required.
+  idempotence. Pull request #9 published the repair at `b3628ad`; exact-head
+  push run `33906716575` and pull-request run `33906735905` passed every gate
+  before the verified merge to `main@bdc4eca`.
 - Atlas remains restricted to `readWrite@tax_lien_chatgpt_staging` on only the
   `TaxLienStaging` cluster, and `AyobamiH` remains the accountable private-pilot
   owner. The open real gates are a sanitized receipt for the real ChatGPT OAuth
