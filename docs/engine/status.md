@@ -21,7 +21,9 @@ Last updated: 2026-09-04
   isolates the scoring worker to eight environment variables, waits for the
   exact queued scoring job, and includes disposable-Mongo coverage for tenant
   ownership, minimization, persistence, scoring, receipt redaction, and rerun
-  idempotence. Publication and exact-head CI remain required for this repair.
+  idempotence. The repair is published in pull request #9 at `b3628ad`, where
+  exact-head push run `33906716575` and pull-request run `33906735905` passed
+  every gate. Authorized human review and merge remain required.
 - Atlas remains restricted to `readWrite@tax_lien_chatgpt_staging` on only the
   `TaxLienStaging` cluster, and `AyobamiH` remains the accountable private-pilot
   owner. The open real gates are a sanitized receipt for the real ChatGPT OAuth

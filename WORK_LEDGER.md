@@ -19,9 +19,13 @@
 - Scoring completion is now tied to the exact queued job and safely tolerates a
   deployed worker winning the claim race. A disposable-Mongo integration test
   proves tenant ownership, field minimization, persistence, score parity,
-  sanitized receipts, and idempotent reruns. The real owner-authorized dataset,
-  rights attestations, protected-environment execution, connected ChatGPT
-  evaluation, and sanitized connection receipt remain real external gates.
+  sanitized receipts, and idempotent reruns. The repair is published at
+  `b3628ad7ef682ec2540c0db70a0c8c694c89341d` in pull request #9. Push run
+  `33906716575` and pull-request run `33906735905` both passed every quality
+  gate, including the new Mongo integration and all existing persistence
+  smokes. The real owner-authorized dataset, rights attestations,
+  protected-environment execution, connected ChatGPT evaluation, and
+  sanitized connection receipt remain real external gates.
 
 ## 2026-09-01 - P47-093 exact-revision rollout gate after merged-main verification
 
