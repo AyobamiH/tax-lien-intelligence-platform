@@ -1,5 +1,32 @@
 # Work Ledger
 
+## 2026-09-04 - P47-093 protected real-data lane recovered and repaired
+
+- Recovered the exact interrupted checkpoint from live GitHub evidence:
+  `main@8046875d18fb781748f3e58deadb4ccfe9fc9a53` already contains the
+  verified private-staging deployment and first-owner bootstrap evidence, while
+  unpublished branch `feature/p47-093-protected-real-data-pilot` is one commit
+  ahead at `36dd66f32f8605240a87ea725aee966750920631`. Its push workflow
+  `33560696987` passed every repository gate except the focused protected-lane
+  test, where camel-case direct-identifier headers were discarded correctly
+  but counted incorrectly. No pull request or real-data execution existed.
+- Corrected direct-identifier accounting and hardened the lane beyond that
+  assertion: canonical base64 and calendar timestamps now fail closed,
+  ambiguous canonical columns are rejected, the idempotency key is a full
+  SHA-256 over the logical source identity, and the scoring worker receives an
+  explicit eight-variable environment instead of the parent process
+  environment.
+- Scoring completion is now tied to the exact queued job and safely tolerates a
+  deployed worker winning the claim race. A disposable-Mongo integration test
+  proves tenant ownership, field minimization, persistence, score parity,
+  sanitized receipts, and idempotent reruns. The repair is published at
+  `b3628ad7ef682ec2540c0db70a0c8c694c89341d` in pull request #9. Push run
+  `33906716575` and pull-request run `33906735905` both passed every quality
+  gate, including the new Mongo integration and all existing persistence
+  smokes. The real owner-authorized dataset, rights attestations,
+  protected-environment execution, connected ChatGPT evaluation, and
+  sanitized connection receipt remain real external gates.
+
 ## 2026-09-01 - P47-093 exact-revision rollout gate after merged-main verification
 
 - Pull request #2 merged at `8622b07e6592f17c7fa97645b08c2d6215b7cd49`,

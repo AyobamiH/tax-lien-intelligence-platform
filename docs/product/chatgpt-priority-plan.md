@@ -194,11 +194,15 @@ evidence payloads.
 ## Immediate Next Node
 
 `P47-093-chatgpt-private-staging` is in progress. The operator authorized
-implementation and private deployment inside the connected GitHub project. The
-repository now owns the OAuth source, thin source-only release package, and a
-bounded Cloudflare Worker/Container deployment boundary with external MongoDB,
-readiness, redacted telemetry, rate limits, and rollback controls. Live
-deployment and connection remain blocked until an authorized Cloudflare Workers
-Paid account/origin, the required secret bindings including a managed staging
-Mongo URI, and privacy/retention/consent/support/incident ownership are
-verified. No deferred node becomes runnable while this product gate is active.
+implementation and private deployment inside the connected GitHub project.
+The exact-revision deployment, live public and authenticated boundaries,
+redacted telemetry, governed rollback/recovery, least-privilege Atlas role, and
+persistent owner bootstrap are complete. The recovered protected real-data
+branch had one focused camel-case audit-count failure after all general gates
+passed; its repaired source adds strict minimization, idempotency, worker-secret
+isolation, exact-job verification, and disposable-Mongo integration coverage.
+Pull request #9 now has green exact-head push and pull-request checks. The
+remaining gates are authorized human review and merge, a sanitized real ChatGPT
+connection receipt, an owner-authorized Maricopa dataset with explicit rights
+and handling attestations, and the connected real-data evaluation. No deferred
+node becomes runnable while this product gate is active.

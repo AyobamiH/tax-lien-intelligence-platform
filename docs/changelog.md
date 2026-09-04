@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Recovered and completed the interrupted protected ChatGPT real-data ingestion
+  source. The original branch correctly dropped owner and mailing fields but
+  failed CI because its audit counter did not recognise camel-case headers.
+  The repair adds conservative identifier accounting, canonical input and date
+  validation, duplicate semantic-column rejection, a full-digest idempotency
+  key, an eight-variable scoring-worker environment allowlist, exact-job
+  completion checks, and a disposable-Mongo integration test for minimization,
+  tenant isolation, scoring, receipt redaction, and rerun idempotence.
+  Exact-head push run `33906716575` and pull-request run `33906735905` passed
+  the complete repository gate at `b3628ad7ef682ec2540c0db70a0c8c694c89341d`.
+
 - Added an exact-revision convergence gate after merged-main staging workflow
   `33485144616` produced timing and response behavior consistent with
   Cloudflare Container rollout overlap on both governed attempts. Deployments

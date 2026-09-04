@@ -1,31 +1,36 @@
 # Intelligence Engine Status
 
-Last updated: 2026-09-01
+Last updated: 2026-09-04
 
 ## Verified Current State
 
-- Pull request #2 is merged at `main@8622b07`, and main CI run `33482952157`
-  passed. Staging workflow `33485144616` deployed that merge twice, but the
-  authenticated gate started during Cloudflare's container replacement window
-  and failed safely with behavior consistent with the prior image. No
-  authenticated, redaction, or rollback receipt or combined workflow artifact
-  was archived, and Atlas cleanup verified zero ephemeral fixture residue.
-- The active correction branch is `fix/p47-093-staging-rollout-gate`. It passes
-  the exact Git revision into the container, exposes the revision on
-  health/readiness only, waits for three consecutive exact ready responses,
-  rechecks the revision in public, authenticated, log-redaction, rollback, and
-  recovery verification, and bounds authenticated JSON parsing. Local
-  validators, typecheck, dependency audit, 10 Python tests, 342 Vitest tests,
-  and build pass. Exact-head PR CI run `33489598973` passed all 19 substantive
-  steps at source commit `90b2de7`; this documentation-only evidence update
-  must retain a green PR check, and merged-main staging evidence is pending.
-- Atlas is already narrowed to `readWrite@tax_lien_chatgpt_staging` on only the
-  `TaxLienStaging` cluster. `AyobamiH` is recorded as owner for privacy,
-  operations, support, and incidents. The genuinely open gates are a persistent
-  owner-role staging identity plus real private-ChatGPT OAuth, and
-  rights-approved real-data evaluation through a separately reviewed protected
-  ingestion lane. The public gateway must continue rejecting `/datasets`, and
-  MCP must remain the exact six read-only tools.
+- Pull request #8 is merged at
+  `main@8046875d18fb781748f3e58deadb4ccfe9fc9a53`. Private-staging workflow
+  `33557623603` passed its source, exact-revision deploy, public, authenticated,
+  log-redaction, rollback, and recovery gates, and the persistent first-owner
+  bootstrap passed in workflow `33525658271`. The stable private MCP endpoint
+  remains deployed with the exact six read-only tools.
+- The recovered interruption was unpublished branch
+  `feature/p47-093-protected-real-data-pilot@36dd66f32f8605240a87ea725aee966750920631`.
+  Push workflow `33560696987` passed all general repository gates and failed
+  only because the focused test counted zero camel-case direct-identifier
+  headers after correctly discarding both fields. No pull request or real-data
+  execution existed at that checkpoint.
+- The protected lane now counts those fields, validates canonical inputs,
+  rejects ambiguous semantic columns, uses a full SHA-256 idempotency key,
+  isolates the scoring worker to eight environment variables, waits for the
+  exact queued scoring job, and includes disposable-Mongo coverage for tenant
+  ownership, minimization, persistence, scoring, receipt redaction, and rerun
+  idempotence. The repair is published in pull request #9 at `b3628ad`, where
+  exact-head push run `33906716575` and pull-request run `33906735905` passed
+  every gate. Authorized human review and merge remain required.
+- Atlas remains restricted to `readWrite@tax_lien_chatgpt_staging` on only the
+  `TaxLienStaging` cluster, and `AyobamiH` remains the accountable private-pilot
+  owner. The open real gates are a sanitized receipt for the real ChatGPT OAuth
+  connection, an owner-authorized Maricopa dataset with explicit rights,
+  provenance, as-of, retention, and no-training attestations, protected-lane
+  execution, and the connected grounding and safety evaluation. The public
+  gateway continues to reject `/datasets`, and MCP remains read-only.
 
 ## Historical Evidence
 
