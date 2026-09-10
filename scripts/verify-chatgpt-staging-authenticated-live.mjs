@@ -64,6 +64,8 @@ try {
 
   await assertExplicitConsentRequired(principals.owner);
   pass("explicit_consent_required");
+  await assertConsentNavigationPolicy();
+  pass("consent_form_callback_policy");
   const owner = await authorize(principals.owner);
   pass("pkce_authorization_code_exchange");
 
@@ -326,6 +328,7 @@ async function authorize(principal) {
     signal: AbortSignal.timeout(30_000),
   });
   assert(response.status === 303, "authorization did not return a callback");
+  assertConsentPolicy(response);
   const location = response.headers.get("location");
   assert(location, "authorization callback location is missing");
   const callback = new URL(location);
@@ -345,6 +348,32 @@ async function authorize(principal) {
   assert(token.body?.token_type === "Bearer" && token.body?.expires_in === 900 && token.body?.scope === scope, "token response drifted");
   rememberTokenId(token.body.access_token);
   return { verifier, code, tokens: token.body };
+}
+
+function assertConsentPolicy(response) {
+  assert(
+    response.headers.get("content-security-policy") ===
+      `default-src 'none'; base-uri 'none'; form-action 'self' ${origin} https://chatgpt.com; frame-ancestors 'none'`,
+    "consent form callback policy drifted",
+  );
+}
+
+async function assertConsentNavigationPolicy() {
+  const parameters = form({
+    response_type: "code", client_id: clientId, redirect_uri: redirectUri,
+    code_challenge: challenge(randomVerifier()), code_challenge_method: "S256",
+    resource, scope, state: randomUUID(),
+  });
+  const response = await fetch(`${origin}/oauth/authorize?${parameters}`, {
+    redirect: "manual", signal: AbortSignal.timeout(30_000),
+  });
+  try {
+    assert(response.status === 200, "consent page did not render");
+    assertConsentPolicy(response);
+    assert(response.headers.get("cache-control") === "no-store", "consent caching drifted");
+  } finally {
+    await response.body?.cancel();
+  }
 }
 
 async function assertExplicitConsentRequired(principal) {

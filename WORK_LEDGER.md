@@ -1,5 +1,42 @@
 # Work Ledger
 
+## 2026-09-10 - P47-093 owner recovered; real browser CSP blocker
+
+- Starting main `607c40be680a77b212586c28385d3d51602c241b` contains merged PR12.
+  Main CI `34527231644` passed 343 Vitest and 10 Python tests and the protected
+  bootstrap/recovery/ingestion and persistence gates.
+- Private deployment `34527725520` succeeded with 12 public and 17 authenticated
+  checks, log redaction and rollback/recovery. Its sanitized artifact is
+  `10172449189`, SHA-256
+  `338f989915dfdb1ec7ff0abecc47b8782d8b8d4c130141eb308b129aa6b0ad84`.
+- The owner submitted recovery run `34532216101`; it succeeded on the same SHA.
+  Sanitized artifact `10173950704`, SHA-256
+  `0a98176042f41646da6eb85e288372add99d61ff2d2d5df2eed4afdac9daab53`.
+  These are verified run/log/artifact metadata; archive retrieval returned 403,
+  so no downloaded receipt contents are represented as inspected evidence.
+- ChatGPT OAuth reached the real consent form. The owner supplied a screenshot
+  showing Chromium blocking form navigation under form-action. Existing policy
+  allowed only the issuer, omitting ChatGPT's callback. No password reset is
+  indicated by that error and no credential value was inspected.
+- The source repair adds the validated callback origin only after complete
+  authorization-request validation, keeps issuer-relative credential POST and
+  303 GET callbacks, and preserves the policy on failed-login HTML. Invalid
+  callbacks retain the restrictive default. No wildcard or script permission
+  is introduced. The focused regression failed against the original policy.
+- Added real-service tests for exact policy, successful consent, deny, retry and
+  four rejected callback variants. The authenticated deployment verifier now
+  checks the GET consent policy and the POST callback policy. Full verification
+  results and release evidence follow; browser execution remains a separate gate.
+- Verification: 23 focused OAuth tests passed; full suite passed 348 Vitest
+  tests across 52 files and 10 Python tests. Typecheck, complete build, local
+  runtime smoke, audit (zero vulnerabilities), graph/staging/release validators,
+  verifier syntax and git diff --check passed. Browser-related unit tests ran
+  inside the full suite. Crabbox is absent from PATH and the repository; real
+  Mongo smokes remain CI gates. These results are not live browser proof.
+- Scope stays P47-093, ownerRole chatgpt-release-engineer. Authorised real data,
+  connected evaluation and consenting participant outcomes remain unsupplied.
+
+
 ## 2026-09-10 - P47-093 dependency gate repair before owner recovery
 
 - The owner reported saving the replacement email and password hash. No secret

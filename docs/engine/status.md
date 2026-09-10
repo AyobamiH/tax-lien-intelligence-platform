@@ -4,14 +4,18 @@ Last updated: 2026-09-10
 
 ## Current Recovery Checkpoint
 
-- PR #11 merged at `2c14e70`; recovery source is already on main.
-- Bootstrap is restricted to `main`. The owner reports saving replacement
-  credentials; actual recovery and OAuth still need execution evidence.
-- September 10 CI `34499289217` failed newly reported dependency advisories.
-  Patched dependencies now pass clean install and audit with zero findings.
-  Full PR CI and exact-revision staging deployment remain pending.
-- P47-093 remains the only active node. No real dataset or participant outcome
-  is claimed; public submission remains gated on connected validation.
+- PR #12 merged at `607c40b`; full main CI `34527231644` passed with
+  343 Vitest tests and 10 Python tests, plus persistence and protected-lane gates.
+- Private staging `34527725520` passed source, deploy, exact revision, 12 public
+  and 17 authenticated checks, log redaction, rollback and recovery.
+- Owner credential recovery `34532216101` succeeded on the same revision.
+  No secret values were accessed or recorded.
+- Real owner sign-in exposed a browser form-action CSP failure. The repair adds
+  only the validated callback origin to the consent navigation policy and tests
+  successful consent, denial, retry and rejected callback cases. Its merge,
+  deployment and real ChatGPT connection remain pending verification.
+- P47-093 remains the only active node. No authorised dataset or participant
+  outcome has been supplied; public submission remains gated on that evidence.
 
 ## Verified September 4 State
 

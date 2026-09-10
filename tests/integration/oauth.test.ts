@@ -173,9 +173,36 @@ describe("ChatGPT OAuth 2.1 boundary", () => {
     expect(invalidPkce.body.error).toBe("invalid_request");
   });
 
+  it("permits only the validated callback origin in the consent form policy", async () => {
+    const { app } = await fixture();
+    const response = await request(app).get("/oauth/authorize").query(authorizationParameters()).expect(200);
+    expect(response.headers["content-security-policy"]).toBe(consentPolicy);
+    expect(response.text).toContain('<form method="post" action="/oauth/authorize">');
+    expect(response.headers["cache-control"]).toBe("no-store");
+  });
+
+  it.each([
+    "https://attacker.example/callback",
+    "https://chatgpt.com.attacker.example/connector_platform_oauth_redirect",
+    "https://chatgpt.com/unregistered-callback",
+    `${redirectUri}?next=https://attacker.example`,
+  ])("does not widen CSP or redirect for an unregistered callback: %s", async (redirect) => {
+    const { app, userStore } = await fixture();
+    const lookupCount = userStore.findByEmailCalls;
+    for (const method of ["get", "post"] as const) {
+      const parameters = { ...authorizationParameters(), redirect_uri: redirect, decision: "deny" };
+      const pending = request(app)[method]("/oauth/authorize");
+      const response = await (method === "get" ? pending.query(parameters) : pending.type("form").send(parameters)).expect(400);
+      expect(response.headers["content-security-policy"]).toBe(basePolicy);
+      expect(response.headers.location).toBeUndefined();
+    }
+    expect(userStore.findByEmailCalls).toBe(lookupCount);
+  });
+
   it("exchanges a one-time PKCE code and accepts only the OAuth token at MCP", async () => {
     const context = await fixture();
     const authorization = await authorize(context.app);
+    expect(authorization.headers["content-security-policy"]).toBe(consentPolicy);
     const callback = new URL(authorization.headers.location);
     expect(callback.searchParams.get("state")).toBe("test-state");
     expect(callback.searchParams.get("iss")).toBe(issuerUrl);
@@ -289,6 +316,8 @@ describe("ChatGPT OAuth 2.1 boundary", () => {
     }).expect(401);
     expect(response.text).toContain("Email or password is incorrect.");
     expect(response.text).not.toContain("not-the-password");
+    expect(response.headers["content-security-policy"]).toBe(consentPolicy);
+    expect(response.text).toContain('<form method="post" action="/oauth/authorize">');
   });
 
   it.each([
@@ -320,6 +349,7 @@ describe("ChatGPT OAuth 2.1 boundary", () => {
       ...authorizationParameters(),
       decision: "deny",
     }).expect(303);
+    expect(response.headers["content-security-policy"]).toBe(consentPolicy);
     const callback = new URL(response.headers.location);
     expect(callback.searchParams.get("error")).toBe("access_denied");
     expect(callback.searchParams.get("state")).toBe("test-state");
@@ -363,6 +393,9 @@ describe("ChatGPT OAuth 2.1 boundary", () => {
     expect(removed.body.error.code).toBe("auth_user_not_found");
   });
 });
+
+const basePolicy = `default-src 'none'; base-uri 'none'; form-action 'self' ${issuerUrl}; frame-ancestors 'none'`;
+const consentPolicy = `default-src 'none'; base-uri 'none'; form-action 'self' ${issuerUrl} https://chatgpt.com; frame-ancestors 'none'`;
 
 async function fixture(clock = { now: new Date() }) {
   const userStore = new InMemoryUserStore();

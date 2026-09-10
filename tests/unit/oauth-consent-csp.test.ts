@@ -28,7 +28,7 @@ function createConsentTestApp() {
 }
 
 describe("OAuth consent CSP", () => {
-  it("overrides Helmet's self-only form policy with the exact OAuth issuer origin", async () => {
+  it("allows the issuer form submission and validated ChatGPT callback navigation", async () => {
     const response = await request(createConsentTestApp())
       .get("/oauth/authorize")
       .query({
@@ -44,7 +44,7 @@ describe("OAuth consent CSP", () => {
       .expect(200);
 
     expect(response.headers["content-security-policy"]).toBe(
-      `default-src 'none'; base-uri 'none'; form-action 'self' ${issuerUrl}; frame-ancestors 'none'`,
+      `default-src 'none'; base-uri 'none'; form-action 'self' ${issuerUrl} https://chatgpt.com; frame-ancestors 'none'`,
     );
     expect(response.text).toContain('<form method="post" action="/oauth/authorize">');
     expect(response.headers["content-security-policy"]).not.toContain("form-action *");
