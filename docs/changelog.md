@@ -2,6 +2,9 @@
 
 ## 2026-09-10 - OAuth callback CSP repair
 
+- Make the real-process oversized-request test send headers without a body,
+  proving early 413 rejection without racing an intentional socket close.
+
 - Permit the validated callback origin in the consent form navigation policy
   while retaining exact redirect validation, an issuer-relative credential POST,
   a 303 GET callback and restrictive script/base/frame controls.

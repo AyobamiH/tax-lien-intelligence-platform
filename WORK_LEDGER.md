@@ -33,6 +33,15 @@
   verifier syntax and git diff --check passed. Browser-related unit tests ran
   inside the full suite. Crabbox is absent from PATH and the repository; real
   Mongo smokes remain CI gates. These results are not live browser proof.
+- PR13 CI34533608045 then exposed an existing real-process oversized-request
+  test race: Node fetch can report EPIPE while uploading after Python rejects
+  the Content-Length and closes. The same-source push passed that test stage.
+  Replaced the oversized upload with a fresh HTTP connection sending only the
+  oversized Content-Length header, bounded by a five-second abort. The test
+  still requires exact 413 JSON and now proves rejection before body receipt;
+  it does not ignore network errors, retry away failures or relax service limits.
+  All 32 focused OAuth and real-process tests passed after this test-only repair;
+  revised full PR CI remains required.
 - Scope stays P47-093, ownerRole chatgpt-release-engineer. Authorised real data,
   connected evaluation and consenting participant outcomes remain unsupplied.
 
