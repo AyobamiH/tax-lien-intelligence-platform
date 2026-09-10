@@ -1,5 +1,18 @@
 # Security Hardening KB
 
+## September 10 OAuth browser blocker
+
+Private staging run `34527725520` and owner credential recovery `34532216101`
+passed on revision `607c40be680a77b212586c28385d3d51602c241b`. Owner sign-in
+then exposed a Chromium form-action failure. The policy previously allowed only
+the issuer and omitted the validated ChatGPT callback origin. The repair keeps
+the credential POST issuer-relative and permits only the validated callback
+origin for the 303 GET navigation. Invalid callbacks cannot broaden the policy;
+failed-login retries retain it. The deployed HTTP verifier now checks the form
+policy explicitly, but real browser connection evidence remains required.
+No credential values or browser console payloads belong in receipts or logs.
+
+
 ## What This File Governs
 
 This file governs security posture, trust boundaries, hardening requirements, and

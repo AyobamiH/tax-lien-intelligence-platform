@@ -1,5 +1,6 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { once } from "node:events";
+import { request as httpRequest } from "node:http";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -199,16 +200,32 @@ describe("intelligence service process contract", () => {
     });
     expect(unsupported.status).toBe(415);
 
-    const oversized = await fetch(`${running.baseUrl}/v1/evaluate`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${serviceToken}`,
-        "Content-Type": "application/json",
-      },
-      body: "x".repeat(1_048_577),
+    await unsupported.body?.cancel();
+
+    // Send headers only: rejection must happen before reading the body.
+    // Uploading the oversized body races the server's intentional close (EPIPE).
+    const oversized = await new Promise<{ status: number | undefined; body: string }>((resolve, reject) => {
+      const outgoing = httpRequest(`${running.baseUrl}/v1/evaluate`, {
+        method: "POST",
+        agent: false,
+        signal: AbortSignal.timeout(5_000),
+        headers: {
+          Authorization: `Bearer ${serviceToken}`,
+          "Content-Type": "application/json",
+          "Content-Length": "1048577",
+        },
+      }, (response) => {
+        let body = "";
+        response.setEncoding("utf8");
+        response.on("data", (chunk: string) => { body += chunk; });
+        response.on("error", reject);
+        response.on("end", () => resolve({ status: response.statusCode, body }));
+      });
+      outgoing.on("error", reject);
+      outgoing.end();
     });
     expect(oversized.status).toBe(413);
-    expect(await oversized.json()).toEqual({
+    expect(JSON.parse(oversized.body)).toEqual({
       error: {
         code: "request_too_large",
         message: "The request body exceeds the configured limit.",

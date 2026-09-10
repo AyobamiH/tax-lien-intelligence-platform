@@ -30,6 +30,18 @@ Token and authorization form bodies use
 no-store`. Failed MCP authentication includes a `WWW-Authenticate` challenge
 with the protected-resource metadata URL and required scope.
 
+## Consent navigation policy
+
+The consent form always submits credentials to the relative `/oauth/authorize`
+endpoint. Its CSP permits the issuer and, only after exact client, redirect,
+PKCE, resource, scope and state validation, the validated callback origin.
+Chromium checks `form-action` on the subsequent 303 navigation too. Both allow
+and deny return 303 so the callback receives a GET, never the credential body.
+Failed-login HTML retains the same policy for a retry. Invalid requests keep
+the restrictive issuer-only policy and receive no redirect. The callback URI
+still requires an exact server-side allowlist match; CSP does not replace it.
+Scripts, framing and base URL changes remain disabled.
+
 ## Token lifecycle
 
 - Authorization codes are random, stored only as SHA-256 hashes, expire after

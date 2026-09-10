@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-09-10 - OAuth callback CSP repair
+
+- Make the real-process oversized-request test send headers without a body,
+  proving early 413 rejection without racing an intentional socket close.
+
+- Permit the validated callback origin in the consent form navigation policy
+  while retaining exact redirect validation, an issuer-relative credential POST,
+  a 303 GET callback and restrictive script/base/frame controls.
+- Cover normal consent, cancellation, failed-login retries and malicious or
+  unregistered callbacks; check deployed consent headers before OAuth exchange.
+- Record successful dependency CI, private deployment and owner recovery without
+  representing them as real ChatGPT connection or pilot evidence.
+
+
 ## Unreleased
 
 - Repair the September 10 dependency audit gate: multer 2.3.0, csv-parse 7.0.2,

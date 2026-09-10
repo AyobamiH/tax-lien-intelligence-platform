@@ -19,10 +19,7 @@ export function createOAuthRouter(
   router.use((_request, response, next) => {
     response.setHeader("Cache-Control", "no-store");
     response.setHeader("Pragma", "no-cache");
-    response.setHeader(
-      "Content-Security-Policy",
-      `default-src 'none'; base-uri 'none'; form-action 'self' ${issuerOrigin}; frame-ancestors 'none'`,
-    );
+    setConsentPolicy(response, issuerOrigin);
     next();
   });
   router.get("/.well-known/oauth-protected-resource", (_request, response) => {
@@ -38,6 +35,7 @@ export function createOAuthRouter(
   router.get("/oauth/authorize", limit, (request, response) => {
     try {
       const authorizationRequest = oauthService.validateAuthorizationRequest(readAuthorizationRequest(request));
+      setConsentPolicy(response, issuerOrigin, authorizationRequest);
       response.type("html").send(renderConsentPage(authorizationRequest));
     } catch (error) {
       sendOAuthError(response, error);
@@ -48,6 +46,7 @@ export function createOAuthRouter(
     let authorizationRequest: AuthorizationRequest | undefined;
     try {
       authorizationRequest = oauthService.validateAuthorizationRequest(readAuthorizationRequest(request));
+      setConsentPolicy(response, issuerOrigin, authorizationRequest);
       const decision = stringValue(request.body?.decision);
       if (decision === "deny") {
         response.redirect(
@@ -120,6 +119,18 @@ export function createOAuthRouter(
   });
 
   return router;
+}
+
+function setConsentPolicy(response: Response, issuerOrigin: string, validatedRequest?: AuthorizationRequest): void {
+  // Chromium also checks form-action while following the POST's 303 callback.
+  // Only use a request that passed the service's exact redirect/client allowlists.
+  // Credentials still POST to the issuer; the callback receives a GET with code/state.
+  const callbackOrigin = validatedRequest ? new URL(validatedRequest.redirectUri).origin : undefined;
+  const sources = [...new Set(["'self'", issuerOrigin, ...(callbackOrigin ? [callbackOrigin] : [])])];
+  response.setHeader(
+    "Content-Security-Policy",
+    `default-src 'none'; base-uri 'none'; form-action ${sources.join(" ")}; frame-ancestors 'none'`,
+  );
 }
 
 function readAuthorizationRequest(request: Request): AuthorizationRequest {

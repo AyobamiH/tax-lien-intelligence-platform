@@ -20,6 +20,7 @@ that are not established by repository code alone.
 | Stolen access token | Short expiry, persisted `jti` revocation, no token in tool output | Verify log redaction and revocation from the deployed service |
 | Deleted or disabled identity | User existence checked at code exchange, refresh, and MCP access | Add any future account-disabled state to the same check |
 | Cross-tenant access | Authenticated subject is captured server-side; workspace membership resolves before tenant data access | Run owner/admin/member/denied/cross-workspace cases on staging |
+| Form callback blocked or redirected to an attacker | Issuer-relative credential POST, validated callback origin in form-action, 303 GET callback, exact redirect allowlist, no script/base/frame permissions | Verify actual ChatGPT browser navigation after deployment |
 | Consent confusion | Product name, read-only scope, exclusions, allow and cancel actions are explicit | Validate wording with pilot users and privacy owner |
 | Credential guessing or endpoint abuse | Bounded bodies, IP-keyed fixed-window rate limits, generic credential failures | Load test the real ingress and verify proxy-hop configuration |
 | Revocation-store outage | Revocation write errors fail the request; MCP verification fails closed on store errors | Alert on store failures and exercise rollback/failover |
@@ -43,7 +44,15 @@ rate-limit event, and redaction outcome.
   topology needs an ingress or shared limiter before load claims are made.
 - HMAC token signing is suitable for this same-service authorization/resource
   server topology; secret custody and rotation are deployment responsibilities.
-- No stable domain, deployment receipt, ChatGPT connection receipt, privacy
-  approval, support owner, or incident owner exists in repository evidence yet.
+- Private deployment and owner governance are evidenced in the release package.
+  The September 10 staging and owner-recovery workflows passed; actual ChatGPT
+  sign-in exposed a callback CSP defect. A successful real ChatGPT connection
+  receipt and real-user pilot are still required.
 - OAuth code tests do not prove live TLS, ingress behavior, availability, log
   redaction, tenant isolation with production data, or ChatGPT interoperability.
+
+## Browser policy reference
+
+[W3C CSP form-action](https://www.w3.org/TR/CSP3/#directive-form-action)
+constrains form navigation. HTTP assertions are not browser execution evidence;
+actual ChatGPT OAuth must pass separately from the deployment verifier.
