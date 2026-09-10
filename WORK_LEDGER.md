@@ -1,5 +1,24 @@
 # Work Ledger
 
+## 2026-09-10 - P47-093 dependency gate repair before owner recovery
+
+- The owner reported saving the replacement email and password hash. No secret
+  value was accessed. The manual recovery workflow has no execution receipt;
+  owner confirmation and final dispatch remain pending.
+- CI run 34499289217 on main 9829a92 failed its unchanged npm audit gate after
+  new advisories: four high and four moderate affected package entries.
+- Targeted updates resolve multer 2.3.0, csv-parse 7.0.2, qs 6.16.0,
+  Vitest 4.1.11 and Wrangler 4.131.0 with sharp 0.35.4. The upstream
+  csv-parse changelog declares no breaking changes for its accidental 7.0.0
+  major version; 7.0.2 fixes prototype replacement through columns.
+  Existing bounded CSV array parsing and authorization options remain unchanged.
+- Lock regeneration used lifecycle scripts disabled. Clean npm ci
+  --ignore-scripts succeeds; npm audit --json reports zero vulnerabilities.
+  Package/lock whitespace checks pass. Full typecheck, tests, build, protected
+  recovery/ingestion tests and Mongo smokes must pass PR CI before merge.
+- P47-093 remains active. Patched deployment, actual owner recovery, OAuth,
+  authorised data, connected evaluation and the real-user pilot remain open.
+
 ## 2026-09-10 - P47-093 recovery prerequisites reconciled
 
 - Resumed from main `2c14e706e64cdd4c3e0e56e1b1081d532ec303b2`.

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Repair the September 10 dependency audit gate: multer 2.3.0, csv-parse 7.0.2,
+  Wrangler 4.131.0 with sharp 0.35.4, qs 6.16.0 and Vitest 4.1.11.
+  Targeted lock regeneration and clean install report zero npm advisories.
+  Full CI and private-staging redeployment remain separate required evidence.
+
 - Advanced P47-093 live private configuration without overstating completion.
   The existing personal developer-mode ChatGPT app is installed, and GitHub
   environment `chatgpt-real-data-pilot` exists with deployment limited to

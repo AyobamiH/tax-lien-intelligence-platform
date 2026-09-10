@@ -1,9 +1,9 @@
 {
   "schemaVersion": "1.0.0",
   "graphId": "tax-lien-intelligence-engine-phase-47",
-  "updatedAt": "2026-09-01T08:32:09.000Z",
+  "updatedAt": "2026-09-10T20:29:10.870Z",
   "repository": "AyobamiH/tax-lien-intelligence-platform",
-  "branch": "fix/p47-093-staging-rollout-gate",
+  "branch": "feature/p47-093-security-refresh-20260910",
   "goal": "Release a trustworthy read-only ChatGPT product on the versioned evidence-first engine without fabricated predictions or parallel product tracks.",
   "policies": {
     "noMockIntelligence": true,
@@ -615,10 +615,12 @@
         "Pull request 10 merged at main revision 3ee3c517975c3707257745fa90ffdf161972f884; post-merge workflow 33918193866 passed",
         "On 2026-09-04 the existing personal developer-mode ChatGPT app was installed; it remained at Connection: Connect with zero discovered actions because owner OAuth was not submitted",
         "GitHub environment chatgpt-real-data-pilot was created as environment 21275904999 with deployment limited to main and zero configured secrets; the sanitized receipt stores no credential, token, email identity, or dataset",
-        "The accountable owner confirmed that they did not create or retain the automated bootstrap plaintext credential; controlled recovery source requires the exact sole owner boundary, revokes pending codes and active OAuth/refresh grants, preserves all principal/workspace/membership identifiers, and rotates only a protected normalized email and bcrypt hash"
+        "The accountable owner confirmed that they did not create or retain the automated bootstrap plaintext credential; controlled recovery source requires the exact sole owner boundary, revokes pending codes and active OAuth/refresh grants, preserves all principal/workspace/membership identifiers, and rotates only a protected normalized email and bcrypt hash",
+        "PR11 is merged at 2c14e70. September10 bootstrap environment was restricted to exactly main. Owner reports saving replacement credentials; recovery and OAuth remain unverified.",
+        "CI34499289217 failed npm audit. Targeted source dependency repairs pass clean install and audit with zero vulnerabilities; full PR CI and staging deployment remain required."
       ],
       "blockers": [
-        "merge and execute controlled owner-credential recovery, complete owner OAuth and archive a sanitized successful ChatGPT connection receipt, securely populate chatgpt-real-data-pilot with MONGODB_URI, CHATGPT_PILOT_EMAIL, and CHATGPT_PILOT_DATA_B64, provide the small owner-authorized Maricopa sale-list rights/provenance/as-of/retention/no-training attestations, run the protected lane, and execute the connected ChatGPT core, grounding, injection, and out-of-scope cases"
+        "Verify and merge dependency repair with full CI, deploy and verify the exact patched staging revision, execute owner credential recovery, complete real ChatGPT OAuth and archive its sanitized receipt, then populate the protected pilot environment with a specific authorised dataset and run connected evaluation."
       ]
     },
     {
