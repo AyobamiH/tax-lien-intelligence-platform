@@ -78,3 +78,21 @@ not overstate the deployed runtime surface. Runtime packages remain under
 At Phase 34 completion, both full `npm audit` and production-only
 `npm audit --omit=dev` report zero vulnerabilities. There is no known unresolved
 dependency risk recorded by npm.
+
+## 2026-09-10 Private-Staging Refresh
+
+CI run 34499289217 reported four high and four moderate affected package
+entries. Runtime upload handling uses multer 2.3.0, CSV parsing uses
+csv-parse 7.0.2, and qs resolves to 6.16.0. Test tooling resolves Vitest and its
+mocker to 4.1.11. Deployment tooling pins Wrangler 4.131.0 with sharp 0.35.4.
+
+The [upstream CSV changelog](https://github.com/adaltas/node-csv/blob/master/packages/csv-parse/CHANGELOG.md)
+declares no breaking changes for its accidental 7.0.0 major version, and
+7.0.2 repairs prototype replacement via columns. The platform continues using
+bounded synchronous array parsing; no parsing or authorization options change.
+Existing dataset and protected-ingestion integration tests remain gates.
+
+Targeted lock regeneration used lifecycle scripts disabled. A clean install
+and full npm audit passed with zero vulnerabilities before PR submission.
+Only governed private-staging verification can prove deployment of the patched
+runtime. No audit threshold is weakened and no advisory is suppressed.

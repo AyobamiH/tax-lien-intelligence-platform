@@ -1,8 +1,19 @@
 # Intelligence Engine Status
 
-Last updated: 2026-09-04
+Last updated: 2026-09-10
 
-## Verified Current State
+## Current Recovery Checkpoint
+
+- PR #11 merged at `2c14e70`; recovery source is already on main.
+- Bootstrap is restricted to `main`. The owner reports saving replacement
+  credentials; actual recovery and OAuth still need execution evidence.
+- September 10 CI `34499289217` failed newly reported dependency advisories.
+  Patched dependencies now pass clean install and audit with zero findings.
+  Full PR CI and exact-revision staging deployment remain pending.
+- P47-093 remains the only active node. No real dataset or participant outcome
+  is claimed; public submission remains gated on connected validation.
+
+## Verified September 4 State
 
 - Pull request #10 merged at
   `main@3ee3c517975c3707257745fa90ffdf161972f884`; post-merge workflow

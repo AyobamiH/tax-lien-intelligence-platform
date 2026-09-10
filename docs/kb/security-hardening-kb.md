@@ -74,8 +74,10 @@ Current repo protections:
 - frontend compiler, CSS, and bundler packages classified as development-only;
 - Vite upgraded from vulnerable `7.3.3` to `8.0.16` and both esbuild paths
   consolidated on fixed `0.28.1`;
-- `multer` lockfile resolution refreshed to `2.2.0` after new upload DoS
-  advisories affected `2.1.1`;
+- September 10 source dependency refresh resolves multer `2.3.0`,
+  csv-parse `7.0.2`, qs `6.16.0`, Vitest `4.1.11` and Wrangler `4.131.0`
+  with sharp `0.35.4`; clean install and audit report zero vulnerabilities.
+  Full CI and private-staging deployment are separate required checks;
 - full and production-only npm audits at Phase 34 completion report zero known
   vulnerabilities;
 - `JWT_SECRET` modeled in configuration;
