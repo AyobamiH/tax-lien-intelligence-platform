@@ -1,5 +1,42 @@
 # Work Ledger
 
+## 2026-09-10 - P47-093 recovery prerequisites reconciled
+
+- Resumed from main `2c14e706e64cdd4c3e0e56e1b1081d532ec303b2`.
+  PR #11 is merged and its post-merge CI passed; there are no open PRs.
+  The recovery source merge is complete, but no recovery execution or
+  successful owner OAuth connection has been verified.
+- Live GitHub settings showed `chatgpt-pilot-bootstrap` allowed every branch
+  and tag. Restricted it to selected branches with exactly `main` and zero
+  tags, then reloaded the page and verified the saved rule. All three secret
+  names remain present with their prior 2026-09-01 update dates. No secret
+  value was read or changed.
+- The existing personal Tax Lien Intelligence app still shows developer mode,
+  Connection: Connect, and no available actions. The separate real-data
+  environment has no configured secrets. No dataset or participant outcome
+  is claimed.
+- Resume order:
+  1. The accountable owner generates and retains a replacement password, then
+     directly updates the bootstrap email and bcrypt password-hash secrets
+     using the existing recovery runbook. Credential entry requires a secure
+     human handoff; never paste plaintext into chat, source, or CI inputs.
+  2. Run the merged manual recovery workflow on main after the three factual
+     confirmations are satisfied; inspect its sanitized receipt and complete
+     the real ChatGPT OAuth connection.
+  3. Verify exactly six read-only tools, then ingest a specific owner-authorized
+     Maricopa CSV through the existing protected workflow with its source date,
+     checksum, rights reference, minimization and no-training attestations.
+     Run workspace discovery, dataset discovery, candidate review, evidence,
+     comparison and cited decision-brief cases in connected ChatGPT.
+  4. Execute the existing 30-case evaluation manifest and record failures.
+     After P47-093 acceptance passes, run P47-094 with at least five distinct
+     consenting target users and ten real tasks, measuring independent core-job
+     completion against the 80% threshold. No user sessions are fabricated and
+     no invitations are sent without identified, authorized recipients.
+- Public release remains gated on that evidence. P47-093 remains in progress;
+  P47-094 and P47-095 are not marked completed. This work changes the live
+  bootstrap branch restriction and this ledger only.
+
 ## 2026-09-04 - P47-093 private configuration advanced to owner OAuth
 
 - Pull request #10 merged at
