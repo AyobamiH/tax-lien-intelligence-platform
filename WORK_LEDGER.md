@@ -1,5 +1,31 @@
 # Work Ledger
 
+## 2026-09-11 - P47-093 verified deployment; owner connection interrupted
+
+- PR13 merged at `1553eabcadec0f3f24938d2bfff7214210209292` after
+  push CI `34534106576` and PR CI `34534110308` passed. Merged-main
+  CI `34534486561` passed the identical tree with 348 Vitest tests, 10 Python
+  tests, protected pilot gates and real Mongo persistence smokes.
+- Private staging workflow `34534965346` passed on that revision: exact
+  container convergence, 12 public checks, 18 authenticated checks including
+  consent-form callback CSP, six read-only tool definitions, log redaction,
+  and governed rollback/recovery. Its sanitized artifact `10175224054` has
+  SHA-256 `66340bbf1203e6085f2a0d4bee33983a7538a72a23675a2c209832c765de9405`.
+  This checkpoint uses verified workflow, job log and artifact metadata;
+  downloaded receipt contents were not inspected because retrieval returned 403.
+- Owner recovery `34532216101` remains successful. The real owner OAuth
+  credential request was interrupted. A fresh ChatGPT Settings inspection on
+  September 11 shows Connection: Connect, no app actions, and development
+  status. No successful ChatGPT connection, owner tool execution, or public
+  submission is claimed. No credential values were inspected or retained.
+- The CSP source fix and deployed header checks are complete. Next: resume
+  secure owner sign-in when the owner is ready, verify actual ChatGPT tool
+  discovery and workspace access, then use a specific authorised Maricopa CSV
+  through the protected ingestion lane and run connected review-to-brief cases.
+  The dataset, rights/source-date details and real pilot participants remain
+  unsupplied. P47-093 stays in progress; P47-094/P47-095 remain gated.
+
+
 ## 2026-09-10 - P47-093 owner recovered; real browser CSP blocker
 
 - Starting main `607c40be680a77b212586c28385d3d51602c241b` contains merged PR12.

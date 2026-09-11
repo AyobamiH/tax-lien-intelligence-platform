@@ -1,21 +1,23 @@
 # Intelligence Engine Status
 
-Last updated: 2026-09-10
+Last updated: 2026-09-11
 
 ## Current Recovery Checkpoint
 
-- PR #12 merged at `607c40b`; full main CI `34527231644` passed with
-  343 Vitest tests and 10 Python tests, plus persistence and protected-lane gates.
-- Private staging `34527725520` passed source, deploy, exact revision, 12 public
-  and 17 authenticated checks, log redaction, rollback and recovery.
-- Owner credential recovery `34532216101` succeeded on the same revision.
-  No secret values were accessed or recorded.
-- Real owner sign-in exposed a browser form-action CSP failure. The repair adds
-  only the validated callback origin to the consent navigation policy and tests
-  successful consent, denial, retry and rejected callback cases. Its merge,
-  deployment and real ChatGPT connection remain pending verification.
-- P47-093 remains the only active node. No authorised dataset or participant
-  outcome has been supplied; public submission remains gated on that evidence.
+- PR13 merged at `1553eab`. PR, push and merged-main CI passed, including
+  348 Vitest tests, 10 Python tests and all protected/persistence gates.
+- Private deployment `34534965346` passed on `1553eab`: exact revision,
+  12 public checks, 18 authenticated checks (including the callback CSP),
+  six read-only tool definitions, log redaction and rollback/recovery.
+- Owner credential recovery `34532216101` succeeded. The subsequent secure
+  owner sign-in was interrupted. Fresh September 11 ChatGPT Settings still
+  shows Connect, no actions and development status. Actual connection remains
+  unverified; the successful automated deployment is separate evidence.
+- Next: secure owner OAuth, actual workspace/tool discovery, then an authorised
+  Maricopa dataset and connected review-to-brief evaluation. Real data and
+  participant outcomes remain unsupplied; public release remains gated.
+- P47-093 is the only active node. Detailed run and artifact metadata are in
+  WORK_LEDGER.md; no credentials, private identifiers or data payloads are stored.
 
 ## Verified September 4 State
 

@@ -619,10 +619,11 @@
         "PR11 is merged at 2c14e70. September10 bootstrap environment was restricted to exactly main. Owner reports saving replacement credentials; recovery and OAuth remain unverified.",
         "CI34499289217 failed npm audit. Targeted source dependency repairs pass clean install and audit with zero vulnerabilities; full PR CI and staging deployment remain required.",
         "September 10: PR12 merged at 607c40b; main CI34527231644, staging34527725520 and owner recovery34532216101 passed. Actual owner sign-in exposed form-action CSP rejection; repair permits only the validated callback origin and adds consent, denial, retry and invalid-callback coverage plus a deployed header gate. Real browser connection remains unverified.",
-        "PR13 CI34533608045 exposed EPIPE in the existing oversized-body process test. A headers-only request now proves exact 413 rejection before upload without relaxing the service or ignoring transport errors; all 32 focused OAuth/process tests pass, revised full CI pending."
+        "PR13 CI34533608045 exposed EPIPE in the existing oversized-body process test. A headers-only request now proves exact 413 rejection before upload without relaxing the service or ignoring transport errors; all 32 focused OAuth/process tests pass, revised full CI pending.",
+        "PR13 merged at 1553eab; push34534106576, PR34534110308 and main34534486561 CI passed. Private deployment34534965346 passed exact revision, 12 public and18 authenticated checks including consent CSP, tool inventory, log redaction and rollback. Owner recovery34532216101 succeeded; secure OAuth was interrupted and fresh September11 Settings still shows Connect with no actions."
       ],
       "blockers": [
-        "Verify, merge and deploy the OAuth callback CSP repair; complete real ChatGPT OAuth and archive its sanitized connection receipt; populate the protected pilot environment with a specific authorised dataset and run connected evaluation."
+        "Resume secure owner OAuth and verify actual ChatGPT tool discovery/workspace access; archive sanitized connection evidence; load a specific owner-authorised Maricopa dataset through the protected lane and run connected evaluation before the real-user pilot."
       ]
     },
     {
