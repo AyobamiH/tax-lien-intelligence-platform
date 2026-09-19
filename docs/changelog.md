@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-09-19 - ChatGPT tool OAuth discovery repair
+
+- Allow data-free MCP initialization and tool discovery before owner OAuth so
+  ChatGPT can discover the approved six-tool surface. Every OAuth-enabled tool
+  now mirrors its required `tax_lien:read` scheme in descriptor metadata.
+- Return a safe tool-level `mcp/www_authenticate` challenge when no bearer token
+  is present, without invoking evidence services. Malformed, invalid, expired,
+  and revoked presented credentials still fail at the HTTP boundary, and the
+  application JWT remains rejected.
+- Extend integration and live-deployment verification for anonymous discovery,
+  descriptor policy, runtime challenge, read-only annotations, and invalid
+  credentials. Update the API, architecture, threat model, contract, runbook,
+  acceptance, status, graph, and work ledger together.
+- Record the external patterns used: OpenAI tool-level OAuth discovery and
+  challenges, Google least-scope production readiness, GitHub protected
+  deployment environments, and Cloudflare versioned rollback. A successful
+  private redeployment and real ChatGPT owner connection remain evidence gates.
+
 ## 2026-09-10 - OAuth callback CSP repair
 
 - Make the real-process oversized-request test send headers without a body,

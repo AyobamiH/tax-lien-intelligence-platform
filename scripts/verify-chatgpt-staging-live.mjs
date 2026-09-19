@@ -7,6 +7,14 @@ const expectedRevision = requireSourceRevision(process.env.LIVE_SOURCE_REVISION)
 const receiptPath = resolve(process.env.LIVE_RECEIPT_PATH ?? "artifacts/chatgpt-staging-live-receipt.json");
 const observedAt = new Date().toISOString();
 const checks = [];
+const expectedTools = [
+  "list_workspaces",
+  "list_datasets",
+  "list_dataset_candidates",
+  "get_candidate_evidence",
+  "compare_candidates",
+  "get_decision_brief",
+];
 
 await checkJson("health", "/healthz", 200, (payload, response) => {
   assert(payload?.service === "tax-lien-api" && payload?.status === "ok", "health payload drifted");
@@ -44,11 +52,22 @@ await checkJson("authorization_server_discovery", "/.well-known/oauth-authorizat
 });
 
 await checkJson(
-  "mcp_oauth_challenge",
+  "mcp_unauthenticated_tool_discovery",
   "/mcp",
-  401,
+  200,
   (payload, response) => {
-    assert(payload?.error?.code === "oauth_missing_token", "MCP did not fail closed");
+    const inventory = payload?.result?.tools ?? [];
+    assert(
+      JSON.stringify(inventory.map((tool) => tool.name)) === JSON.stringify(expectedTools),
+      "MCP tool inventory drifted",
+    );
+    for (const tool of inventory) {
+      assert(
+        JSON.stringify(tool?._meta?.securitySchemes) ===
+          JSON.stringify([{ type: "oauth2", scopes: ["tax_lien:read"] }]),
+        "MCP tool OAuth policy drifted",
+      );
+    }
     const challenge = response.headers.get("www-authenticate") ?? "";
     assert(challenge.includes(`${origin}/.well-known/oauth-protected-resource`), "MCP challenge metadata drifted");
     assert(challenge.includes('scope="tax_lien:read"'), "MCP challenge scope drifted");
@@ -59,12 +78,33 @@ await checkJson(
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: 1,
-      method: "initialize",
-      params: {
-        protocolVersion: "2025-06-18",
-        capabilities: {},
-        clientInfo: { name: "p47-live-verifier", version: "1.0" },
-      },
+      method: "tools/list",
+      params: {},
+    }),
+  },
+);
+
+await checkJson(
+  "mcp_tool_oauth_challenge",
+  "/mcp",
+  200,
+  (payload) => {
+    assert(payload?.result?.isError === true, "unauthenticated MCP tool call did not fail closed");
+    const challenges = payload?.result?._meta?.["mcp/www_authenticate"] ?? [];
+    assert(challenges.length === 1, "MCP tool challenge count drifted");
+    assert(challenges[0].includes(`${origin}/.well-known/oauth-protected-resource`), "tool challenge metadata drifted");
+    assert(challenges[0].includes('scope="tax_lien:read"'), "tool challenge scope drifted");
+    assert(challenges[0].includes('error="insufficient_scope"'), "tool challenge error drifted");
+    assert(challenges[0].includes('error_description='), "tool challenge description is missing");
+  },
+  {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/call",
+      params: { name: "list_workspaces", arguments: {} },
     }),
   },
 );

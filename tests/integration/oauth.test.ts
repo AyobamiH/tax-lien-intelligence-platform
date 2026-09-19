@@ -158,6 +158,62 @@ describe("ChatGPT OAuth 2.1 boundary", () => {
     });
   });
 
+  it("publishes OAuth policy on every tool before sign-in", async () => {
+    const { app } = await fixture();
+    const response = await request(app).post("/mcp").set(mcpHeaders).send({
+      jsonrpc: "2.0",
+      id: randomUUID(),
+      method: "tools/list",
+      params: {},
+    }).expect(200);
+
+    expect(response.headers["www-authenticate"]).toContain("oauth-protected-resource");
+    expect(response.body.result.tools).toHaveLength(6);
+    for (const tool of response.body.result.tools) {
+      expect(tool._meta?.securitySchemes).toEqual([{ type: "oauth2", scopes: [scope] }]);
+      expect(tool.annotations).toMatchObject({
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+      });
+    }
+  });
+
+  it("returns a tool-level OAuth challenge without exposing workspace data", async () => {
+    const { app, evidenceService } = await fixture();
+    const response = await request(app).post("/mcp").set(mcpHeaders).send({
+      jsonrpc: "2.0",
+      id: randomUUID(),
+      method: "tools/call",
+      params: { name: "list_workspaces", arguments: {} },
+    }).expect(200);
+
+    expect(response.body.result.isError).toBe(true);
+    expect(response.body.result.content).toEqual([
+      { type: "text", text: "Authentication is required to use this tool." },
+    ]);
+    const challenges = response.body.result._meta?.["mcp/www_authenticate"];
+    expect(challenges).toHaveLength(1);
+    expect(challenges[0]).toContain(`resource_metadata="${issuerUrl}/.well-known/oauth-protected-resource"`);
+    expect(challenges[0]).toContain(`scope="${scope}"`);
+    expect(challenges[0]).toContain('error="insufficient_scope"');
+    expect(challenges[0]).toContain('error_description="OAuth sign-in is required for this tool."');
+    expect(evidenceService.lastUserId).toBeUndefined();
+  });
+
+  it("keeps malformed supplied OAuth credentials fail-closed at the HTTP boundary", async () => {
+    const { app } = await fixture();
+    const response = await request(app).post("/mcp").set(mcpHeaders).set("Authorization", "Basic invalid").send({
+      jsonrpc: "2.0",
+      id: randomUUID(),
+      method: "tools/list",
+      params: {},
+    }).expect(401);
+    expect(response.body.error.code).toBe("oauth_invalid_header");
+    expect(response.headers["www-authenticate"]).toContain("oauth-protected-resource");
+  });
+
   it("rejects unregistered redirects and non-S256 authorization requests", async () => {
     const { app } = await fixture();
     const invalidRedirect = await request(app).get("/oauth/authorize").query({

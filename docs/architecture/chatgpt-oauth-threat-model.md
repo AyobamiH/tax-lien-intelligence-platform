@@ -24,6 +24,7 @@ that are not established by repository code alone.
 | Consent confusion | Product name, read-only scope, exclusions, allow and cancel actions are explicit | Validate wording with pilot users and privacy owner |
 | Credential guessing or endpoint abuse | Bounded bodies, IP-keyed fixed-window rate limits, generic credential failures | Load test the real ingress and verify proxy-hop configuration |
 | Revocation-store outage | Revocation write errors fail the request; MCP verification fails closed on store errors | Alert on store failures and exercise rollback/failover |
+| Tool discovery cannot initiate account linking | Anonymous initialization/tool listing exposes only schemas and per-tool OAuth policy; every data call requires a verified principal and returns a standards-compatible runtime challenge when missing | Verify actual ChatGPT action discovery and owner OAuth after deployment |
 | Prompt injection in evidence | Six read-only closed-world tools; no write, bid, browser, or legal action | Run the live prompt-injection evaluation catalog |
 
 ## Token storage and logging
@@ -45,9 +46,11 @@ rate-limit event, and redaction outcome.
 - HMAC token signing is suitable for this same-service authorization/resource
   server topology; secret custody and rotation are deployment responsibilities.
 - Private deployment and owner governance are evidenced in the release package.
-  The September 10 staging and owner-recovery workflows passed; actual ChatGPT
-  sign-in exposed a callback CSP defect. A successful real ChatGPT connection
-  receipt and real-user pilot are still required.
+  The September 10 callback CSP defect is repaired and the September 11
+  deployment passed, but the later owner connection attempt still showed no
+  discovered actions. The September 19 source repair adds tool-level OAuth
+  discovery and challenge metadata; a successful deployment, real ChatGPT
+  connection receipt, and real-user pilot are still required.
 - OAuth code tests do not prove live TLS, ingress behavior, availability, log
   redaction, tenant isolation with production data, or ChatGPT interoperability.
 

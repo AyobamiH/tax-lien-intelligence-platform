@@ -1,5 +1,32 @@
 # Work Ledger
 
+## 2026-09-19 - P47-093 ChatGPT tool OAuth discovery repair
+
+- Starting revision `49f80dd277b12f4af798addc27196b52aa8f54f1` retained the
+  September 11 verified deployment but ChatGPT Settings still showed Connect
+  and zero actions. A fresh browser reproduction did not execute a workspace
+  query.
+- Source tracing showed the OAuth middleware rejected every anonymous `/mcp`
+  request. Current OpenAI authentication guidance requires resource metadata,
+  per-tool OAuth policy, and a runtime `mcp/www_authenticate` challenge so the
+  client can discover tools and initiate account linking.
+- The repair allows only MCP initialization/tool listing without a principal,
+  marks all six approved read-only tools with the `tax_lien:read` OAuth scheme,
+  and stops an unauthenticated tool call with a safe challenge before any
+  evidence service invocation. Invalid presented credentials still return HTTP
+  401; authenticated behavior and OAuth-disabled internal JWT behavior are
+  unchanged.
+- Focused `mcp` and `oauth` integration tests passed 29/29. Full local gates
+  then passed: 351 Vitest tests, 10 Python tests, graph/data/release/staging
+  validators, audit with zero vulnerabilities, typecheck, complete build,
+  local API/web smoke, six browser-like smoke cases, nine real
+  intelligence-service smoke cases, live-script syntax, and diff checks. CI,
+  exact-revision private deployment, and the real owner OAuth retry follow.
+- No successful ChatGPT connection or real-data/pilot outcome is claimed. The
+  owner-authorized Maricopa extract, rights/provenance details, and pilot
+  participants remain unsupplied, so P47-093 remains in progress and P47-094 /
+  P47-095 remain gated.
+
 ## 2026-09-11 - P47-093 verified deployment; owner connection interrupted
 
 - PR13 merged at `1553eabcadec0f3f24938d2bfff7214210209292` after

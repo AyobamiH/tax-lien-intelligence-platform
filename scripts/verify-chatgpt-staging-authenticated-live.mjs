@@ -87,6 +87,11 @@ try {
     "deployed tool inventory drifted",
   );
   for (const tool of inventory) {
+    assert(
+      JSON.stringify(tool?._meta?.securitySchemes) ===
+        JSON.stringify([{ type: "oauth2", scopes: ["tax_lien:read"] }]),
+      "tool OAuth policy drifted",
+    );
     assert(tool.annotations?.readOnlyHint === true, "tool read-only annotation drifted");
     assert(tool.annotations?.destructiveHint === false, "tool destructive annotation drifted");
     assert(tool.annotations?.idempotentHint === true, "tool idempotence annotation drifted");
