@@ -1,6 +1,30 @@
 # Intelligence Engine Status
 
-Last updated: 2026-09-11
+Last updated: 2026-09-19
+
+## Current September 19 Source Checkpoint
+
+- The September 11 deployment remains the latest verified live revision.
+  ChatGPT still showed `Connection: Connect` and zero actions when the owner
+  connection was retried.
+- Browser reproduction, the deployed boundary, current OpenAI authentication
+  guidance, and the MCP source converged on one interoperability defect: the
+  OAuth middleware denied initialization/tool discovery before ChatGPT could
+  see the tool-level OAuth policy or receive a runtime account-linking
+  challenge.
+- The source repair permits only data-free initialization and tool discovery
+  without a token, publishes the `tax_lien:read` OAuth scheme for all six
+  read-only tools, and returns `mcp/www_authenticate` before an unauthenticated
+  tool can invoke the evidence service. Invalid, expired, and revoked presented
+  credentials retain HTTP-boundary denial.
+- Full local verification passes: 351 Vitest tests, 10 Python tests, all
+  governed validators, dependency audit with zero vulnerabilities, typecheck,
+  complete build, local API/web smoke, six browser-like smoke cases, nine real
+  intelligence-service smoke cases, live-script syntax, and diff checks. CI and
+  a new exact-revision private deployment are the next evidence gates.
+- Real county data, the connected review-to-brief evaluation, and five-user
+  pilot evidence remain unsupplied. P47-093 stays in progress and public
+  release remains gated.
 
 ## Current Recovery Checkpoint
 

@@ -23,12 +23,15 @@ redirect URI allowlists, an exact resource indicator, and the single
 | `POST /oauth/authorize` | Allow or deny consent; successful responses echo `state` and `iss` |
 | `POST /oauth/token` | Exchange one-time codes or rotate refresh tokens |
 | `POST /oauth/revoke` | Revoke a refresh family or denylist an access-token idempotently |
-| `POST /mcp` | Accept the OAuth bearer token and execute only the six read-only tools |
+| `POST /mcp` | Permit protocol/tool discovery, challenge unauthenticated tool calls, and execute only the six read-only tools after bearer-token verification |
 
 Token and authorization form bodies use
 `application/x-www-form-urlencoded`. OAuth responses set `Cache-Control:
-no-store`. Failed MCP authentication includes a `WWW-Authenticate` challenge
-with the protected-resource metadata URL and required scope.
+no-store`. MCP initialization and `tools/list` expose no tenant data and may be
+used without a token. Each tool declares its OAuth requirement in
+`_meta.securitySchemes`; an unauthenticated tool call returns the same protected
+resource URL and scope in `_meta["mcp/www_authenticate"]`. Malformed or invalid
+presented credentials still receive HTTP 401 with `WWW-Authenticate`.
 
 ## Consent navigation policy
 
@@ -79,10 +82,11 @@ rate limiting is relied upon. Do not enable it speculatively.
 ## Verification
 
 `tests/integration/oauth.test.ts` covers discovery, allowlists, consent denial,
-sign-in normalization, PKCE failure and recovery, one-time codes, OAuth-only
-MCP access, refresh rotation and replay, and access-token revocation. These are
-repository proofs, not a claim that a public endpoint or ChatGPT connection is
-live.
+sign-in normalization, PKCE failure and recovery, one-time codes, anonymous
+tool discovery, tool-level OAuth challenges, invalid-credential rejection,
+OAuth-only data access, refresh rotation and replay, and access-token
+revocation. These are repository proofs, not a claim that a ChatGPT connection
+is live.
 
 Current protocol references:
 

@@ -92,6 +92,9 @@ Phase 47 work is acceptable only when:
   states remain distinguishable to users;
 - ChatGPT tools are read-only, resolve workspace membership server-side, and
   never accept a caller-supplied tenant id;
+- an OAuth-enabled ChatGPT client can discover the exact tool inventory and
+  per-tool scope without tenant data, while every unauthenticated data call
+  fails closed with a standards-compatible account-linking challenge;
 - ChatGPT candidate output separates cited stored facts, fixed-rule inferences,
   versioned engine results, and explicit unknowns;
 - no ChatGPT tool writes product state, changes an engine value, calculates a

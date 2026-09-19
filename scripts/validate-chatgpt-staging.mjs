@@ -247,7 +247,10 @@ for (const liveRequirement of [
   "/.well-known/oauth-protected-resource",
   "/.well-known/oauth-authorization-server",
   "/mcp",
-  "oauth_missing_token",
+  "mcp_unauthenticated_tool_discovery",
+  "mcp_tool_oauth_challenge",
+  "securitySchemes",
+  "mcp/www_authenticate",
   "request_too_large",
   "route_not_found",
 ]) {

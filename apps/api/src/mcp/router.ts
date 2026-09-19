@@ -5,7 +5,7 @@ import * as z from "zod/v4";
 import type { AuthService } from "../auth/auth-service.js";
 import { ApiError } from "../errors/api-error.js";
 import { requireAuth } from "../middleware/auth.js";
-import { requireMcpOAuth } from "../middleware/oauth.js";
+import { mcpOAuthChallenge, resolveMcpOAuth } from "../middleware/oauth.js";
 import type { OAuthService } from "../oauth/oauth-service.js";
 import {
   MCP_TOOL_CONTRACT_VERSION,
@@ -26,15 +26,15 @@ export function createMcpRouter(
   oauthService: OAuthService | null = null,
 ): Router {
   const router = Router();
-  router.use(oauthService ? requireMcpOAuth(oauthService) : requireAuth(authService));
+  router.use(oauthService ? resolveMcpOAuth(oauthService) : requireAuth(authService));
 
   router.post("/", async (request, response) => {
-    if (!request.auth) {
+    if (!request.auth && !oauthService) {
       sendProtocolError(response, 401, -32001, "Authentication is required.");
       return;
     }
 
-    const server = createAuthenticatedMcpServer(request.auth, evidenceService);
+    const server = createMcpServer(request.auth, evidenceService, oauthService);
     const transport = new StreamableHTTPServerTransport({ enableJsonResponse: true });
     try {
       await server.connect(transport as unknown as Parameters<typeof server.connect>[0]);
@@ -63,9 +63,10 @@ export function createMcpRouter(
   return router;
 }
 
-function createAuthenticatedMcpServer(
-  principal: NonNullable<Request["auth"]>,
+function createMcpServer(
+  principal: Request["auth"],
   evidenceService: McpEvidenceServiceContract,
+  oauthService: OAuthService | null,
 ): McpServer {
   const server = new McpServer(
     { name: "tax-lien-intelligence", version: MCP_TOOL_CONTRACT_VERSION },
@@ -80,6 +81,10 @@ function createAuthenticatedMcpServer(
     idempotentHint: true,
     openWorldHint: false,
   } as const;
+  const securitySchemes = oauthService
+    ? [{ type: "oauth2", scopes: [oauthService.config.scope] }]
+    : undefined;
+  const toolMeta = securitySchemes ? { securitySchemes } : undefined;
 
   server.registerTool(
     "list_workspaces",
@@ -89,8 +94,12 @@ function createAuthenticatedMcpServer(
       inputSchema: {},
       outputSchema,
       annotations,
+      ...(toolMeta ? { _meta: toolMeta } : {}),
     },
-    async () => toolResult("list_workspaces", () => evidenceService.listWorkspaces(principal)),
+    async () =>
+      authorizedToolResult("list_workspaces", principal, oauthService, (authenticatedPrincipal) =>
+        evidenceService.listWorkspaces(authenticatedPrincipal),
+      ),
   );
 
   server.registerTool(
@@ -101,9 +110,12 @@ function createAuthenticatedMcpServer(
       inputSchema: { workspaceId: workspaceIdSchema },
       outputSchema,
       annotations,
+      ...(toolMeta ? { _meta: toolMeta } : {}),
     },
     async ({ workspaceId }) =>
-      toolResult("list_datasets", () => evidenceService.listDatasets(principal, workspaceId)),
+      authorizedToolResult("list_datasets", principal, oauthService, (authenticatedPrincipal) =>
+        evidenceService.listDatasets(authenticatedPrincipal, workspaceId),
+      ),
   );
 
   server.registerTool(
@@ -120,10 +132,17 @@ function createAuthenticatedMcpServer(
       },
       outputSchema,
       annotations,
+      ...(toolMeta ? { _meta: toolMeta } : {}),
     },
     async ({ workspaceId, datasetId, offset, limit }) =>
-      toolResult("list_dataset_candidates", () =>
-        evidenceService.listDatasetCandidates(principal, workspaceId, datasetId, offset, limit),
+      authorizedToolResult("list_dataset_candidates", principal, oauthService, (authenticatedPrincipal) =>
+        evidenceService.listDatasetCandidates(
+          authenticatedPrincipal,
+          workspaceId,
+          datasetId,
+          offset,
+          limit,
+        ),
       ),
   );
 
@@ -136,10 +155,11 @@ function createAuthenticatedMcpServer(
       inputSchema: { workspaceId: workspaceIdSchema, candidateId: candidateIdSchema },
       outputSchema,
       annotations,
+      ...(toolMeta ? { _meta: toolMeta } : {}),
     },
     async ({ workspaceId, candidateId }) =>
-      toolResult("get_candidate_evidence", () =>
-        evidenceService.getCandidateEvidence(principal, workspaceId, candidateId),
+      authorizedToolResult("get_candidate_evidence", principal, oauthService, (authenticatedPrincipal) =>
+        evidenceService.getCandidateEvidence(authenticatedPrincipal, workspaceId, candidateId),
       ),
   );
 
@@ -155,10 +175,11 @@ function createAuthenticatedMcpServer(
       },
       outputSchema,
       annotations,
+      ...(toolMeta ? { _meta: toolMeta } : {}),
     },
     async ({ workspaceId, candidateIds }) =>
-      toolResult("compare_candidates", () =>
-        evidenceService.compareCandidates(principal, workspaceId, candidateIds),
+      authorizedToolResult("compare_candidates", principal, oauthService, (authenticatedPrincipal) =>
+        evidenceService.compareCandidates(authenticatedPrincipal, workspaceId, candidateIds),
       ),
   );
 
@@ -174,14 +195,39 @@ function createAuthenticatedMcpServer(
       },
       outputSchema,
       annotations,
+      ...(toolMeta ? { _meta: toolMeta } : {}),
     },
     async ({ workspaceId, comparisonItemId }) =>
-      toolResult("get_decision_brief", () =>
-        evidenceService.getDecisionBrief(principal, workspaceId, comparisonItemId),
+      authorizedToolResult("get_decision_brief", principal, oauthService, (authenticatedPrincipal) =>
+        evidenceService.getDecisionBrief(authenticatedPrincipal, workspaceId, comparisonItemId),
       ),
   );
 
   return server;
+}
+
+function authorizedToolResult(
+  tool: string,
+  principal: Request["auth"],
+  oauthService: OAuthService | null,
+  operation: (principal: NonNullable<Request["auth"]>) => Promise<Record<string, unknown>>,
+) {
+  if (!principal) {
+    if (!oauthService) {
+      return {
+        isError: true,
+        content: [{ type: "text" as const, text: "Authentication is required." }],
+      };
+    }
+    return {
+      isError: true,
+      content: [{ type: "text" as const, text: "Authentication is required to use this tool." }],
+      _meta: {
+        "mcp/www_authenticate": [mcpOAuthChallenge(oauthService, { includeError: true })],
+      },
+    };
+  }
+  return toolResult(tool, () => operation(principal));
 }
 
 async function toolResult(

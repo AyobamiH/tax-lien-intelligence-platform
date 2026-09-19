@@ -1,6 +1,6 @@
 # ChatGPT MCP Tool Contract
 
-Status: repository-verified for authenticated internal validation, not publicly deployed
+Status: deployed to verified private staging; ChatGPT owner connection pending
 
 Contract version: `1.0.0`
 
@@ -13,15 +13,17 @@ stored in an authorized workspace. It is a read-only decision-support surface.
 It cannot upload data, rescore records, alter workflow state, approve an item,
 place a bid, calculate a bid, or execute a purchase.
 
-The server creates a new stateless MCP server for each request. It derives the
-user identity from the bearer token, resolves workspace membership inside the
-API, and passes only the resolved tenant owner id to data services. A caller
-cannot supply a tenant user id.
+The server creates a new stateless MCP server for each request. An unprivileged
+instance may answer initialization and tool-discovery requests. Before any tool
+accesses data, the server derives identity from a verified bearer token,
+resolves workspace membership inside the API, and passes only the resolved
+tenant owner id to data services. A caller cannot supply a tenant user id.
 
-The current application JWT is suitable for internal validation only. A public
-ChatGPT connection still requires the production OAuth authorization flow,
-discovery metadata, a stable public HTTPS endpoint, and deployment validation.
-Those controls are blockers, not assumed capabilities.
+The current application JWT is suitable for internal validation only and is
+rejected by the OAuth-enabled MCP boundary. Private staging has OAuth discovery
+metadata, a stable public HTTPS endpoint, and deployment validation. A real
+ChatGPT owner OAuth connection and connected evaluation remain blockers, not
+assumed capabilities.
 
 ## Tool Inventory
 
@@ -35,7 +37,9 @@ Those controls are blockers, not assumed capabilities.
 | `get_decision_brief` | `workspaceId`, `comparisonItemId` | Privacy-reduced workflow evidence and memo outline | No mutation, approval, or note/comment text |
 
 Every tool declares `readOnlyHint: true`, `destructiveHint: false`,
-`idempotentHint: true`, and `openWorldHint: false`.
+`idempotentHint: true`, and `openWorldHint: false`. In OAuth-enabled operation,
+each descriptor also mirrors the required `tax_lien:read` OAuth scheme in
+`_meta.securitySchemes`.
 
 ## Response Envelope
 
@@ -89,11 +93,14 @@ URL.
 
 ## Error Contract
 
-Authentication failures use the existing JSON API error response before MCP
-tool execution. Tool validation and application errors are returned as MCP
-tool errors. Known application errors expose only a stable code and safe
-message. Unexpected errors become `mcp_tool_failed`; stack traces and internal
-details are not returned.
+Missing authentication on initialization or tool discovery is allowed because
+those responses contain no tenant data. A missing token on a tool call returns
+a safe MCP tool error and `_meta["mcp/www_authenticate"]`, without invoking the
+evidence service. Malformed, invalid, expired, or revoked presented credentials
+use the existing JSON API error response before MCP execution. Tool validation
+and application errors are returned as MCP tool errors. Known application
+errors expose only a stable code and safe message. Unexpected errors become
+`mcp_tool_failed`; stack traces and internal details are not returned.
 
 `GET /mcp` and `DELETE /mcp` return method-not-allowed protocol errors because
 the current implementation is stateless POST only.
@@ -123,8 +130,11 @@ if ChatGPT answers are expected to link users back to the product record.
 
 Focused verification lives in:
 
-- `tests/integration/mcp.test.ts`: bearer authentication, tool inventory,
-  annotations, authenticated principal binding, and invalid inputs;
+- `tests/integration/oauth.test.ts`: OAuth discovery, anonymous tool inventory,
+  descriptor policy, runtime authentication challenge, invalid-credential
+  rejection, and authenticated access;
+- `tests/integration/mcp.test.ts`: application bearer authentication, tool
+  inventory, annotations, authenticated principal binding, and invalid inputs;
 - `tests/unit/mcp-evidence-service.test.ts`: tenant resolution, evidence
   classification, citations, abstention, no-ranking comparison, denied
   workspace access, and prompt-like source data.

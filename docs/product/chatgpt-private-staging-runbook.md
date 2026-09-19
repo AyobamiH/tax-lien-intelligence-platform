@@ -10,34 +10,48 @@ local tests into live evidence.
 
 ## Current promotion hold
 
-Main CI is green at merge `8622b07`, but staging workflow `33485144616`
-attempts 1 and 2 began authenticated verification less than one second after
-deployment and failed with behavior consistent with container rollout overlap;
-no completed success receipt was archived. Both attempts cleaned their
-ephemeral fixtures. The exact-revision convergence correction must pass review,
-and exact-head PR CI run `33489598973` has passed its rollout source commit.
-The documentation-only evidence update must keep a green PR check, then an
-authorized human must merge and reverify main in live staging before first-owner
-provisioning or the real ChatGPT OAuth journey resumes.
+The September 11 private deployment and owner recovery passed, but ChatGPT
+Settings continued to show `Connection: Connect` and zero actions. A September
+19 browser reproduction and source trace found that OAuth middleware rejected
+the unauthenticated MCP initialization/tool-list request before ChatGPT could
+discover per-tool authorization policy. Source now permits data-free protocol
+and tool discovery, publishes OAuth policy on every tool, and returns a runtime
+authorization challenge before any unauthenticated tool can call a data
+service. The repair still needs merged-main CI and an exact-revision private
+staging deployment before the real owner connection is retried.
 
 ## Latest verified deployment
 
-Exact-head workflow [33342222795](https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/33342222795) passed governed source and
-secret validation, deployment, 12 public-boundary checks, 12 authenticated
-OAuth / role / tenant / tool checks, live log redaction, and governed
-rollback/recovery for revision `4fd41e568d8b8a231534ac7b2e610d69a0ff43a3`. It deployed Worker version
-`72e2302b-0531-44ac-a9e7-df945c9a9ff1` and container digest
-`sha256:7a2273ce0a33abdb43bbf09e3a7c6a502aa5d8b2278912851a9342539fd592ef`.
-The rollback routed 100% of traffic to preceding verified version
-`580b752e-d1b8-4e9f-9d28-94e07ba9ba80`, proved health, readiness, OAuth
-discovery, MCP fail-closed behavior, MongoDB, and intelligence readiness, then
-restored the exact current version at 100% and repeated the proof. Only
-sanitized receipts are retained; no provider event, application log, command
-output, marker, credential, token, email, request body, or response body is
-retained. Atlas least privilege and accountable ownership are now satisfied.
-The remaining order is exact-revision redeployment, the protected owner-role
-staging identity and real private ChatGPT OAuth connection, then approved-data
-ingestion and verification.
+Workflow [34534965346](https://github.com/AyobamiH/tax-lien-intelligence-platform/actions/runs/34534965346) passed on merged revision
+`1553eabcadec0f3f24938d2bfff7214210209292`: exact container convergence,
+12 public-boundary checks, 18 authenticated OAuth / role / tenant / tool checks,
+live log redaction, and governed rollback/recovery. Its sanitized artifact
+`10175224054` has SHA-256
+`66340bbf1203e6085f2a0d4bee33983a7538a72a23675a2c209832c765de9405`.
+Only sanitized receipt metadata is represented here; no credential, token,
+email, request body, response body, or evidence payload was retained. The next
+deployment must prove the September 19 discovery/challenge repair at its exact
+revision before the owner OAuth retry.
+
+## Operational patterns applied
+
+- OpenAI's Apps SDK authentication guidance requires protected-resource
+  metadata, per-tool OAuth policy, and a runtime `mcp/www_authenticate`
+  challenge; the staging verifier checks all three surfaces.
+- Google's OAuth production-readiness guidance reinforces separate test and
+  production projects, least scopes, owned HTTPS domains, and accountable
+  contacts; this product stays private-staging-only with one read scope.
+- GitHub protected environments keep deployment secrets behind branch policy
+  and reviewer controls; the workflow receives secrets only in its governed
+  environment job.
+- Cloudflare gradual-deployment guidance favors observable version routing and
+  fast rollback; the workflow pins the exact source revision and proves both
+  rollback and recovery instead of treating a deploy command as success.
+
+References: [OpenAI authentication](https://developers.openai.com/plugins/build/auth),
+[Google OAuth production readiness](https://developers.google.com/identity/protocols/oauth2/production-readiness/policy-compliance),
+[GitHub deployment environments](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments),
+and [Cloudflare gradual deployments](https://developers.cloudflare.com/workers/versions-and-deployments/gradual-deployments/).
 
 ## Selected staging topology
 
@@ -194,10 +208,12 @@ npm run build
 ```
 
 Verify the exact source-revision header first, then all three discovery
-documents, the unauthenticated `/mcp` challenge,
-TLS certificate, health endpoint, token expiry, refresh rotation/replay,
-revocation, and rate limiting. Do not record tokens, codes, emails, prompts, or
-evidence payloads in receipts.
+documents, unauthenticated initialization and the exact six-tool inventory,
+per-tool OAuth metadata, an unauthenticated tool-call
+`mcp/www_authenticate` challenge, TLS certificate, health endpoint, token
+expiry, refresh rotation/replay, revocation, and rate limiting. Invalid
+presented credentials must still receive HTTP 401. Do not record tokens, codes,
+emails, prompts, or evidence payloads in receipts.
 
 The deployment workflow runs both public-boundary and authenticated-boundary
 verifiers. The authenticated verifier may create deterministic fixtures only

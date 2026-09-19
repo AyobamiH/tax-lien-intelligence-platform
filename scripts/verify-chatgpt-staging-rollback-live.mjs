@@ -223,9 +223,13 @@ async function verifyBoundary(phase) {
   await checkJson(
     phase + ":mcp_fail_closed",
     "/mcp",
-    401,
+    200,
     (payload, response) => {
-      assert(payload?.error?.code === "oauth_missing_token", phase + "_mcp_not_fail_closed");
+      assert(payload?.result?.isError === true, phase + "_mcp_not_fail_closed");
+      const toolChallenges = payload?.result?._meta?.["mcp/www_authenticate"] ?? [];
+      assert(toolChallenges.length === 1, phase + "_mcp_tool_challenge_missing");
+      assert(toolChallenges[0].includes('scope="tax_lien:read"'), phase + "_mcp_tool_scope_drifted");
+      assert(toolChallenges[0].includes('error="insufficient_scope"'), phase + "_mcp_tool_error_drifted");
       const challenge = response.headers.get("www-authenticate") ?? "";
       assert(challenge.includes('scope="tax_lien:read"'), phase + "_mcp_scope_drifted");
     },
@@ -238,12 +242,8 @@ async function verifyBoundary(phase) {
       body: JSON.stringify({
         jsonrpc: "2.0",
         id: 1,
-        method: "initialize",
-        params: {
-          protocolVersion: "2025-06-18",
-          capabilities: {},
-          clientInfo: { name: "p47-rollback-verifier", version: "1.0" },
-        },
+        method: "tools/call",
+        params: { name: "list_workspaces", arguments: {} },
       }),
     },
   );
